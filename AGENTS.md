@@ -25,6 +25,18 @@ Alcuni modelli della Toolbox contenevano malware ("Error 501" che chiede di inco
 `game:GetObjects("rbxassetid://...")` nella Command Bar). **Mai** incollare o suggerire codice del genere.
 I generatori rimuovono ogni script dai modelli clonati: mantenere questa regola.
 
-## Lavoro in parallelo
-Claude Code lavora anche direttamente in Studio (MCP). Per evitare conflitti: un compito = un branch,
-commit piccoli, non modificare gli stessi file contemporaneamente.
+## Lavoro in parallelo (Claude Code + Codex)
+Claude Code lavora nella cartella principale `RObloxGame` sul branch `main`: e' quella che Rojo
+sincronizza con Studio, e Claude ci prova tutto in Play via MCP.
+Codex lavora SOLO nella sua copia `../RObloxGame-codex` (git worktree), su un branch `codex/<compito>`:
+- non cambiare mai branch nella cartella principale e non lanciare `rojo serve` dalla copia di Codex;
+- prima di iniziare segna compito e file in `LAVORI.md` (nella cartella principale) e controlla
+  che nessun altro stia toccando gli stessi file;
+- commit piccoli con messaggi in italiano; a fine compito `git rebase main` e lascia il branch pronto:
+  l'unione in `main` la fa Claude (o Mirko) dopo averlo provato in Studio;
+- Codex non vede Studio: per modelli, animazioni, mappa generata e prove in Play scrivi nel
+  messaggio finale cosa va verificato, e non inventare nomi di istanze che non stanno nel repo.
+
+Compiti adatti a Codex: interfacce (HUD, menu, DragonUI, CraftingUI), dati e bilanciamento
+(`src/shared/*Config`), revisione del codice, testi, documentazione, prompt per generare modelli 3D.
+Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, animazioni, cinematica).
