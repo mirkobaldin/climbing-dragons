@@ -448,6 +448,15 @@ function Climbing.isClimbing(): boolean
 	return attached
 end
 
+-- Per il mirino: c'e' una parete a cui aggrapparsi qui vicino? (le stesse regole del click)
+function Climbing.wallInReach(): boolean
+	if not root or attached or mantling then
+		return false
+	end
+	local result = findWallAround()
+	return result ~= nil and (canGrab(result :: RaycastResult))
+end
+
 function Climbing.release()
 	detach(false, "release")
 end
