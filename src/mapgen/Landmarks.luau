@@ -287,8 +287,10 @@ local function skullFromTemplate(template: Model, cfg: any): Model?
 	return model
 end
 
--- Il cerchio di pietre del modello (stile Stonehenge) al posto dei monoliti a blocchi: largo
--- quanto il cerchio (diametro 2 * (ring + 3.5)), appena affondato nel terreno, senza script
+-- Il cerchio di pietre del modello (stile Stonehenge) al posto dei monoliti a blocchi, senza
+-- script. Il prato del modello (una lastra piatta grande quanto tutto) si toglie: il pavimento e'
+-- il terreno. Centro e misura si prendono dal cerchio principale (parte con "cerchio" o "sarsen"
+-- nel nome, se no tutto il modello): largo 2 * (ring + 3), con la pietra piu' bassa a terra.
 local function hengeModel(folder: Instance, floor: Vector3, ring: number): boolean
 	local template: Instance? = nil
 	for _, d in ServerStorage:GetDescendants() do
@@ -302,20 +304,49 @@ local function hengeModel(folder: Instance, floor: Vector3, ring: number): boole
 		return false
 	end
 	local model = (template :: Model):Clone()
+	local _, all = model:GetBoundingBox()
+	local ref: BasePart? = nil
 	for _, d in model:GetDescendants() do
 		if d:IsA("LuaSourceContainer") then
 			d:Destroy() -- i modelli della Toolbox a volte hanno virus
 		elseif d:IsA("BasePart") then
-			d.Anchored = true
+			local n = string.lower(d.Name)
+			local flat = d.Size.Y < 0.02 * math.max(d.Size.X, d.Size.Z) and math.max(d.Size.X, d.Size.Z) > 0.8 * math.max(all.X, all.Z)
+			if flat or string.find(n, "prato") or string.find(n, "ground") or string.find(n, "grass") then
+				d:Destroy()
+			else
+				d.Anchored = true
+				if string.find(n, "cerchio") or string.find(n, "sarsen") then
+					ref = d
+				end
+			end
 		end
 	end
-	local _, size = model:GetBoundingBox()
-	model:ScaleTo(model:GetScale() * 2 * (ring + 3.5) / math.max(size.X, size.Z, 1))
-	local cf, s2 = model:GetBoundingBox()
-	-- il fondo del modello sul pavimento, mezzo stud sotto
-	local offset = model:GetPivot().Position - cf.Position
-	local bottom = Vector3.new(floor.X, floor.Y - 0.5 + s2.Y / 2, floor.Z)
-	model:PivotTo(CFrame.new(bottom + offset) * model:GetPivot().Rotation)
+	local function refSize(): Vector3
+		if ref then
+			return (ref :: BasePart).Size
+		end
+		local _, sz = model:GetBoundingBox()
+		return sz
+	end
+	local function refCenter(): Vector3
+		if ref then
+			return (ref :: BasePart).Position
+		end
+		local cf = model:GetBoundingBox()
+		return cf.Position
+	end
+	local size = refSize()
+	model:ScaleTo(model:GetScale() * 2 * (ring + 3) / math.max(size.X, size.Z, 1))
+	-- la pietra piu' bassa sul pavimento (mezzo stud sotto)
+	local bottom = math.huge
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			bottom = math.min(bottom, d.Position.Y - d.Size.Y / 2)
+		end
+	end
+	local c = refCenter()
+	model:PivotTo(CFrame.new(floor.X - c.X, floor.Y - 0.5 - bottom, floor.Z - c.Z) * model:GetPivot())
 	model.Name = "CerchioDiPietre"
 	model.Parent = folder
 	return true
@@ -382,7 +413,7 @@ local function sanctuary(folder: Instance, floor: Vector3, ring: number, star: n
 		seg.Material = Enum.Material.Neon
 		seg.CanCollide = false
 	end
-	local y = floor + Vector3.new(0, 0.15, 0)
+	local y = floor + Vector3.new(0, 0.6, 0) -- sopra le gobbe dei voxel (il terreno varia di qualche decimo)
 	for k = 0, 39 do
 		local a1, a2 = k / 40 * 2 * math.pi, (k + 1) / 40 * 2 * math.pi
 		glowLine(y + Vector3.new(math.cos(a1) * star, 0, math.sin(a1) * star), y + Vector3.new(math.cos(a2) * star, 0, math.sin(a2) * star), 0.6)
@@ -538,7 +569,12 @@ function Landmarks.build(map: Heightmap.Map)
 		local facing = inward
 		-- scelto a mano: una Part "PuntoCostole" in Workspace (la testa verso il suo davanti).
 		-- Resta li' (invisibile) cosi' a ogni rigenerazione le costole tornano nello stesso posto
-		local manual = workspace:FindFirstChild("PuntoCostole")
+		local manual: Instance? = nil
+		for _, d in workspace:GetChildren() do
+			if string.lower(d.Name) == "puntocostole" then
+				manual = d
+			end
+		end
 		if manual and manual:IsA("BasePart") then
 			c = manual.Position
 			local look = manual.CFrame.LookVector

@@ -68,9 +68,11 @@ function Obstacles.place(map: Heightmap.Map)
 	local O = cfg.OBSTACLES
 	local M = cfg.MOUNTAIN
 	local rng = Random.new(cfg.SEED + 33)
-	local old = workspace:FindFirstChild("Obstacles")
-	if old then
-		old:Destroy()
+	-- tutte le vecchie (se una generazione si era interrotta ne restavano due, poi tre...)
+	for _, old in workspace:GetChildren() do
+		if old.Name == "Obstacles" then
+			old:Destroy()
+		end
 	end
 	local root = Instance.new("Folder")
 	root.Name = "Obstacles"

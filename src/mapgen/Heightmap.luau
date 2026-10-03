@@ -407,10 +407,16 @@ local function buildBase(map: Map, S: { number }, yield: () -> (), progress: (st
 			-- La valle centrale resta sempre terraferma (il mare arriva appena fuori dal varco ovest)
 			local hubDist = sqrt((x - HUB.X) ^ 2 + (z - HUB.Z) ^ 2)
 			landF = max(landF, smoothstep(HUB.WALL.RADIUS + 120, HUB.WALL.RADIUS - 60, hubDist))
+			-- Anche la montagna resta intera fino al piede: e' piu' larga dell'isola, e la costa la
+			-- tagliava con un dirupo seguito da una piana di sabbia fino al bordo della mappa
+			local mDist = sqrt(dx0 * dx0 + dz0 * dz0)
+			landF = max(landF, smoothstep(MR + 220, MR - 120, mDist) * (1 - bk))
 			-- Fondale: laguna bassa di sabbia (acqua turchese) poi barriera e mare profondo
 			local se = e + bk * 0.08
 			local shelf = -3 - smoothstep(1.0, 1.2, se) * 7
-			shelf += max(0, fbm(x / 170, z / 170, S[13] + 5, 2) - 0.12) * 60 -- secche e isolotti di sabbia
+			shelf += max(0, fbm(x / 170, z / 170, S[13] + 5, 2) - 0.12) * 60 -- secche di sabbia
+			-- sempre un po' sott'acqua: quando arrivavano a pelo d'acqua restavano pozzanghere sparse
+			shelf = min(shelf, cfg.WATER_LEVEL - 2.5)
 			local deep = -70 + fbm(x / 500, z / 500, S[2] + 7, 2) * 20
 			local sea = lerp(shelf, deep, smoothstep(1.2, 1.3, se))
 			h = sea + (h - sea) * landF
@@ -426,6 +432,14 @@ local function buildBase(map: Map, S: { number }, yield: () -> (), progress: (st
 						end
 					end
 				end
+			end
+
+			-- Bordo della mappa: negli ultimi EDGE studs il terreno scende dolce in mare (oltre c'e' solo
+			-- l'oceano finto): niente piu' coste tagliate dritte
+			local EDGE = 450
+			local border = min(x - map.minX, map.minX + nx * V - x, z - map.minZ, map.minZ + nz * V - z)
+			if border < EDGE then
+				h = lerp(-40, h, smoothstep(0, EDGE, border))
 			end
 
 			setH(map, i, h)

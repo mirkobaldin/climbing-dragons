@@ -471,7 +471,7 @@ function PetAnimator.start()
 					tracks.walk:AdjustWeight(math.max((1 - air) * moving, 0.001), 0.1)
 					tracks.idle:AdjustWeight(math.max((1 - air) * (1 - moving), 0.001), 0.1)
 					-- il passo segue la corsa del padrone
-					tracks.walk:AdjustSpeed(math.clamp(flat.Magnitude / 12, 0.6, 2))
+					tracks.walk:AdjustSpeed(math.clamp(flat.Magnitude / 12, 0.6, 1.5))
 				elseif pet.quad and not far then
 					animateQuad(pet, t, flat.Magnitude)
 				elseif pet.rig == "bones" and not far then
