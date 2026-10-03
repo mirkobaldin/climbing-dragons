@@ -449,8 +449,11 @@ local function carveLake(map: Map)
 	local M, L = cfg.MOUNTAIN, cfg.LAKE
 	local lakeY = M.HEIGHT * L.HEIGHT_FRAC
 	local r = findSurfaceR(map, L.ANGLE, lakeY) or M.RADIUS * 0.45
-	local lx, lz = M.X + cos(L.ANGLE) * (r - 25), M.Z + sin(L.ANGLE) * (r - 25)
 	local outer = L.RADIUS + L.RIM
+	-- tutto il lago (bordo compreso) sta dentro il pendio, dove il terreno e' piu' alto del pelo
+	-- dell'acqua: si scava e basta. Prima meta' lago sporgeva a valle e il bordo diventava un muro
+	-- costruito sopra la montagna, con l'acqua in cima
+	local lx, lz = M.X + cos(L.ANGLE) * (r - outer - 8), M.Z + sin(L.ANGLE) * (r - outer - 8)
 
 	forColumns(map, lx - outer, lz - outer, lx + outer, lz + outer, function(i, x, z)
 		local d = sqrt((x - lx) ^ 2 + (z - lz) ^ 2)
@@ -459,9 +462,12 @@ local function carveLake(map: Map)
 			setW(map, i, lakeY)
 			writeu8(map.zone, i, Zone.LAKE)
 		elseif d < outer then
-			-- Bordo del circo glaciale: taglia la parete a monte, costruisce il bordo a valle
-			setH(map, i, lakeY + 2 + noise(x / 9, z / 9, 3.3) * 2)
-			writeu8(map.zone, i, Zone.LAKE)
+			-- Bordo del circo glaciale: si taglia la parete, mai si costruisce
+			local rim = lakeY + 2 + noise(x / 9, z / 9, 3.3) * 2
+			if rim < getH(map, i) then
+				setH(map, i, rim)
+				writeu8(map.zone, i, Zone.LAKE)
+			end
 		end
 	end)
 
@@ -533,12 +539,14 @@ local function carveGorge(map: Map, sx: number, sz: number, srcLevel: number)
 			local h = getH(map, i)
 			local isLake = readu8(map.zone, i) == Zone.LAKE
 			if d < G.HALF_WIDTH then
+				-- solo dove la gola e' davvero scavata: un fondo sopra il terreno lascerebbe
+				-- l'acqua sospesa (e poi un argine per tenerla)
 				if fl < h then
 					setH(map, i, fl)
-				end
-				setW(map, i, max(getW(map, i), fl + 5))
-				if not isLake then
-					writeu8(map.zone, i, Zone.GORGE)
+					setW(map, i, max(getW(map, i), fl + 5))
+					if not isLake then
+						writeu8(map.zone, i, Zone.GORGE)
+					end
 				end
 			else
 				local wallH = fl + 5 + (d - G.HALF_WIDTH) * 3
@@ -1522,23 +1530,56 @@ local function carveCrevasses(map: Map)
 end
 
 local function sealWaterEdges(map: Map)
+	-- Acqua che finirebbe a strapiombo su un terreno (o un'acqua) molto piu' basso: prima qui si
+	-- alzava sempre il terreno a fare da argine, e venivano fuori canali rialzati come acquedotti.
+	-- Ora si alza solo un bordino basso (al massimo LIP studs); se servirebbe un muro si toglie
+	-- quell'acqua; i vicini che restano sospesi a loro volta si controllano dopo (a catena),
+	-- cosi' una lastra d'acqua sopra il terreno sparisce tutta.
 	local nx, nz = map.nx, map.nz
 	local NO_WATER = Heightmap.NO_WATER
-	for iz = 1, nz - 2 do
-		for ix = 1, nx - 2 do
-			local i = ix + iz * nx
-			local w = getW(map, i)
-			if w ~= NO_WATER and w > getH(map, i) then
-				for _, j in { i - 1, i + 1, i - nx, i + nx } do
-					if max(getH(map, j), getW(map, j)) < w - map.cfg.WATER_EDGE_DROP then
-						setH(map, i, w + 0.5)
-						setW(map, i, NO_WATER)
-						break
-					end
+	local DROP = map.cfg.WATER_EDGE_DROP
+	local LIP = 6 -- un bordo naturale si alza al massimo di tanto; di piu' sarebbe un muro
+	local queue: { number } = {}
+	local function check(i: number): boolean
+		local ix, iz = i % nx, i // nx
+		if ix < 1 or iz < 1 or ix > nx - 2 or iz > nz - 2 then
+			return false
+		end
+		local w = getW(map, i)
+		if w == NO_WATER or w <= getH(map, i) then
+			return false
+		end
+		for _, j in { i - 1, i + 1, i - nx, i + nx } do
+			if max(getH(map, j), getW(map, j)) < w - DROP then
+				local h = getH(map, i)
+				setW(map, i, NO_WATER)
+				if w + 0.5 - h <= LIP then
+					-- basta un bordino (es. dove una pozza del fiume finisce sulla cascata): si alza
+					-- di poco e l'acqua e' trattenuta, niente catena
+					setH(map, i, w + 0.5)
+					return false
 				end
+				return true
+			end
+		end
+		return false
+	end
+	for i = 0, nx * nz - 1 do
+		if check(i) then
+			table.insert(queue, i)
+		end
+	end
+	local removed = #queue
+	while #queue > 0 do
+		local i = table.remove(queue) :: number
+		for _, j in { i - 1, i + 1, i - nx, i + nx } do
+			if check(j) then
+				removed += 1
+				table.insert(queue, j)
 			end
 		end
 	end
+	map.features.waterRemoved = removed
 end
 
 ------------------------------------------------------------------------------------------

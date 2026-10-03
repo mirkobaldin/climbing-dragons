@@ -260,21 +260,43 @@ local function mountInventory(container: Frame): () -> ()
 
 		local gTitle = Theme.label(list, "Attrezzatura", 15, Theme.TEXT, true)
 		gTitle.LayoutOrder = 4
+		-- icone 3D come nel crafting; quello che non hai e' scuro
+		local ICON = { Chiodi = "Pitons", Torcia = "Torcia" }
+		local COLORS = {
+			Ramponi = Color3.fromRGB(170, 174, 180),
+			Tuta = Color3.fromRGB(235, 120, 50),
+			Rampino = Color3.fromRGB(196, 150, 80),
+			PiccoRinforzato = Color3.fromRGB(255, 190, 40),
+		}
 		for k, recipe in Gear.RECIPES do
 			local owned = Gear.has(player, recipe.id)
 			local row = Theme.frame(list, Theme.CARD)
 			row.LayoutOrder = 4 + k
-			row.Size = UDim2.new(1, -8, 0, 44)
+			row.Size = UDim2.new(1, -8, 0, 64)
 			Theme.corner(row, 10)
+			if owned then
+				Theme.stroke(row, Theme.GOOD, 1.5, 0.35)
+			end
+			local icon = Theme.viewport(row, Theme.itemModel(ICON[recipe.id] or recipe.id, COLORS[recipe.id] or Theme.ACCENT), UDim2.new(0, 56, 0, 56), false)
+			icon.Position = UDim2.new(0, 6, 0, 4)
+			if not owned then
+				icon.ImageTransparency = 0.55
+				icon.ImageColor3 = Color3.fromRGB(150, 150, 160)
+			end
 			local l = Theme.label(
 				row,
-				string.format('%s  <font color="%s">%s</font>', recipe.name, if owned then "#6ECD78" else "#A5AAB6", if owned then "posseduto" else "da costruire al Banco da lavoro"),
-				14,
+				string.format(
+					'%s\n<font size="12" color="%s">%s</font>',
+					recipe.name,
+					if owned then "#6ECD78" else "#A5AAB6",
+					if owned then "posseduto" elseif recipe.station == "Ovunque" then "da costruire (ovunque)" else "da costruire al Banco da lavoro"
+				),
+				15,
 				Theme.TEXT,
 				true
 			)
-			l.Position = UDim2.new(0, 12, 0, 0)
-			l.Size = UDim2.new(1, -24, 1, 0)
+			l.Position = UDim2.new(0, 72, 0, 0)
+			l.Size = UDim2.new(1, -84, 1, 0)
 		end
 	end
 end

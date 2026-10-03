@@ -1,11 +1,7 @@
 --!strict
--- Mirino sullo schermo (come su Blox Fruits): prende il posto della freccia del mouse e la segue
--- (al centro se il mouse e' bloccato; sul telefono al centro, solo con un attrezzo in mano).
--- Cambia colore secondo l'attrezzo che hai in mano:
---   Rampino    verde se il punto mirato e' a portata (Gear.GRAPPLE_RANGE), rosso se no; sotto
---              la distanza in metri
---   Piccozza   verde se c'e' una parete a cui aggrapparsi; bianco quando sei gia' attaccato
---   niente     bianco
+-- Mirino sullo schermo (come su Blox Fruits), solo quando hai in mano il Rampino: prende il posto
+-- della freccia del mouse e la segue (al centro se il mouse e' bloccato o sul telefono).
+-- Verde se il punto mirato e' a portata (Gear.GRAPPLE_RANGE), rosso se no; sotto la distanza.
 -- Tasto X: acceso / spento.
 
 local Players = game:GetService("Players")
@@ -14,10 +10,8 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local ClimbConfig = require(Shared:WaitForChild("ClimbConfig"))
 local Gear = require(Shared:WaitForChild("Gear"))
 local ClientState = require(script.Parent.ClientState)
-local Climbing = require(script.Parent.Climbing)
 
 local player = Players.LocalPlayer
 
@@ -26,7 +20,6 @@ local Crosshair = {}
 local WHITE = Color3.fromRGB(245, 245, 245)
 local GREEN = Color3.fromRGB(110, 235, 130)
 local RED = Color3.fromRGB(240, 90, 80)
-local CHECK_EVERY = 0.1 -- la parete vicina si cerca 10 volte al secondo (sono parecchi raggi)
 
 local enabled = true
 
@@ -87,45 +80,42 @@ function Crosshair.start()
 		label.TextColor3 = c
 	end
 
-	local function apply()
-		gui.Enabled = enabled
-		-- su PC il mirino fa da cursore: la freccia sparisce
-		UserInputService.MouseIconEnabled = not (enabled and UserInputService.MouseEnabled)
+	local shown = false
+	-- su PC il mirino fa da cursore: mentre si vede, la freccia sparisce
+	local function show(on: boolean)
+		if on ~= shown then
+			shown = on
+			gui.Enabled = on
+			UserInputService.MouseIconEnabled = not (on and UserInputService.MouseEnabled)
+		end
 	end
-	apply()
+	gui.Enabled = false
 
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed or input.KeyCode ~= Enum.KeyCode.X then
 			return
 		end
 		enabled = not enabled
-		apply()
 		ClientState.hint = if enabled then "Mirino acceso (X per spegnerlo)" else "Mirino spento (X per riaccenderlo)"
 	end)
 
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 	params.IgnoreWater = true
-	local lastCheck = 0
-	local wallNear = false
 
 	RunService.RenderStepped:Connect(function()
-		if not enabled then
-			return
-		end
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local tool = character and character:FindFirstChildWhichIsA("Tool")
-		local toolName = tool and tool.Name or ""
+		show(enabled and tool ~= nil and tool.Name == "Rampino" and root ~= nil)
+		if not shown or not root then
+			return
+		end
 		local camera = workspace.CurrentCamera
-		local mouse = UserInputService.MouseEnabled
-		local at = if mouse then UserInputService:GetMouseLocation() else camera.ViewportSize / 2
+		local at = if UserInputService.MouseEnabled then UserInputService:GetMouseLocation() else camera.ViewportSize / 2
 		holder.Position = UDim2.fromOffset(at.X, at.Y)
-		-- sul telefono serve solo per mirare con un attrezzo
-		holder.Visible = mouse or toolName == "Rampino" or toolName == ClimbConfig.TOOL_NAME
 		label.Text = ""
-
-		if toolName == "Rampino" and root then
+		do
 			local ray = camera:ViewportPointToRay(at.X, at.Y)
 			params.FilterDescendantsInstances = { character :: Instance, camera }
 			local reach = Gear.GRAPPLE_RANGE + (camera.CFrame.Position - root.Position).Magnitude
@@ -138,18 +128,6 @@ function Crosshair.start()
 			else
 				setColor(RED)
 			end
-		elseif toolName == ClimbConfig.TOOL_NAME then
-			if Climbing.isClimbing() then
-				setColor(WHITE)
-			else
-				if os.clock() - lastCheck > CHECK_EVERY then
-					lastCheck = os.clock()
-					wallNear = Climbing.wallInReach()
-				end
-				setColor(if wallNear then GREEN else WHITE)
-			end
-		else
-			setColor(WHITE)
 		end
 	end)
 end

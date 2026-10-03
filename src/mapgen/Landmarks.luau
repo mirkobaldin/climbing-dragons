@@ -287,6 +287,40 @@ local function skullFromTemplate(template: Model, cfg: any): Model?
 	return model
 end
 
+-- Il cerchio di pietre del modello (stile Stonehenge) al posto dei monoliti a blocchi: largo
+-- quanto il cerchio (diametro 2 * (ring + 3.5)), appena affondato nel terreno, senza script
+local function hengeModel(folder: Instance, floor: Vector3, ring: number): boolean
+	local template: Instance? = nil
+	for _, d in ServerStorage:GetDescendants() do
+		local n = string.lower(d.Name)
+		if d:IsA("Model") and (string.find(n, "henge") or string.find(n, "cerchio")) and not d:FindFirstAncestor("Cestino") then
+			template = d
+			break
+		end
+	end
+	if not template then
+		return false
+	end
+	local model = (template :: Model):Clone()
+	for _, d in model:GetDescendants() do
+		if d:IsA("LuaSourceContainer") then
+			d:Destroy() -- i modelli della Toolbox a volte hanno virus
+		elseif d:IsA("BasePart") then
+			d.Anchored = true
+		end
+	end
+	local _, size = model:GetBoundingBox()
+	model:ScaleTo(model:GetScale() * 2 * (ring + 3.5) / math.max(size.X, size.Z, 1))
+	local cf, s2 = model:GetBoundingBox()
+	-- il fondo del modello sul pavimento, mezzo stud sotto
+	local offset = model:GetPivot().Position - cf.Position
+	local bottom = Vector3.new(floor.X, floor.Y - 0.5 + s2.Y / 2, floor.Z)
+	model:PivotTo(CFrame.new(bottom + offset) * model:GetPivot().Rotation)
+	model.Name = "CerchioDiPietre"
+	model.Parent = folder
+	return true
+end
+
 -- Santuario: cerchio di pietre come Stonehenge (monoliti, un architrave su ogni coppia), pentacolo
 -- di luce a terra inscritto in un cerchio e altare a dolmen al centro (due pietre in piedi e una
 -- lastra, che si chiama altarName: Eggs ci mette sopra l'uovo leggendario). Usato nella camera
@@ -320,7 +354,9 @@ local function sanctuary(folder: Instance, floor: Vector3, ring: number, star: n
 		p.Material = Enum.Material.Slate
 		return p
 	end
-	-- cerchio di pietre (piantate un po' nel terreno: in vetta il suolo non e' perfettamente piano)
+	-- cerchio di pietre: il modello di Mirko (ServerStorage, nome con "henge" o "cerchio"), se
+	-- c'e'; altrimenti monoliti a blocchi piantati un po' nel terreno
+	if not hengeModel(folder, floor, ring) then
 	local STONES = 10
 	local tops = {}
 	for k = 0, STONES - 1 do
@@ -337,6 +373,7 @@ local function sanctuary(folder: Instance, floor: Vector3, ring: number, star: n
 		local mid = (p1 + p2) / 2
 		local len = (p2 - p1).Magnitude + 4
 		stone(Vector3.new(len, 2.2, 2.8), CFrame.lookAt(mid, mid + (p2 - p1).Unit) * CFrame.Angles(0, math.pi / 2, 0) * CFrame.new(0, 0.6, 0))
+	end
 	end
 	-- pentacolo di luce: cerchio e stella a cinque punte, appena sopra il pavimento
 	local function glowLine(p1: Vector3, p2: Vector3, width: number)
@@ -498,9 +535,22 @@ function Landmarks.build(map: Heightmap.Map)
 		ribs:ScaleTo(ribs:GetScale() * length / math.max(size.X, size.Z, 1))
 		local _, s2 = ribs:GetBoundingBox()
 		local c = spot + outward * (L * 0.45 + math.max(s2.X, s2.Z) * 0.5)
+		local facing = inward
+		-- scelto a mano: una Part "PuntoCostole" in Workspace (la testa verso il suo davanti).
+		-- Resta li' (invisibile) cosi' a ogni rigenerazione le costole tornano nello stesso posto
+		local manual = workspace:FindFirstChild("PuntoCostole")
+		if manual and manual:IsA("BasePart") then
+			c = manual.Position
+			local look = manual.CFrame.LookVector
+			facing = if Vector3.new(look.X, 0, look.Z).Magnitude > 0.1 then Vector3.new(look.X, 0, look.Z).Unit else inward
+			manual.Transparency = 1
+			manual.CanCollide = false
+			manual.CanQuery = false
+			manual.Anchored = true
+		end
 		local y = math.max(cfg.WATER_LEVEL, Heightmap.sampleH(map, c.X, c.Z)) - s2.Y * 0.06 -- un po' sepolto
 		local at = Vector3.new(c.X, y, c.Z)
-		ribs:PivotTo(CFrame.lookAt(at, at + inward))
+		ribs:PivotTo(CFrame.lookAt(at, at + facing))
 		ribs.Name = "DragonRibs"
 		ribs.Parent = folder
 	else

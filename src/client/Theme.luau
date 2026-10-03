@@ -228,6 +228,53 @@ function Theme.itemModel(id: string, color: Color3): Model
 		part(Vector3.new(0.35, 2.6, 0.35), CFrame.new(0, -0.3, 0), Color3.fromRGB(110, 76, 46), nil, Enum.Material.Wood)
 		part(Vector3.new(0.7, 0.8, 0.7), CFrame.new(0, 1.2, 0), Color3.fromRGB(60, 44, 30), nil, Enum.Material.Fabric)
 		part(Vector3.new(0.6, 0.9, 0.6), CFrame.new(0, 1.9, 0), Color3.fromRGB(255, 150, 50), Enum.PartType.Ball, Enum.Material.Neon)
+	elseif id == "Rampino" then
+		-- il modello vero del rampino (lo mette il server in ReplicatedStorage), se c'e'
+		local gun = game:GetService("ReplicatedStorage"):FindFirstChild("RampinoScena")
+		if gun then
+			for _, c in gun:GetChildren() do
+				c:Clone().Parent = m
+			end
+		else
+			part(Vector3.new(0.4, 1.6, 0.4), CFrame.new(0, -0.4, 0), Color3.fromRGB(40, 40, 44), nil, Enum.Material.Metal)
+			for k = 0, 2 do
+				part(Vector3.new(0.2, 0.9, 0.2), CFrame.Angles(0, k * 2.1, 0) * CFrame.new(0, 0.7, 0.3) * CFrame.Angles(0.8, 0, 0), Color3.fromRGB(170, 174, 180), nil, Enum.Material.Metal)
+			end
+			part(Vector3.new(0.5, 1.2, 1.2), CFrame.new(0.5, -0.5, 0) * CFrame.Angles(0, 0, math.pi / 2), color, Enum.PartType.Cylinder, Enum.Material.Fabric)
+		end
+	elseif id == "Ramponi" then
+		-- telaio d'acciaio sotto lo scarpone, con le punte
+		local steel = Color3.fromRGB(175, 180, 188)
+		part(Vector3.new(1.3, 0.9, 2.6), CFrame.new(0, 0.55, 0), Color3.fromRGB(60, 50, 44), nil, Enum.Material.Leather)
+		part(Vector3.new(1.4, 0.15, 2.8), CFrame.new(0, 0, 0), steel, nil, Enum.Material.Metal)
+		for _, z in { -1.2, -0.6, 0, 0.6, 1.2 } do
+			for _, x in { -0.6, 0.6 } do
+				part(Vector3.new(0.15, 0.6, 0.15), CFrame.new(x, -0.35, z), steel, nil, Enum.Material.Metal)
+			end
+		end
+		part(Vector3.new(0.15, 0.15, 0.7), CFrame.new(-0.3, -0.05, -1.65) * CFrame.Angles(0.5, 0, 0), steel, nil, Enum.Material.Metal)
+		part(Vector3.new(0.15, 0.15, 0.7), CFrame.new(0.3, -0.05, -1.65) * CFrame.Angles(0.5, 0, 0), steel, nil, Enum.Material.Metal)
+	elseif id == "Tuta" then
+		-- giacca imbottita arancione con cappuccio
+		part(Vector3.new(2, 2.2, 1.1), CFrame.new(), color, nil, Enum.Material.Fabric)
+		part(Vector3.new(0.8, 2, 0.9), CFrame.new(-1.35, -0.1, 0) * CFrame.Angles(0, 0, -0.2), color, nil, Enum.Material.Fabric)
+		part(Vector3.new(0.8, 2, 0.9), CFrame.new(1.35, -0.1, 0) * CFrame.Angles(0, 0, 0.2), color, nil, Enum.Material.Fabric)
+		part(Vector3.new(1.3, 0.9, 1), CFrame.new(0, 1.45, 0.1), Color3.fromRGB(50, 50, 56), Enum.PartType.Ball, Enum.Material.Fabric)
+		part(Vector3.new(0.12, 2.1, 1.15), CFrame.new(0, 0, 0), Color3.fromRGB(40, 40, 44), nil, Enum.Material.Metal)
+		for _, y in { -0.5, 0.3 } do
+			part(Vector3.new(2.05, 0.18, 1.15), CFrame.new(0, y, 0), Color3.fromRGB(200, 90, 40), nil, Enum.Material.Fabric)
+		end
+	elseif id == "PiccoRinforzato" then
+		-- piccone col manico di legno e la testa dorata
+		part(Vector3.new(0.3, 3, 0.3), CFrame.new(0, -0.3, 0), Color3.fromRGB(110, 76, 46), nil, Enum.Material.Wood)
+		part(Vector3.new(2.8, 0.45, 0.4), CFrame.new(0, 1.2, 0), color, nil, Enum.Material.Metal)
+		part(Vector3.new(0.6, 0.35, 0.35), CFrame.new(-1.55, 1.05, 0) * CFrame.Angles(0, 0, 0.5), color, nil, Enum.Material.Metal)
+		part(Vector3.new(0.6, 0.35, 0.35), CFrame.new(1.55, 1.05, 0) * CFrame.Angles(0, 0, -0.5), color, nil, Enum.Material.Metal)
+	elseif id == "Bende" then
+		part(Vector3.new(1.2, 1.6, 1.6), CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(240, 236, 226), Enum.PartType.Cylinder, Enum.Material.Fabric)
+		part(Vector3.new(1.25, 0.5, 0.5), CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(200, 196, 186), Enum.PartType.Cylinder, Enum.Material.Fabric)
+		part(Vector3.new(0.12, 0.6, 1.4), CFrame.new(0, -0.6, 0.6) * CFrame.Angles(0.4, 0, 0), Color3.fromRGB(240, 236, 226), nil, Enum.Material.Fabric)
+		part(Vector3.new(0.5, 0.15, 0.5), CFrame.new(0, 0.82, 0), Color3.fromRGB(220, 50, 50))
 	elseif id == "Pitons" then
 		for k = -1, 1 do
 			part(Vector3.new(0.25, 2, 0.25), CFrame.new(k * 0.6, 0, 0) * CFrame.Angles(0, 0, k * 0.2), color, nil, Enum.Material.Metal)

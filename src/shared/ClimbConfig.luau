@@ -64,8 +64,11 @@ local ClimbConfig = {
 	-- Meteo e tempo
 	DAY_LENGTH_MINUTES = 30, -- durata di un giorno intero (giorno + notte) in minuti reali
 	START_CLOCK_TIME = 16.5, -- ora del giorno all'avvio del server
-	WEATHER_MIN_SECONDS = 120,
-	WEATHER_MAX_SECONDS = 300,
+	WEATHER_MIN_SECONDS = 90, -- il tempo cambia spesso (le nuvole arrivano e se ne vanno piano)
+	WEATHER_MAX_SECONDS = 210,
+	FOG_DENSITY = 0.2, -- foschia col bel tempo (Atmosphere.Density); il brutto tempo la aumenta un po'
+	FOG_HAZE = 0.7,
+	THUNDER_SOUND = "rbxassetid://139319051979882", -- tuono (vuoto = fulmini senza suono)
 	SNOW_LINE = 1650, -- sopra questa quota la pioggia diventa neve
 	WIND_ALTITUDE = 1000, -- sopra questa quota il vento del meteo si sente sempre
 

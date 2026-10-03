@@ -12,14 +12,21 @@ local Weather = {}
 
 -- peso = probabilita' relativa; cover = copertura nuvole; wind = forza del vento
 local STATES = {
-	{ name = "Clear", weight = 4, cover = 0.4, wind = 10 },
-	{ name = "Cloudy", weight = 3, cover = 0.75, wind = 25 },
+	{ name = "Clear", weight = 5, cover = 0.35, wind = 10 },
+	{ name = "Cloudy", weight = 4, cover = 0.7, wind = 25 },
 	{ name = "Rain", weight = 2, cover = 0.85, wind = 35 },
-	{ name = "Storm", weight = 1, cover = 0.95, wind = 90 }, -- pioggia forte, grandine, raffiche
-	{ name = "Snow", weight = 2, cover = 0.85, wind = 40 },
+	{ name = "Thunderstorm", weight = 1, cover = 0.92, wind = 50 }, -- pioggia e fulmini
+	{ name = "Storm", weight = 1, cover = 0.95, wind = 90 }, -- pioggia forte, grandine, raffiche, fulmini
+	{ name = "Snow", weight = 1, cover = 0.85, wind = 40 },
 }
 
-local function pick(rng: Random)
+local BAD = { Rain = true, Thunderstorm = true, Storm = true, Snow = true }
+
+local function pick(rng: Random, after: string?)
+	-- dopo il brutto tempo torna piu' facilmente il bello (non e' sempre brutto)
+	if after and BAD[after] and rng:NextNumber() < 0.65 then
+		return if rng:NextNumber() < 0.6 then STATES[1] else STATES[2]
+	end
 	local total = 0
 	for _, s in STATES do
 		total += s.weight
@@ -37,6 +44,8 @@ end
 local rng = Random.new()
 local forcedUntil = 0
 
+local TweenService = game:GetService("TweenService")
+
 local function apply(state: { name: string, cover: number, wind: number })
 	local clouds = workspace.Terrain:FindFirstChildOfClass("Clouds")
 	local angle = rng:NextNumber(0, 2 * math.pi)
@@ -44,13 +53,16 @@ local function apply(state: { name: string, cover: number, wind: number })
 	workspace:SetAttribute("WindStrength", state.wind)
 	workspace:SetAttribute("WindDirection", Vector3.new(math.cos(angle), 0, math.sin(angle)))
 	if clouds then
-		clouds.Cover = state.cover
-		clouds.Density = if state.name == "Clear" then 0.5 else 0.8
+		-- le nuvole arrivano (o se ne vanno) in mezzo minuto, non di colpo
+		TweenService:Create(clouds, TweenInfo.new(30, Enum.EasingStyle.Sine), {
+			Cover = state.cover,
+			Density = if state.name == "Clear" then 0.5 else 0.8,
+		}):Play()
 	end
 end
 
 -- Forza un meteo (comandi admin): resta per almeno 5 minuti. Restituisce false se il nome
--- non esiste (Clear, Cloudy, Rain, Storm, Snow)
+-- non esiste (Clear, Cloudy, Rain, Thunderstorm, Storm, Snow)
 function Weather.set(name: string): boolean
 	for _, s in STATES do
 		if string.lower(s.name) == string.lower(name) then
@@ -63,10 +75,16 @@ function Weather.set(name: string): boolean
 end
 
 function Weather.setup()
+	-- foschia di base (prima era impostata a mano nel place, troppo fitta)
+	local fog = Lighting:FindFirstChildOfClass("Atmosphere")
+	if fog then
+		fog.Density = ClimbConfig.FOG_DENSITY
+		fog.Haze = ClimbConfig.FOG_HAZE
+	end
 	task.spawn(function()
 		while true do
 			if os.clock() >= forcedUntil then
-				apply(pick(rng))
+				apply(pick(rng, workspace:GetAttribute("Weather")))
 			end
 			task.wait(rng:NextNumber(ClimbConfig.WEATHER_MIN_SECONDS, ClimbConfig.WEATHER_MAX_SECONDS))
 		end

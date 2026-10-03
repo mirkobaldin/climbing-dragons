@@ -15,7 +15,7 @@ local CraftingUI = {}
 
 local GEAR_COLORS = {
 	Ramponi = Color3.fromRGB(170, 174, 180),
-	Tuta = Color3.fromRGB(230, 120, 60),
+	Tuta = Color3.fromRGB(235, 120, 50),
 	Rampino = Color3.fromRGB(196, 150, 80),
 	PiccoRinforzato = Color3.fromRGB(255, 190, 40),
 }
@@ -27,7 +27,7 @@ local function oreCount(ore: string): number
 end
 
 -- icone 3D gia' pronte in Theme.itemModel per le ricette nuove
-local ICON = { Chiodi = "Pitons", Bende = "Medkit", Torcia = "Torcia" }
+local ICON = { Chiodi = "Pitons", Torcia = "Torcia" }
 
 function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): () -> ()
 	local list = Theme.scroll(container)

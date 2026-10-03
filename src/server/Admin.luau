@@ -28,7 +28,7 @@ noclip / clip          attraversa i muri
 speed <n>  jump <n>    velocita' e salto
 tp <camp|mountain|summit|skull|tutorial|nome giocatore|x y z>
 time <ora>             es. time 21
-weather <Clear|Cloudy|Rain|Storm|Snow>
+weather <Clear|Cloudy|Rain|Thunderstorm|Storm|Snow>
 give <minerale|all> <n>   es. give Ferro 20
 gear <all|Ramponi|Tuta|Rampino|PiccoRinforzato>
 egg <elemento> [rarita']  uovo davanti a te
