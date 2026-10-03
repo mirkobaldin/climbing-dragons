@@ -7,3 +7,4 @@ Quando il branch e' unito in `main`, togli la riga.
 | Chi | Branch | Compito | File toccati |
 |---|---|---|---|
 | Claude | main | retro della montagna | src/mapgen/*, src/server/Eggs.luau |
+| Codex | codex/drago-cosmico-blender | Modellazione Blender del Drago Cosmico dalla reference; blockout e verifiche progressive | Solo RObloxGame-codex/artifacts/drago-cosmico/*; nessun file src |

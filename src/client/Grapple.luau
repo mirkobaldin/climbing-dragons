@@ -61,12 +61,21 @@ local function fire()
 	anchor.Size = Vector3.new(0.6, 0.6, 0.6)
 	anchor.Material = Enum.Material.Metal
 	anchor.Color = Color3.fromRGB(160, 164, 170)
-	anchor.CFrame = CFrame.new(hit.Position)
+	-- la corda parte dalla bocca della pistola (attacco "Bocca" del modello), se c'e'
+	local tool = character:FindFirstChildWhichIsA("Tool")
+	local muzzle = tool and tool:FindFirstChild("Bocca", true)
+	local from = if muzzle and muzzle:IsA("Attachment") then muzzle.WorldPosition else root.Position
+	anchor.CFrame = CFrame.lookAt(from, hit.Position)
 	anchor.Parent = workspace
 	local a0 = Instance.new("Attachment")
 	a0.Parent = anchor
-	local a1 = Instance.new("Attachment")
-	a1.Parent = root
+	local a1: Attachment
+	if muzzle and muzzle:IsA("Attachment") then
+		a1 = muzzle
+	else
+		a1 = Instance.new("Attachment")
+		a1.Parent = root
+	end
 	local rope = Instance.new("RopeConstraint")
 	rope.Visible = true
 	rope.Color = BrickColor.new("Brick yellow")
@@ -75,6 +84,15 @@ local function fire()
 	rope.Attachment1 = a1
 	rope.Length = (hit.Position - root.Position).Magnitude + 2
 	rope.Parent = anchor
+	-- prima l'uncino vola fino alla parete, poi la corda tira
+	local flyTime = math.clamp((hit.Position - from).Magnitude / Gear.GRAPPLE_SPEED * 0.35, 0.08, 0.45)
+	local flight = os.clock()
+	while os.clock() - flight < flyTime do
+		local a = (os.clock() - flight) / flyTime
+		anchor.CFrame = CFrame.lookAt(from:Lerp(hit.Position, a), hit.Position)
+		RunService.Heartbeat:Wait()
+	end
+	anchor.CFrame = CFrame.new(hit.Position)
 	local pull = Instance.new("BodyVelocity")
 	pull.MaxForce = Vector3.new(1e6, 1e6, 1e6)
 	pull.P = 8000
@@ -91,7 +109,9 @@ local function fire()
 			conn:Disconnect()
 			pull:Destroy()
 			anchor:Destroy()
-			a1:Destroy()
+			if a1.Name ~= "Bocca" then
+				a1:Destroy()
+			end
 			root.AssemblyLinearVelocity = Vector3.zero
 			ClientState.noFallUntil = os.clock() + 2
 			if not Climbing.grabNearest() then

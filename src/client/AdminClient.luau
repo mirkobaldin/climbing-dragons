@@ -61,6 +61,8 @@ local function applyAction(action: string)
 	local cmd, arg = string.match(action, "^(%S+)%s*(.*)$")
 	if cmd == "cinematica" then
 		task.spawn(require(script.Parent.Cinematic).play)
+	elseif cmd == "tiktok" then
+		task.spawn(require(script.Parent.GrappleSkit).play)
 	elseif cmd == "fly" then
 		startFly()
 	elseif cmd == "unfly" then

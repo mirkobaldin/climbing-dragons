@@ -41,6 +41,7 @@ pass <FastIncubation|EggFinder|ExtraDragon|ExtraIncubator>
 god / ungod   heal   warm   pitons
 tutorial <reset|skip>
 cinematica             scena da trailer: strapiombo, uovo e caduta
+tiktok                 scenetta: il rampino aggancia un drago
 help]]
 
 local function isAdmin(player: Player): boolean
@@ -146,6 +147,8 @@ local function run(player: Player, text: any): (boolean, string, string?)
 		return true, cmd, cmd
 	elseif cmd == "cinematica" then
 		return true, "Ciak! (scena da trailer)", "cinematica"
+	elseif cmd == "tiktok" then
+		return true, "Ciak! (I added a grappling hook...)", "tiktok"
 	elseif cmd == "speed" and humanoid then
 		humanoid.WalkSpeed = tonumber(args[2]) or 24
 		return true, "Velocita' " .. humanoid.WalkSpeed, "speed " .. humanoid.WalkSpeed

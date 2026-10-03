@@ -244,11 +244,13 @@ local function cloneActor(): Model?
 	return actor
 end
 
--- L'uovo sul ripiano: il modello vero del drago Ombra (o il primo che c'e'), con i suoi effetti
-local function placeEgg(at: Vector3): (Model, (() -> ())?)
+-- L'uovo sul ripiano: il modello vero dell'uovo (Ombra se non si dice quale, o il primo che c'e'),
+-- con i suoi effetti
+local function placeEgg(at: Vector3, element: string?): (Model, (() -> ())?)
+	local id = element or "Ombra"
 	local previews = ReplicatedStorage:FindFirstChild("Previews")
 	local eggs = previews and previews:FindFirstChild("Eggs")
-	local source = eggs and (eggs:FindFirstChild("Ombra") or eggs:FindFirstChildWhichIsA("Model"))
+	local source = eggs and (eggs:FindFirstChild(id) or eggs:FindFirstChildWhichIsA("Model"))
 	local egg: Model
 	if source and source:IsA("Model") then
 		egg = source:Clone()
@@ -281,7 +283,7 @@ local function placeEgg(at: Vector3): (Model, (() -> ())?)
 	if fx and fx:IsA("ModuleScript") then
 		local ok, Effetti = pcall(require, fx)
 		if ok then
-			local done, r = pcall((Effetti :: any).Applica, egg, "Ombra")
+			local done, r = pcall((Effetti :: any).Applica, egg, id)
 			if done then
 				remove = r
 			end
@@ -959,5 +961,17 @@ function Cinematic.play()
 		end
 	end)
 end
+
+-- Pezzi riusati dalle altre scene (GrappleSkit)
+Cinematic.kit = {
+	smooth = smooth,
+	flat = flat,
+	groundY = groundY,
+	cloneActor = cloneActor,
+	placeEgg = placeEgg,
+	letterbox = letterbox,
+	showCaption = showCaption,
+	setLights = setLights,
+}
 
 return Cinematic

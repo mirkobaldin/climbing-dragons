@@ -310,6 +310,85 @@ local function grapplingHook(): Tool
 	return tool
 end
 
+-- Rampino a pistola (il tuo modello "Rampino" in ServerStorage, una mesh sola): lungo GUN_LENGTH
+-- studs, la canna (lato -X del modello, dove c'e' la punta gialla) in avanti e l'impugnatura in
+-- mano. "Bocca" e' l'attacco in punta alla canna: da li' parte l'uncino (client/Grapple).
+local GUN_LENGTH = 2.2
+-- impugnatura: dove sta la mano sulla mesh (frazioni della grandezza, centro = 0) e come si gira
+-- la pistola perche' la canna guardi avanti. Trovati provando in Play.
+local GUN_GRIP_AT = Vector3.new(0.12, -0.18, 0)
+local GUN_GRIP_ROT = CFrame.fromMatrix(Vector3.zero, Vector3.new(0, 0, -1), Vector3.new(0, 1, 0))
+local GUN_MUZZLE_AT = Vector3.new(-0.5, 0.2, 0)
+
+-- Copia pulita e in scala del modello (anche per la cinematica del rampino, sul client)
+function Tools.gunModel(): Model?
+	local source = findModel({ "Rampino", "Grappling Hook", "GrapplingHook" })
+	if not source or source:IsA("Tool") then
+		return nil
+	end
+	local copy = source:Clone()
+	for _, d in copy:GetDescendants() do
+		if d:IsA("LuaSourceContainer") or d:IsA("RemoteEvent") or d:IsA("RemoteFunction") then
+			d:Destroy()
+		end
+	end
+	local model: Model
+	if copy:IsA("Model") then
+		model = copy
+	else
+		model = Instance.new("Model")
+		copy.Parent = model
+	end
+	local main: BasePart? = nil
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and (not main or d.Size.Magnitude > (main :: BasePart).Size.Magnitude) then
+			main = d
+		end
+	end
+	if not main then
+		return nil
+	end
+	model.PrimaryPart = main
+	local _, size = model:GetBoundingBox()
+	model:ScaleTo(model:GetScale() * GUN_LENGTH / math.max(size.X, size.Y, size.Z, 0.01))
+	local m = main :: BasePart
+	local muzzle = Instance.new("Attachment")
+	muzzle.Name = "Bocca"
+	muzzle.Position = m.Size * GUN_MUZZLE_AT
+	muzzle.Parent = m
+	model:SetAttribute("Grip", CFrame.new(m.Size * GUN_GRIP_AT) * GUN_GRIP_ROT)
+	return model
+end
+
+local function gunTool(): Tool?
+	local model = Tools.gunModel()
+	if not model or not model.PrimaryPart then
+		return nil
+	end
+	local tool = Instance.new("Tool")
+	local main = model.PrimaryPart :: BasePart
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = false
+			d.CanCollide = false
+			d.Massless = true
+			if d ~= main then
+				weld(main, d)
+			end
+		end
+	end
+	for _, d in model:GetChildren() do
+		d.Parent = tool
+	end
+	main.Name = "Handle"
+	tool.Grip = CFrame.new(main.Size * GUN_GRIP_AT) * GUN_GRIP_ROT
+	tool.Name = "Rampino"
+	tool.ToolTip = "Click su una parete lontana: la corda ti tira su"
+	tool.CanBeDropped = false
+	tool.RequiresHandle = true
+	return tool
+end
+
 -- Torcia: manico di legno con la testa avvolta che brucia. Fa luce (ombre vere) e, portata
 -- in mano, scalda un po' (tag "HeatSource" sulla fiamma, vedi il freddo in Progression).
 local function torch(): Tool
@@ -347,6 +426,10 @@ function Tools.make(id: string): Tool?
 		return tool or torch()
 	end
 	if id == "Rampino" then
+		local gun = gunTool()
+		if gun then
+			return gun
+		end
 		local source = findModel({ "Rampino", "Grappling Hook", "GrapplingHook" })
 		local tool = if source then toolFromModel(source, "Rampino", "Click su una parete lontana: la corda ti tira su") else nil
 		return tool or grapplingHook()
@@ -373,6 +456,20 @@ function Tools.setup()
 	local pickSource = findModel({ ClimbConfig.PICKAXE_NAME, "Simple Pickaxe" })
 	local pick = if pickSource then toolFromModel(pickSource, ClimbConfig.PICKAXE_NAME, PICK_TIP) else nil
 	install(pick or builtTool(ClimbConfig.PICKAXE_NAME, PICK_TIP, 3, 0))
+
+	-- la pistola del rampino per la cinematica (il client non vede ServerStorage)
+	local gun = Tools.gunModel()
+	if gun then
+		gun.Name = "RampinoScena"
+		for _, d in gun:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.Anchored = true
+				d.CanCollide = false
+				d.CanQuery = false
+			end
+		end
+		gun.Parent = ReplicatedStorage
+	end
 
 	local function onPlayer(player: Player)
 		player.CharacterAdded:Connect(bindOffhand)
