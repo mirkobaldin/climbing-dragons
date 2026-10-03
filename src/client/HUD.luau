@@ -24,7 +24,7 @@ local player = Players.LocalPlayer
 
 local HUD = {}
 
-local WEATHER_NAMES = { Clear = "Sereno", Cloudy = "Nuvoloso", Rain = "Pioggia", Storm = "Tempesta", Snow = "Neve" }
+local WEATHER_NAMES = { Clear = "Sereno", Cloudy = "Nuvoloso", Rain = "Pioggia", Thunderstorm = "Temporale", Storm = "Tempesta", Snow = "Neve" }
 
 -- Barra con riempimento e testo sopra
 local function bar(parent: Instance, color: Color3, height: number): (Frame, Frame, TextLabel)
