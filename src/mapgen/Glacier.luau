@@ -621,7 +621,9 @@ local function summitIce(folder: Instance, map: Heightmap.Map, rng: Random): num
 		local a = rng:NextNumber(0, 2 * math.pi)
 		local r = rng:NextNumber(40, M.RADIUS * 0.45)
 		local x, z = M.X + math.cos(a) * r, M.Z + math.sin(a) * r
-		local hit = ground(x, z, M.HEIGHT + 400)
+		local top = map.features.summit
+		local clear = not top or (Vector2.new(x, z) - Vector2.new(top.x, top.z)).Magnitude > (top.radius or 12) + 25 -- fuori dal santuario
+		local hit = clear and ground(x, z, M.HEIGHT + 400)
 		if hit and hit.Position.Y > M.HEIGHT * 0.6 and hit.Normal.Y > 0.7 and (hit.Material == Enum.Material.Snow or hit.Material == Enum.Material.Glacier) then
 			if standOn(folder, pick(KIT.standing, rng), hit.Position, Vector3.new(rng:NextNumber(-1, 1), 0, rng:NextNumber(-1, 1)), rng:NextNumber(0.9, 1.8), 0.15, { support = Enum.Material.Snow, maxGap = 0.6, maxBury = 0.85 }) then
 				count += 1

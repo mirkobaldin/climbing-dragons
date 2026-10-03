@@ -21,7 +21,8 @@ export type Element = {
 local DragonConfig = {}
 
 -- Solo gli elementi che hanno un uovo vero (i modelli Uovo_<Elemento> in ServerStorage.Uova)
-DragonConfig.ALTAR_RESPAWN = 600 -- secondi prima che sull'altare ricompaia l'uovo Ombra
+DragonConfig.ALTAR_RESPAWN = 600 -- secondi prima che sugli altari ricompaia l'uovo leggendario
+DragonConfig.SUMMIT_EGG = "Sole" -- elemento dell'uovo leggendario sull'altare della vetta
 
 DragonConfig.ELEMENTS = {
 	{

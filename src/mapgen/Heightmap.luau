@@ -824,12 +824,26 @@ local function carveSummit(map: Map)
 			bestH, bx, bz = h, x, z
 		end
 	end)
-	local top = bestH - 5
-	forColumns(map, bx - 12, bz - 12, bx + 12, bz + 12, function(i)
-		setH(map, i, top)
-		writeu8(map.zone, i, Zone.SUMMIT)
+	-- pianoro rotondo per il santuario (cerchio di pietre, pentacolo, altare): la quota e' la
+	-- media del terreno sul bordo, cosi' la punta si taglia e i lati piu' bassi si riempiono;
+	-- fuori dal cerchio si raccorda dolcemente con la montagna
+	local R, BLEND = 34, 18
+	local sum = 0
+	for k = 0, 23 do
+		local a = k / 24 * 2 * math.pi
+		sum += sampleH(map, bx + cos(a) * R, bz + sin(a) * R)
+	end
+	local top = min(sum / 24, bestH - 5)
+	forColumns(map, bx - R - BLEND, bz - R - BLEND, bx + R + BLEND, bz + R + BLEND, function(i, x, z)
+		local d = sqrt((x - bx) ^ 2 + (z - bz) ^ 2)
+		if d <= R then
+			setH(map, i, top)
+			writeu8(map.zone, i, Zone.SUMMIT)
+		elseif d < R + BLEND then
+			setH(map, i, lerp(top, getH(map, i), smoothstep(R, R + BLEND, d)))
+		end
 	end)
-	map.features.summit = { x = bx, y = top, z = bz }
+	map.features.summit = { x = bx, y = top, z = bz, radius = R }
 end
 
 local function carvePath(map: Map)

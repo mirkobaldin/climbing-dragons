@@ -435,27 +435,30 @@ function Eggs.setup(remotes: { [string]: RemoteEvent })
 		stopCarrying(player)
 	end)
 
-	-- Altare nella camera del tesoro (centro della montagna): un uovo Ombra Leggendario sempre
-	-- li'; quando qualcuno lo prende ne ricompare un altro dopo ALTAR_RESPAWN secondi
-	task.spawn(function()
+	-- Altari: nella camera del tesoro (centro della montagna) un uovo Ombra Leggendario, sulla
+	-- vetta quello di DragonConfig.SUMMIT_EGG. Quando qualcuno lo prende ne ricompare un altro
+	-- dopo ALTAR_RESPAWN secondi
+	local function altarEggs(altarName: string, element: string)
 		local landmarks = workspace:WaitForChild("Landmarks", 30)
-		local altar = landmarks and landmarks:FindFirstChild("AltareUovo", true)
+		local altar = landmarks and landmarks:FindFirstChild(altarName, true)
 		if not altar or not altar:IsA("BasePart") then
 			return
 		end
 		while true do
 			local present = false
 			for _, e in eggFolder:GetChildren() do
-				if e:GetAttribute("Altare") then
+				if e:GetAttribute("Altare") == altarName then
 					present = true
 				end
 			end
 			if not present then
-				placeEgg(altar.Position + Vector3.new(0, altar.Size.Y / 2 + DragonConfig.EGG_SIZE * 0.7, 0), "Ombra", "Leggendario", { Altare = true })
+				placeEgg(altar.Position + Vector3.new(0, altar.Size.Y / 2 + DragonConfig.EGG_SIZE * 0.7, 0), element, "Leggendario", { Altare = altarName })
 			end
 			task.wait(DragonConfig.ALTAR_RESPAWN or 600)
 		end
-	end)
+	end
+	task.spawn(altarEggs, "AltareUovo", "Ombra")
+	task.spawn(altarEggs, "AltareVetta", DragonConfig.SUMMIT_EGG or "Sole")
 
 	task.spawn(function()
 		collectSpots()

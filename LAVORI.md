@@ -6,4 +6,4 @@ Quando il branch e' unito in `main`, togli la riga.
 
 | Chi | Branch | Compito | File toccati |
 |---|---|---|---|
-| Claude | main | vetta (cerchio di pietre + pentagramma + altare), retro della montagna | src/mapgen/*, src/server/Eggs.luau |
+| Claude | main | retro della montagna | src/mapgen/*, src/server/Eggs.luau |

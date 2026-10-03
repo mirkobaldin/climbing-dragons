@@ -58,7 +58,9 @@ function Markers.place(map: Heightmap.Map)
 	local pole = Instance.new("Part")
 	pole.Name = "SummitFlagPole"
 	pole.Size = Vector3.new(0.6, 14, 0.6)
-	pole.Position = Vector3.new(f.summit.x, f.summit.y + 7, f.summit.z)
+	-- sul bordo del pianoro: al centro c'e' il santuario con l'altare (Landmarks)
+	local edge = (f.summit.radius or 0) * 0.85
+	pole.Position = Vector3.new(f.summit.x + edge, f.summit.y + 7, f.summit.z)
 	pole.Anchored = true
 	pole.Material = Enum.Material.Wood
 	pole.Color = Color3.fromRGB(90, 66, 44)

@@ -287,6 +287,92 @@ local function skullFromTemplate(template: Model, cfg: any): Model?
 	return model
 end
 
+-- Santuario: cerchio di pietre come Stonehenge (monoliti, un architrave su ogni coppia), pentacolo
+-- di luce a terra inscritto in un cerchio e altare a dolmen al centro (due pietre in piedi e una
+-- lastra, che si chiama altarName: Eggs ci mette sopra l'uovo leggendario). Usato nella camera
+-- del tesoro e in vetta.
+local function sanctuary(folder: Instance, floor: Vector3, ring: number, star: number, glowColor: Color3, altarName: string, rng: Random): Part
+	local STONE = Color3.fromRGB(118, 112, 104)
+	-- la quota della heightmap non e' la superficie dei voxel (sta un paio di studs sotto): si
+	-- appoggia tutto sul terreno vero, se no il pentacolo resta sepolto
+	local terrainOnly = RaycastParams.new()
+	terrainOnly.FilterType = Enum.RaycastFilterType.Include
+	terrainOnly.FilterDescendantsInstances = { workspace.Terrain }
+	local hit = workspace:Raycast(floor + Vector3.new(0, 15, 0), Vector3.new(0, -30, 0), terrainOnly)
+	if hit then
+		floor = Vector3.new(floor.X, hit.Position.Y, floor.Z)
+	end
+	-- dentro il cerchio pavimento di pietra: l'erba nascondeva il pentacolo
+	local paved = ring + 4
+	for gx = -paved, paved, 4 do
+		for gz = -paved, paved, 4 do
+			if gx * gx + gz * gz <= paved * paved then
+				local c = floor + Vector3.new(gx, 0, gz)
+				local region = Region3.new(c - Vector3.new(2, 8, 2), c + Vector3.new(2, 4, 2)):ExpandToGrid(4)
+				for _, m in { Enum.Material.Grass, Enum.Material.LeafyGrass, Enum.Material.Ground, Enum.Material.Snow, Enum.Material.Mud } do
+					workspace.Terrain:ReplaceMaterial(region, 4, m, Enum.Material.Slate)
+				end
+			end
+		end
+	end
+	local function stone(size: Vector3, cf: CFrame): Part
+		local p = newPart(folder, nil, size, cf, STONE)
+		p.Material = Enum.Material.Slate
+		return p
+	end
+	-- cerchio di pietre (piantate un po' nel terreno: in vetta il suolo non e' perfettamente piano)
+	local STONES = 10
+	local tops = {}
+	for k = 0, STONES - 1 do
+		local ang = k / STONES * 2 * math.pi
+		local p = floor + Vector3.new(math.cos(ang) * ring, 0, math.sin(ang) * ring)
+		local hgt = 13 + rng:NextNumber(-1, 1.5)
+		local look = CFrame.lookAt(p, Vector3.new(floor.X, p.Y, floor.Z))
+		stone(Vector3.new(4.5, hgt + 3, 2.6), look * CFrame.new(0, hgt / 2 - 2, 0) * CFrame.Angles(rng:NextNumber(-0.03, 0.03), 0, rng:NextNumber(-0.04, 0.04)))
+		tops[k + 1] = p + Vector3.new(0, hgt, 0)
+	end
+	-- architravi sulle coppie (uno si' e uno no, come i triliti)
+	for k = 1, STONES, 2 do
+		local p1, p2 = tops[k], tops[k % STONES + 1]
+		local mid = (p1 + p2) / 2
+		local len = (p2 - p1).Magnitude + 4
+		stone(Vector3.new(len, 2.2, 2.8), CFrame.lookAt(mid, mid + (p2 - p1).Unit) * CFrame.Angles(0, math.pi / 2, 0) * CFrame.new(0, 0.6, 0))
+	end
+	-- pentacolo di luce: cerchio e stella a cinque punte, appena sopra il pavimento
+	local function glowLine(p1: Vector3, p2: Vector3, width: number)
+		local mid = (p1 + p2) / 2
+		local seg = newPart(folder, nil, Vector3.new(width, 0.25, (p2 - p1).Magnitude + width * 0.5), CFrame.lookAt(mid, p2), glowColor)
+		seg.Material = Enum.Material.Neon
+		seg.CanCollide = false
+	end
+	local y = floor + Vector3.new(0, 0.15, 0)
+	for k = 0, 39 do
+		local a1, a2 = k / 40 * 2 * math.pi, (k + 1) / 40 * 2 * math.pi
+		glowLine(y + Vector3.new(math.cos(a1) * star, 0, math.sin(a1) * star), y + Vector3.new(math.cos(a2) * star, 0, math.sin(a2) * star), 0.6)
+	end
+	local points = {}
+	for k = 0, 4 do
+		local ang = -math.pi / 2 + k / 5 * 2 * math.pi
+		points[k + 1] = y + Vector3.new(math.cos(ang) * star * 0.96, 0, math.sin(ang) * star * 0.96)
+	end
+	for k = 1, 5 do
+		glowLine(points[k], points[(k + 1) % 5 + 1], 0.7) -- ogni punta collegata alla seconda dopo: la stella
+	end
+	-- dolmen al centro: due pietre in piedi e la lastra con l'uovo
+	stone(Vector3.new(2.4, 6, 5), CFrame.new(floor + Vector3.new(-3, 2, 0)))
+	stone(Vector3.new(2.4, 6, 5), CFrame.new(floor + Vector3.new(3, 2, 0)))
+	local altar = stone(Vector3.new(9, 1.4, 6), CFrame.new(floor + Vector3.new(0, 5.7, 0)) * CFrame.Angles(0, 0, 0.03))
+	altar.Name = altarName
+	altar.Material = Enum.Material.Basalt
+	altar.Color = Color3.fromRGB(32, 28, 38)
+	local glow = Instance.new("PointLight")
+	glow.Color = glowColor
+	glow.Range = 45
+	glow.Brightness = 2.2
+	glow.Parent = altar
+	return altar
+end
+
 -- Camera del tesoro (scavata da Caves al centro della montagna), rotonda come un santuario:
 --   * cerchio di pietre come Stonehenge: monoliti con un architrave su ogni coppia
 --   * pentacolo di luce viola a terra, inscritto in un cerchio
@@ -304,65 +390,9 @@ local function buildTreasure(map: Heightmap.Map, parent: Instance)
 	local floor = Vector3.new(t.x, t.y, t.z)
 	local R = t.radius
 	local GOLD, WOOD = Color3.fromRGB(255, 196, 60), Color3.fromRGB(96, 62, 36)
-	local STONE = Color3.fromRGB(118, 112, 104)
 	local VIOLET = Color3.fromRGB(150, 70, 255)
 	local rng = Random.new(map.cfg.SEED + 7)
-	local function stone(size: Vector3, cf: CFrame): Part
-		local p = newPart(folder, nil, size, cf, STONE)
-		p.Material = Enum.Material.Slate
-		return p
-	end
-	-- cerchio di pietre
-	local RING, STONES = R * 0.5, 10
-	local tops = {}
-	for k = 0, STONES - 1 do
-		local ang = k / STONES * 2 * math.pi
-		local p = floor + Vector3.new(math.cos(ang) * RING, 0, math.sin(ang) * RING)
-		local hgt = 13 + rng:NextNumber(-1, 1.5)
-		local look = CFrame.lookAt(p, Vector3.new(floor.X, p.Y, floor.Z))
-		stone(Vector3.new(4.5, hgt, 2.6), look * CFrame.new(0, hgt / 2 - 0.5, 0) * CFrame.Angles(rng:NextNumber(-0.03, 0.03), 0, rng:NextNumber(-0.04, 0.04)))
-		tops[k + 1] = p + Vector3.new(0, hgt, 0)
-	end
-	-- architravi sulle coppie (uno si' e uno no, come i triliti)
-	for k = 1, STONES, 2 do
-		local p1, p2 = tops[k], tops[k % STONES + 1]
-		local mid = (p1 + p2) / 2
-		local len = (p2 - p1).Magnitude + 4
-		stone(Vector3.new(len, 2.2, 2.8), CFrame.lookAt(mid, mid + (p2 - p1).Unit) * CFrame.Angles(0, math.pi / 2, 0) * CFrame.new(0, 0.6, 0))
-	end
-	-- pentacolo di luce: cerchio e stella a cinque punte, appena sopra il pavimento
-	local PR = R * 0.32
-	local function glowLine(p1: Vector3, p2: Vector3, width: number)
-		local mid = (p1 + p2) / 2
-		local seg = newPart(folder, nil, Vector3.new(width, 0.25, (p2 - p1).Magnitude + width * 0.5), CFrame.lookAt(mid, p2), VIOLET)
-		seg.Material = Enum.Material.Neon
-		seg.CanCollide = false
-	end
-	local y = floor + Vector3.new(0, 0.15, 0)
-	for k = 0, 39 do
-		local a1, a2 = k / 40 * 2 * math.pi, (k + 1) / 40 * 2 * math.pi
-		glowLine(y + Vector3.new(math.cos(a1) * PR, 0, math.sin(a1) * PR), y + Vector3.new(math.cos(a2) * PR, 0, math.sin(a2) * PR), 0.6)
-	end
-	local points = {}
-	for k = 0, 4 do
-		local ang = -math.pi / 2 + k / 5 * 2 * math.pi
-		points[k + 1] = y + Vector3.new(math.cos(ang) * PR * 0.96, 0, math.sin(ang) * PR * 0.96)
-	end
-	for k = 1, 5 do
-		glowLine(points[k], points[(k + 1) % 5 + 1], 0.7) -- ogni punta collegata alla seconda dopo: la stella
-	end
-	-- dolmen al centro: due pietre in piedi e la lastra con l'uovo
-	stone(Vector3.new(2.4, 5, 5), CFrame.new(floor + Vector3.new(-3, 2.5, 0)))
-	stone(Vector3.new(2.4, 5, 5), CFrame.new(floor + Vector3.new(3, 2.5, 0)))
-	local altar = stone(Vector3.new(9, 1.4, 6), CFrame.new(floor + Vector3.new(0, 5.7, 0)) * CFrame.Angles(0, 0, 0.03))
-	altar.Name = "AltareUovo"
-	altar.Material = Enum.Material.Basalt
-	altar.Color = Color3.fromRGB(32, 28, 38)
-	local glow = Instance.new("PointLight")
-	glow.Color = VIOLET
-	glow.Range = 45
-	glow.Brightness = 2.2
-	glow.Parent = altar
+	sanctuary(folder, floor, R * 0.5, R * 0.32, VIOLET, "AltareUovo", rng)
 	-- tesori fuori dal cerchio, cristalli lungo la parete
 	for k = 1, 10 do
 		local ang = k / 10 * 2 * math.pi + math.pi / 10
@@ -386,6 +416,20 @@ local function buildTreasure(map: Heightmap.Map, parent: Instance)
 	end
 end
 
+-- Santuario della vetta: lo stesso cerchio di pietre col pentacolo, ma di luce dorata; sull'altare
+-- "AltareVetta" Eggs mette l'uovo leggendario della vetta (DragonConfig.SUMMIT_EGG)
+local function buildSummit(map: Heightmap.Map, parent: Instance)
+	local s = map.features.summit
+	if not s then
+		return
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = "SantuarioVetta"
+	folder.Parent = parent
+	local R = s.radius or 34
+	sanctuary(folder, Vector3.new(s.x, s.y, s.z), R * 0.62, R * 0.4, Color3.fromRGB(255, 176, 50), "AltareVetta", Random.new(map.cfg.SEED + 11))
+end
+
 function Landmarks.build(map: Heightmap.Map)
 	local old = workspace:FindFirstChild("Landmarks")
 	if old then
@@ -397,6 +441,7 @@ function Landmarks.build(map: Heightmap.Map)
 
 	local HUB = map.cfg.HUB
 	buildTreasure(map, folder)
+	buildSummit(map, folder)
 
 	-- Ingresso della grotta sulla montagna: piazzola di terra davanti e imbocco libero
 	local e = map.features.caveEntrance
