@@ -317,10 +317,11 @@ function Dragons.load(player: Player, data: any)
 	end
 	states[player] = s
 	checkPasses(player)
-	-- Primo accesso: il famiglio iniziale, un cucciolo di Drago Ciliegio che ti segue subito
+	-- Primo accesso: il famiglio iniziale, un cucciolo di drago Ombra che ti segue subito (il
+	-- modello con lo scheletro e le animazioni fatte nell'Animation Editor)
 	if not s.starter then
 		s.starter = true
-		Dragons.give(player, "Roccia", "Comune", 1)
+		Dragons.give(player, DragonConfig.STARTER_DRAGON or "Ombra", "Comune", 1)
 	end
 	changed(player, true)
 end

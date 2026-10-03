@@ -23,6 +23,7 @@ local DragonConfig = {}
 -- Solo gli elementi che hanno un uovo vero (i modelli Uovo_<Elemento> in ServerStorage.Uova)
 DragonConfig.ALTAR_RESPAWN = 600 -- secondi prima che sugli altari ricompaia l'uovo leggendario
 DragonConfig.SUMMIT_EGG = "Sole" -- elemento dell'uovo leggendario sull'altare della vetta
+DragonConfig.STARTER_DRAGON = "Ombra" -- il drago che ricevi al primo accesso
 
 DragonConfig.ELEMENTS = {
 	{
