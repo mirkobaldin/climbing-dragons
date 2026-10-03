@@ -1,0 +1,115 @@
+{
+  "name": "RObloxGame",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/shared"
+      }
+    },
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+    "ServerStorage": {
+      "MapGen": {
+        "$path": "src/mapgen"
+      }
+    },
+    "StarterPlayer": {
+      "$properties": {
+        "CharacterMaxSlopeAngle": 50
+      },
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    },
+    "Workspace": {
+      "$properties": {
+        "FilteringEnabled": true,
+        "StreamingEnabled": true
+      }
+    },
+    "Lighting": {
+      "$properties": {
+        "Ambient": [
+          0.2,
+          0.21,
+          0.24
+        ],
+        "OutdoorAmbient": [
+          0.42,
+          0.44,
+          0.49
+        ],
+        "Brightness": 2.6,
+        "ClockTime": 14.5,
+        "EnvironmentDiffuseScale": 1,
+        "EnvironmentSpecularScale": 1,
+        "GlobalShadows": true,
+        "ShadowSoftness": 0.08,
+        "Outlines": false,
+        "Technology": "Future"
+      },
+      "Atmosphere": {
+        "$className": "Atmosphere",
+        "$properties": {
+          "Density": 0.33,
+          "Offset": 0.25,
+          "Color": [
+            0.78,
+            0.83,
+            0.88
+          ],
+          "Decay": [
+            0.42,
+            0.48,
+            0.55
+          ],
+          "Glare": 0.5,
+          "Haze": 1.9
+        }
+      },
+      "ColorCorrection": {
+        "$className": "ColorCorrectionEffect",
+        "$properties": {
+          "Saturation": 0.08,
+          "Contrast": 0.12,
+          "Brightness": 0.01
+        }
+      },
+      "SunRays": {
+        "$className": "SunRaysEffect",
+        "$properties": {
+          "Intensity": 0.12,
+          "Spread": 0.8
+        }
+      },
+      "Bloom": {
+        "$className": "BloomEffect",
+        "$properties": {
+          "Intensity": 0.55,
+          "Size": 28,
+          "Threshold": 1.3
+        }
+      },
+      "DepthOfField": {
+        "$className": "DepthOfFieldEffect",
+        "$properties": {
+          "FarIntensity": 0.16,
+          "FocusDistance": 90,
+          "InFocusRadius": 140,
+          "NearIntensity": 0
+        }
+      }
+    },
+    "SoundService": {
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    }
+  }
+}

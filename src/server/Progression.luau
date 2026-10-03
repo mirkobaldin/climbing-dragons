@@ -1,0 +1,355 @@
+--!strict
+-- Progressione tra una partita e l'altra:
+--   * salvataggio (DataStore) di minerali, attrezzi, ultimo campo base, draghi e tutorial
+--   * Banco da lavoro (tag "Workbench"): apre il menu di costruzione sul client; il server
+--     controlla i minerali, li scala e da' l'attrezzo (vedi shared/Gear)
+--   * freddo: calore del giocatore (attributo "Warmth" 0-100) che cala in quota
+-- In Studio il salvataggio funziona solo con "Enable Studio Access to API Services" attivo
+-- (Game Settings > Security); senza, si gioca lo stesso ma non si salva.
+
+local CollectionService = game:GetService("CollectionService")
+local DataStoreService = game:GetService("DataStoreService")
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Gear = require(ReplicatedStorage.Shared.Gear)
+local ClimbConfig = require(ReplicatedStorage.Shared.ClimbConfig)
+local Tools = require(script.Parent.Tools)
+local Dragons = require(script.Parent.Dragons)
+local Economy = require(script.Parent.Economy)
+local Survival = require(script.Parent.Survival)
+
+local Progression = {}
+
+local store: DataStore? = nil
+local loaded: { [Player]: boolean } = {}
+
+local function inventory(player: Player): Folder
+	local folder = player:FindFirstChild("Minerali")
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = "Minerali"
+		folder.Parent = player
+	end
+	return folder :: Folder
+end
+
+local function oreValue(player: Player, ore: string): IntValue
+	local folder = inventory(player)
+	local v = folder:FindFirstChild(ore) :: IntValue?
+	if not v then
+		local nv = Instance.new("IntValue")
+		nv.Name = ore
+		nv.Parent = folder
+		v = nv
+	end
+	return v :: IntValue
+end
+
+local function updateTotal(player: Player)
+	local stats = player:FindFirstChild("leaderstats")
+	local total = stats and stats:FindFirstChild("Minerali") :: IntValue?
+	if total then
+		local sum = 0
+		for _, v in inventory(player):GetChildren() do
+			if v:IsA("IntValue") then
+				sum += v.Value
+			end
+		end
+		total.Value = sum
+	end
+end
+
+-- Da' (di nuovo) i Tool costruiti: servono a ogni spawn, quindi vanno anche in StarterGear
+local function giveTools(player: Player)
+	for _, recipe in Gear.RECIPES do
+		if recipe.tool and Gear.has(player, recipe.id) then
+			local gearFolder = player:FindFirstChild("StarterGear")
+			if gearFolder and not gearFolder:FindFirstChild(recipe.name) then
+				local tool = Tools.make(recipe.id)
+				if tool then
+					tool.Parent = gearFolder
+					local backpack = player:FindFirstChild("Backpack")
+					if backpack and not backpack:FindFirstChild(recipe.name) then
+						tool:Clone().Parent = backpack
+					end
+				end
+			end
+		end
+	end
+end
+
+local function save(player: Player)
+	if not store or not loaded[player] then
+		return
+	end
+	local data = {
+		ores = {},
+		gear = {},
+		checkpoint = nil :: { number }?,
+		dragons = Dragons.serialize(player),
+		economy = Economy.serialize(player),
+		tutorial = player:GetAttribute("TutorialStep"),
+	}
+	for _, v in inventory(player):GetChildren() do
+		if v:IsA("IntValue") then
+			data.ores[v.Name] = v.Value
+		end
+	end
+	for _, recipe in Gear.RECIPES do
+		data.gear[recipe.id] = Gear.has(player, recipe.id)
+	end
+	local cp = player:GetAttribute("Checkpoint")
+	if typeof(cp) == "Vector3" then
+		data.checkpoint = { cp.X, cp.Y, cp.Z }
+	end
+	local ok, err = pcall(function()
+		(store :: DataStore):SetAsync("player_" .. player.UserId, data)
+	end)
+	if not ok then
+		warn("[Progression] Salvataggio non riuscito: " .. tostring(err))
+	end
+end
+
+local function load(player: Player)
+	local dragonData: any = nil
+	local economyData: any = nil
+	local tutorial: any = nil
+	if store then
+		local ok, data = pcall(function()
+			return (store :: DataStore):GetAsync("player_" .. player.UserId)
+		end)
+		if ok and type(data) == "table" then
+			for ore, amount in data.ores or {} do
+				oreValue(player, ore).Value = amount
+			end
+			for id, owned in data.gear or {} do
+				if owned then
+					player:SetAttribute("Gear_" .. id, true)
+				end
+			end
+			local cp = data.checkpoint
+			if type(cp) == "table" and #cp == 3 then
+				player:SetAttribute("Checkpoint", Vector3.new(cp[1], cp[2], cp[3]))
+			end
+			dragonData = data.dragons
+			economyData = data.economy
+			tutorial = data.tutorial
+		elseif not ok then
+			warn("[Progression] Caricamento non riuscito (in Studio attiva l'accesso alle API): " .. tostring(data))
+		end
+	end
+	loaded[player] = true
+	player:SetAttribute("TutorialStep", if type(tutorial) == "number" then tutorial else 1)
+	Dragons.load(player, dragonData)
+	Economy.load(player, economyData)
+	updateTotal(player)
+	giveTools(player)
+end
+
+-- Costruzione: controlla e scala i minerali, poi assegna l'attrezzo
+local function craft(player: Player, id: any): (boolean, string)
+	if type(id) ~= "string" then
+		return false, "Richiesta non valida"
+	end
+	local recipe = Gear.find(id)
+	if not recipe then
+		return false, "Attrezzo sconosciuto"
+	end
+	if not recipe.consumable and Gear.has(player, id) then
+		return false, "Ce l'hai gia'"
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	-- l'equipaggiamento vuole un banco da lavoro vicino (quello del campo o quello di casa)
+	if recipe.station ~= "Ovunque" then
+		local near = false
+		for _, bench in CollectionService:GetTagged("Workbench") do
+			if root and bench:IsA("BasePart") and bench:IsDescendantOf(workspace) and (bench.Position - root.Position).Magnitude < 16 then
+				near = true
+				break
+			end
+		end
+		if not near then
+			return false, "Questo si costruisce al Banco da lavoro (al campo o in casa tua)"
+		end
+	end
+	-- i consumabili non devono andare sprecati
+	if id == "Chiodi" and (player:GetAttribute("Pitons") or 0) >= ClimbConfig.PITONS_MAX then
+		return false, "Hai gia' tutti i chiodi che puoi portare"
+	elseif id == "Torcia" and ((character and character:FindFirstChild("Torcia")) or player.Backpack:FindFirstChild("Torcia")) then
+		return false, "Hai gia' una torcia"
+	elseif id == "Bende" and (not humanoid or humanoid.Health >= humanoid.MaxHealth) then
+		return false, "Non sei ferito"
+	end
+	for ore, amount in recipe.cost do
+		if oreValue(player, ore).Value < amount then
+			return false, "Ti manca " .. ore
+		end
+	end
+	for ore, amount in recipe.cost do
+		oreValue(player, ore).Value -= amount
+	end
+	updateTotal(player)
+	if id == "Chiodi" then
+		player:SetAttribute("Pitons", math.min(ClimbConfig.PITONS_MAX, (player:GetAttribute("Pitons") or 0) + 4))
+	elseif id == "Torcia" then
+		local torch = Tools.make("Torcia")
+		if torch then
+			torch.Parent = player.Backpack
+		end
+	elseif id == "Bende" and humanoid then
+		humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + 40)
+	else
+		player:SetAttribute("Gear_" .. id, true)
+		giveTools(player)
+	end
+	task.spawn(save, player)
+	return true, recipe.name .. " costruito!"
+end
+
+-- Freddo in quota
+local function heatSources(): { Vector3 }
+	local list = {}
+	for _, inst in CollectionService:GetTagged("HeatSource") do
+		if inst:IsA("BasePart") then
+			table.insert(list, inst.Position)
+		end
+	end
+	return list
+end
+
+local function coldLoop()
+	local sources = heatSources()
+	local refresh = 0
+	while true do
+		local dt = task.wait(1)
+		refresh += dt
+		if refresh > 30 then
+			refresh = 0
+			sources = heatSources()
+		end
+		local t = Lighting.ClockTime
+		local night = t < 6 or t > 19.5
+		local weather = workspace:GetAttribute("Weather")
+		for _, player in Players:GetPlayers() do
+			local character = player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			if not root or not humanoid or humanoid.Health <= 0 then
+				continue
+			end
+			local warmth = (player:GetAttribute("Warmth") or 100) :: number
+			local pos = root.Position
+			local nearFire = false
+			for _, s in sources do
+				if (s - pos).Magnitude < Gear.HEAT_RANGE then
+					nearFire = true
+					break
+				end
+			end
+			local abilities = player:GetAttribute("PetAbilities")
+			if type(abilities) == "string" and string.find(abilities, "Brace", 1, true) then
+				nearFire = true -- il Drago Brace ti scalda
+			end
+			if nearFire then
+				warmth = math.min(100, warmth + Gear.HEAT_REGEN * dt)
+			elseif pos.Y > Gear.COLD_ALTITUDE then
+				local loss = (pos.Y - Gear.COLD_ALTITUDE) / 1000 * Gear.COLD_PER_1000 + 0.5
+				if night then
+					loss *= 1.6
+				end
+				if weather == "Snow" or weather == "Storm" then
+					loss *= 1.5
+				end
+				if Gear.has(player, "Tuta") then
+					loss *= Gear.SUIT_FACTOR
+				end
+				warmth = math.max(0, warmth - loss * dt)
+			else
+				warmth = math.min(100, warmth + 3 * dt)
+			end
+			player:SetAttribute("Warmth", warmth)
+			if warmth <= 0 then
+				Survival.damage(humanoid, Gear.FREEZE_DAMAGE * dt, "Congelamento")
+			end
+		end
+	end
+end
+
+function Progression.setup(remotes: { [string]: RemoteEvent })
+	local ok, result = pcall(function()
+		return DataStoreService:GetDataStore("HardcoreClimbing_v1")
+	end)
+	if ok then
+		store = result
+	else
+		warn("[Progression] DataStore non disponibile, i progressi non verranno salvati: " .. tostring(result))
+	end
+
+	local craftFn = Instance.new("RemoteFunction")
+	craftFn.Name = "Craft"
+	craftFn.Parent = ReplicatedStorage:WaitForChild("Remotes")
+	craftFn.OnServerInvoke = craft
+
+	-- Banchi da lavoro: aprono il menu sul client
+	local function bindBench(bench: Instance)
+		local prompt = bench:FindFirstChildOfClass("ProximityPrompt")
+		if prompt then
+			prompt.Triggered:Connect(function(player: Player)
+				remotes.OpenCrafting:FireClient(player)
+				player:SetAttribute("BenchOpened", true) -- per il tutorial
+			end)
+		end
+	end
+	for _, bench in CollectionService:GetTagged("Workbench") do
+		bindBench(bench)
+	end
+	CollectionService:GetInstanceAddedSignal("Workbench"):Connect(bindBench)
+
+	local function onPlayer(player: Player)
+		local stats = player:FindFirstChild("leaderstats") or Instance.new("Folder")
+		stats.Name = "leaderstats"
+		stats.Parent = player
+		if not stats:FindFirstChild("Minerali") then
+			local total = Instance.new("IntValue")
+			total.Name = "Minerali"
+			total.Parent = stats
+		end
+		player:SetAttribute("Warmth", 100)
+		player.CharacterAdded:Connect(function()
+			player:SetAttribute("Warmth", 100)
+		end)
+		task.spawn(load, player)
+	end
+	Players.PlayerAdded:Connect(onPlayer)
+	for _, player in Players:GetPlayers() do
+		onPlayer(player)
+	end
+	Players.PlayerRemoving:Connect(function(player)
+		save(player)
+		loaded[player] = nil
+	end)
+	game:BindToClose(function()
+		for _, player in Players:GetPlayers() do
+			save(player)
+		end
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(120)
+			for _, player in Players:GetPlayers() do
+				save(player)
+			end
+		end
+	end)
+	task.spawn(coldLoop)
+end
+
+Progression.oreValue = oreValue
+Progression.giveTools = giveTools
+Progression.updateTotal = updateTotal
+
+return Progression

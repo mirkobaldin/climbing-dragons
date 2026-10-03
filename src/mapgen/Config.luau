@@ -1,0 +1,305 @@
+--!strict
+-- Parametri della mappa. Cambia i valori qui e rilancia il generatore:
+--   require(game.ServerStorage.MapGen).Generate()
+-- Tutte le misure sono in studs. Le quote dei biomi sono frazioni di MOUNTAIN.HEIGHT,
+-- cosi' se alzi la montagna i biomi si riscalano da soli.
+
+local Config = {
+	SEED = 20260929,
+
+	VOXEL = 4, -- risoluzione del Terrain di Roblox (non cambiare)
+	MAP_X = 7680, -- estensione est-ovest
+	MAP_Z = 5632, -- estensione nord-sud
+	BOTTOM_Y = -200, -- fondo del mondo (sotto c'e' il vuoto)
+	WATER_LEVEL = 20,
+	OCEAN_MARGIN = 2048, -- oceano extra oltre i bordi della mappa (solo acqua, costa poco)
+
+	-- Isola irregolare con coste frastagliate e lagune basse (fondale di sabbia turchese)
+	ISLAND_RX = 3250,
+	ISLAND_RZ = 2350,
+	-- Costa: in alcuni tratti la terra arriva alta fino al mare e cade a picco (falesie, con
+	-- faraglioni davanti); altrove scende dolce in spiagge e lagune. Al largo qualche isolotto.
+	COAST = { CLIFF_HEIGHT = 55, ISLETS = 9, STACKS = 14 },
+
+	-- Montagna principale (stile Cervino) sul lato est
+	-- PROFILE = forma della montagna (frazioni dell'altezza e del raggio): non un cono ma un
+	-- massiccio a tre piani. SKIRT = quota dove finiscono le pendici boscose, SHOULDER = quota
+	-- della spalla in cima al bastione di pareti; BASTION_FOOT / PYRAMID_FOOT = a che distanza
+	-- dal centro (0 = vetta, 1 = piede) iniziano il bastione e la piramide della vetta;
+	-- WALL_POWER = quanto e' verticale il bastione (1 = rampa, 3 = parete a picco).
+	MOUNTAIN = {
+		X = 1300,
+		Z = 0,
+		HEIGHT = 4200,
+		RADIUS = 2300,
+		-- piramide larga stile K2: bastione meno a picco, piramide della vetta che parte prima
+		PROFILE = { SKIRT = 0.17, SHOULDER = 0.52, BASTION_FOOT = 0.62, PYRAMID_FOOT = 0.4, WALL_POWER = 1.8 },
+	},
+
+	-- Colline/cime secondarie attorno alla montagna
+	FOOTHILLS = {
+		{ X = 1782, Z = 1604, HEIGHT = 1250, RADIUS = 842 },
+		{ X = 189, Z = -1459, HEIGHT = 900, RADIUS = 778 },
+		{ X = 2557, Z = -1178, HEIGHT = 1100, RADIUS = 713 },
+		{ X = -1000, Z = 1324, HEIGHT = 520, RADIUS = 670 },
+	},
+
+	-- Valle centrale (area base) a ovest: piana chiusa da un anello di pareti rocciose
+	HUB = {
+		X = -1380, -- il varco est della valle si apre quasi ai piedi della montagna
+		Z = 0,
+		RADIUS = 450,
+		HEIGHT = 44,
+		-- Cerchio delle tende verso il mare (spawn + falo'), offset dal centro della piana
+		CAMP = { DX = -90, DZ = -40, RADIUS = 120 },
+		-- Mezzaluna rialzata verso la montagna: cabine sul livello 1, chalet sul livello 2
+		CRESCENT = { INNER = 220, MID = 310, OUTER = 410, SPAN = 1.1, TIER1 = 10, TIER2 = 22, RAMPS = { 0, 0.8, -0.8 } },
+		-- Anello di pareti attorno alla valle; GATES = varchi (angolo: 0 = est/montagna, pi = ovest/mare)
+		WALL = {
+			RADIUS = 640,
+			WIDTH = 150,
+			HEIGHT = 110,
+			GATES = { { ANGLE = math.pi, WIDTH = 0.32 }, { ANGLE = 0.05, WIDTH = 0.2 } },
+		},
+		RIBS_OFFSET = { -250, -420 }, -- costato del drago, nella valle (a sud)
+	},
+	HOT_POOLS = { -- sorgenti termali nella piana (offset dal centro HUB)
+		{ DX = -150, DZ = -230, RADIUS = 14 },
+		{ DX = -70, DZ = -255, RADIUS = 11 },
+		{ DX = -230, DZ = -200, RADIUS = 9 },
+	},
+
+	-- Teschio del drago: ingresso dell'isola, sul varco ovest della valle (verso il mare) con la
+	-- bocca aperta rivolta dentro la valle: arrivando dal mare si entra nell'isola dalla sua bocca.
+	-- SKULL_LENGTH = lunghezza in studs, MOUTH_OPEN = apertura della bocca (gradi)
+	-- SKULL_YAW = rotazione extra in gradi se il muso del tuo modello esce girato (0, 90, 180, 270);
+	-- si puo' anche mettere l'attributo "Yaw" sul modello DragonSkull in ServerStorage
+	DRAGON = { RIBS_LENGTH = 0.7, SKULL_LENGTH = 1000, SKULL_YAW = 0, JAW = false }, -- 0 per teschio_drago (muso verso -Z); JAW = false: solo la parte superiore, si passa sotto
+
+	-- Parete di allenamento del tutorial davanti al campo delle tende (ANGLE: 0 = verso la
+	-- montagna, pi = verso il mare, -pi/2 = sud; DISTANCE dal centro del campo). A ovest c'e'
+	-- il teschio, a est la mezzaluna, a nord emporio e fiume: il posto libero e' a sud.
+	TUTORIAL = { ANGLE = -math.pi / 2 - 0.1, DISTANCE = 320, WALL_WIDTH = 80, WALL_HEIGHT = 60 },
+
+	-- Baia d'ingresso con spiaggia e laguna
+	BAY = { X = -2300, Z = 350, RADIUS = 520 },
+
+	-- Fiumi e valli. POINTS = percorso {x, z} dalla sorgente alla foce (la curva viene ammorbidita).
+	-- Il primo fiume nasce dove finisce la gola della cascata. VALLEY_SLOPE = ripidita' dei
+	-- fianchi della valle. Nei tratti ripidi l'acqua e' schiuma di particelle (vedi RIVER_CALM).
+	RIVERS = {
+		{
+			NAME = "Fiume della Piana",
+			POINTS = { { -360, 135 }, { -760, 330 }, { -1100, 400 }, { -1400, 380 }, { -1800, 360 }, { -2200, 380 }, { -2650, 400 }, { -3080, 420 } },
+			HALF_WIDTH = 14,
+			VALLEY_WIDTH = 160,
+			VALLEY_SLOPE = 0.35,
+			DEPTH = 5,
+			MEANDER = 90,
+		},
+		{
+			NAME = "Valle Nord",
+			POINTS = { { 586, 1354 }, { 257, 1502 }, { -300, 1781 }, { -717, 2087 }, { -996, 2574 } },
+			HALF_WIDTH = 8,
+			VALLEY_WIDTH = 170,
+			VALLEY_SLOPE = 0.75,
+			DEPTH = 4,
+			MEANDER = 60,
+		},
+		{
+			NAME = "Valle Sud",
+			POINTS = { { 1803, -1445 }, { 1926, -1669 }, { 2065, -2017 }, { 2274, -2574 } },
+			HALF_WIDTH = 8,
+			VALLEY_WIDTH = 150,
+			VALLEY_SLOPE = 0.75,
+			DEPTH = 4,
+			MEANDER = 50,
+		},
+	},
+
+	-- L'acqua del Terrain e' sempre piatta: un fiume in discesa e' quindi una scala di pozze
+	-- piatte, con il fondo scavato piano (DEPTH studs sotto il pelo) e una soglia bassa tra una
+	-- pozza e l'altra. Se per stare dietro al pendio servisse una soglia piu' alta di STEP, il
+	-- tratto diventa uno scivolo di roccia (cascata), senza acqua ferma.
+	--   DEPTH     profondita' dell'acqua nella pozza
+	--   DROP      salto massimo tra una pozza e la successiva: dove il pendio e' dolce le pozze
+	--             diventano lunghissime (il fiume sembra continuo), dove e' ripido si accorciano
+	--             e si forma una scalinata di terrazze d'acqua
+	--   MIN_LEN   lunghezza minima di una pozza in studs
+	--   MAX_DEPTH nessuna pozza piu' profonda di cosi' (niente trincee allagate)
+	RIVER_POOLS = { DEPTH = 5, DROP = 6, MIN_LEN = 16, MAX_DEPTH = 12 },
+	-- Un bordo d'acqua che si affaccia su un salto piu' alto di questo (studs) diventa un labbro di
+	-- roccia (evita "muri d'acqua" verticali); salti piu' piccoli restano acqua in discesa.
+	WATER_EDGE_DROP = 9,
+
+	-- Laghetti naturali nelle zone ampie e piatte (trovate da sole)
+	PONDS = { COUNT = 4, RADIUS = 55, MIN_SPACING = 700, MIN_FROM_CAMP = 420 },
+	-- Lago grande nella valle del campo, sul Fiume della Piana: il fiume che scende dalla
+	-- montagna e' l'immissario, quello che prosegue verso il mare l'emissario. Sulla riva sud
+	-- le palafitte (zona tranquilla con panchine, amache e falo').
+	BIG_LAKE = { X = -1560, Z = 370, RADIUS = 145, DEPTH = 16, BEACH = 26 },
+	-- Ghiacciai (stile K2): lingue di ghiaccio che scendono lungo i canaloni seguendo la forma
+	-- della montagna (niente pianori). ANGLE = versante, R_TOP / R_BOTTOM = da che distanza dal
+	-- centro partono e arrivano (frazioni del raggio), WIDTH = larghezza in alto (si stringono
+	-- scendendo). Dove il pendio e' ripido diventano seraccate piene di blocchi di ghiaccio; i
+	-- crepacci sono archi irregolari, piu' fitti e caotici nelle seraccate.
+	GLACIERS = {
+		-- come sul K2: partono dai piedi delle pareti (seraccata) e scendono nelle valli alla base,
+		-- dove la pendenza e' da ghiacciaio vero (30-40 gradi), non da parete
+		{ ANGLE = math.rad(115), R_TOP = 0.5, R_BOTTOM = 0.86, WIDTH = 440 },
+		{ ANGLE = math.rad(-60), R_TOP = 0.52, R_BOTTOM = 0.88, WIDTH = 400 },
+		{ ANGLE = math.rad(30), R_TOP = 0.5, R_BOTTOM = 0.84, WIDTH = 360 },
+	},
+	-- Ghiaccio sospeso sulle pareti alte (fascia di seracchi come sul K2): da TOP in giu' il
+	-- ghiaccio scende con pendenza SLOPE, finche' e' spesso MAX studs e si interrompe in una parete.
+	-- LOBES = quante lingue attorno alla montagna (circa).
+	ICECAP = { TOP = 0.82, BOTTOM = 0.35, SLOPE = 0.9, MAX = 130, LOBES = 5 },
+	-- Pareti di ghiaccio vivo: tra BOTTOM e TOP (frazioni della quota) le pareti piu' ripide di
+	-- MIN_SLOPE diventano ghiaccio nei settori dove il rumore supera THRESHOLD (piu' basso = piu'
+	-- ghiaccio). SECTORS = quanti settori circa attorno alla montagna.
+	ICEWALLS = { BOTTOM = 0.3, TOP = 0.9, MIN_SLOPE = 1.0, THRESHOLD = -0.05, SECTORS = 4 },
+	GLACIER = {
+		THICKNESS = 26, -- spessore del ghiaccio sopra la roccia
+		SMOOTH = 7, -- campioni (x8 studs) per ammorbidire il letto: ghiaccio che riempie, non piallato
+		ICEFALL = 1.3, -- seraccata dove il ghiacciaio e' ripido 1.3 volte la sua pendenza tipica
+		CREVASSE_EVERY = { 26, 80 },
+		CREVASSE_WIDTH = { 4, 15 },
+		CREVASSE_DEPTH = { 25, 70 },
+		LADDERS_PER_CREVASSE = 2,
+	},
+
+	-- Lago d'alta quota + gola con pozze e salti d'acqua (cascata)
+	-- (ai piedi del grande bastione, come i laghi sotto le pareti delle Dolomiti)
+	LAKE = { ANGLE = math.pi + 0.35, HEIGHT_FRAC = 0.2, RADIUS = 60, RIM = 22 },
+	-- STEP = altezza dei salti della gola: pozze piatte separate da salti veri (le cascate)
+	GORGE = { HALF_WIDTH = 10, WALL = 26, DEPTH = 30, STEP = 26 },
+
+	-- Biomi verticali (frazioni dell'altezza della montagna)
+	BIOMES = {
+		FOREST_TOP = 0.2, -- fino a ~600: erba, bosco
+		MEADOW_TOP = 0.33, -- cenge d'erba alpina
+		SNOW_LINE = 0.42, -- sopra ~1260: neve su tutto cio' che non e' parete verticale
+		SNOW_SLOPE = 3.6, -- pendenza massima (tan) su cui resta la neve (~75 gradi)
+		SNOW_CAP = 0.6, -- piu' in alto la neve copre fino a 5.5 (~80 gradi): pareti intonacate
+		GLACIER_LINE = 0.62, -- sopra ~2600: colate di ghiaccio nei canaloni e sulle pareti
+	},
+
+	-- Pareti verticali (a gradoni) sparse sulla montagna + grande parete sul lato +Z
+	-- MASK = soglie del rumore che decide dove ci sono pareti: piu' basse = piu' pareti
+	CLIFFS = { STEP_MIN = 70, STEP_MAX = 170, BIG_WALL_STEP = 380, SHARPNESS = 8, MASK = { -0.08, 0.04 } },
+
+	-- Monoliti: pareti enormi e verticali sui fianchi della montagna (tipo El Capitan e le
+	-- falesie di Arco). ANGLE attorno alla montagna, DIST = frazione del raggio della montagna,
+	-- HEIGHT = quanto si alzano sopra il pendio. Sulle loro facce ci sono i grandi tetti.
+	MONOLITHS = {
+		{ NAME = "El Capitano", ANGLE = -0.9, DIST = 0.78, RADIUS = 250, HEIGHT = 800 },
+		{ NAME = "Torre di Arco", ANGLE = 2.6, DIST = 0.8, RADIUS = 190, HEIGHT = 560 },
+		{ NAME = "Il Pulpito", ANGLE = 0.9, DIST = 0.82, RADIUS = 150, HEIGHT = 420 },
+	},
+
+	-- Sentiero di cresta a spirale (stretto, con interruzioni)
+	PATH = {
+		START_ANGLE = math.pi - 0.3,
+		TURNS = 2.25,
+		Y_START = 120,
+		Y_END_FRAC = 0.8, -- oltre questa quota niente sentiero: solo arrampicata
+		HALF_WIDTH = 4,
+		CAMPS = { 0.12, 0.3, 0.5, 0.68, 0.84 }, -- campi base (piazzole piatte) lungo il sentiero
+		CAMP_RADIUS = 16,
+		GAPS = {
+			-- at = posizione lungo il sentiero (0..1), length = buco in studs,
+			-- rise = di quanto riparte piu' in alto (parete da scalare con i chiodi)
+			{ at = 0.22, kind = "climb", length = 18, rise = 28 },
+			{ at = 0.40, kind = "floating", length = 70, rise = 10 },
+			{ at = 0.58, kind = "climb", length = 16, rise = 36 },
+			{ at = 0.74, kind = "climb", length = 20, rise = 44 },
+			{ at = 0.88, kind = "floating", length = 90, rise = 16 },
+		},
+	},
+
+	-- Grotte e gallerie
+	-- Montagna vuota (vedi Voxelizer): guscio di roccia spesso SHELL studs, cavita' solo dove il
+	-- tetto verrebbe sopra MIN_Y (cioe' sotto la montagna e le colline alte, non sotto la piana).
+	-- WALL = rivestimento di roccia attorno alle grotte che passano nella cavita'.
+	HOLLOW = { SHELL = 48, MIN_Y = 60, WALL = 10 },
+	-- Camera del tesoro al centro della montagna (quota del centro e raggio della cupola)
+	TREASURE = { Y = 340, RADIUS = 80 },
+	CAVES = {
+		ENTRY_Y = 140, -- ingresso della grotta base (lato piana)
+		HELIX_TOP_FRAC = 0.5, -- la galleria interna sale fino a meta' montagna
+		HELIX_MAX_RADIUS = 260,
+		HELIX_GRADE = 0.25, -- pendenza camminabile (~14 gradi)
+		TUNNEL_RADIUS = 13, -- galleria principale (il personaggio e' alto ~5 studs, i voxel da 4 arrotondano)
+		MIN_RADIUS = 9, -- cunicoli laterali: sotto questo raggio non ci si passa
+		LINK_RADIUS = 9, -- collegamenti, pozzi e corridoi della catacomba
+		COVER = 14, -- roccia che deve restare sopra una galleria: meno e' un soffitto in cui si cade
+		BRANCHES = 18, -- cunicoli laterali (vicoli ciechi, stanze minerali)
+		ENTRANCES = 7, -- ingressi extra sparsi sulla montagna, collegati alla galleria
+		LOOPS = 14, -- gallerie che collegano tra loro stanze e cunicoli (rete intrecciata)
+		MINE_CHAMBERS = 8, -- grandi caverne con pavimento piatto per i giacimenti
+		ICE_CAVES = { 0.62, 0.68, 0.74 }, -- quote (frazioni) delle grotte di ghiaccio
+		NICHE_FRAC = 0.45, -- anfratto segreto nella parete est
+		CATACOMB_Y = -100, -- catacomba segreta sotto il livello del mare
+	},
+
+	-- Bosco: una possibile posizione ogni CELL studs, DENSITY = quanto e' fitto.
+	-- Modelli: qualunque Model con "Tree"/"albero" nel nome dentro ServerStorage (anche in
+	-- sottocartelle, es. "Realistic Trees Pack"). Quelli con "cherry", "sakura" o "ciliegio" nel
+	-- nome vanno in basso (piana, valli, rive), "pine"/"pino" in alto, gli altri in mezzo.
+	-- SCALE = ingrandimento casuale dei modelli (i pack sono spesso piccoli per la nostra mappa).
+	FOREST = {
+		CELL = 22,
+		DENSITY = 0.8,
+		MAX_TREES = 3000,
+		ABOVE_FOREST_TOP = 150,
+		CHERRY_MAX_Y = 220,
+		PINE_MIN_Y = 380,
+		SCALE = { 2.2, 3.6 },
+		GIANT_CHANCE = 0.12, -- alcuni alberi giganti
+		GIANT_SCALE = { 4.5, 6.5 },
+		EFFECTS_EVERY = 12, -- solo un albero ogni N tiene particelle (petali/foglie) e suoni
+	},
+
+	-- Strada lastricata dalla base al sentiero della montagna (passa dal varco est della valle)
+	-- MAX_GRADE = pendenza massima, SMOOTH = quanti punti (x4 studs) per ammorbidire il profilo
+	ROAD = { HALF_WIDTH = 6, SHOULDER = 14, MAX_GRADE = 0.14, SMOOTH = 12, LAMP_EVERY = 3 },
+
+	-- CABINS/CHALETS = terreni dei giocatori sul primo/secondo livello della mezzaluna;
+	-- HOUSE_SCALE = grandezza delle case (1 = a misura del modello a blocchi)
+	VILLAGE = { CABINS = 7, CHALETS = 6, BRIDGES = 3, HOUSE_SCALE = 1.6, PLOT_HALF = 30 },
+
+	-- Ostacoli sulla montagna
+	OBSTACLES = {
+		CRUMBLING_ROCKS = 60, -- appigli che si sgretolano quando ti aggrappi
+		ICE_PATCHES = 40, -- lastre di ghiaccio scivolose sulle cenge alte
+		ROCKFALL_SOURCES = 8, -- canaloni da cui cadono sassi
+		WIND_ZONES = 6, -- raffiche di vento in quota
+		-- Strapiombi: la parete si gonfia in fuori (vedi bulge in Obstacles).
+		--   ANGLE       inclinazione massima sotto la pancia (gradi dalla verticale, 45 = un metro
+		--               in fuori ogni metro in su)
+		--   MAX_DEPTH   quanto sporge al massimo (cresce fino a sqrt(MAX_SCALE) volte sulle pareti
+		--               enormi); WIDTH larghezza lungo la parete, mai meno di WIDTH_RATIO volte la
+		--               sporgenza (altrimenti sembra un naso)
+		--   CROWN       sopra il ciglio la roccia rientra nella parete in CROWN volte la sporgenza
+		--   MIN_Y..MAX_Y_FRAC  fascia di quote in cui vengono sparse, in modo uniforme
+		OVERHANG = {
+			COUNT = 140,
+			PER_MONOLITH = 4,
+			ANGLE = { 45, 62 },
+			MIN_CLIFF = 40,
+			WIDTH = { 140, 300 },
+			WIDTH_RATIO = 3.2,
+			MAX_DEPTH = 55,
+			CROWN = { 1.8, 3.5 },
+			MIN_Y = 260,
+			MAX_Y_FRAC = 0.93,
+			MAX_SCALE = 5,
+		},
+		SMOOTH_WALLS_FROM = 0.5, -- i salti del sentiero oltre questo punto (0..1) sono pareti lisce: serve il Rampino
+	},
+
+	-- Nota: la pendenza massima camminabile (50 gradi, niente scalate "saltando") e'
+	-- impostata in default.project.json -> StarterPlayer.CharacterMaxSlopeAngle
+}
+
+return Config

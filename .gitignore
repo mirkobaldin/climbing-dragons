@@ -1,0 +1,13 @@
+# Project place file
+/RObloxGame.rbxlx
+
+# Roblox Studio lock files
+/*.rbxlx.lock
+/*.rbxl.lock
+
+sourcemap.json
+
+# modelli 3D sorgente (pesanti, stanno nel file place) e output di graphify
+/assets/
+/graphify-out/
+/info
