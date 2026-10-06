@@ -134,7 +134,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			local nextStage = DragonConfig.STAGES[d.stage + 1]
 			local following = table.find(data.equipped, d.id) ~= nil
 			local card = Theme.frame(dragonList, Theme.CARD)
-			card.Size = UDim2.new(1, -6, 0, 96)
+			card.Size = UDim2.new(1, -6, 0, 112)
 			Theme.corner(card, 10)
 			if following then
 				Theme.stroke(card, Theme.GOOD, 2, 0.2)
@@ -150,8 +150,22 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			t.Position = UDim2.new(0, 96, 0, 6)
 			t.Size = UDim2.new(1, -100, 0, 20)
 			local a = Theme.label(card, if e then e.ability else "", 12, Theme.MUTED)
-			a.Position = UDim2.new(0, 96, 0, 28)
-			a.Size = UDim2.new(1, -100, 0, 30)
+			a.Position = UDim2.new(0, 96, 0, 26)
+			a.Size = UDim2.new(1, -100, 0, 28)
+			-- livello e barra dell'esperienza (si addestra nella zona delle costole)
+			local level = d.level or 1
+			local maxed = level >= DragonConfig.MAX_LEVEL
+			local need = DragonConfig.xpForLevel(level)
+			local bar = Theme.frame(card, Color3.fromRGB(22, 24, 30))
+			bar.Position = UDim2.new(0, 96, 0, 56)
+			bar.Size = UDim2.new(1, -110, 0, 14)
+			Theme.corner(bar, 7)
+			local fill = Theme.frame(bar, if maxed then Theme.ACCENT else (if e then e.glow else Theme.GOOD))
+			fill.Size = UDim2.new(if maxed then 1 else math.clamp((d.xp or 0) / need, 0, 1), 0, 1, 0)
+			Theme.corner(fill, 7)
+			local lv = Theme.label(bar, if maxed then string.format("Lv %d  ·  MAX", level) else string.format("Lv %d   %d / %d XP", level, d.xp or 0, need), 11, Theme.TEXT, true)
+			lv.Size = UDim2.fromScale(1, 1)
+			lv.TextXAlignment = Enum.TextXAlignment.Center
 			local row = Theme.frame(card, nil, 1)
 			row.Position = UDim2.new(0, 96, 1, -38)
 			row.Size = UDim2.new(1, -100, 0, 32)
@@ -161,7 +175,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 				act(if following then "unequip" else "equip", d.id)
 			end)
 			if nextStage then
-				local evo = Theme.button(row, string.format("Evolvi (%d)", nextStage.stones), Theme.ACCENT, UDim2.new(0, 88, 0, 30))
+				local ready = (d.level or 1) >= DragonConfig.MAX_LEVEL
+				local evo = Theme.button(row, if ready then "Evolvi!" else string.format("Evolvi (Lv %d)", DragonConfig.MAX_LEVEL), if ready then Theme.ACCENT else Theme.MUTED, UDim2.new(0, 104, 0, 30))
 				evo.Activated:Connect(function()
 					act("evolve", d.id)
 				end)

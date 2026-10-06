@@ -426,7 +426,7 @@ function DragonModels.egg(elementId: string, rarityId: string): Model
 end
 
 -- Drago (cucciolo, giovane o adulto) pronto da far seguire al giocatore
-function DragonModels.dragon(elementId: string, rarityId: string, stage: number): Model
+function DragonModels.dragon(elementId: string, rarityId: string, stage: number, level: number?): Model
 	local element = DragonConfig.element(elementId) or DragonConfig.ELEMENTS[1]
 	local rarity = DragonConfig.rarity(rarityId)
 	local st = DragonConfig.STAGES[math.clamp(stage, 1, #DragonConfig.STAGES)]
@@ -440,7 +440,8 @@ function DragonModels.dragon(elementId: string, rarityId: string, stage: number)
 	else
 		model = builtDragon(element)
 	end
-	resize(model, st.size * (if rarity.id == "Leggendario" then 1.2 elseif rarity.id == "Epico" then 1.1 else 1))
+	local _ = st
+	resize(model, DragonConfig.dragonSize(stage, level) * (if rarity.id == "Leggendario" then 1.2 elseif rarity.id == "Epico" then 1.1 else 1))
 	addGlow(model, element.glow, rarity)
 	if element.id == "Brace" and model.PrimaryPart then
 		local light = Instance.new("PointLight")

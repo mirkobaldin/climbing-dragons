@@ -3,7 +3,7 @@
 -- dell'evoluzione e abilita'. Tutto lato server (il client chiede, il server decide).
 --
 -- Stato per giocatore (salvato da Progression):
---   dragons    { id, element, rarity, stage }
+--   dragons    { id, element, rarity, stage, level, xp }  (level 1..MAX_LEVEL, si addestra)
 --   equipped   id dei draghi che ti seguono (max MAX_EQUIPPED, +1 col gamepass)
 --   nest       uova in cova { element, rarity, readyAt (os.time) }
 --   stones     pietre dell'evoluzione
@@ -20,7 +20,7 @@ local DragonModels = require(script.Parent.DragonModels)
 
 local Dragons = {}
 
-export type DragonData = { id: number, element: string, rarity: string, stage: number }
+export type DragonData = { id: number, element: string, rarity: string, stage: number, level: number?, xp: number? }
 export type NestEgg = { element: string, rarity: string, readyAt: number }
 export type State = {
 	dragons: { DragonData },
@@ -131,8 +131,10 @@ local function refreshPets(player: Player)
 	for slot, id in s.equipped do
 		local d = findDragon(s, id)
 		if d then
-			local model = DragonModels.dragon(d.element, d.rarity, d.stage)
+			local model = DragonModels.dragon(d.element, d.rarity, d.stage, d.level)
 			model:SetAttribute("Owner", player.UserId)
+			model:SetAttribute("DragonId", d.id)
+			model:SetAttribute("Level", d.level or 1)
 			model:SetAttribute("Slot", slot)
 			model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 			model:PivotTo(start * CFrame.new(slot * 3, 3, 3))
@@ -154,6 +156,61 @@ local function changed(player: Player, petsToo: boolean)
 	if Dragons.onChanged then
 		(Dragons.onChanged :: any)(player)
 	end
+end
+
+-- Draghi che ti seguono adesso
+function Dragons.equippedDragons(player: Player): { DragonData }
+	local s = Dragons.state(player)
+	local list = {}
+	for _, id in s.equipped do
+		local d = findDragon(s, id)
+		if d then
+			table.insert(list, d)
+		end
+	end
+	return list
+end
+
+-- Esperienza a un drago: sale di livello finche' basta (fino a MAX_LEVEL). Restituisce il
+-- livello prima e dopo. Il drago cresce un po' ogni 10 livelli (si ricostruisce il modello).
+Dragons.onLevelUp = nil :: ((Player, DragonData, number) -> ())?
+function Dragons.addXp(player: Player, dragonId: number, amount: number): (number, number)
+	local s = Dragons.state(player)
+	local d = findDragon(s, dragonId)
+	if not d then
+		return 0, 0
+	end
+	local before = d.level or 1
+	d.level = before
+	d.xp = (d.xp or 0) + amount
+	while (d.level :: number) < DragonConfig.MAX_LEVEL and (d.xp :: number) >= DragonConfig.xpForLevel(d.level :: number) do
+		d.xp = (d.xp :: number) - DragonConfig.xpForLevel(d.level :: number)
+		d.level = (d.level :: number) + 1
+	end
+	if (d.level :: number) >= DragonConfig.MAX_LEVEL then
+		d.xp = 0
+	end
+	local after = d.level :: number
+	local grew = before // 10 ~= after // 10
+	publish(player)
+	if after > before then
+		-- il livello sopra la testa del drago al seguito
+		local folder = petFolder:FindFirstChild(tostring(player.UserId))
+		if folder then
+			for _, m in folder:GetChildren() do
+				if m:GetAttribute("DragonId") == d.id then
+					m:SetAttribute("Level", after)
+				end
+			end
+		end
+		if Dragons.onLevelUp then
+			(Dragons.onLevelUp :: any)(player, d, after)
+		end
+		if grew then
+			task.delay(1.2, refreshPets, player) -- dopo l'effetto del livello
+		end
+	end
+	return before, after
 end
 
 function Dragons.refresh(player: Player)
@@ -209,6 +266,8 @@ function Dragons.addStones(player: Player, amount: number)
 	changed(player, false)
 end
 
+Dragons.onEvolve = nil :: ((Player, DragonData) -> ())?
+
 -- Evento di schiusa (lo imposta Eggs per l'effetto al nido)
 Dragons.onHatch = nil :: ((Player, NestEgg) -> ())?
 
@@ -244,12 +303,25 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 		if not nextStage then
 			return false, "E' gia' adulto"
 		end
+		if (d.level or 1) < DragonConfig.MAX_LEVEL then
+			return false, string.format("Deve arrivare a livello %d: addestralo nella zona delle costole del drago", DragonConfig.MAX_LEVEL)
+		end
 		if s.stones < nextStage.stones then
 			return false, string.format("Servono %d pietre dell'evoluzione (sconfiggi il boss in vetta)", nextStage.stones)
 		end
 		s.stones -= nextStage.stones
 		d.stage += 1
-		changed(player, table.find(s.equipped, d.id) ~= nil)
+		d.level = 1
+		d.xp = 0
+		local following = table.find(s.equipped, d.id) ~= nil
+		publish(player)
+		if Dragons.onEvolve then
+			(Dragons.onEvolve :: any)(player, d)
+		end
+		-- il modello nuovo arriva dopo il vortice dell'evoluzione
+		task.delay(if following then 1.6 else 0, function()
+			changed(player, following)
+		end)
 		return true, "Si e' evoluto: " .. nextStage.name .. "!"
 	elseif kind == "hatch" then
 		local index = tonumber(arg) or -1

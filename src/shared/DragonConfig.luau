@@ -99,12 +99,37 @@ DragonConfig.RARITIES = {
 	{ id = "Leggendario", weight = 2, hatchMinutes = 90, color = Color3.fromRGB(255, 200, 60), sparkle = true },
 }
 
--- Stadi di crescita: dimensione del drago (studs) e pietre dell'evoluzione per arrivarci
+-- Stadi di crescita: dimensione del drago (studs) e pietre dell'evoluzione per arrivarci.
+-- Per evolvere il drago deve essere a livello MAX_LEVEL (si addestra nella zona di addestramento);
+-- dopo l'evoluzione riparte dal livello 1. Le pietre per ora sono 0: il boss non c'e' ancora.
 DragonConfig.STAGES = {
 	{ name = "Cucciolo", size = 5.5, stones = 0 },
-	{ name = "Giovane", size = 8.5, stones = 1 },
-	{ name = "Adulto", size = 13, stones = 3 },
+	{ name = "Giovane", size = 10, stones = 0 },
+	{ name = "Adulto", size = 18, stones = 0 },
 }
+
+-- Livelli e addestramento (zona delle costole del drago, vedi server/Training)
+DragonConfig.MAX_LEVEL = 100
+DragonConfig.TRAINING = {
+	TARGET_XP = 14, -- XP per ogni colpo a un bersaglio
+	TARGET_COOLDOWN = 1.1, -- secondi tra un colpo e l'altro
+	CIRCLE_XP = 3, -- XP al secondo stando nel cerchio di addestramento
+	CIRCLE_RADIUS = 16,
+	TARGETS = 6,
+	GROWTH = 0.2, -- a livello 100 il drago e' piu' grande del 20% rispetto al livello 1
+}
+
+-- XP per passare dal livello "level" al successivo (dal livello 1 al 100: circa 22 000 XP)
+function DragonConfig.xpForLevel(level: number): number
+	return 25 + level * 4
+end
+
+-- Grandezza del drago a un certo stadio e livello (studs)
+function DragonConfig.dragonSize(stage: number, level: number?): number
+	local st = DragonConfig.STAGES[math.clamp(stage, 1, #DragonConfig.STAGES)]
+	local lv = math.clamp(level or 1, 1, DragonConfig.MAX_LEVEL)
+	return st.size * (1 + DragonConfig.TRAINING.GROWTH * (lv - 1) / (DragonConfig.MAX_LEVEL - 1))
+end
 
 -- Uova nel mondo
 -- Animazioni del drago Ombra (rig Drago_Ombra_Rig nell'Animation Editor). Vuote = in Studio si
