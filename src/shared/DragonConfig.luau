@@ -69,7 +69,7 @@ DragonConfig.ELEMENTS = {
 		accent = Color3.fromRGB(230, 240, 255),
 		glow = Color3.fromRGB(150, 200, 255),
 		ability = "Il vento non ti spinge e non ti stanca",
-		words = { "tempesta", "storm", "thunder", "tuono", "fulmine", "lightning" },
+		words = { "tempesta", "storm", "thunder", "tuono" }, -- "fulmine" e' del drago Fulmine Nero
 	},
 	{
 		id = "Sole",
@@ -88,6 +88,42 @@ DragonConfig.ELEMENTS = {
 		glow = Color3.fromRGB(170, 100, 255),
 		ability = "Le cadute fanno meta' danno",
 		words = { "ombra", "shadow", "dark", "buio", "oscur" },
+	},
+	{
+		id = "Eclissi",
+		name = "Drago Eclissi",
+		color = Color3.fromRGB(30, 28, 34),
+		accent = Color3.fromRGB(240, 236, 230),
+		glow = Color3.fromRGB(255, 150, 50),
+		ability = "Vede al buio: di notte e nelle grotte ti fa luce",
+		words = { "eclissi", "eclipse" },
+	},
+	{
+		id = "Fulmine",
+		name = "Drago Fulmine Nero",
+		color = Color3.fromRGB(35, 30, 50),
+		accent = Color3.fromRGB(150, 110, 255),
+		glow = Color3.fromRGB(170, 140, 255),
+		ability = "Il Rampino si ricarica in meta' tempo e corri piu' veloce",
+		words = { "fulmine", "lightning", "thunderbolt" },
+	},
+	{
+		id = "Ossa",
+		name = "Drago Ossa",
+		color = Color3.fromRGB(225, 220, 205),
+		accent = Color3.fromRGB(90, 80, 70),
+		glow = Color3.fromRGB(200, 255, 220),
+		ability = "Sente le uova: ti indica la piu' vicina",
+		words = { "ossa", "bone", "skeleton", "scheletro" },
+	},
+	{
+		id = "Gas",
+		name = "Drago Gas",
+		color = Color3.fromRGB(120, 200, 70),
+		accent = Color3.fromRGB(120, 60, 160),
+		glow = Color3.fromRGB(170, 255, 90),
+		ability = "Immune ai gas tossici",
+		words = { "gas", "toxic", "tossico", "poison", "veleno" },
 	},
 } :: { Element }
 
@@ -138,6 +174,12 @@ end
 DragonConfig.FLY_ANIM = ""
 DragonConfig.WALK_ANIM = ""
 DragonConfig.IDLE_ANIM = ""
+
+-- Animazioni di ogni modello di drago (rig in Workspace.RigDraghi, salvataggi in
+-- RBX_ANIMSAVES.<nome>: drago-volo, drago-cammina, drago-fermo; le genera
+-- MapGen.AnimDraghi). In Studio si usano i salvataggi; nel gioco pubblicato servono gli ID:
+--   Drago_Gelo = { fly = "rbxassetid://...", walk = "rbxassetid://...", idle = "rbxassetid://..." },
+DragonConfig.DRAGON_ANIMS = {} :: { [string]: { fly: string, walk: string, idle: string } }
 
 DragonConfig.MAX_WORLD_EGGS = 30
 DragonConfig.EGG_RESPAWN_SECONDS = 45

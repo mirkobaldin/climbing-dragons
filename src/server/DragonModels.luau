@@ -17,7 +17,7 @@ local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 
 local DragonModels = {}
 
-type Template = { model: Model, element: string? }
+type Template = { model: Model, element: string?, name: string? }
 
 local EGG_WORDS = { "egg", "uovo", "uova" }
 local DRAGON_WORDS = { "dragon", "drago", "draghi", "wyvern" }
@@ -307,10 +307,10 @@ end
 
 ------------------------------------------------------------------------------------------
 
-local templates: { eggs: { Template }, dragons: { Template } }? = nil
+local templates: { eggs: { Template }, dragons: { Template }, adults: { [string]: Template } }? = nil
 
-local function scanTemplates(): { eggs: { Template }, dragons: { Template } }
-	local found = { eggs = {}, dragons = {} }
+local function scanTemplates(): { eggs: { Template }, dragons: { Template }, adults: { [string]: Template } }
+	local found = { eggs = {}, dragons = {}, adults = {} }
 	local function consider(inst: Instance)
 		if IGNORE[inst.Name] or hasWord(inst.Name, NOT_A_DRAGON) or not (inst:IsA("Model") or inst:IsA("Accessory") or inst:IsA("Tool")) then
 			return
@@ -321,8 +321,13 @@ local function scanTemplates(): { eggs: { Template }, dragons: { Template } }
 		local isEgg = hasWord(inst.Name, EGG_WORDS)
 		local isDragon = not isEgg and hasWord(inst.Name, DRAGON_WORDS)
 		if isEgg or isDragon then
-			local t = { model = clean(inst), element = DragonConfig.elementForName(inst.Name) }
-			table.insert(if isEgg then found.eggs else found.dragons, t)
+			local t = { model = clean(inst), element = DragonConfig.elementForName(inst.Name), name = inst.Name }
+			-- "Drago_Eclissi_Adulto": il modello dello stadio Adulto di quell'elemento
+			if isDragon and hasWord(inst.Name, { "adulto", "adult" }) and t.element then
+				found.adults[t.element :: string] = t
+			else
+				table.insert(if isEgg then found.eggs else found.dragons, t)
+			end
 		end
 	end
 	local function scanFolder(folder: Instance)
@@ -345,7 +350,7 @@ local function scanTemplates(): { eggs: { Template }, dragons: { Template } }
 	return found
 end
 
-local function getTemplates(): { eggs: { Template }, dragons: { Template } }
+local function getTemplates(): { eggs: { Template }, dragons: { Template }, adults: { [string]: Template } }
 	if not templates then
 		templates = scanTemplates()
 	end
@@ -431,6 +436,11 @@ function DragonModels.dragon(elementId: string, rarityId: string, stage: number,
 	local rarity = DragonConfig.rarity(rarityId)
 	local st = DragonConfig.STAGES[math.clamp(stage, 1, #DragonConfig.STAGES)]
 	local t, generic = choose(getTemplates().dragons, element.id, elementIndex(element.id))
+	-- allo stadio Adulto, il modello adulto dell'elemento (se c'e')
+	local adult = getTemplates().adults[element.id]
+	if adult and stage >= #DragonConfig.STAGES then
+		t, generic = adult, false
+	end
 	local model: Model
 	if t then
 		model = t.model:Clone()
@@ -454,6 +464,10 @@ function DragonModels.dragon(elementId: string, rarityId: string, stage: number,
 	end
 	model.Name = element.name
 	model:SetAttribute("Rig", rigKind(model))
+	-- quali animazioni usa (le cartelle di RBX_ANIMSAVES hanno il nome del modello)
+	if t and (t :: any).name then
+		model:SetAttribute("AnimKey", (t :: any).name)
+	end
 	model:SetAttribute("Element", element.id)
 	model:SetAttribute("Rarity", rarity.id)
 	model:SetAttribute("Stage", stage)

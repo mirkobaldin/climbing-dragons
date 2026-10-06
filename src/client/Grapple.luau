@@ -9,6 +9,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Gear = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gear"))
+local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
 local Climbing = require(script.Parent.Climbing)
 
@@ -40,7 +41,9 @@ local function fire()
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if busy or not root or not humanoid or os.clock() - lastUse < Gear.GRAPPLE_COOLDOWN then
+	-- il drago Fulmine Nero dimezza la ricarica
+	local cooldown = Gear.GRAPPLE_COOLDOWN * (if DragonConfig.hasAbility(player, "Fulmine") then 0.5 else 1)
+	if busy or not root or not humanoid or os.clock() - lastUse < cooldown then
 		return
 	end
 	local hit = aimRay(root)

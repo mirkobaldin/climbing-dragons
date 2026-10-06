@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local ClimbConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ClimbConfig"))
+local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
 
 local player = Players.LocalPlayer
@@ -53,7 +54,9 @@ function Sprint.start()
 		ClientState.sprinting = sprinting
 		if not ClientState.climbing then
 			local base = ClientState.speedOverride or ClimbConfig.WALK_SPEED
-			humanoid.WalkSpeed = if sprinting then base * ClimbConfig.SPRINT_SPEED / ClimbConfig.WALK_SPEED else base
+			-- il drago Fulmine Nero fa correre piu' veloce
+			local bolt = if DragonConfig.hasAbility(player, "Fulmine") then 1.15 else 1
+			humanoid.WalkSpeed = if sprinting then base * bolt * ClimbConfig.SPRINT_SPEED / ClimbConfig.WALK_SPEED else base
 		end
 		if sprinting and grounded then
 			ClientState.stamina = math.max(0, ClientState.stamina - ClimbConfig.SPRINT_DRAIN / ClientState.regenBoost * dt)

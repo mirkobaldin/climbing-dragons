@@ -16,7 +16,9 @@ uova e draghi familiari. Il codice e' sincronizzato in Studio con **Rojo** (`def
 - Imitare lo stile dei file vicini; niente librerie esterne.
 - La mappa NON si genera in gioco: si rigenera dalla Command Bar di Studio con
   `require(game.ServerStorage.MapGen:Clone()).Generate()` (circa 90 s). Dopo modifiche a `src/mapgen` va rigenerata.
-- Elementi dei draghi (solo questi 7): Roccia, Brace, Gelo, Cosmico, Tempesta, Sole, Ombra.
+- Elementi dei draghi (solo questi 11): Roccia, Brace, Gelo, Cosmico, Tempesta, Sole, Ombra,
+  Eclissi, Fulmine (Fulmine Nero), Ossa, Gas. Modelli in `ServerStorage.Draghi`, rig per
+  l'Animation Editor in `Workspace.RigDraghi`; animazioni generate da `MapGen.AnimDraghi`.
 - Modelli 3D (uova, draghi, piccozze, baite, palafitte, costole) stanno in `ServerStorage` dentro il file place, non nel repo.
 - Animazioni: salvate in `ServerStorage.RBX_ANIMSAVES` (Rig del personaggio e `Drago_Ombra_Rig`); in Studio il loader le usa direttamente, nel gioco pubblicato servono gli ID in `ClimbConfig` / `DragonConfig`.
 

@@ -117,11 +117,50 @@ local function animId(name: string, configured: string): string?
 	return idCache[name] or nil
 end
 
+-- Animazioni del modello: ID pubblicati in DragonConfig.DRAGON_ANIMS, oppure (solo in Studio)
+-- i salvataggi dell'editor passati dal server in ReplicatedStorage.DragonAnimSaves.<modello>
+local keyCache: { [string]: string | false } = {}
+local function modelAnim(key: string, name: string, published: string?): string?
+	if published and published ~= "" then
+		return published
+	end
+	local cacheKey = key .. "/" .. name
+	if keyCache[cacheKey] ~= nil then
+		return keyCache[cacheKey] or nil
+	end
+	keyCache[cacheKey] = false
+	if RunService:IsStudio() then
+		local saves = ReplicatedStorage:FindFirstChild("DragonAnimSaves")
+		local set = saves and saves:FindFirstChild(key)
+		local kfs = set and set:FindFirstChild(name)
+		if kfs and kfs:IsA("KeyframeSequence") then
+			local ok, id = pcall(function()
+				return KeyframeSequenceProvider:RegisterKeyframeSequence(kfs)
+			end)
+			if ok then
+				keyCache[cacheKey] = id
+			end
+		end
+	end
+	return keyCache[cacheKey] or nil
+end
+
 -- Volo, camminata e fermo partono insieme; il RenderStepped ne regola i pesi
 local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationTrack, idle: AnimationTrack }?
-	local fly = animId("Dragon_Fly", DragonConfig.FLY_ANIM)
-	local walk = animId("Dragon_Walk", DragonConfig.WALK_ANIM) or fly
-	local idle = animId("Dragon_Idle", DragonConfig.IDLE_ANIM) or walk
+	local key = model:GetAttribute("AnimKey")
+	local fly, walk, idle
+	if type(key) == "string" then
+		local published = DragonConfig.DRAGON_ANIMS[key]
+		fly = modelAnim(key, "Dragon_Fly", published and published.fly)
+		walk = modelAnim(key, "Dragon_Walk", published and published.walk) or fly
+		idle = modelAnim(key, "Dragon_Idle", published and published.idle) or walk
+	end
+	-- l'Ombra ha anche i vecchi ID "globali"
+	if not fly and model:FindFirstChild("spine.004", true) then
+		fly = animId("Dragon_Fly", DragonConfig.FLY_ANIM)
+		walk = animId("Dragon_Walk", DragonConfig.WALK_ANIM) or fly
+		idle = animId("Dragon_Idle", DragonConfig.IDLE_ANIM) or walk
+	end
 	if not fly or not walk or not idle then
 		return nil
 	end
@@ -278,7 +317,11 @@ local function setup(model: Model)
 		end
 		pet.quad = quad
 		pet.footDrop = -lowest
-		pet.tracks = loadTracks(model)
+	end
+	-- animazioni fatte nell'editor (o generate): per tutti i modelli che le hanno
+	pet.tracks = loadTracks(model)
+	if pet.tracks and not pet.quad then
+		pet.footDrop = size.Y / 2 -- il pivot e' al centro del modello
 	end
 	local yaw = model:GetAttribute("Yaw")
 	if type(yaw) == "number" then
@@ -407,13 +450,14 @@ function PetAnimator.start()
 				pet.nextOrbit = t + 15 + math.random() * 15
 			end
 			local target = r.CFrame * CFrame.new(offset)
-			-- quadrupede: se il padrone e' a terra e non arrampica, cammina sul terreno al suo fianco
-			if pet.quad then
+			-- quadrupede (o drago animato): se il padrone e' a terra e non arrampica, cammina sul
+			-- terreno al suo fianco; i draghi grandi stanno piu' di lato
+			if pet.quad or pet.tracks then
 				local hum = character and character:FindFirstChildOfClass("Humanoid")
 				local grounded = hum ~= nil and hum.FloorMaterial ~= Enum.Material.Air and not r:FindFirstChild("ClimbAttachment")
 				pet.airBlend += ((if grounded then 0 else 1) - pet.airBlend) * math.min(1, dt * 3)
 				if grounded then
-					local beside = r.CFrame * CFrame.new(side * (3 + s * 1.5), 0, 2 + s)
+					local beside = r.CFrame * CFrame.new(side * (3 + s * (if s > 3 then 2.2 else 1.5)), 0, if s > 3 then 1 + s * 0.4 else 2 + s)
 					local params = RaycastParams.new()
 					params.FilterType = Enum.RaycastFilterType.Include
 					params.FilterDescendantsInstances = { workspace.Terrain }
@@ -450,7 +494,7 @@ function PetAnimator.start()
 			local cf = CFrame.new(pos) * rotated
 			pet.cf = cf
 
-			if pet.quad then
+			if pet.quad or pet.tracks then
 				pitch *= pet.airBlend
 				bank *= pet.airBlend
 			end

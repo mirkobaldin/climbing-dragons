@@ -75,11 +75,11 @@ local function collectSpots()
 	local function byAltitude(p: Vector3): string
 		local roll = rng:NextNumber()
 		if p.Y > 3200 then
-			-- vicino alla vetta: il sole, le stelle e il gelo
-			return if roll < 0.4 then "Sole" elseif roll < 0.7 then "Cosmico" else "Gelo"
+			-- vicino alla vetta: il sole, le stelle, l'eclissi e il gelo
+			return if roll < 0.3 then "Sole" elseif roll < 0.55 then "Cosmico" elseif roll < 0.8 then "Eclissi" else "Gelo"
 		elseif p.Y > 2300 then
-			-- creste esposte al vento
-			return if roll < 0.35 then "Tempesta" elseif roll < 0.65 then "Cosmico" else "Gelo"
+			-- creste esposte al vento e ai fulmini
+			return if roll < 0.3 then "Tempesta" elseif roll < 0.55 then "Fulmine" elseif roll < 0.8 then "Cosmico" else "Gelo"
 		elseif p.Y > 1600 then
 			return "Gelo"
 		elseif p.Y > 500 then
@@ -91,9 +91,10 @@ local function collectSpots()
 		return if p.Y > 600 then "Brace" else "Roccia"
 	end)
 	add("OreRooms", "Brace")
-	-- grotte: roccia, e nel buio piu' profondo l'ombra
+	-- grotte: roccia, e nel buio piu' profondo l'ombra e le ossa
 	local function cave(_: Vector3): string
-		return if rng:NextNumber() < 0.4 then "Ombra" else "Roccia"
+		local roll = rng:NextNumber()
+		return if roll < 0.35 then "Ombra" elseif roll < 0.6 then "Ossa" else "Roccia"
 	end
 	add("CaveEntrances", cave)
 	add("SecretExits", "Ombra")

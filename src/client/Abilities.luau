@@ -59,7 +59,8 @@ local function eggFinder()
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local index = workspace:FindFirstChild("EggIndex")
-	if not root or not index or not player:GetAttribute("Pass_EggFinder") then
+	-- bussola: gamepass Egg Finder, oppure il drago Ossa al seguito
+	if not root or not index or not (player:GetAttribute("Pass_EggFinder") or DragonConfig.hasAbility(player, "Ossa")) then
 		ClientState.eggFinder = nil
 		return
 	end
@@ -86,7 +87,43 @@ local function eggFinder()
 	ClientState.eggFinder = string.format("%s Uovo %s a %d m%s", arrow, bestEl :: string, math.floor(bestDist), vertical)
 end
 
+-- Drago Eclissi: di notte e nelle grotte (roccia sopra la testa) una luce attorno al giocatore
+local function eclipseSight()
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not root then
+		return
+	end
+	local r = root :: BasePart
+	local light = r:FindFirstChild("VistaEclissi") :: PointLight?
+	local want = false
+	if DragonConfig.hasAbility(player, "Eclissi") then
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Include
+		params.FilterDescendantsInstances = { workspace.Terrain }
+		local covered = workspace:Raycast(r.Position, Vector3.new(0, 80, 0), params) ~= nil
+		want = covered or workspace:GetAttribute("Night") == true
+	end
+	if want and not light then
+		local l = Instance.new("PointLight")
+		l.Name = "VistaEclissi"
+		l.Range = 48
+		l.Brightness = 1.6
+		l.Color = Color3.fromRGB(255, 214, 170)
+		l.Shadows = false
+		l.Parent = r
+	elseif not want and light then
+		light:Destroy()
+	end
+end
+
 function Abilities.start()
+	task.spawn(function()
+		while true do
+			pcall(eclipseSight)
+			task.wait(0.5)
+		end
+	end)
 	-- Doppio salto del Drago Cosmico
 	local usedDouble = false
 	UserInputService.JumpRequest:Connect(function()

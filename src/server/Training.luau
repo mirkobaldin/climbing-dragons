@@ -70,35 +70,76 @@ local function buildTarget(parent: Instance, at: Vector3, center: Vector3, index
 	return disc
 end
 
--- Cerchio di addestramento: anello di pietra con rune luminose
-local function buildCircle(parent: Instance, center: Vector3)
+-- Cerchio di addestramento: il terreno sotto viene spianato (pavimento di pietra), sopra due
+-- anelli luminosi sottili con una stella a sei punte e pietre con le rune tutto attorno.
+-- Restituisce la quota del pavimento.
+local RUNE = Color3.fromRGB(120, 200, 255)
+local function glowLine(parent: Instance, p1: Vector3, p2: Vector3, width: number, transparency: number)
+	local mid = (p1 + p2) / 2
+	local seg = part(parent, "Runa", Vector3.new(width, 0.12, (p2 - p1).Magnitude + width * 0.4), CFrame.lookAt(mid, p2), RUNE, Enum.Material.Neon)
+	seg.Transparency = transparency
+	seg.CanCollide = false
+	seg.CanQuery = false
+	seg.CastShadow = false
+end
+
+local function buildCircle(parent: Instance, center: Vector3): number
 	local R = T.CIRCLE_RADIUS
-	local floor = part(parent, "CerchioAddestramento", Vector3.new(0.4, R * 2, R * 2), CFrame.new(center + Vector3.new(0, 0.1, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(70, 66, 74), Enum.Material.Slate, Enum.PartType.Cylinder)
-	floor.CanCollide = false
-	local glow = part(parent, "Runa", Vector3.new(0.45, R * 2 - 1.5, R * 2 - 1.5), floor.CFrame, Color3.fromRGB(120, 200, 255), Enum.Material.Neon, Enum.PartType.Cylinder)
-	glow.Transparency = 0.75
-	glow.CanCollide = false
-	part(parent, "RunaCentro", Vector3.new(0.5, R * 2 - 4, R * 2 - 4), floor.CFrame, Color3.fromRGB(70, 66, 74), Enum.Material.Slate, Enum.PartType.Cylinder).CanCollide = false
-	-- pietre basse tutto attorno
+	local terrain = workspace.Terrain
+	-- spiazzo piano: pieno sotto la quota del centro, vuoto sopra (le gobbe spariscono)
+	terrain:FillCylinder(CFrame.new(center - Vector3.new(0, 4, 0)), 8, R + 5, Enum.Material.Slate)
+	terrain:FillCylinder(CFrame.new(center + Vector3.new(0, 8, 0)), 16, R + 5, Enum.Material.Air)
+	local floorY = groundAt(center).Y
+	local y = Vector3.new(center.X, floorY + 0.08, center.Z)
+	-- due anelli e la stella
+	for _, ring in { { R, 0.5, 0.15 }, { R - 2.5, 0.25, 0.35 } } do
+		local n = 48
+		for k = 0, n - 1 do
+			local a1, a2 = k / n * 2 * math.pi, (k + 1) / n * 2 * math.pi
+			glowLine(parent, y + Vector3.new(math.cos(a1) * ring[1], 0, math.sin(a1) * ring[1]), y + Vector3.new(math.cos(a2) * ring[1], 0, math.sin(a2) * ring[1]), ring[2], ring[3])
+		end
+	end
+	local points = {}
+	for k = 0, 5 do
+		local a = k / 6 * 2 * math.pi
+		points[k + 1] = y + Vector3.new(math.cos(a) * (R - 2.5), 0, math.sin(a) * (R - 2.5))
+	end
+	for k = 1, 6 do
+		glowLine(parent, points[k], points[(k + 1) % 6 + 1], 0.3, 0.3) -- due triangoli intrecciati
+	end
+	-- pietre basse tutto attorno, con una runa accesa
 	for k = 0, 11 do
 		local a = k / 12 * 2 * math.pi
-		local p = groundAt(center + Vector3.new(math.cos(a) * (R + 1.5), 0, math.sin(a) * (R + 1.5)))
+		local p = groundAt(center + Vector3.new(math.cos(a) * (R + 1.8), 0, math.sin(a) * (R + 1.8)))
 		local look = CFrame.lookAt(p, Vector3.new(center.X, p.Y, center.Z))
-		local s = part(parent, "PietraRuna", Vector3.new(1.8, 2.6, 1.2), look * CFrame.new(0, 1, 0), STONE, Enum.Material.Slate)
-		local rune = part(parent, "Runa", Vector3.new(0.6, 0.9, 0.1), s.CFrame * CFrame.new(0, 0.3, -0.62), Color3.fromRGB(120, 200, 255), Enum.Material.Neon)
+		local stone = part(parent, "PietraRuna", Vector3.new(1.8, 3, 1.2), look * CFrame.new(0, 1.1, 0), STONE, Enum.Material.Slate)
+		local rune = part(parent, "Runa", Vector3.new(0.6, 0.9, 0.1), stone.CFrame * CFrame.new(0, 0.4, -0.62), RUNE, Enum.Material.Neon)
 		rune.CanCollide = false
 	end
+	-- scintille che salgono da tutto il cerchio
+	local emitterPart = part(parent, "ScintilleCerchio", Vector3.new(R * 2, 0.2, R * 2), CFrame.new(y), RUNE, Enum.Material.SmoothPlastic)
+	emitterPart.Transparency = 1
+	emitterPart.CanCollide = false
+	emitterPart.CanQuery = false
 	local sparks = Instance.new("ParticleEmitter")
 	sparks.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	sparks.Color = ColorSequence.new(Color3.fromRGB(140, 210, 255))
-	sparks.Size = NumberSequence.new(0.35, 0)
-	sparks.Lifetime = NumberRange.new(2, 3)
-	sparks.Speed = NumberRange.new(2, 4)
-	sparks.SpreadAngle = Vector2.new(10, 10)
-	sparks.EmissionDirection = Enum.NormalId.Right -- il cilindro e' girato: +X guarda in su
-	sparks.Rate = 12
+	sparks.Color = ColorSequence.new(Color3.fromRGB(160, 220, 255))
+	sparks.Size = NumberSequence.new(0.3, 0)
+	sparks.Lifetime = NumberRange.new(2, 3.5)
+	sparks.Speed = NumberRange.new(1.5, 3)
+	sparks.SpreadAngle = Vector2.new(5, 5)
+	sparks.EmissionDirection = Enum.NormalId.Top
+	sparks.Shape = Enum.ParticleEmitterShape.Disc
+	sparks.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
+	sparks.Rate = 18
 	sparks.LightEmission = 1
-	sparks.Parent = glow
+	sparks.Parent = emitterPart
+	local light = Instance.new("PointLight")
+	light.Color = RUNE
+	light.Range = R * 1.4
+	light.Brightness = 0.8
+	light.Parent = emitterPart
+	return floorY
 end
 
 -- Cartello all'ingresso
@@ -145,7 +186,7 @@ function Training.setup()
 		local center = groundAt(cf.Position)
 		local folder = Instance.new("Folder")
 		folder.Name = "ZonaAddestramento"
-		buildCircle(folder, center)
+		center = Vector3.new(center.X, buildCircle(folder, center), center.Z)
 		-- bersagli in cerchio dentro la cassa toracica
 		local ring = math.clamp(math.min(size.X, size.Z) * 0.3, T.CIRCLE_RADIUS + 10, 60)
 		local targets: { Part } = {}

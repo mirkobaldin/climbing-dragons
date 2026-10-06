@@ -109,8 +109,43 @@ do
 			return copy
 		end
 		local found: { [string]: KeyframeSequence } = {}
+		-- animazioni dei draghi: una cartella per modello (ReplicatedStorage.DragonAnimSaves.<nome>),
+		-- cosi' ogni drago usa le sue. "Drago_Ombra_Rig" vale per il modello "Drago_Ombra".
+		local dragonOut = Instance.new("Folder")
+		dragonOut.Name = "DragonAnimSaves"
+		local DRAGON = { dragovolo = "Dragon_Fly", dragocammina = "Dragon_Walk", dragofermo = "Dragon_Idle", dragonfly = "Dragon_Fly", dragonwalk = "Dragon_Walk", dragonidle = "Dragon_Idle" }
+		-- cartelle con lo stesso nome (es. vecchi salvataggi automatici) si uniscono; quelle del
+		-- rig ("..._Rig") hanno la precedenza
+		local picked: { [string]: { [string]: { kfs: KeyframeSequence, rig: boolean } } } = {}
+		for _, rigSaves in saves:GetChildren() do
+			if string.sub(rigSaves.Name, 1, 6) == "Drago_" then
+				local key = string.gsub(rigSaves.Name, "_Rig$", "")
+				local fromRig = string.sub(rigSaves.Name, -4) == "_Rig" or workspace:FindFirstChild(rigSaves.Name, true) ~= nil
+				picked[key] = picked[key] or {}
+				for _, k in rigSaves:GetChildren() do
+					local name = k:IsA("KeyframeSequence") and DRAGON[(k.Name:lower():gsub("[%s%-_]", ""))]
+					if name and (not picked[key][name] or (fromRig and not picked[key][name].rig)) then
+						picked[key][name] = { kfs = k :: KeyframeSequence, rig = fromRig }
+					end
+				end
+			end
+		end
+		for key, anims in picked do
+			if next(anims) then
+				local set = Instance.new("Folder")
+				set.Name = key
+				for name, info in anims do
+					prepare(info.kfs, name).Parent = set
+				end
+				set.Parent = dragonOut
+			end
+		end
+		dragonOut.Parent = game:GetService("ReplicatedStorage")
 		for _, rigSaves in saves:GetChildren() do
 			local isDummy = rigSaves.Name == "ManichinoArrampicata"
+			if string.sub(rigSaves.Name, 1, 6) == "Drago_" and rigSaves.Name ~= "Drago_Ombra_Rig" then
+				continue -- le animazioni degli altri draghi non sono quelle "globali" dell'Ombra
+			end
 			for _, k in rigSaves:GetChildren() do
 				if k:IsA("KeyframeSequence") then
 					local name = wanted[(k.Name:lower():gsub("[%s%-_]", ""))]
@@ -125,10 +160,17 @@ do
 		end
 		out.Parent = game:GetService("ReplicatedStorage")
 	end
-	-- il manichino per l'Animation Editor non deve comparire in partita
+	-- il manichino e i rig per l'Animation Editor non devono comparire in partita
 	local dummy = workspace:FindFirstChild("ManichinoArrampicata")
 	if dummy then
 		dummy:Destroy()
+	end
+	for _, child in workspace:GetChildren() do
+		local isRigFolder = child:IsA("Folder") and (child.Name == "RigDraghi" or child.Name == "RigNemici")
+		local isRig = child:IsA("Model") and child:FindFirstChild("AnimSaves") ~= nil
+		if isRigFolder or isRig then
+			child:Destroy()
+		end
 	end
 end
 -- il client dice quando e' attaccato alla parete: si mostra la seconda piccozza
