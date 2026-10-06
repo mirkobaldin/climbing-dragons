@@ -170,6 +170,8 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 				{ "Revive", "Soccorso alpino", "Quando muori, rinasci dove sei caduto" },
 				{ "InstantHatch", "Schiusa istantanea", "Tutte le uova del nido pronte subito" },
 				{ "Coins1000", "1000 monete", "Un aiuto per la casa" },
+				{ "TrainingX2", "Training XP x2", "I draghi si allenano al doppio, per sempre" },
+				{ "TrainingBoost", "Training Boost x3", "XP di addestramento x3 per 15 minuti" },
 			}
 			for k, e in entries do
 				local c = card(k)

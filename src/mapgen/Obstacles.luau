@@ -344,6 +344,11 @@ function Obstacles.place(map: Heightmap.Map)
 			end
 		end
 		local region = Region3.new(Vector3.new(minX, yMin, minZ), Vector3.new(maxX, yMax, maxZ)):ExpandToGrid(V)
+		-- Roblox non legge regioni piu' grandi di ~4 milioni di voxel (pareti altissime e storte)
+		local nVox = region.Size.X * region.Size.Y * region.Size.Z / (V * V * V)
+		if nVox > 3e6 then
+			return reject("troppo grande")
+		end
 		local ch = terrain:ReadVoxelChannels(region, V, { "SolidMaterial", "SolidOccupancy", "LiquidOccupancy" })
 		local mats, occ, liq = ch.SolidMaterial, ch.SolidOccupancy, ch.LiquidOccupancy
 		-- ReadVoxelChannels (a differenza di ReadVoxels) non dice quanto e' grande la griglia
@@ -429,6 +434,14 @@ function Obstacles.place(map: Heightmap.Map)
 		return true
 	end
 
+	-- uno strapiombo che va in errore non deve fermare tutti gli altri (ne' il resto degli ostacoli)
+	local function safeBulge(x: number, z: number, aroundY: number?): boolean
+		local ok, res = pcall(bulge, x, z, aroundY)
+		if not ok then
+			return reject("errore: " .. tostring(res))
+		end
+		return res
+	end
 	map.features.overhangs = {}
 	local overhangs, tries = 0, 0
 	-- prima sui monoliti (le pareti piu' alte), poi sparsi su tutta la montagna
@@ -436,7 +449,7 @@ function Obstacles.place(map: Heightmap.Map)
 		for _ = 1, OV.PER_MONOLITH * 6 do
 			local a = rng:NextNumber(0, 2 * math.pi)
 			local r = mo.radius * rng:NextNumber(0.8, 1.0)
-			if bulge(mo.x + math.cos(a) * r, mo.z + math.sin(a) * r) then
+			if safeBulge(mo.x + math.cos(a) * r, mo.z + math.sin(a) * r) then
 				overhangs += 1
 			end
 		end
@@ -449,7 +462,7 @@ function Obstacles.place(map: Heightmap.Map)
 		local y = rng:NextNumber(OV.MIN_Y, M.HEIGHT * OV.MAX_Y_FRAC)
 		local theta = rng:NextNumber(0, 2 * math.pi)
 		local r = Heightmap.findSurfaceR(map, theta, y)
-		if r and bulge(M.X + math.cos(theta) * r, M.Z + math.sin(theta) * r, y) then
+		if r and safeBulge(M.X + math.cos(theta) * r, M.Z + math.sin(theta) * r, y) then
 			overhangs += 1
 		end
 	end

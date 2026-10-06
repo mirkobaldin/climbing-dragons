@@ -33,6 +33,7 @@ Heightmap.Zone = {
 	GLACIER = 13, -- ghiacciai, seraccate e crepacci
 	MORAINE = 14, -- cordoni di detriti ai lati dei ghiacciai
 	ICECAP = 15, -- ghiaccio sospeso sulle pareti alte, che finisce in una parete di seracchi
+	TOXIC = 16, -- valle dei gas tossici (zona del drago Gas)
 }
 local Zone = Heightmap.Zone
 
@@ -51,9 +52,12 @@ Heightmap.MATERIALS = {
 	"Glacier",
 	"Limestone",
 	"Cobblestone",
+	"Asphalt", -- solo nella valle dei gas: roccia blu-viola (colore in Environment)
+	"CrackedLava", -- solo nella valle dei gas: croste che brillano fucsia
 }
 local GRASS, LEAFY, GROUND, MUD, SAND, SANDSTONE, ROCK, SLATE, BASALT, SNOW, GLACIER, LIMESTONE, COBBLE =
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+local TOXROCK, TOXCRUST = 14, 15
 
 export type Point = { x: number, y: number, z: number }
 
@@ -1327,6 +1331,9 @@ local function glacierToWorld(g: any, s: number, t: number): (number, number)
 	return g.tx + g.ax * s + g.sx * (t + off), g.tz + g.az * s + g.sz * (t + off)
 end
 
+Heightmap.glacierSample = glacierSample
+Heightmap.glacierToWorld = glacierToWorld
+
 local function glacierLocal(g: any, x: number, z: number): (number, number)
 	local dx, dz = x - g.tx, z - g.tz
 	local s = dx * g.ax + dz * g.az
@@ -1343,6 +1350,10 @@ local function carveGlacier(map: Map, def: any, index: number)
 	local n = floor(g.length / STEP) + 1
 	g.step, g.n = STEP, n
 	local seed = index * 13.37 + 2.2
+	-- il ghiacciaio della grotta di ghiaccio ha un fronte alto (dentro c'e' la galleria)
+	local GC = map.cfg.CAVES and map.cfg.CAVES.GLACIER_CAVE
+	local caveFront = if GC and GC.GLACIER == index then GC.FRONT else nil
+	g.index = index
 	-- linea centrale che serpeggia e larghezza che si stringe scendendo
 	g.off, g.half = table.create(n), table.create(n)
 	for k = 1, n do
@@ -1388,6 +1399,9 @@ local function carveGlacier(map: Map, def: any, index: number)
 	for k = 1, n do
 		local u = (k - 1) / (n - 1)
 		local thick = GL.THICKNESS * smoothstep(0, 0.2, u) * (1 - 0.5 * smoothstep(0.85, 1, u))
+		if caveFront then
+			thick = max(thick, lerp(GL.THICKNESS, caveFront, smoothstep(0.55, 0.92, u)))
+		end
 		g.surf[k] = bed[k] + thick
 		g.icefall[k] = slopes[k] > typical * GL.ICEFALL and u > 0.1
 	end
@@ -1406,6 +1420,16 @@ local function carveGlacier(map: Map, def: any, index: number)
 		end
 		local sc = clamp(s, 0, g.length)
 		local half = glacierSample(g, sc, g.half)
+		-- bordi frastagliati (prima erano due righe quasi dritte: sembrava una pista da sci)
+		half *= 1 + 0.14 * noise(x / 75, z / 75, seed + 5)
+		half += noise(x / 26, z / 26, seed + 6) * 6
+		-- angoli del fronte arrotondati
+		local L = half * 0.45
+		local tip = g.length - s
+		if tip < L then
+			local k = (L - tip) / L
+			half *= 0.55 + 0.45 * sqrt(max(0, 1 - k * k))
+		end
 		local at = abs(t)
 		if at > half + 60 then
 			return
@@ -1436,6 +1460,79 @@ local function carveGlacier(map: Map, def: any, index: number)
 	end)
 	map.features.glaciers = map.features.glaciers or {}
 	table.insert(map.features.glaciers, g)
+end
+
+-- Valle dei gas tossici (zona del drago Gas): una conca scavata nel pendio ai piedi della
+-- montagna. Il fondo e' quasi piano alla quota del centro; verso monte la conca si incassa nel
+-- pendio (la montagna fa da parete), verso valle un orlo rialzato la chiude, tranne un varco
+-- da cui si entra (e da cui il gas "scivola" fuori). I materiali li decide classify (Zone.TOXIC),
+-- fumarole, nebbia e cartello li mette il modulo Toxic.
+local function carveToxicValley(map: Map)
+	local T = map.cfg.TOXIC
+	if not T then
+		return
+	end
+	local M = map.cfg.MOUNTAIN
+	local cx = M.X + cos(T.ANGLE) * T.DIST * M.RADIUS
+	local cz = M.Z + sin(T.ANGLE) * T.DIST * M.RADIUS
+	local R = T.RADIUS
+	local floorY = sampleH(map, cx, cz) - 6
+	-- orlo in 36 direzioni: il terreno a distanza R, mai meno di RIM sopra il fondo
+	local N = 36
+	local rim = table.create(N)
+	local lowK, lowH = 1, math.huge
+	for k = 1, N do
+		local a = (k - 1) / N * 2 * math.pi
+		local h = sampleH(map, cx + cos(a) * R, cz + sin(a) * R)
+		if h < lowH then
+			lowK, lowH = k, h
+		end
+		rim[k] = max(h + 6, floorY + T.RIM)
+	end
+	-- varco: nella direzione dove il pendio e' piu' basso
+	local breach = (lowK - 1) / N * 2 * math.pi
+	local function rimAt(a: number): number
+		local f = (a / (2 * math.pi) * N) % N
+		local k0 = floor(f)
+		local k1 = (k0 + 1) % N
+		local h = lerp(rim[k0 + 1], rim[k1 + 1], f - k0)
+		local da = abs((a - breach + math.pi) % (2 * math.pi) - math.pi)
+		return lerp(floorY + 2, h, smoothstep(0.12, 0.32, da))
+	end
+	local top = floorY
+	forColumns(map, cx - R * 1.6, cz - R * 1.6, cx + R * 1.6, cz + R * 1.6, function(i, x, z)
+		local dx, dz = x - cx, z - cz
+		local a = atan2(dz, dx)
+		local d = sqrt(dx * dx + dz * dz) * (1 + 0.1 * noise(cos(a) * 1.5 + 7.3, sin(a) * 1.5, 2.9))
+		if d > R * 1.6 then
+			return
+		end
+		local zone = readu8(map.zone, i)
+		if zone == Zone.GLACIER or zone == Zone.PATH or zone == Zone.ROAD then
+			return
+		end
+		local h = getH(map, i)
+		local rh = rimAt(a % (2 * math.pi))
+		local new
+		if d < R * 0.62 then
+			-- fondo quasi piano, con qualche gobba
+			new = floorY + noise(x / 30, z / 30, 4.4) * 2.5
+		elseif d < R then
+			-- parete interna ripida fino all'orlo
+			local u = (d - R * 0.62) / (R * 0.38)
+			new = floorY + (rh - floorY) * smoothstep(0, 1, u) ^ 1.4
+		else
+			-- fuori: dall'orlo si torna dolcemente al pendio vero
+			new = lerp(rh, h, smoothstep(R, R * 1.6, d))
+		end
+		setH(map, i, new)
+		setW(map, i, Heightmap.NO_WATER)
+		if d < R * 0.97 then
+			writeu8(map.zone, i, Zone.TOXIC)
+			top = max(top, new)
+		end
+	end)
+	map.features.toxic = { x = cx, y = floorY, z = cz, radius = R, top = top, breach = breach }
 end
 
 -- Crepacci: archi irregolari di traverso (curvi, inclinati, di lunghezza e larghezza diverse,
@@ -1660,6 +1757,12 @@ local function classify(
 	elseif zone == Zone.ICECAP then
 		-- ghiaccio sospeso: neve sopra, ghiaccio vivo sulla parete di seracchi
 		return if slope < 1 then SNOW else GLACIER, GLACIER
+	elseif zone == Zone.TOXIC then
+		-- pareti di roccia scura, fondo blu-viola con chiazze di crosta che brilla
+		if slope > 1.3 then
+			return BASALT, BASALT
+		end
+		return if slope < 0.4 and nB > 0.3 then TOXCRUST else TOXROCK, BASALT
 	elseif zone == Zone.MORAINE then
 		-- detriti: sassi e terra, con un po' di neve sopra in quota
 		return if h > cfg.MOUNTAIN.HEIGHT * cfg.BIOMES.SNOW_LINE and nB > 0.1 then SNOW elseif nB > -0.2 then ROCK else GROUND, ROCK
@@ -1806,6 +1909,7 @@ function Heightmap.build(cfg: any, yield: () -> (), progress: (string, number) -
 		carveGlacier(map, def, k)
 	end
 	carveIceCaps(map)
+	carveToxicValley(map)
 	progress("Vetta e sentiero", 0)
 	carveSummit(map)
 	carvePath(map)

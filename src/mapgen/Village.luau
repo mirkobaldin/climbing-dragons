@@ -896,10 +896,11 @@ end
 -- Terreno vuoto: recinto di paletti, cartello con il proprietario e il prompt di acquisto
 -- (il server aggiorna testo e prompt). Il pivot del terreno e' il punto dove va la casa.
 local plotCount = 0
-local function plot(parent: Instance, cf: CFrame)
+local function plot(parent: Instance, cf: CFrame, S: number, level: number, zone: string)
 	plotCount += 1
 	local b = builder(parent, "Plot" .. plotCount)
-	local S = (currentMap :: Heightmap.Map).cfg.VILLAGE.PLOT_HALF
+	b.model:SetAttribute("Level", level) -- 1 tenda, 2 baita, 3 chalet: la casa di quel livello sta qui
+	b.model:SetAttribute("Zone", zone)
 	for _, x in { -S, S } do
 		for _, z in { -S, S } do
 			b.block(Vector3.new(0.6, 2.4, 0.6), cf * CFrame.new(x, 1.2, z), WOOD_DARK, Enum.Material.Wood)
@@ -949,8 +950,8 @@ buildTemplates = function()
 		{
 			name = "Tenda",
 			build = function(p: Instance, cf: CFrame)
-				tent(p, cf * CFrame.new(-4, 0, 2), TENT_COLORS[1])
-				campfire(p, cf * CFrame.new(5, 0, -9), false)
+				tent(p, cf * CFrame.new(-2, 0, -2), TENT_COLORS[1])
+				campfire(p, cf * CFrame.new(6, 0, -11), false)
 			end,
 		},
 		{ name = "Baita", build = cabin },
@@ -966,7 +967,7 @@ buildTemplates = function()
 		model.WorldPivot = origin
 		model:ScaleTo((currentMap :: Heightmap.Map).cfg.VILLAGE.HOUSE_SCALE) -- case piu' grandi
 		-- nido nell'angolo dietro, dentro il recinto del terreno
-		local half = (currentMap :: Heightmap.Map).cfg.VILLAGE.PLOT_HALF
+		local half = (currentMap :: Heightmap.Map).cfg.VILLAGE.PLOT_HALF[k]
 		nest(model, origin * CFrame.new(-(half - 10), 0, half - 10))
 		-- banco da lavoro di casa, nell'altro angolo: l'equipaggiamento si costruisce anche qui
 		workbench(model, origin * CFrame.new(half - 9, 0, half - 12))
@@ -989,7 +990,6 @@ function Village.build(map: Heightmap.Map)
 	local rng = Random.new(cfg.SEED + 21)
 
 	local HUB, V = cfg.HUB, cfg.VILLAGE
-	local C = HUB.CRESCENT
 	local cx, cz = HUB.X + HUB.CAMP.DX, HUB.Z + HUB.CAMP.DZ
 	local campCenter = Vector3.new(cx, groundY(cx, cz), cz)
 
@@ -1020,60 +1020,248 @@ function Village.build(map: Heightmap.Map)
 		travelPost(folder, groundCFrame(px, pz, -out), "Torna al campo", Vector3.new(cx - 16, campCenter.Y, cz), false)
 	end
 
-	-- Terreni dei giocatori sui due livelli della mezzaluna, rivolti verso la valle. Le case
-	-- (tenda -> baita -> chalet, con il nido) si comprano: le costruisce il server (Economy)
-	-- clonando i modelli di ServerStorage.PlotBuildings.
+	-- Terreni dei giocatori in tre zone, una per livello di casa (la casa trasloca quando la
+	-- migliori, lo fa il server in Economy):
+	--   1 Tenda  campo tende ai piedi della montagna, attorno a dove parte il sentiero
+	--   2 Baita  villaggio attorno alle costole del drago
+	--   3 Chalet villette a sbalzo sui costoni della montagna, con la vista sulla valle
 	local plots = Instance.new("Folder")
 	plots.Name = "Plots"
 	plots.Parent = folder
-	local plotIndex = 0
-	local function onCrescent(count: number, radius: number, kind: (Instance, CFrame) -> (), name: string)
-		local group = plots
-		local placed = 0
-		-- si riempie la terrazza da un capo all'altro: un terreno ogni volta che c'e' posto,
-		-- lontano dalle rampe e dal terreno precedente
-		local half = cfg.VILLAGE.PLOT_HALF
-		local limit = C.SPAN - half / radius
-		local spacing = (half * 2 + 6) / radius
-		local last = -math.huge
-		for a = -limit, limit, 0.01 do
-			if placed >= count then
-				break
+	local HALF = V.PLOT_HALF
+	local placedPlots: { { p: Vector3, r: number } } = {}
+	local Zone = Heightmap.Zone
+	local BAD = {
+		[Zone.ROAD] = true, [Zone.PATH] = true, [Zone.RIVERBED] = true, [Zone.RIVERBANK] = true,
+		[Zone.LAKE] = true, [Zone.BEACH] = true, [Zone.GLACIER] = true, [Zone.TOXIC] = true,
+		[Zone.GORGE] = true, [Zone.GORGE_WALL] = true, [Zone.POOL] = true, [Zone.RAPIDS] = true,
+		[Zone.ICECAP] = true, [Zone.MORAINE] = true, [Zone.SUMMIT] = true,
+	}
+	local terrainOnly = RaycastParams.new()
+	terrainOnly.FilterType = Enum.RaycastFilterType.Include
+	terrainOnly.FilterDescendantsInstances = { workspace.Terrain }
+	local function zoneAt(x: number, z: number): number
+		local ix = math.clamp(math.floor((x - map.minX) / cfg.VOXEL), 0, map.nx - 1)
+		local iz = math.clamp(math.floor((z - map.minZ) / cfg.VOXEL), 0, map.nz - 1)
+		return buffer.readu8(map.zone, ix + iz * map.nx)
+	end
+	-- suolo vero (dopo grotte e strapiombi), nil sull'acqua
+	local function realGround(x: number, z: number): RaycastResult?
+		local hit = workspace:Raycast(Vector3.new(x, 6000, z), Vector3.new(0, -6400, 0), terrainOnly)
+		if hit and hit.Material == Enum.Material.Water then
+			return nil
+		end
+		return hit
+	end
+	local function crowdedPlot(p: Vector3, r: number): boolean
+		for _, o in placedPlots do
+			if (Vector2.new(o.p.X, o.p.Z) - Vector2.new(p.X, p.Z)).Magnitude < o.r + r + 10 then
+				return true
 			end
-			local nearRamp = false
-			for _, ra in C.RAMPS do
-				if abs(a - ra) * radius < half + 8 then
-					nearRamp = true
+		end
+		return false
+	end
+	-- terreno quasi piano e libero? restituisce la quota della piazzola
+	local function flatSpot(x: number, z: number, half: number, maxDiff: number): number?
+		local lo, hi = math.huge, -math.huge
+		for _, u in { -1, 0, 1 } do
+			for _, v in { -1, 0, 1 } do
+				local px, pz = x + u * half, z + v * half
+				if BAD[zoneAt(px, pz)] then
+					return nil
+				end
+				local hit = realGround(px, pz)
+				if not hit then
+					return nil
+				end
+				lo, hi = math.min(lo, hit.Position.Y), math.max(hi, hit.Position.Y)
+			end
+		end
+		if hi - lo > maxDiff then
+			return nil
+		end
+		return (lo + hi) / 2
+	end
+	-- piazzola: terra in piano (tonda, cosi' sfuma nel prato), niente terreno sopra
+	local function pad(cf: CFrame, half: number, surface: Enum.Material)
+		local T = workspace.Terrain
+		local r = half * 1.3 + 4
+		T:FillCylinder(cf * CFrame.new(0, -14, 0), 22, r, Enum.Material.Rock)
+		T:FillCylinder(cf * CFrame.new(0, -3, 0), 6, r, surface)
+		T:FillCylinder(cf * CFrame.new(0, 20, 0), 40, r, Enum.Material.Air)
+	end
+	local function addPlot(level: number, zone: string, cf: CFrame)
+		plot(plots, cf, HALF[level], level, zone)
+		table.insert(placedPlots, { p = cf.Position, r = HALF[level] * 1.42 })
+	end
+	local function ring(level: number, zone: string, count: number, center: Vector3, r0: number, r1: number, face: (Vector3) -> Vector3, maxDiff: number): number
+		local half = HALF[level]
+		local placed, tries = 0, 0
+		while placed < count and tries < 1500 do
+			tries += 1
+			local a = rng:NextNumber(0, 2 * math.pi)
+			local r = rng:NextNumber(r0, r1)
+			local x, z = center.X + cos(a) * r, center.Z + sin(a) * r
+			if not crowdedPlot(Vector3.new(x, 0, z), half * 1.42) then
+				local y = flatSpot(x, z, half, maxDiff)
+				if y then
+					local at = Vector3.new(x, y, z)
+					local cf = CFrame.lookAt(at, at + face(at))
+					local hit = realGround(x, z)
+					pad(cf, half, if hit and hit.Material ~= Enum.Material.Rock then hit.Material else Enum.Material.Ground)
+					addPlot(level, zone, cf)
+					placed += 1
 				end
 			end
-			if not nearRamp and a - last >= spacing then
-				local x, z = cx + cos(a) * radius, cz + sin(a) * radius
-				local facing = Vector3.new(cx - x, 0, cz - z).Unit
-				kind(group, groundCFrame(x, z, facing))
-				placed += 1
-				last = a
+		end
+		return placed
+	end
+
+	-- 1) campo base ai piedi della montagna, come quello del K2: davanti al fronte del ghiacciaio
+	-- con la grotta di ghiaccio (se manca, vicino all'inizio del sentiero), con un falo' comune
+	local nTents = 0
+	local campC: Vector3? = nil
+	local gc = map.features.glacierCave
+	local avoid: Vector3? = nil
+	if gc then
+		local e = gc.entrance
+		local inner = gc.points[math.min(12, #gc.points)]
+		local down = Vector3.new(e.x - inner.X, 0, e.z - inner.Z).Unit
+		avoid = Vector3.new(e.x, e.y, e.z)
+		campC = Vector3.new(e.x, e.y, e.z) + down * 170
+	elseif map.features.pathStart then
+		local t = map.features.pathStart
+		campC = Vector3.new(t.x, t.y, t.z)
+	end
+	if avoid then
+		-- davanti all'ingresso della grotta non si mette niente
+		table.insert(placedPlots, { p = avoid, r = 40 })
+	end
+	if campC then
+		local hit = realGround(campC.X, campC.Z)
+		if hit then
+			campfire(folder, CFrame.new(hit.Position), true)
+		end
+		local c = campC :: Vector3
+		nTents = ring(1, "Tende", V.TENTS, c, 40, 340, function(at)
+			return Vector3.new(c.X - at.X, 0, c.Z - at.Z).Unit -- verso il falo'
+		end, 16)
+		for k = 0, 7 do
+			local a = k / 8 * 2 * math.pi
+			lantern(folder, c.X + cos(a) * 34, c.Z + sin(a) * 34)
+		end
+	end
+
+	-- 2) villaggio attorno alle costole del drago (al centro c'e' la zona di addestramento)
+	local nCabins = 0
+	local landmarks = workspace:FindFirstChild("Landmarks")
+	local ribs = landmarks and landmarks:FindFirstChild("DragonRibs")
+	if ribs and ribs:IsA("Model") then
+		-- due file di baite lungo i fianchi della cassa toracica (e' lunga e stretta: in cerchio
+		-- finivano lontanissime), con la porta verso le costole
+		local rcf, rsize = ribs:GetBoundingBox()
+		local half = HALF[2]
+		local long = if rsize.Z >= rsize.X then rcf.LookVector else rcf.RightVector
+		local across = Vector3.new(-long.Z, 0, long.X).Unit
+		local L, W = math.max(rsize.X, rsize.Z), math.min(rsize.X, rsize.Z)
+		local center = rcf.Position
+		local tries = 0
+		while nCabins < V.CABINS and tries < 1500 do
+			tries += 1
+			local side = if rng:NextNumber() < 0.5 then -1 else 1
+			local along = rng:NextNumber(-L * 0.45, L * 0.45)
+			local off = W / 2 + half + rng:NextNumber(12, 90)
+			local at = center + long * along + across * side * off
+			if not crowdedPlot(Vector3.new(at.X, 0, at.Z), half * 1.42) then
+				local y = flatSpot(at.X, at.Z, half, 14)
+				if y then
+					local pos = Vector3.new(at.X, y, at.Z)
+					local cf = CFrame.lookAt(pos, pos - across * side)
+					local hit = realGround(at.X, at.Z)
+					pad(cf, half, if hit and hit.Material ~= Enum.Material.Rock then hit.Material else Enum.Material.Ground)
+					addPlot(2, "Villaggio", cf)
+					nCabins += 1
+				end
+			end
+		end
+		for k = -3, 3 do
+			for _, side in { -1, 1 } do
+				local at = center + long * (k * L / 8) + across * side * (W / 2 + 6)
+				lantern(folder, at.X, at.Z)
 			end
 		end
 	end
-	onCrescent(V.CABINS, (C.INNER + C.MID) / 2 + 3, plot, "Plots")
-	onCrescent(V.CHALETS, (C.MID + C.OUTER) / 2 + 2, plot, "Plots")
-	buildTemplates()
 
-	-- Lanterne: attorno al cerchio e lungo le rampe
+	-- 3) villette sui costoni: una piazzola sul bordo di un salto, con la casa che sporge sul
+	-- vuoto sorretta da pilastri bianchi (come le ville sulle scogliere)
+	local nVillas = 0
+	do
+		local M = cfg.MOUNTAIN
+		local half = HALF[3]
+		local tries = 0
+		while nVillas < V.VILLAS and tries < 4000 do
+			tries += 1
+			local a = rng:NextNumber(0, 2 * math.pi)
+			local r = M.RADIUS * rng:NextNumber(0.6, 0.88)
+			local out = Vector3.new(cos(a), 0, sin(a))
+			local x, z = M.X + out.X * r, M.Z + out.Z * r
+			local hit = realGround(x, z)
+			if not hit or hit.Position.Y < 180 or hit.Position.Y > 1300 or BAD[zoneAt(x, z)] then
+				continue
+			end
+			local y = hit.Position.Y
+			local front = realGround(x + out.X * (half + 24), z + out.Z * (half + 24))
+			local back = realGround(x - out.X * half, z - out.Z * half)
+			if not front or not back or y - front.Position.Y < 35 or back.Position.Y - y > 45 then
+				continue -- serve un salto davanti e niente parete enorme dietro
+			end
+			local at = Vector3.new(x, y + 2, z)
+			if crowdedPlot(at, 230) then
+				continue
+			end
+			local cf = CFrame.lookAt(at, at + out) -- la facciata di vetro guarda la valle
+			local T = workspace.Terrain
+			-- dietro: un masso tondo di roccia sotto la meta' interna (un blocco squadrato si vedeva
+			-- sotto la pedana); sopra: tutto libero
+			T:FillBall(cf * Vector3.new(0, -half * 1.05, half * 0.55), half * 1.0, Enum.Material.Rock)
+			T:FillBlock(cf * CFrame.new(0, 26, 0), Vector3.new(half * 2 + 10, 52, half * 2 + 10), Enum.Material.Air)
+			local villa = builder(folder, "Costone")
+			villa.block(Vector3.new(half * 2 + 6, 1.6, half * 2 + 6), cf * CFrame.new(0, -0.8, 0), Color3.fromRGB(232, 232, 228), Enum.Material.Concrete)
+			-- pilastri inclinati sotto la parte che sporge
+			for _, u in { -0.8, -0.3, 0.3, 0.8 } do
+				for _, v in { -0.85, -0.35 } do
+					local top = cf * Vector3.new(u * half, -1.6, v * half)
+					local down = workspace:Raycast(top, Vector3.new(0, -260, 0), terrainOnly)
+					if down and top.Y - down.Position.Y > 3 then
+						local bottom = down.Position + (cf.Position - top) * Vector3.new(1, 0, 1) * 0.12 - Vector3.new(0, 2, 0)
+						local len = (top - bottom).Magnitude
+						local pillar = villa.block(Vector3.new(2.6, len, 2.6), CFrame.lookAt((top + bottom) / 2, top) * CFrame.Angles(-math.pi / 2, 0, 0), Color3.fromRGB(236, 236, 232), Enum.Material.Concrete)
+						pillar.Name = "Pilastro"
+					end
+				end
+			end
+			-- parapetto di vetro sul bordo verso il vuoto
+			local rail = villa.block(Vector3.new(half * 2 + 6, 3.2, 0.3), cf * CFrame.new(0, 1.6, -(half + 3)), GLASS, Enum.Material.Glass)
+			rail.Transparency = 0.55
+			addPlot(3, "Costone", cf)
+			nVillas += 1
+		end
+	end
+	buildTemplates()
+	-- radure per il bosco (Forest viene dopo): niente alberi dentro i terreni
+	map.features.clearings = map.features.clearings or {}
+	for _, o in placedPlots do
+		table.insert(map.features.clearings, { x = o.p.X, z = o.p.Z, r = o.r + 12 })
+	end
+	print(string.format("[MapGen] Case: %d terreni tende, %d nel villaggio delle costole, %d villette sui costoni", nTents, nCabins, nVillas))
+
+	-- Lanterne attorno al cerchio del falo' della piana
 	local lanterns = Instance.new("Folder")
 	lanterns.Name = "Lanterns"
 	lanterns.Parent = folder
 	for k = 0, 9 do
 		local a = k / 10 * 2 * math.pi
 		lantern(lanterns, cx + cos(a) * (HUB.CAMP.RADIUS + 8), cz + sin(a) * (HUB.CAMP.RADIUS + 8))
-	end
-	for _, ra in C.RAMPS do
-		for _, r in { C.INNER - 30, C.MID - 30, C.OUTER + 5 } do
-			for _, side in { -1, 1 } do
-				local a = ra + side * 10 / r
-				lantern(lanterns, cx + cos(a) * r, cz + sin(a) * r)
-			end
-		end
 	end
 
 	-- Ponti giapponesi sul fiume della valle

@@ -136,6 +136,11 @@ local function processReceipt(info: any): Enum.ProductPurchaseDecision
 		Dragons.finishIncubation(player)
 	elseif id == ShopConfig.DEV_PRODUCTS.Coins1000 then
 		Economy.addCoins(player, 1000)
+	elseif id == ShopConfig.DEV_PRODUCTS.TrainingBoost then
+		-- si somma a un boost gia' attivo
+		local now = os.time()
+		local untilT = math.max(now, (player:GetAttribute("TrainingBoostUntil") or 0) :: number)
+		player:SetAttribute("TrainingBoostUntil", untilT + DragonConfig.TRAINING.BOOST_MINUTES * 60)
 	end
 	return Enum.ProductPurchaseDecision.PurchaseGranted
 end

@@ -78,6 +78,12 @@ local function writeChunk(map: Heightmap.Map, terrain: Terrain, mats: { Enum.Mat
 			if gx < map.nx - 1 then hmin = min(hmin, readf32(map.height, (i + 1) * 4)) end
 			if gz > 0 then hmin = min(hmin, readf32(map.height, (i - map.nx) * 4)) end
 			if gz < map.nz - 1 then hmin = min(hmin, readf32(map.height, (i + map.nx) * 4)) end
+			-- anche in diagonale: sui fronti alti e frastagliati (es. il ghiacciaio della grotta) la
+			-- faccia restava roccia a righe verticali
+			if gx > 0 and gz > 0 then hmin = min(hmin, readf32(map.height, (i - 1 - map.nx) * 4)) end
+			if gx < map.nx - 1 and gz > 0 then hmin = min(hmin, readf32(map.height, (i + 1 - map.nx) * 4)) end
+			if gx > 0 and gz < map.nz - 1 then hmin = min(hmin, readf32(map.height, (i - 1 + map.nx) * 4)) end
+			if gx < map.nx - 1 and gz < map.nz - 1 then hmin = min(hmin, readf32(map.height, (i + 1 + map.nx) * 4)) end
 			local mx, ox, lx = materials[dx], occupancy[dx], liquid[dx]
 			-- Un voxel con riempimento appena sopra zero e aria tutt'attorno e' veleno: Roblox
 			-- cerca la superficie dove il riempimento vale 0.5 e, estrapolando da 0.05, la

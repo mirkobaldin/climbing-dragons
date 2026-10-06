@@ -2,8 +2,10 @@
 -- Economia e case:
 --   * Monete (classifica in alto a destra), salvate da Progression
 --   * Vendite e acquisti all'emporio: vedi Shop
---   * Terreni (tag "Plot") sulla mezzaluna: ogni giocatore ne riceve uno quando entra; col
---     cartello compri la Tenda (sblocca il nido), poi la migliori in Baita e Chalet
+--   * Terreni (tag "Plot") in tre zone: campo tende ai piedi della montagna (Tenda), villaggio
+--     delle costole del drago (Baita), villette sui costoni (Chalet). Ogni giocatore ha il
+--     terreno della zona del suo livello; col cartello compri la Tenda (sblocca il nido) e
+--     quando la migliori la casa trasloca nella zona successiva
 --   * Draghi posati in casa (quelli che non ti seguono): guadagnano monete al minuto, anche
 --     mentre sei offline (in parte)
 
@@ -180,8 +182,22 @@ end
 
 local function assignPlot(player: Player)
 	local s = state(player)
+	-- prima un terreno della zona del suo livello (senza casa: il campo tende), se sono tutti
+	-- presi uno qualunque
+	local want = math.max(1, s.house)
+	local free: Model? = nil
 	for _, plot in CollectionService:GetTagged("Plot") do
 		if plot:IsA("Model") and not plotOwner[plot] then
+			if plot:GetAttribute("Level") == want then
+				free = plot
+				break
+			end
+			free = free or plot
+		end
+	end
+	do
+		local plot = free
+		if plot then
 			plotOwner[plot] = player
 			s.plot = plot
 			player:SetAttribute("PlotPosition", plot:GetPivot().Position)
@@ -192,8 +208,9 @@ local function assignPlot(player: Player)
 	end
 	warn("[Economy] Nessun terreno libero per " .. player.Name)
 end
+local releasePlot: (Player) -> ()
 
-local function releasePlot(player: Player)
+releasePlot = function(player: Player)
 	local s = states[player]
 	local plot = s and s.plot
 	if plot then
@@ -225,7 +242,21 @@ local function upgradeHouse(player: Player)
 	s.coins -= nextHouse.cost
 	s.house += 1
 	publish(player)
-	buildHouse(player)
+	-- la casa nuova sta nella zona del suo livello: si trasloca
+	local plot = s.plot
+	if s.house > 1 and plot and plot:GetAttribute("Level") ~= s.house then
+		releasePlot(player)
+		s.plot = nil
+		assignPlot(player)
+		local zone = s.plot and s.plot:GetAttribute("Zone")
+		if zone == "Villaggio" then
+			notice(player, "Your Cabin is in the village around the dragon ribs!")
+		elseif zone == "Costone" then
+			notice(player, "Your Chalet hangs on a cliff of the mountain: enjoy the view!")
+		end
+	else
+		buildHouse(player)
+	end
 	refreshRoost(player)
 	Dragons.refresh(player)
 	notice(player, string.format("Hai una %s! %s", nextHouse.name, if s.house == 1 then "Il nido e' sbloccato: ci puoi covare le uova" else "Piu' posti nel nido e per i draghi"))

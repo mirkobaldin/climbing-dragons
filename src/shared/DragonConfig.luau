@@ -119,9 +119,9 @@ DragonConfig.ELEMENTS = {
 	{
 		id = "Gas",
 		name = "Drago Gas",
-		color = Color3.fromRGB(120, 200, 70),
-		accent = Color3.fromRGB(120, 60, 160),
-		glow = Color3.fromRGB(170, 255, 90),
+		color = Color3.fromRGB(50, 80, 210),
+		accent = Color3.fromRGB(240, 80, 220),
+		glow = Color3.fromRGB(90, 220, 255),
 		ability = "Immune ai gas tossici",
 		words = { "gas", "toxic", "tossico", "poison", "veleno" },
 	},
@@ -153,6 +153,16 @@ DragonConfig.TRAINING = {
 	CIRCLE_RADIUS = 16,
 	TARGETS = 6,
 	GROWTH = 0.2, -- a livello 100 il drago e' piu' grande del 20% rispetto al livello 1
+	-- sfida "Target Rush": RUSH_SECONDS di tempo, si accende un cristallo dorato alla volta
+	RUSH_SECONDS = 30,
+	RUSH_XP = 30, -- XP per il cristallo dorato (gli altri danno TARGET_XP)
+	RUSH_EVERY = 2.2, -- secondi prima che il cristallo dorato cambi
+	RUSH_COOLDOWN = 40, -- secondi tra una sfida e l'altra
+	-- moltiplicatori dell'XP di addestramento (si sommano moltiplicando)
+	PASS_MULT = 2, -- gamepass TrainingX2
+	BOOST_MULT = 3, -- prodotto TrainingBoost
+	BOOST_MINUTES = 15,
+	PREMIUM_MULT = 1.2, -- abbonati Roblox Premium
 }
 
 -- XP per passare dal livello "level" al successivo (dal livello 1 al 100: circa 22 000 XP)
@@ -196,6 +206,7 @@ DragonConfig.GAMEPASSES = {
 	EggFinder = 0, -- bussola verso l'uovo piu' vicino
 	ExtraDragon = 0, -- +1 drago che ti segue
 	ExtraIncubator = 0, -- +2 posti nel nido
+	TrainingX2 = 0, -- XP di addestramento x2 per sempre
 }
 
 -- Admin: UserId che possono usare i comandi (in Studio e il proprietario del gioco sempre)

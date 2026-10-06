@@ -89,6 +89,7 @@ type Skel = {
 	fwd: Vector3,
 	right: Vector3,
 	height: number,
+	groundY: number,
 }
 
 local function kids(b: Instance): { Bone }
@@ -194,7 +195,7 @@ function AnimDraghi.analizza(rig: Model): Skel
 	local height = size.Y
 	local sk: Skel = {
 		rig = rig, mesh = mesh, rest = rest, hips = hips, spine = spine, chest = chest,
-		tail = {}, neck = {}, legs = {}, wings = {}, fwd = fwd, right = right, height = height,
+		tail = {}, neck = {}, legs = {}, wings = {}, fwd = fwd, right = right, height = height, groundY = groundY,
 	}
 	-- dall'anca: la coda (va piu' indietro) e le zampe posteriori
 	local tailRoot, tailBack = nil, -math.huge
@@ -327,14 +328,42 @@ end
 
 type Signs = { [string]: number }
 
+-- quanto si sposta la punta (col segno) provando la rotazione
+local function moveFor(sk: Skel, b: Bone, axis: Vector3, tip: Bone, measure: (Vector3) -> number): number
+	local before = tip.WorldPosition
+	local old = b.Transform
+	b.Transform = bodyRot(sk, b, axis, 8)
+	local moved = tip.WorldPosition - before
+	b.Transform = old
+	return measure(moved)
+end
+
 local function computeSigns(sk: Skel): Signs
 	local s: Signs = {}
-	for i, w in sk.wings do
-		local base = w.arm[1]
-		s["flap" .. i] = signFor(sk, base, sk.fwd, w.tip, function(m) return m.Y end) -- + = punta su
-		s["sweep" .. i] = signFor(sk, base, UP, w.tip, function(m) return -m:Dot(sk.fwd) end) -- + = punta indietro
-		if w.arm[2] then
-			s["fold" .. i] = signFor(sk, w.arm[2], UP, w.tip, function(m) return -m:Dot(sk.fwd) end)
+	-- Ali: le rotazioni attorno all'asse verticale e a quello avanti-indietro di un'ala sono lo
+	-- specchio di quelle dell'altra (verso opposto). Il verso si misura sull'ala dove la prova e'
+	-- piu' netta e l'altra lo prende specchiato: prima ogni ala faceva la sua prova e su alcuni
+	-- draghi una si chiudeva all'indietro e l'altra in avanti (ali storte, una "arrotolata").
+	local tests = {
+		flap = function(w: Wing) return moveFor(sk, w.arm[1], sk.fwd, w.tip, function(m) return m.Y end) end, -- + = punta su
+		sweep = function(w: Wing) return moveFor(sk, w.arm[1], UP, w.tip, function(m) return -m:Dot(sk.fwd) end) end, -- + = punta indietro
+		fold = function(w: Wing) return if w.arm[2] then moveFor(sk, w.arm[2], UP, w.tip, function(m) return -m:Dot(sk.fwd) end) else 0 end,
+	}
+	for key, test in tests do
+		local values = {}
+		for i, w in sk.wings do
+			values[i] = test(w)
+		end
+		local ref = 1
+		for i in sk.wings do
+			if math.abs(values[i]) > math.abs(values[ref]) then
+				ref = i
+			end
+		end
+		local refSign = if (values[ref] or 0) >= 0 then 1 else -1
+		for i, w in sk.wings do
+			local same = sk.wings[ref] == nil or w.side == sk.wings[ref].side
+			s[key .. i] = if same then refSign else -refSign
 		end
 	end
 	for i, leg in sk.legs do
@@ -357,23 +386,128 @@ local function computeSigns(sk: Skel): Signs
 	return s
 end
 
--- ali piegate (camminata e fermo): indietro, un po' giu', avambraccio e dita chiusi.
+-- Ali piegate (camminata e fermo): indietro, un po' giu', avambraccio e dita chiusi. Gli angoli
+-- non sono fissi: prima erano uguali per tutti e su molti draghi l'avambraccio passava oltre la
+-- schiena, sopra l'altra ala. Per ogni ala si cerca sul rig la piega piu' raccolta in cui
+--   * nessun osso dell'ala passa oltre la meta' della distanza tra la schiena e la spalla;
+--   * nessun osso scende sotto il 40% dell'altezza (dentro le zampe);
+--   * la punta resta dietro la spalla.
 -- amount 1 = chiuse del tutto, 0.6 = "un attimo piegate"
-local function foldWings(poses: Poses, sk: Skel, s: Signs, amount: number, breathe: number)
+type Fold = { sweep: number, down: number, elbow: number, finger: number }
+
+local function foldPoses(poses: Poses, sk: Skel, s: Signs, i: number, w: Wing, f: Fold, breathe: number)
+	add(poses, sk, w.arm[1], UP, s["sweep" .. i] * f.sweep)
+	add(poses, sk, w.arm[1], sk.fwd, -s["flap" .. i] * (f.down - breathe))
+	if w.arm[2] then
+		add(poses, sk, w.arm[2], UP, (s["fold" .. i] or 1) * f.elbow)
+	end
+	for _, finger in w.fingers do
+		add(poses, sk, finger[1], UP, (s["fold" .. i] or 1) * f.finger)
+	end
+end
+
+local function wingBones(w: Wing): { Bone }
+	local list = table.clone(w.arm)
+	for _, chain in w.fingers do
+		for _, b in chain do
+			table.insert(list, b)
+		end
+	end
+	return list
+end
+
+local function bestFold(sk: Skel, s: Signs, i: number, w: Wing, amount: number): Fold
+	local bones = wingBones(w)
+	local shoulder = sk.rest[w.arm[1]].Position
+	local mid = sk.rest[sk.chest].Position
+	local lateral0 = (shoulder - mid):Dot(sk.right) * w.side
+	-- nessun osso piu' vicino alla schiena della spalla: prima bastava meta' strada e le due ali
+	-- piegate si alzavano ad arco fino a toccarsi sopra il dorso
+	local minLateral = math.max(lateral0, sk.height * 0.1)
+	local floorY = sk.groundY + sk.height * 0.4
+	local backY = mid.Y + sk.height * 0.12 -- sopra questa quota l'ala fa "la cupola" sul dorso
+	-- un osso che a riposo e' gia' piu' in basso o piu' vicino alla schiena puo' restarci
+	local limit: { [Bone]: { lat: number, y: number } } = {}
+	for _, b in bones do
+		local p = sk.rest[b].Position
+		limit[b] = { lat = math.min(minLateral, (p - mid):Dot(sk.right) * w.side - 0.5), y = math.min(floorY, p.Y - 0.5) }
+	end
+	local best, bestScore = { sweep = 0, down = 0, elbow = 0, finger = 0 }, math.huge
+	for _, sweep in { 0, 15, 30, 45, 60, 75 } do
+		for _, down in { -10, 0, 15, 30, 45, 60 } do
+			for _, elbow in { 0, 20, 40, 60, 80, 100 } do
+				for _, finger in { 0, 15, 30, 45 } do
+					local f = { sweep = sweep * amount, down = down * amount, elbow = elbow * amount, finger = finger * amount }
+					local poses: Poses = {}
+					foldPoses(poses, sk, s, i, w, f, 0)
+					for b, cf in poses do
+						b.Transform = cf
+					end
+					local ok, wide, high = true, 0, 0
+					for _, b in bones do
+						local p = b.WorldPosition
+						local lat = (p - mid):Dot(sk.right) * w.side
+						if lat < limit[b].lat or p.Y < limit[b].y then
+							ok = false
+							break
+						end
+						wide = math.max(wide, lat)
+						high = math.max(high, p.Y - backY)
+					end
+					-- la mesh va oltre l'ultimo osso di ogni dito: si controlla anche la punta
+					-- prolungata (prima le punte si incrociavano sopra la coda)
+					if ok then
+						local chains = if #w.fingers > 0 then w.fingers else { w.arm }
+						for _, chain in chains do
+							local n = #chain
+							if n >= 2 then
+								local a, b = chain[n - 1].WorldPosition, chain[n].WorldPosition
+								local tipX = b + (b - a) * 1.2
+								if (tipX - mid):Dot(sk.right) * w.side < minLateral * 0.8 then
+									ok = false
+									break
+								end
+							end
+						end
+					end
+					local tip = w.tip.WorldPosition
+					for b in poses do
+						b.Transform = CFrame.identity
+					end
+					if ok then
+						-- stretta lungo il fianco, bassa (niente cupola sul dorso), punta verso la coda
+						local score = wide + 2 * math.max(0, high) + 0.6 * (tip - shoulder):Dot(sk.fwd)
+						if score < bestScore then
+							best, bestScore = f, score
+						end
+					end
+				end
+			end
+		end
+	end
+	return best
+end
+
+local function foldWings(poses: Poses, sk: Skel, s: Signs, folds: { Fold }, breathe: number)
 	for i, w in sk.wings do
-		add(poses, sk, w.arm[1], UP, s["sweep" .. i] * 45 * amount)
-		add(poses, sk, w.arm[1], sk.fwd, -s["flap" .. i] * (42 * amount - breathe)) -- giu', lungo i fianchi
-		if w.arm[2] then
-			add(poses, sk, w.arm[2], UP, (s["fold" .. i] or 1) * 55 * amount)
-		end
-		for _, finger in w.fingers do
-			add(poses, sk, finger[1], UP, (s["fold" .. i] or 1) * 25 * amount)
-		end
+		foldPoses(poses, sk, s, i, w, folds[i], breathe)
 	end
 end
 
 local FLY_T, WALK_T, IDLE_T = 1.2, 1.0, 2.4
 local KEYS = 16
+
+-- campana liscia (0 ai bordi, 1 a meta') tra le fasi a e b del ciclo (modulo 1), 0 fuori
+local function hump(p: number, a: number, b: number): number
+	local len = (b - a) % 1
+	local x = (p - a) % 1
+	if x > len then
+		return 0
+	end
+	return 0.5 - 0.5 * math.cos(2 * math.pi * x / len)
+end
+-- fasi del battito del tucano: ala piu' in basso e piu' in alto
+local FLY_LOW, FLY_HIGH = 0.44, 0.08
 
 local function buildFly(sk: Skel, s: Signs, t: number): Poses
 	local poses: Poses = {}
@@ -384,17 +518,20 @@ local function buildFly(sk: Skel, s: Signs, t: number): Poses
 		local lags = { 0, 0.08, 0.14, 0.2 }
 		for k, b in w.arm do
 			local lag = lags[math.min(k, #lags)]
-			local amp = if k == 1 then 42 elseif k == 2 then 16 else 10
+			-- sulle ali a catena lunga (es. Roccia, 7 ossa in fila) le ossa in ritardo si sommavano
+			-- e la punta faceva quasi un giro: l'ampiezza dopo il gomito si divide tra le ossa
+			local amp = if k == 1 then 42 elseif k == 2 then 16 else 10 * math.min(1, 2 / math.max(#w.arm - 2, 1))
 			add(poses, sk, b, sk.fwd, flap * amp * wave("fly", "wing", p - lag))
 		end
 		-- risalita: avambraccio e dita si richiudono; discesa: le punte vanno avanti (l'ala si gonfia)
-		local v = wave("fly", "wing", p + 0.03) - wave("fly", "wing", p - 0.03)
-		local up = math.clamp(v * 6, -1, 1)
+		-- a campana su tutta la risalita e la discesa: prima si accendeva di colpo al cambio e la
+		-- punta dell'ala scattava in una sola chiave
+		local up, down = hump(p, FLY_LOW, FLY_HIGH), hump(p, FLY_HIGH, FLY_LOW)
 		if w.arm[2] then
-			add(poses, sk, w.arm[2], UP, (s["fold" .. i] or 1) * 22 * math.max(0, up))
+			add(poses, sk, w.arm[2], UP, (s["fold" .. i] or 1) * 22 * up)
 		end
 		for _, finger in w.fingers do
-			add(poses, sk, finger[1], UP, (s["fold" .. i] or 1) * (16 * math.max(0, up) - 10 * math.max(0, -up)))
+			add(poses, sk, finger[1], UP, (s["fold" .. i] or 1) * (16 * up - 10 * down))
 			if finger[2] then
 				add(poses, sk, finger[2], sk.fwd, flap * 8 * wave("fly", "wing", p - 0.25))
 			end
@@ -429,7 +566,7 @@ local function buildFly(sk: Skel, s: Signs, t: number): Poses
 	return poses
 end
 
-local function buildWalk(sk: Skel, s: Signs, t: number, fold: number): Poses
+local function buildWalk(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 	local poses: Poses = {}
 	local p = t / WALK_T
 	-- zampe: oscillazione della coscia dal giaguaro; il piede si alza mentre la zampa va avanti
@@ -465,11 +602,11 @@ local function buildWalk(sk: Skel, s: Signs, t: number, fold: number): Poses
 		local key = tailKeys[math.clamp(math.floor(f * 3.999) + 1, 1, 4)]
 		add(poses, sk, b, UP, (s.tailYaw or 1) * (3 + 6 * f) * wave("walk", key, p))
 	end
-	foldWings(poses, sk, s, fold, 2 * math.sin(2 * math.pi * p))
+	foldWings(poses, sk, s, folds, 2 * math.sin(2 * math.pi * p))
 	return poses
 end
 
-local function buildIdle(sk: Skel, s: Signs, t: number, fold: number): Poses
+local function buildIdle(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 	local poses: Poses = {}
 	local p = t / IDLE_T
 	-- respiro (leopardo) e sguardo che si guarda attorno
@@ -486,7 +623,7 @@ local function buildIdle(sk: Skel, s: Signs, t: number, fold: number): Poses
 		local f = (k - 1) / math.max(#sk.tail - 1, 1)
 		add(poses, sk, b, UP, (s.tailYaw or 1) * (2 + 5 * f) * math.sin(2 * math.pi * (p - 0.06 * k)))
 	end
-	foldWings(poses, sk, s, fold, 3 * wave("idle", "pelvis", p))
+	foldWings(poses, sk, s, folds, 3 * wave("idle", "pelvis", p))
 	return poses
 end
 
@@ -596,13 +733,17 @@ function AnimDraghi.genera(soloNome: string?): string
 			local s = computeSigns(sk)
 			-- l'adulto tiene le ali "un attimo piegate", i cuccioli un po' di piu'
 			local fold = if string.find(string.lower(rig.Name), "adulto") then 0.55 else 0.75
+			local folds = {}
+			for i, w in sk.wings do
+				folds[i] = bestFold(sk, s, i, w, fold)
+			end
 			local store = saves:FindFirstChild(rig.Name) or Instance.new("Model")
 			store.Name = rig.Name
 			store.Parent = saves
 			for name, info in {
 				["drago-volo"] = { FLY_T, function(t) return buildFly(sk, s, t) end },
-				["drago-cammina"] = { WALK_T, function(t) return buildWalk(sk, s, t, fold) end },
-				["drago-fermo"] = { IDLE_T, function(t) return buildIdle(sk, s, t, fold) end },
+				["drago-cammina"] = { WALK_T, function(t) return buildWalk(sk, s, t, folds) end },
+				["drago-fermo"] = { IDLE_T, function(t) return buildIdle(sk, s, t, folds) end },
 			} do
 				local old = store:FindFirstChild(name)
 				if old then
@@ -618,7 +759,9 @@ function AnimDraghi.genera(soloNome: string?): string
 					d.Transform = CFrame.identity
 				end
 			end
-			table.insert(report, string.format("%s: ali %d, zampe %d, coda %d ossa, collo %d ossa", rig.Name, #sk.wings, #sk.legs, #sk.tail, #sk.neck))
+			local f1 = folds[1]
+			table.insert(report, string.format("%s: ali %d, zampe %d, coda %d ossa, collo %d ossa | piega: indietro %d, giu' %d, gomito %d, dita %d", rig.Name, #sk.wings, #sk.legs, #sk.tail, #sk.neck,
+				f1 and f1.sweep or 0, f1 and f1.down or 0, f1 and f1.elbow or 0, f1 and f1.finger or 0))
 		end
 	end
 	return table.concat(report, "\n")

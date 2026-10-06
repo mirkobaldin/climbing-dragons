@@ -19,6 +19,11 @@ local MATERIAL_COLORS = {
 	Snow = Color3.fromRGB(236, 241, 246),
 	Glacier = Color3.fromRGB(122, 178, 214), -- ghiaccio vivo, azzurro (non deve sembrare neve)
 	Cobblestone = Color3.fromRGB(128, 120, 108),
+	-- valle dei gas (colori del drago Gas): roccia blu-viola e croste che brillano fucsia
+	Asphalt = Color3.fromRGB(34, 26, 72),
+	CrackedLava = Color3.fromRGB(240, 80, 220),
+	-- grotta di ghiaccio: azzurro intenso
+	Ice = Color3.fromRGB(64, 150, 214),
 }
 
 function Environment.apply()

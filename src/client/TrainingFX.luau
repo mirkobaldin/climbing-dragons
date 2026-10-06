@@ -7,10 +7,16 @@
 --   evolve  vortice di anelli, lampo bianco: poi arriva il drago piu' grande
 -- Inoltre: sopra ogni drago al seguito "Lv 23" (attributo Level del modello) e, quando il
 -- padrone sta nel cerchio di addestramento, un'aura del colore dell'elemento.
+-- Il campo: i cristalli-bersaglio fluttuano e girano (e si frantumano quando li colpisci), il
+-- Cristallo del Potere ruota, i bracieri divampano col colore del drago che si allena.
+--   rush     sfida Target Rush: il cristallo dorato da colpire, tempo e punti in alto
+--   rushEnd  risultato della sfida
 
+local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
@@ -139,6 +145,101 @@ local function floatText(at: Vector3, text: string, color: Color3, big: boolean)
 	Debris:AddItem(anchor, if big then 2.3 else 1.2)
 end
 
+-- il cristallo colpito va in pezzi e si ricompone (solo qui sul client)
+local hiddenUntil: { [Model]: number } = {}
+local function shatter(at: Vector3, color: Color3)
+	for _, m in CollectionService:GetTagged("CristalloBersaglio") do
+		if m:IsA("Model") and (m:GetPivot().Position - at).Magnitude < 6 then
+			for _ = 1, 12 do
+				local shard = fxPart(Enum.PartType.Block, Vector3.new(0.3, 0.8, 0.3) * (0.6 + math.random()), Color3.fromRGB(190, 235, 255), CFrame.new(at) * CFrame.Angles(math.random() * 6, math.random() * 6, 0))
+				shard.Material = Enum.Material.Glass
+				shard.Transparency = 0.2
+				local dir = Vector3.new(math.random() - 0.5, math.random() * 0.8, math.random() - 0.5).Unit
+				TweenService:Create(shard, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { CFrame = shard.CFrame + dir * 7 - Vector3.new(0, 2, 0), Transparency = 1 }):Play()
+				Debris:AddItem(shard, 0.8)
+			end
+			hiddenUntil[m] = os.clock() + 0.45
+			for _, d in m:GetDescendants() do
+				if d:IsA("BasePart") then
+					d.LocalTransparencyModifier = 1
+				end
+			end
+			break
+		end
+	end
+end
+
+-- il braciere dell'elemento divampa
+local function flare(element: string)
+	for _, m in CollectionService:GetTagged("BracereElemento") do
+		if m:GetAttribute("Element") == element then
+			local fire = m:FindFirstChildWhichIsA("Fire", true)
+			local light = m:FindFirstChildWhichIsA("PointLight", true)
+			if fire then
+				fire.Size = 9
+				fire.Heat = 18
+				task.delay(0.6, function()
+					fire.Size = 3
+					fire.Heat = 8
+				end)
+			end
+			if light then
+				light.Brightness = 5
+				TweenService:Create(light, TweenInfo.new(0.8), { Brightness = 1 }):Play()
+			end
+		end
+	end
+end
+
+-- Target Rush: evidenzia il cristallo dorato e mostra tempo e punti
+local rushLit = 0
+local rushEnds = 0
+local rushScore = 0
+local rushGui: ScreenGui? = nil
+local rushLabel: TextLabel? = nil
+local litGlow: Highlight? = nil
+local function rushUi(): TextLabel
+	if rushLabel and rushGui and rushGui.Parent then
+		return rushLabel
+	end
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "TargetRush"
+	gui.ResetOnSpawn = false
+	gui.Parent = player:WaitForChild("PlayerGui")
+	local label = Instance.new("TextLabel")
+	label.AnchorPoint = Vector2.new(0.5, 0)
+	label.Position = UDim2.new(0.5, 0, 0, 70)
+	label.Size = UDim2.fromOffset(360, 44)
+	label.BackgroundColor3 = Color3.fromRGB(20, 18, 14)
+	label.BackgroundTransparency = 0.25
+	label.Font = Enum.Font.GothamBlack
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromRGB(255, 210, 100)
+	label.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 10)
+	corner.Parent = label
+	rushGui, rushLabel = gui, label
+	return label
+end
+local function setLit(index: number)
+	rushLit = index
+	if litGlow then
+		litGlow:Destroy()
+		litGlow = nil
+	end
+	for _, m in CollectionService:GetTagged("CristalloBersaglio") do
+		if m:GetAttribute("Index") == index then
+			local h = Instance.new("Highlight")
+			h.FillColor = Color3.fromRGB(255, 200, 70)
+			h.OutlineColor = Color3.fromRGB(255, 240, 160)
+			h.FillTransparency = 0.25
+			h.Parent = m
+			litGlow = h
+		end
+	end
+end
+
 local function onHit(userId: number, target: Vector3, element: string, xp: number)
 	local pet = petOf(userId)
 	if not pet then
@@ -171,27 +272,8 @@ local function onHit(userId: number, target: Vector3, element: string, xp: numbe
 		ball:Destroy()
 		burst(target, color, 28, 18, 0.8)
 		shockwave(target, color, 6, 0.4)
-		-- il bersaglio trema (solo qui sul client)
-		local params = OverlapParams.new()
-		params.FilterType = Enum.RaycastFilterType.Include
-		local zone = workspace:FindFirstChild("ZonaAddestramento")
-		if zone then
-			params.FilterDescendantsInstances = { zone }
-			for _, p in workspace:GetPartBoundsInRadius(target, 4, params) do
-				local m = p:FindFirstAncestorOfClass("Model")
-				if m and m ~= zone then
-					local base = m:GetPivot()
-					task.spawn(function()
-						for k = 1, 6 do
-							m:PivotTo(base * CFrame.Angles(math.rad((if k % 2 == 0 then 1 else -1) * (7 - k)), 0, 0))
-							task.wait(0.03)
-						end
-						m:PivotTo(base)
-					end)
-					break
-				end
-			end
-		end
+		shatter(target, color)
+		flare(element)
 		if userId == player.UserId and xp and xp > 0 then
 			floatText(mouthOf(pet) + Vector3.new(0, 2, 0), "+" .. xp .. " XP", Color3.fromRGB(255, 230, 120), false)
 		end
@@ -332,9 +414,55 @@ function TrainingFX.start()
 				onEvolve(userId, a)
 			elseif kind == "hint" then
 				ClientState.hint = a
+			elseif kind == "rush" then
+				setLit(a)
+				rushEnds = os.clock() + b
+				rushScore = c
+			elseif kind == "rushEnd" then
+				setLit(0)
+				rushEnds = 0
+				local label = rushUi()
+				label.Text = string.format("TARGET RUSH · %d hits (best %d)", a, b)
+				task.delay(4, function()
+					if rushEnds == 0 then
+						label.Visible = false
+					end
+				end)
 			end
 		end)
 	end
+	-- cristalli che fluttuano e girano, contatore della sfida
+	RunService.RenderStepped:Connect(function()
+		local t = os.clock()
+		for _, m in CollectionService:GetTagged("CristalloBersaglio") do
+			local base = m:GetAttribute("Base")
+			if m:IsA("Model") and typeof(base) == "Vector3" then
+				local i = (m:GetAttribute("Index") or 1) :: number
+				m:PivotTo(CFrame.new(base + Vector3.new(0, math.sin(t * 1.4 + i) * 0.8, 0)) * CFrame.Angles(0, t * 0.9 + i, 0))
+				local hide = hiddenUntil[m]
+				if hide and t >= hide then
+					hiddenUntil[m] = nil
+					for _, d in m:GetDescendants() do
+						if d:IsA("BasePart") then
+							d.LocalTransparencyModifier = 0
+						end
+					end
+				end
+			end
+		end
+		for _, m in CollectionService:GetTagged("CristalloPotere") do
+			local base = m:GetAttribute("Base")
+			if m:IsA("Model") and typeof(base) == "Vector3" then
+				m:PivotTo(CFrame.new(base + Vector3.new(0, math.sin(t * 0.8) * 1.2, 0)) * CFrame.Angles(0, t * 0.5, 0))
+			end
+		end
+		if rushEnds > 0 then
+			local label = rushUi()
+			label.Visible = true
+			label.Text = string.format("TARGET RUSH · %ds · %d hits", math.max(0, math.ceil(rushEnds - t)), rushScore)
+		end
+	end)
+
 	local pets = workspace:WaitForChild("Pets")
 	pets.DescendantAdded:Connect(function(d)
 		if d:IsA("Model") and d:GetAttribute("Owner") then

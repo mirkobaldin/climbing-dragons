@@ -99,6 +99,7 @@ local function collectSpots()
 	add("CaveEntrances", cave)
 	add("SecretExits", "Ombra")
 	add("IceCaves", "Gelo")
+	add("GasZone", "Gas") -- valle dei gas tossici
 	add("Ponds", "Gelo")
 	add("Rivers", "Gelo")
 	add("PathPoints", byAltitude)

@@ -201,6 +201,16 @@ function Forest.plant(map: Heightmap.Map, yield: () -> (), progress: (string, nu
 			if entrance and (px - entrance.x) ^ 2 + (pz - entrance.z) ^ 2 < 110 ^ 2 then
 				continue
 			end
+			local cleared = false
+			for _, c in map.features.clearings or {} do
+				if (px - c.x) ^ 2 + (pz - c.z) ^ 2 < c.r * c.r then
+					cleared = true
+					break
+				end
+			end
+			if cleared then
+				continue -- terreni delle case (vedi Village)
+			end
 			local tut = map.features.tutorial
 			if tut and (px - tut.x) ^ 2 + (pz - tut.z) ^ 2 < (tut.radius + 30) ^ 2 then
 				continue

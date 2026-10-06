@@ -53,7 +53,8 @@ local Config = {
 		-- Cerchio delle tende verso il mare (spawn + falo'), offset dal centro della piana
 		CAMP = { DX = -90, DZ = -40, RADIUS = 120 },
 		-- Mezzaluna rialzata verso la montagna: cabine sul livello 1, chalet sul livello 2
-		CRESCENT = { INNER = 220, MID = 310, OUTER = 410, SPAN = 1.1, TIER1 = 10, TIER2 = 22, RAMPS = { 0, 0.8, -0.8 } },
+		-- i terreni delle case non sono piu' qui (TIER a 0 = piana tutta in piano, li' c'e' il tutorial)
+		CRESCENT = { INNER = 220, MID = 310, OUTER = 410, SPAN = 1.1, TIER1 = 0, TIER2 = 0, RAMPS = {} },
 		-- Anello di pareti attorno alla valle; GATES = varchi (angolo: 0 = est/montagna, pi = ovest/mare)
 		WALL = {
 			RADIUS = 640,
@@ -149,6 +150,13 @@ local Config = {
 		{ ANGLE = math.rad(115), R_TOP = 0.5, R_BOTTOM = 0.86, WIDTH = 440 },
 		{ ANGLE = math.rad(-60), R_TOP = 0.52, R_BOTTOM = 0.88, WIDTH = 400 },
 		{ ANGLE = math.rad(30), R_TOP = 0.5, R_BOTTOM = 0.84, WIDTH = 360 },
+		-- ghiacciai sospesi sulla spalla, sopra il bastione di pareti (le quattro creste e il lago):
+		-- finiscono sul ciglio delle pareti con una barriera di seracchi
+		{ ANGLE = math.rad(203), R_TOP = 0.34, R_BOTTOM = 0.465, WIDTH = 260 }, -- sopra il lago
+		{ ANGLE = math.rad(158), R_TOP = 0.39, R_BOTTOM = 0.63, WIDTH = 300 }, -- verso la piana
+		{ ANGLE = math.rad(-112), R_TOP = 0.38, R_BOTTOM = 0.59, WIDTH = 300 },
+		{ ANGLE = math.rad(-22), R_TOP = 0.4, R_BOTTOM = 0.59, WIDTH = 280 },
+		{ ANGLE = math.rad(68), R_TOP = 0.4, R_BOTTOM = 0.64, WIDTH = 280 },
 	},
 	-- Ghiaccio sospeso sulle pareti alte (fascia di seracchi come sul K2): da TOP in giu' il
 	-- ghiaccio scende con pendenza SLOPE, finche' e' spesso MAX studs e si interrompe in una parete.
@@ -167,6 +175,12 @@ local Config = {
 		CREVASSE_DEPTH = { 25, 70 },
 		LADDERS_PER_CREVASSE = 2,
 	},
+
+	-- Valle dei gas tossici (zona del drago Gas) ai piedi della montagna, sul lato est: una conca
+	-- scavata nel pendio, con la montagna come parete alle spalle e un orlo rialzato verso il mare.
+	-- Fondo di roccia blu-viola con croste che brillano fucsia, fumarole di gas azzurro e fucsia.
+	-- ANGLE/DIST = posizione attorno alla montagna, RADIUS = raggio, RIM = altezza minima dell'orlo
+	TOXIC = { ANGLE = math.rad(-5), DIST = 0.84, RADIUS = 175, RIM = 34, VENTS = 9 },
 
 	-- Lago d'alta quota + gola con pozze e salti d'acqua (cascata)
 	-- (ai piedi del grande bastione, come i laghi sotto le pareti delle Dolomiti)
@@ -238,6 +252,10 @@ local Config = {
 		LOOPS = 14, -- gallerie che collegano tra loro stanze e cunicoli (rete intrecciata)
 		MINE_CHAMBERS = 8, -- grandi caverne con pavimento piatto per i giacimenti
 		ICE_CAVES = { 0.62, 0.68, 0.74 }, -- quote (frazioni) delle grotte di ghiaccio
+		-- Grotta di ghiaccio azzurro (come quelle dell'Islanda) nel fronte del ghiacciaio GLACIER
+		-- (indice in GLACIERS): FRONT = altezza del fronte di ghiaccio, LENGTH = lunghezza della
+		-- galleria, RADIUS = raggio della galleria, HALL = raggio della sala in fondo
+		GLACIER_CAVE = { GLACIER = 1, FRONT = 48, LENGTH = 260, RADIUS = 13, GRADE = 0.1, HALL = 38, SHELL = 10 },
 		NICHE_FRAC = 0.45, -- anfratto segreto nella parete est
 		CATACOMB_Y = -100, -- catacomba segreta sotto il livello del mare
 	},
@@ -266,7 +284,12 @@ local Config = {
 
 	-- CABINS/CHALETS = terreni dei giocatori sul primo/secondo livello della mezzaluna;
 	-- HOUSE_SCALE = grandezza delle case (1 = a misura del modello a blocchi)
-	VILLAGE = { CABINS = 7, CHALETS = 6, BRIDGES = 3, HOUSE_SCALE = 1.6, PLOT_HALF = 30 },
+	-- Terreni delle case, uno per giocatore, in tre zone (la casa trasloca quando la migliori):
+	--   TENTS  campo tende ai piedi della montagna, dove parte il sentiero (Tenda)
+	--   CABINS villaggio attorno alle costole del drago (Baita)
+	--   VILLAS villette a sbalzo sui costoni della montagna (Chalet)
+	-- PLOT_HALF = meta' del lato del terreno per livello; HOUSE_SCALE = grandezza delle case
+	VILLAGE = { TENTS = 14, CABINS = 12, VILLAS = 10, BRIDGES = 3, HOUSE_SCALE = 1.6, PLOT_HALF = { 22, 30, 34 } },
 
 	-- Ostacoli sulla montagna
 	OBSTACLES = {

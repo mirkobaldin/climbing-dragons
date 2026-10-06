@@ -353,6 +353,109 @@ local function carveIceCaves(map: Heightmap.Map, terrain: Terrain, rng: Random, 
 	map.features.iceCaves = caves
 end
 
+-- Grotta di ghiaccio azzurro nel ghiacciaio (come quelle dell'Islanda): l'ingresso e' un arco
+-- nel fronte alto della lingua, poi una galleria che serpeggia salendo piano sotto il ghiacciaio
+-- e finisce in una grande sala. Pareti e volta diventano ghiaccio (Ice, azzurro intenso), il
+-- pavimento e' ghiaia (Slate). Volta piu' alta del raggio e "conche" sulle pareti, come il
+-- ghiaccio scavato dall'acqua. Luci, stalattiti e colonne le mette Glacier.
+local ICE_FROM = {
+	Enum.Material.Rock, Enum.Material.Slate, Enum.Material.Basalt, Enum.Material.Snow,
+	Enum.Material.Glacier, Enum.Material.Ground, Enum.Material.Grass, Enum.Material.LeafyGrass,
+	Enum.Material.Mud, Enum.Material.Limestone, Enum.Material.Sandstone, Enum.Material.Sand,
+}
+local function carveGlacierCave(map: Heightmap.Map, terrain: Terrain, rng: Random, yield: () -> ())
+	local GC = map.cfg.CAVES.GLACIER_CAVE
+	local g = GC and map.features.glaciers and map.features.glaciers[GC.GLACIER]
+	if not g then
+		return
+	end
+	local R, H = GC.RADIUS, GC.HALL
+	local UP = Vector3.yAxis
+	local function at(s: number, t: number): (number, number)
+		return Heightmap.glacierToWorld(g, s, t)
+	end
+	-- percorso: dal piede del fronte verso monte, serpeggiando
+	local s0 = g.length + 6
+	local x0, z0 = at(s0, 0)
+	local y = sampleH(map, x0, z0)
+	local phase = rng:NextNumber(0, 6.28)
+	local points: { Vector3 } = {}
+	local inside: { boolean } = {}
+	local STEP = 5
+	for k = 0, math.floor(GC.LENGTH / STEP) do
+		local s = s0 - k * STEP
+		local t = 28 * sin(k * 0.075 + phase) * math.clamp(k / 8, 0, 1)
+		local x, z = at(s, t)
+		table.insert(points, Vector3.new(x, y, z))
+		table.insert(inside, s < g.length - 34) -- piu' vicino al fronte la conversione arrivava fuori (un quadrato azzurro)
+		y += STEP * GC.GRADE
+	end
+	local function cut(c: Vector3, r: number, force: boolean)
+		-- mai sfondare la superficie (tranne all'ingresso, che e' un arco nel fronte)
+		if not force and sampleH(map, c.X, c.Z) - (c.Y + r) < 12 then
+			r = sampleH(map, c.X, c.Z) - 12 - c.Y
+			if r < 5 then
+				return
+			end
+		end
+		terrain:FillBall(c, r, AIR)
+	end
+	for k, p in points do
+		local entry = k <= 4
+		local side = Vector3.new(-(points[min(k + 1, #points)] - p).Z, 0, (points[min(k + 1, #points)] - p).X)
+		side = if side.Magnitude > 0.01 then side.Unit else Vector3.xAxis
+		cut(p + UP * R * 0.75, R * (1 + 0.12 * noise(p.X / 20, p.Y / 20, p.Z / 20)), entry)
+		cut(p + UP * R * 1.3, R * 0.6, entry) -- volta alta
+		if k % 2 == 0 then
+			-- conche nelle pareti, un po' a destra e un po' a sinistra
+			local sgn = if rng:NextNumber() < 0.5 then -1 else 1
+			cut(p + side * sgn * R * 0.6 + UP * R * rng:NextNumber(0.5, 1.1), R * rng:NextNumber(0.45, 0.65), entry)
+		end
+		if k % 8 == 0 then
+			yield()
+		end
+	end
+	-- sala in fondo: cupola irregolare
+	local last = points[#points]
+	local hallC = last + UP * H * 0.5
+	cut(hallC, H, false)
+	for j = 1, 5 do
+		local a = j / 5 * 2 * math.pi + rng:NextNumber(-0.3, 0.3)
+		cut(last + Vector3.new(cos(a) * H * 0.6, H * rng:NextNumber(0.25, 0.6), sin(a) * H * 0.6), H * rng:NextNumber(0.45, 0.65), false)
+	end
+	-- tutto quello che si vede dentro diventa ghiaccio azzurro; i primi metri restano del ghiaccio
+	-- del ghiacciaio (piu' chiaro), come la luce del giorno che entra
+	for k, p in points do
+		if inside[k] then
+			local half = Vector3.one * (R * 1.9 + GC.SHELL)
+			local region = Region3.new(p + UP * R * 0.75 - half, p + UP * R * 0.75 + half):ExpandToGrid(4)
+			for _, mat in ICE_FROM do
+				if inside[k] or (mat ~= Enum.Material.Grass and mat ~= Enum.Material.LeafyGrass and mat ~= Enum.Material.Ground and mat ~= Enum.Material.Mud) then
+					terrain:ReplaceMaterial(region, 4, mat, Enum.Material.Ice)
+				end
+			end
+		end
+	end
+	local hallHalf = Vector3.one * (H * 1.7 + GC.SHELL)
+	local hallRegion = Region3.new(hallC - hallHalf, hallC + hallHalf):ExpandToGrid(4)
+	for _, mat in ICE_FROM do
+		terrain:ReplaceMaterial(hallRegion, 4, mat, Enum.Material.Ice)
+	end
+	-- pavimento di ghiaia, in piano lungo la galleria
+	for k = 1, #points - 1 do
+		local a, b = points[k], points[k + 1]
+		terrain:FillBlock(CFrame.lookAt(a:Lerp(b, 0.5) - UP * 3, b - UP * 3), Vector3.new(R * 1.6, 6, (b - a).Magnitude + 4), Enum.Material.Slate)
+	end
+	terrain:FillCylinder(CFrame.new(last - UP * 4), 8, H * 1.05, Enum.Material.Slate)
+	map.features.glacierCave = {
+		entrance = toPoint(points[1]),
+		hall = { x = last.X, y = last.Y, z = last.Z, radius = H },
+		points = points,
+	}
+	-- la sala conta anche come grotta di ghiaccio (uova del Gelo, golem)
+	table.insert(map.features.iceCaves, { x = last.X, y = last.Y, z = last.Z, cy = hallC.Y, r = H })
+end
+
 -- Anfratto segreto: nel punto piu' ripido della parete est a quella quota
 local function carveNiche(map: Heightmap.Map, terrain: Terrain)
 	local M, CV = map.cfg.MOUNTAIN, map.cfg.CAVES
@@ -465,6 +568,7 @@ function Caves.carve(map: Heightmap.Map, yield: () -> (), progress: (string, num
 	carveCatacomb(map, terrain, helix[1], yield)
 	progress("Grotte di ghiaccio", 0.8)
 	carveIceCaves(map, terrain, rng, yield)
+	carveGlacierCave(map, terrain, rng, yield)
 	carveNiche(map, terrain)
 	placeFloatingStones(map, terrain, rng)
 	carveTreasureChamber(map, terrain, helix, yield)

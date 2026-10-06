@@ -4,7 +4,6 @@
 -- solo se sta davvero appoggiato (altrimenti si scarta e si riprova altrove):
 --   seracchi e torri   sul ghiacciaio, nelle seraccate, su fondo quasi piano, dritti
 --   fronti             al termine di ogni ghiacciaio, con la parete di ghiaccio rivolta a valle
---   colate             appoggiate a pareti piane: dentro i crepacci e su pareti verticali in quota
 --   volte, stalattiti  appese sotto tetti di roccia piatti (strapiombi in quota, grotte di ghiaccio)
 --   tende di stalattiti appese sotto il bordo dei crepacci
 --   iceberg            a galla nel lago di montagna e nel mare ai piedi dei ghiacciai
@@ -126,8 +125,9 @@ local KIT = {
 	hanging = { "Volta_Stalattiti_Cattedrale", "Volta_Stalattiti_Fitta", "Volta_Stalattiti_Rada", "Stalattite_Gigante" },
 	curtains = { "Tenda_Stalattiti", "Tenda_Stalattiti_Lunga" },
 	standing = { "Grappolo_Stalagmiti", "Grappolo_Stalagmiti_Basso", "Stalagmite_Gigante", "Colonna_Ghiaccio" },
-	falls = { "Parete_Colate" },
 }
+-- modelli del kit da non usare (le "pareti colate" sembravano pannelli incollati alla roccia)
+local SKIP = { Parete_Colate = true }
 local ROCKY = { Cumulo_Macerie = true }
 
 local templates: { [string]: Model } = {}
@@ -147,7 +147,7 @@ local function loadKit(): boolean
 		return false
 	end
 	for _, m in kit:GetDescendants() do
-		if m:IsA("Model") and m:FindFirstChildWhichIsA("BasePart", true) then
+		if m:IsA("Model") and not SKIP[m.Name] and m:FindFirstChildWhichIsA("BasePart", true) then
 			local clean = m:Clone()
 			for _, d in clean:GetDescendants() do
 				if d:IsA("LuaSourceContainer") then
@@ -435,15 +435,26 @@ local function icefalls(folder: Instance, map: Heightmap.Map, g: any, rng: Rando
 	return count
 end
 
--- Fronte: una fila di pareti di seracchi dove finisce la lingua, rivolte a valle
+-- vicino all'ingresso della grotta di ghiaccio azzurro (li' il fronte resta libero)
+local function nearCave(map: Heightmap.Map, x: number, z: number, r: number): boolean
+	local gc = map.features.glacierCave
+	return gc ~= nil and (Vector2.new(x, z) - Vector2.new(gc.entrance.x, gc.entrance.z)).Magnitude < r
+end
+
+-- Fronte: una fila di pareti di seracchi dove finisce la lingua, rivolte a valle (gli angoli
+-- della lingua sono arrotondati: la fila resta nel tratto dritto)
 local function front(folder: Instance, map: Heightmap.Map, g: any, rng: Random): number
 	local count = 0
 	local axis = Vector3.new(g.ax, 0, g.az)
 	local sEnd = g.length - 14
 	local half = sample(g, sEnd, g.half)
-	local t = -half * 0.8
-	while t < half * 0.8 do
+	local t = -half * 0.6
+	while t < half * 0.6 do
 		local x, z = toWorld(g, sEnd, t)
+		if nearCave(map, x, z, 48) then
+			t += 12
+			continue
+		end
 		local hit = ground(x, z, sample(g, sEnd, g.surf) + 300)
 		local m = hit and standOn(folder, pick(KIT.fronts, rng), hit.Position, axis, rng:NextNumber(1.2, 1.7), 0.2, { maxBury = 0.5 })
 		if m then
@@ -456,7 +467,7 @@ local function front(folder: Instance, map: Heightmap.Map, g: any, rng: Random):
 	-- frammenti caduti davanti al fronte
 	for _ = 1, 16 do
 		local x, z = toWorld(g, g.length + rng:NextNumber(8, 50), rng:NextNumber(-half, half))
-		local hit = ground(x, z, sample(g, sEnd, g.surf) + 300)
+		local hit = not nearCave(map, x, z, 40) and ground(x, z, sample(g, sEnd, g.surf) + 300)
 		if hit and hit.Normal.Y > 0.5 then
 			if standOn(folder, pick(KIT.fragments, rng), hit.Position, Vector3.new(rng:NextNumber(-1, 1), 0, rng:NextNumber(-1, 1)), rng:NextNumber(0.8, 1.8), 0.2, { support = Enum.Material.Snow, maxGap = 0.6, maxBury = 0.85 }) then
 				count += 1
@@ -466,7 +477,7 @@ local function front(folder: Instance, map: Heightmap.Map, g: any, rng: Random):
 	return count
 end
 
--- Crepacci: tende di stalattiti appese sotto il bordo, colate sulle pareti, frammenti sui
+-- Crepacci: tende di stalattiti appese sotto il bordo, frammenti sui
 -- bordi e stalagmiti basse sul fondo dei piu' larghi
 local function crevasseIce(folder: Instance, map: Heightmap.Map, g: any, rng: Random): number
 	local count = 0
@@ -485,19 +496,12 @@ local function crevasseIce(folder: Instance, map: Heightmap.Map, g: any, rng: Ra
 			if lip then
 				local mid = Vector3.new(cx, (bottom.Position.Y + lip.Position.Y) / 2, cz)
 				local wall = workspace:Raycast(mid, dir * (c.width + 6), terrainOnly)
-				if wall and math.abs(wall.Normal.Y) < 0.35 then
-					local n = Vector3.new(wall.Normal.X, 0, wall.Normal.Z).Unit
-					if rng:NextNumber() < 0.5 then
-						if onWall(folder, pick(KIT.falls, rng), wall.Position, n, rng:NextNumber(0.6, 1)) then
+				if wall and math.abs(wall.Normal.Y) < 0.35 and rng:NextNumber() < 0.6 then
+					-- tenda di stalattiti appesa poco sotto il bordo
+					local high = workspace:Raycast(Vector3.new(cx, lip.Position.Y - 5, cz), dir * (c.width + 6), terrainOnly)
+					if high and math.abs(high.Normal.Y) < 0.35 then
+						if onWall(folder, pick(KIT.curtains, rng), high.Position, Vector3.new(high.Normal.X, 0, high.Normal.Z).Unit, rng:NextNumber(0.5, 0.9)) then
 							count += 1
-						end
-					else
-						-- tenda appesa poco sotto il bordo
-						local high = workspace:Raycast(Vector3.new(cx, lip.Position.Y - 5, cz), dir * (c.width + 6), terrainOnly)
-						if high and math.abs(high.Normal.Y) < 0.35 then
-							if onWall(folder, pick(KIT.curtains, rng), high.Position, Vector3.new(high.Normal.X, 0, high.Normal.Z).Unit, rng:NextNumber(0.5, 0.9)) then
-								count += 1
-							end
 						end
 					end
 				end
@@ -567,29 +571,6 @@ local function overhangIce(folder: Instance, map: Heightmap.Map, rng: Random): n
 	return count
 end
 
--- Colate di ghiaccio su pareti verticali piane in quota
-local function iceFalls(folder: Instance, map: Heightmap.Map, rng: Random): number
-	local M = map.cfg.MOUNTAIN
-	local count, tries = 0, 0
-	while count < 30 and tries < 2000 do
-		tries += 1
-		local y = rng:NextNumber(M.HEIGHT * map.cfg.BIOMES.SNOW_LINE, M.HEIGHT * 0.85)
-		local theta = rng:NextNumber(0, 2 * math.pi)
-		local r = Heightmap.findSurfaceR(map, theta, y)
-		if r then
-			local out = Vector3.new(math.cos(theta), 0, math.sin(theta))
-			local hit = workspace:Raycast(Vector3.new(M.X, y, M.Z) + out * (r + 120), -out * 260, terrainOnly)
-			if hit and math.abs(hit.Normal.Y) < 0.15 then
-				local n = Vector3.new(hit.Normal.X, 0, hit.Normal.Z).Unit
-				if onWall(folder, pick(KIT.falls, rng), hit.Position, n, rng:NextNumber(1.2, 2.2)) then
-					count += 1
-				end
-			end
-		end
-	end
-	return count
-end
-
 -- Grotte di ghiaccio: volte sul soffitto, colonne e grappoli sul pavimento
 local function caveIce(folder: Instance, map: Heightmap.Map, rng: Random): number
 	local count = 0
@@ -603,10 +584,71 @@ local function caveIce(folder: Instance, map: Heightmap.Map, rng: Random): numbe
 			end
 			local down = workspace:Raycast(p, Vector3.new(0, -60, 0), terrainOnly)
 			if down and down.Normal.Y > 0.85 then
-				if standOn(folder, pick(KIT.standing, rng), down.Position, Vector3.new(rng:NextNumber(-1, 1), 0, rng:NextNumber(-1, 1)), rng:NextNumber(0.6, 1.1), 0.05, { support = Enum.Material.Glacier, maxGap = 0.7, maxBury = 0.8 }) then
+				if standOn(folder, pick(KIT.standing, rng), down.Position, Vector3.new(rng:NextNumber(-1, 1), 0, rng:NextNumber(-1, 1)), rng:NextNumber(0.6, 1.1), 0.12, { support = Enum.Material.Glacier, maxGap = 0.7, maxBury = 0.8 }) then
 					count += 1
 				end
 			end
+		end
+	end
+	return count
+end
+
+-- Grotta di ghiaccio azzurro nel fronte del ghiacciaio: luci azzurre sotto la volta (la luce
+-- che passa nel ghiaccio), stalattiti lungo la galleria, colonne e volte nella sala
+local function glacierCave(folder: Instance, map: Heightmap.Map, rng: Random): number
+	local gc = map.features.glacierCave
+	if not gc then
+		return 0
+	end
+	local count = 0
+	local lights = Instance.new("Folder")
+	lights.Name = "LuciGrottaGhiaccio"
+	lights.Parent = folder
+	local function light(p: Vector3, range: number, brightness: number, color: Color3)
+		local a = Instance.new("Part")
+		a.Name = "Luce"
+		a.Anchored = true
+		a.CanCollide = false
+		a.CanQuery = false
+		a.CanTouch = false
+		a.Transparency = 1
+		a.Size = Vector3.one
+		a.Position = p
+		a.Parent = lights
+		local l = Instance.new("PointLight")
+		l.Color = color
+		l.Range = range
+		l.Brightness = brightness
+		l.Shadows = false
+		l.Parent = a
+	end
+	local BLUE = Color3.fromRGB(110, 190, 255)
+	local pts = gc.points
+	for k = 4, #pts, 4 do
+		local p = pts[k]
+		local up = workspace:Raycast(p + Vector3.new(0, 3, 0), Vector3.new(0, 50, 0), terrainOnly)
+		if up then
+			light(p + Vector3.new(0, (up.Position.Y - p.Y) * 0.75, 0), 30, 1.3, BLUE)
+			if k % 8 == 0 and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(0.3, 0.5)) then
+				count += 1
+			end
+		end
+	end
+	-- la sala
+	local h = gc.hall
+	local c = Vector3.new(h.x, h.y, h.z)
+	light(c + Vector3.new(0, h.radius * 0.8, 0), h.radius * 1.6, 2, BLUE)
+	for j = 1, 5 do
+		local a = j / 5 * 2 * math.pi
+		local p = c + Vector3.new(math.cos(a) * h.radius * 0.6, 6, math.sin(a) * h.radius * 0.6)
+		light(p, 26, 1.2, if j % 2 == 0 then Color3.fromRGB(150, 220, 255) else BLUE)
+		local up = workspace:Raycast(p, Vector3.new(0, 90, 0), terrainOnly)
+		if up and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(0.6, 1)) then
+			count += 1
+		end
+		local down = workspace:Raycast(p + Vector3.new(0, 4, 0), Vector3.new(0, -30, 0), terrainOnly)
+		if down and rng:NextNumber() < 0.7 and standOn(folder, pick(KIT.standing, rng), down.Position, Vector3.new(rng:NextNumber(-1, 1), 0, rng:NextNumber(-1, 1)), rng:NextNumber(0.5, 0.9), 0.12, { support = Enum.Material.Slate, maxGap = 0.7, maxBury = 0.8 }) then
+			count += 1
 		end
 	end
 	return count
@@ -776,7 +818,7 @@ function Glacier.build(map: Heightmap.Map)
 		nCrev += #(g.crevasses or {})
 	end
 	local counts = { seraccate = 0, fronti = 0, crepacci = 0, morene = 0 }
-	local nOver, nFalls, nCave, nTop, nBergs, nCap = 0, 0, 0, 0, 0, 0
+	local nOver, nGrotta, nCave, nTop, nBergs, nCap = 0, 0, 0, 0, 0, 0
 	if loadKit() then
 		for _, g in map.features.glaciers or {} do
 			counts.seraccate += icefalls(ice, map, g, rng)
@@ -785,7 +827,7 @@ function Glacier.build(map: Heightmap.Map)
 			counts.morene += moraines(ice, map, g, rng)
 		end
 		nOver = overhangIce(ice, map, rng)
-		nFalls = iceFalls(ice, map, rng)
+		nGrotta = glacierCave(ice, map, rng)
 		nCave = caveIce(ice, map, rng)
 		nTop = summitIce(ice, map, rng)
 		nCap = iceCapSeracs(ice, map, rng)
@@ -802,9 +844,9 @@ function Glacier.build(map: Heightmap.Map)
 		end
 	end
 	print(string.format(
-		"[MapGen] Ghiacciai: %d, crepacci %d, scale-ponte %d | ghiaccio %d pezzi (seraccate %d, fronti %d, crepacci %d, morene %d, strapiombi %d, colate %d, grotte %d, vetta %d, ghiaccio sospeso %d, iceberg %d) | scartati %d (%s)%s",
+		"[MapGen] Ghiacciai: %d, crepacci %d, scale-ponte %d | ghiaccio %d pezzi (seraccate %d, fronti %d, crepacci %d, morene %d, strapiombi %d, grotta azzurra %d, grotte %d, vetta %d, ghiaccio sospeso %d, iceberg %d) | scartati %d (%s)%s",
 		#(map.features.glaciers or {}), nCrev, nBridges, total, counts.seraccate, counts.fronti, counts.crepacci, counts.morene,
-		nOver, nFalls, nCave, nTop, nCap, nBergs, rejected, (function() local t = {} for k, v in why do table.insert(t, k .. " " .. v) end return table.concat(t, ", ") end)(),
+		nOver, nGrotta, nCave, nTop, nCap, nBergs, rejected, (function() local t = {} for k, v in why do table.insert(t, k .. " " .. v) end return table.concat(t, ", ") end)(),
 		if #unused > 0 then " | NON USATI: " .. table.concat(unused, ", ") else " | tutti i modelli usati"
 	))
 

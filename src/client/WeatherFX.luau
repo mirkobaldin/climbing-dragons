@@ -216,7 +216,7 @@ function WeatherFX.start()
 		streaks.Acceleration = push * 1.5
 
 		if atmosphere then
-			local target = baseDensity + (FOG[weather] or 0) + (if snowing and high then 0.05 else 0)
+			local target = baseDensity + (FOG[weather] or 0) + (if snowing and high then 0.05 else 0) + ClientState.gas * 0.3
 			atmosphere.Density += (target - atmosphere.Density) * math.min(1, dt * 0.5)
 		end
 

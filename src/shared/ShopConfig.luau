@@ -61,6 +61,7 @@ ShopConfig.DEV_PRODUCTS = {
 	Revive = 0, -- "Soccorso alpino": rinasci dove sei caduto
 	InstantHatch = 0, -- schiude subito tutte le uova del nido
 	Coins1000 = 0, -- 1000 monete
+	TrainingBoost = 0, -- XP di addestramento x3 per 15 minuti
 }
 
 function ShopConfig.item(id: string): Item?
