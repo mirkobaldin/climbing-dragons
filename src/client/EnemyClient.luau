@@ -141,11 +141,19 @@ local function onFx(kind: string, a: any, b: any, c: any)
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 		if me then
 			Climbing.release() -- il colpo ti stacca dalla parete
-			-- in aria, se no il controllo del personaggio annulla subito la spinta
 			if humanoid then
 				humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
 			end
-			me.AssemblyLinearVelocity += a :: Vector3
+			-- la sola velocita' non basta: il personaggio atterra subito e il suo controllo la
+			-- annulla. Una spinta che dura un attimo ti sbalza davvero di qualche metro.
+			local push = Instance.new("LinearVelocity")
+			push.Attachment0 = me:FindFirstChild("RootAttachment") :: Attachment?
+			push.RelativeTo = Enum.ActuatorRelativeTo.World
+			push.VectorVelocity = a :: Vector3
+			push.MaxForce = me.AssemblyMass * 2000
+			push.Parent = me
+			Debris:AddItem(push, 0.22)
+			me.AssemblyLinearVelocity = a :: Vector3
 			shake = math.max(shake, 0.8)
 		end
 	elseif kind == "reward" then
