@@ -17,7 +17,7 @@ local player = Players.LocalPlayer
 
 local GasFX = {}
 
-local TINT = Color3.fromRGB(200, 185, 255)
+local TINT = Color3.fromRGB(215, 205, 255)
 
 local function amount(pos: Vector3): number
 	local center = workspace:GetAttribute("GasCenter")

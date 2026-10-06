@@ -236,7 +236,7 @@ local function buildTarget(parent: Instance, at: Vector3, index: number): Part
 	model:SetAttribute("Base", base)
 	model:SetAttribute("Index", index)
 	CollectionService:AddTag(model, "CristalloBersaglio")
-	prompt(glass, "Train", "Dragon target", 45)
+	prompt(glass, "Train", "Dragon target", 26).Exclusivity = Enum.ProximityPromptExclusivity.OnePerButton -- solo il piu' vicino
 	return glass
 end
 
@@ -357,14 +357,14 @@ function Training.setup()
 		center = Vector3.new(center.X, buildCircle(folder, center), center.Z)
 		buildPowerCrystal(folder, center)
 		buildBraziers(folder, center)
-		local ring = math.clamp(math.min(size.X, size.Z) * 0.3, T.CIRCLE_RADIUS + 16, 60)
+		local ring = math.clamp(math.min(size.X, size.Z) * 0.3, T.CIRCLE_RADIUS + 16, 40)
 		local targets: { Part } = {}
 		for k = 1, T.TARGETS do
 			local a = (k - 0.5) / T.TARGETS * 2 * math.pi
 			local at = groundAt(center + Vector3.new(math.cos(a) * ring, 0, math.sin(a) * ring))
 			table.insert(targets, buildTarget(folder, at, k))
 		end
-		buildSign(folder, groundAt(center + Vector3.new(ring + 14, 0, 0)), center)
+		buildSign(folder, groundAt(center + Vector3.new(ring + 16, 0, 0)), center)
 		local orb, board = buildRushAltar(folder, groundAt(center + Vector3.new(-(ring + 12), 0, 6)), center)
 		local x2, x3 = buildStall(folder, groundAt(center + Vector3.new(0, 0, ring + 14)), center)
 		folder.Parent = workspace

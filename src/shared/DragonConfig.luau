@@ -154,9 +154,9 @@ DragonConfig.TRAINING = {
 	TARGETS = 6,
 	GROWTH = 0.2, -- a livello 100 il drago e' piu' grande del 20% rispetto al livello 1
 	-- sfida "Target Rush": RUSH_SECONDS di tempo, si accende un cristallo dorato alla volta
-	RUSH_SECONDS = 30,
+	RUSH_SECONDS = 40,
 	RUSH_XP = 30, -- XP per il cristallo dorato (gli altri danno TARGET_XP)
-	RUSH_EVERY = 2.2, -- secondi prima che il cristallo dorato cambi
+	RUSH_EVERY = 4, -- secondi prima che il cristallo dorato cambi (si corre da un cristallo all'altro)
 	RUSH_COOLDOWN = 40, -- secondi tra una sfida e l'altra
 	-- moltiplicatori dell'XP di addestramento (si sommano moltiplicando)
 	PASS_MULT = 2, -- gamepass TrainingX2
