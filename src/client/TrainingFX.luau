@@ -463,7 +463,7 @@ local function startAim(event: RemoteEvent)
 	RunService.RenderStepped:Connect(function()
 		local camera = workspace.CurrentCamera
 		local pet = myPet()
-		local want = player:GetAttribute("Training") == true and pet ~= nil
+		local want = player:GetAttribute("Training") == true and pet ~= nil and not player.PlayerGui:FindFirstChild("Trailer")
 		if want and not on then
 			-- si parte guardando dove guardava la camera
 			local look = camera.CFrame.LookVector
@@ -473,6 +473,14 @@ local function startAim(event: RemoteEvent)
 			camera.CameraType = Enum.CameraType.Custom
 			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 			UserInputService.MouseIconEnabled = true
+		end
+		if want ~= on and player.Character then
+			-- il tuo personaggio sparisce mentre miri (copriva la visuale)
+			for _, d in player.Character:GetDescendants() do
+				if d:IsA("BasePart") or d:IsA("Decal") then
+					(d :: any).LocalTransparencyModifier = if want then 1 else 0
+				end
+			end
 		end
 		on = want
 		gui.Enabled = on
