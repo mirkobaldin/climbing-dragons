@@ -23,7 +23,7 @@ local DragonConfig = {}
 -- Solo gli elementi che hanno un uovo vero (i modelli Uovo_<Elemento> in ServerStorage.Uova)
 DragonConfig.ALTAR_RESPAWN = 600 -- secondi prima che sugli altari ricompaia l'uovo leggendario
 DragonConfig.SUMMIT_EGG = "Sole" -- elemento dell'uovo leggendario sull'altare della vetta
-DragonConfig.STARTER_DRAGON = "Ombra" -- il drago che ricevi al primo accesso
+DragonConfig.STARTER_DRAGON = "Eclissi" -- il drago che ricevi al primo accesso
 
 DragonConfig.ELEMENTS = {
 	{
@@ -152,6 +152,8 @@ DragonConfig.TRAINING = {
 	CIRCLE_XP = 3, -- XP al secondo stando nel cerchio di addestramento
 	CIRCLE_RADIUS = 16,
 	TARGETS = 6,
+	CRYSTAL_RING = 38, -- i cristalli-bersaglio girano attorno al cerchio a questa distanza
+	SHOT_COOLDOWN = 0.6, -- secondi tra un colpo e l'altro (si mira col mouse dalla vista del drago)
 	GROWTH = 0.2, -- a livello 100 il drago e' piu' grande del 20% rispetto al livello 1
 	-- sfida "Target Rush": RUSH_SECONDS di tempo, si accende un cristallo dorato alla volta
 	RUSH_SECONDS = 40,
@@ -164,6 +166,20 @@ DragonConfig.TRAINING = {
 	BOOST_MINUTES = 15,
 	PREMIUM_MULT = 1.2, -- abbonati Roblox Premium
 }
+
+-- Posizione di un cristallo-bersaglio del campo d'addestramento al tempo t (secondi del server):
+-- girano attorno al cerchio a quote e velocita' diverse, meta' in un verso e meta' nell'altro,
+-- avvicinandosi e allontanandosi dal centro. Server e client usano la stessa formula: il server
+-- sa sempre dov'e' un cristallo e controlla i colpi.
+function DragonConfig.crystalAt(center: Vector3, index: number, t: number): Vector3
+	local TR = DragonConfig.TRAINING
+	local dir = if index % 2 == 0 then -1 else 1
+	local speed = 0.22 + 0.05 * (index % 3)
+	local r = TR.CRYSTAL_RING + 7 * math.sin(index * 1.7) + 6 * math.sin(t * 0.5 + index * 0.9)
+	local a = (index - 0.5) / TR.TARGETS * 2 * math.pi + dir * speed * t
+	local h = 9 + 4 * math.sin(index * 2.3) + 2.5 * math.sin(t * 1.3 + index)
+	return center + Vector3.new(math.cos(a) * r, h, math.sin(a) * r)
+end
 
 -- XP per passare dal livello "level" al successivo (dal livello 1 al 100: circa 22 000 XP)
 function DragonConfig.xpForLevel(level: number): number

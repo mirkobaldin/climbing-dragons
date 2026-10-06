@@ -1351,8 +1351,12 @@ local function carveGlacier(map: Map, def: any, index: number)
 	g.step, g.n = STEP, n
 	local seed = index * 13.37 + 2.2
 	-- il ghiacciaio della grotta di ghiaccio ha un fronte alto (dentro c'e' la galleria)
-	local GC = map.cfg.CAVES and map.cfg.CAVES.GLACIER_CAVE
-	local caveFront = if GC and GC.GLACIER == index then GC.FRONT else nil
+	local caveFront: number? = nil
+	for _, GC in (map.cfg.CAVES and map.cfg.CAVES.GLACIER_CAVES) or {} do
+		if GC.GLACIER == index then
+			caveFront = GC.FRONT
+		end
+	end
 	g.index = index
 	-- linea centrale che serpeggia e larghezza che si stringe scendendo
 	g.off, g.half = table.create(n), table.create(n)

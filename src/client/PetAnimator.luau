@@ -526,4 +526,6 @@ function PetAnimator.start()
 	end)
 end
 
+PetAnimator.loadTracks = loadTracks -- usato anche dal trailer
+
 return PetAnimator

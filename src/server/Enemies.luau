@@ -224,6 +224,9 @@ local function mountainSpots(def: EnemyConfig.EnemyType, count: number, accept: 
 	local tries = 0
 	while #spots < count and tries < 3000 do
 		tries += 1
+		if tries % 60 == 0 then
+			task.wait() -- senza pause lo script andava in timeout e bloccava tutto il server
+		end
 		local a = math.random() * 2 * math.pi
 		local r = M.RADIUS * (0.1 + math.random() * 0.75)
 		local hit = ground(M.X + math.cos(a) * r, M.Z + math.sin(a) * r)

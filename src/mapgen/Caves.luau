@@ -338,16 +338,19 @@ local function carveIceCaves(map: Heightmap.Map, terrain: Terrain, rng: Random, 
 		if rs then
 			local c = Vector3.new(M.X + cos(theta) * rs * 0.45, y, M.Z + sin(theta) * rs * 0.45)
 			-- caverna grande: dentro ci vanno volte di stalattiti, colonne e grappoli di ghiaccio
-			terrain:FillBall(c, 30, AIR)
-			terrain:FillBlock(CFrame.new(c - Vector3.new(0, 26, 0)), Vector3.new(56, 8, 56), Enum.Material.Glacier) -- pavimento piano
+			terrain:FillBall(c, 46, AIR)
+			for _ = 1, 3 do
+				terrain:FillBall(c + Vector3.new(rng:NextNumber(-30, 30), rng:NextNumber(-6, 14), rng:NextNumber(-30, 30)), rng:NextNumber(22, 32), AIR)
+			end
+			terrain:FillBlock(CFrame.new(c - Vector3.new(0, 40, 0)), Vector3.new(90, 8, 90), Enum.Material.Glacier) -- pavimento piano
 			-- Pareti di ghiaccio attorno alla camera
-			local region = Region3.new(c - Vector3.new(40, 40, 40), c + Vector3.new(40, 40, 40)):ExpandToGrid(4)
+			local region = Region3.new(c - Vector3.new(84, 60, 84), c + Vector3.new(84, 70, 84)):ExpandToGrid(4)
 			for _, mat in { Enum.Material.Rock, Enum.Material.Slate, Enum.Material.Basalt, Enum.Material.Snow } do
 				terrain:ReplaceMaterial(region, 4, mat, Enum.Material.Glacier)
 			end
 			local out = Vector3.new(M.X + cos(theta) * (rs + 8), y + 4, M.Z + sin(theta) * (rs + 8))
 			carvePath(terrain, { c, out }, CV.LINK_RADIUS, yield)
-			table.insert(caves, { x = c.X, y = c.Y - 22, z = c.Z, cy = c.Y, r = 30 })
+			table.insert(caves, { x = c.X, y = c.Y - 36, z = c.Z, cy = c.Y, r = 46 })
 		end
 	end
 	map.features.iceCaves = caves
@@ -363,8 +366,7 @@ local ICE_FROM = {
 	Enum.Material.Glacier, Enum.Material.Ground, Enum.Material.Grass, Enum.Material.LeafyGrass,
 	Enum.Material.Mud, Enum.Material.Limestone, Enum.Material.Sandstone, Enum.Material.Sand,
 }
-local function carveGlacierCave(map: Heightmap.Map, terrain: Terrain, rng: Random, yield: () -> ())
-	local GC = map.cfg.CAVES.GLACIER_CAVE
+local function carveGlacierCave(map: Heightmap.Map, terrain: Terrain, rng: Random, yield: () -> (), GC: any)
 	local g = GC and map.features.glaciers and map.features.glaciers[GC.GLACIER]
 	if not g then
 		return
@@ -384,10 +386,10 @@ local function carveGlacierCave(map: Heightmap.Map, terrain: Terrain, rng: Rando
 	local STEP = 5
 	for k = 0, math.floor(GC.LENGTH / STEP) do
 		local s = s0 - k * STEP
-		local t = 28 * sin(k * 0.075 + phase) * math.clamp(k / 8, 0, 1)
+		local t = R * 2 * sin(k * 0.075 + phase) * math.clamp(k / 8, 0, 1)
 		local x, z = at(s, t)
 		table.insert(points, Vector3.new(x, y, z))
-		table.insert(inside, s < g.length - 34) -- piu' vicino al fronte la conversione arrivava fuori (un quadrato azzurro)
+		table.insert(inside, s < g.length - R * 2.6) -- piu' vicino al fronte la conversione arrivava fuori (un quadrato azzurro)
 		y += STEP * GC.GRADE
 	end
 	local function cut(c: Vector3, r: number, force: boolean)
@@ -447,13 +449,94 @@ local function carveGlacierCave(map: Heightmap.Map, terrain: Terrain, rng: Rando
 		terrain:FillBlock(CFrame.lookAt(a:Lerp(b, 0.5) - UP * 3, b - UP * 3), Vector3.new(R * 1.6, 6, (b - a).Magnitude + 4), Enum.Material.Slate)
 	end
 	terrain:FillCylinder(CFrame.new(last - UP * 4), 8, H * 1.05, Enum.Material.Slate)
-	map.features.glacierCave = {
+	local feature = {
 		entrance = toPoint(points[1]),
 		hall = { x = last.X, y = last.Y, z = last.Z, radius = H },
 		points = points,
+		radius = R,
 	}
+	map.features.glacierCaves = map.features.glacierCaves or {}
+	table.insert(map.features.glacierCaves, feature)
+	map.features.glacierCave = map.features.glacierCave or feature -- la prima: li' davanti c'e' il campo base
 	-- la sala conta anche come grotta di ghiaccio (uova del Gelo, golem)
 	table.insert(map.features.iceCaves, { x = last.X, y = last.Y, z = last.Z, cy = hallC.Y, r = H })
+end
+
+-- Spaccatura: la montagna e' spaccata. Una fessura larga e profonda entra nel fianco della
+-- montagna ed e' aperta verso il cielo: niente gallerie, la si vede da lontano. Le pareti e il
+-- fondo diventano ghiaccio azzurro; la larghezza cambia lungo la fessura (piu' stretta in fondo).
+-- Prima si riveste di roccia (la montagna e' vuota dentro: senza, si aprirebbe sulla cavita').
+local function carveChasm(map: Heightmap.Map, terrain: Terrain, rng: Random, yield: () -> ())
+	local C = map.cfg.CAVES.CHASM
+	if not C then
+		return
+	end
+	local M = map.cfg.MOUNTAIN
+	local a = C.ANGLE
+	local out = Vector3.new(cos(a), 0, sin(a))
+	local side = Vector3.new(-out.Z, 0, out.X)
+	local mouth = Vector3.new(M.X, 0, M.Z) + out * (C.DIST * M.RADIUS)
+	local floorY = sampleH(map, mouth.X, mouth.Z) - C.DEPTH * 0.3
+	local STEP = 8
+	local n = math.floor(C.LENGTH / STEP)
+	local seed = rng:NextNumber(0, 100)
+	local centers: { Vector3 } = {}
+	for k = 0, n do
+		local f = k / n
+		local wobble = noise(seed, k * 0.09, 2.2) * 30
+		local p = mouth - out * (k * STEP) + side * wobble
+		-- il fondo scende piano entrando, poi risale verso la fine (finisce a punta)
+		local y = floorY - C.DEPTH * math.sin(f * math.pi) * 0.7
+		table.insert(centers, Vector3.new(p.X, y, p.Z))
+	end
+	-- 1. rivestimento di roccia attorno alla fessura, sotto la superficie
+	for k, p in centers do
+		local f = (k - 1) / n
+		local w = (C.WIDTH[1] + (C.WIDTH[2] - C.WIDTH[1]) * (0.5 + 0.5 * noise(seed, k * 0.13, 5.1))) * (1 - 0.6 * f)
+		local top = sampleH(map, p.X, p.Z)
+		local h = top - (p.Y - 16)
+		if h > 8 then
+			terrain:FillBlock(CFrame.lookAt(Vector3.new(p.X, p.Y - 16 + h / 2 - 2, p.Z), Vector3.new(p.X, p.Y - 16 + h / 2 - 2, p.Z) + out), Vector3.new(w + 26, h - 4, STEP + 26), ROCK)
+		end
+	end
+	yield()
+	-- 2. la fessura, aperta fino al cielo
+	for k, p in centers do
+		local f = (k - 1) / n
+		local w = (C.WIDTH[1] + (C.WIDTH[2] - C.WIDTH[1]) * (0.5 + 0.5 * noise(seed, k * 0.13, 5.1))) * (1 - 0.6 * f)
+		local top = sampleH(map, p.X, p.Z) + 60
+		local h = top - p.Y
+		terrain:FillBlock(CFrame.lookAt(Vector3.new(p.X, p.Y + h / 2, p.Z), Vector3.new(p.X, p.Y + h / 2, p.Z) + out), Vector3.new(w, h, STEP + 6), AIR)
+		-- pareti ondulate: conche a varie altezze
+		if k % 2 == 0 then
+			local sgn = if rng:NextNumber() < 0.5 then -1 else 1
+			terrain:FillBall(p + side * sgn * w * 0.45 + Vector3.new(0, rng:NextNumber(8, math.max(10, h * 0.6)), 0), rng:NextNumber(8, 14), AIR)
+		end
+		if k % 10 == 0 then
+			yield()
+		end
+	end
+	-- 3. tutto il ghiaccio: pareti e fondo azzurri
+	for k, p in centers do
+		if k % 2 == 1 then
+			local top = sampleH(map, p.X, p.Z) + 10
+			local half = Vector3.new(C.WIDTH[2] * 0.5 + 18, 0, C.WIDTH[2] * 0.5 + 18)
+			local region = Region3.new(Vector3.new(p.X - half.X, p.Y - 14, p.Z - half.Z), Vector3.new(p.X + half.X, top, p.Z + half.Z)):ExpandToGrid(4)
+			for _, mat in ICE_FROM do
+				terrain:ReplaceMaterial(region, 4, mat, Enum.Material.Ice)
+			end
+		end
+	end
+	-- fondo camminabile (ghiaia) lungo la fessura
+	for k = 1, #centers - 1 do
+		local a1, b1 = centers[k], centers[k + 1]
+		local f = (k - 1) / n
+		local w = C.WIDTH[1] * (1 - 0.6 * f)
+		terrain:FillBlock(CFrame.lookAt(a1:Lerp(b1, 0.5) - Vector3.new(0, 3, 0), b1 - Vector3.new(0, 3, 0)), Vector3.new(w * 0.7, 6, (b1 - a1).Magnitude + 4), Enum.Material.Slate)
+	end
+	local mid = centers[math.floor(#centers / 2)]
+	map.features.chasm = { mouth = toPoint(centers[1]), middle = toPoint(mid), points = centers }
+	table.insert(map.features.iceCaves, { x = mid.X, y = mid.Y, z = mid.Z, cy = mid.Y + 20, r = C.WIDTH[2] })
 end
 
 -- Anfratto segreto: nel punto piu' ripido della parete est a quella quota
@@ -568,7 +651,10 @@ function Caves.carve(map: Heightmap.Map, yield: () -> (), progress: (string, num
 	carveCatacomb(map, terrain, helix[1], yield)
 	progress("Grotte di ghiaccio", 0.8)
 	carveIceCaves(map, terrain, rng, yield)
-	carveGlacierCave(map, terrain, rng, yield)
+	for _, GC in map.cfg.CAVES.GLACIER_CAVES or {} do
+		carveGlacierCave(map, terrain, rng, yield, GC)
+	end
+	carveChasm(map, terrain, rng, yield)
 	carveNiche(map, terrain)
 	placeFloatingStones(map, terrain, rng)
 	carveTreasureChamber(map, terrain, helix, yield)

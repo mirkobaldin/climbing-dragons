@@ -251,11 +251,21 @@ local Config = {
 		ENTRANCES = 7, -- ingressi extra sparsi sulla montagna, collegati alla galleria
 		LOOPS = 14, -- gallerie che collegano tra loro stanze e cunicoli (rete intrecciata)
 		MINE_CHAMBERS = 8, -- grandi caverne con pavimento piatto per i giacimenti
-		ICE_CAVES = { 0.62, 0.68, 0.74 }, -- quote (frazioni) delle grotte di ghiaccio
+		ICE_CAVES = { 0.62, 0.68, 0.74 }, -- quote (frazioni) delle grotte di ghiaccio (sale da 46 studs)
 		-- Grotta di ghiaccio azzurro (come quelle dell'Islanda) nel fronte del ghiacciaio GLACIER
 		-- (indice in GLACIERS): FRONT = altezza del fronte di ghiaccio, LENGTH = lunghezza della
 		-- galleria, RADIUS = raggio della galleria, HALL = raggio della sala in fondo
-		GLACIER_CAVE = { GLACIER = 1, FRONT = 48, LENGTH = 260, RADIUS = 13, GRADE = 0.1, HALL = 38, SHELL = 10 },
+		-- Grotte di ghiaccio azzurro nei fronti dei ghiacciai (GLACIER = indice in GLACIERS):
+		-- FRONT = altezza del fronte, LENGTH = galleria, RADIUS = raggio della galleria, HALL = sala
+		GLACIER_CAVES = {
+			{ GLACIER = 1, FRONT = 86, LENGTH = 300, RADIUS = 22, GRADE = 0.08, HALL = 75, SHELL = 12 },
+			-- "cattedrale": galleria corta e una sala enorme
+			{ GLACIER = 3, FRONT = 80, LENGTH = 110, RADIUS = 26, GRADE = 0.05, HALL = 100, SHELL = 12 },
+		},
+		-- Spaccatura: la montagna e' spaccata e la fessura e' aperta verso il cielo, pareti di ghiaccio
+		-- azzurro, niente gallerie. ANGLE/DIST = dove si apre, LENGTH = quanto entra nella montagna,
+		-- WIDTH = larghezza (varia lungo la fessura), DEPTH = quanto scende sotto l'imbocco
+		CHASM = { ANGLE = -0.62, DIST = 0.76, LENGTH = 300, WIDTH = { 26, 54 }, DEPTH = 30 },
 		NICHE_FRAC = 0.45, -- anfratto segreto nella parete est
 		CATACOMB_Y = -100, -- catacomba segreta sotto il livello del mare
 	},

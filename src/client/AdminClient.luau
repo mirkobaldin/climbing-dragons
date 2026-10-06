@@ -63,6 +63,8 @@ local function applyAction(action: string)
 		task.spawn(require(script.Parent.Cinematic).play)
 	elseif cmd == "tiktok" then
 		task.spawn(require(script.Parent.GrappleSkit).play)
+	elseif cmd == "trailer" then
+		task.spawn(require(script.Parent.Trailer).play, arg)
 	elseif cmd == "fly" then
 		startFly()
 	elseif cmd == "unfly" then

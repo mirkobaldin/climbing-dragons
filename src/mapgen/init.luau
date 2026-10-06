@@ -20,6 +20,7 @@ local Landmarks = require(script.Landmarks)
 local Markers = require(script.Markers)
 local Obstacles = require(script.Obstacles)
 local Ores = require(script.Ores)
+local Scatter = require(script.Scatter)
 local Toxic = require(script.Toxic)
 local Tutorial = require(script.Tutorial)
 local Village = require(script.Village)
@@ -85,6 +86,7 @@ function MapGen.Generate(overrides: { [string]: any }?): Heightmap.Map
 	stage("Valle dei gas", function() Toxic.build(map) end)
 	stage("Lakeside", function() Lakeside.build(map) end)
 	stage("Ores", function() Ores.place(map) end)
+	stage("Prati", function() Scatter.place(map) end)
 	stage("Forest", function() Forest.plant(map, yield, progress) end)
 
 	if #failed > 0 then

@@ -9,6 +9,10 @@
 -- padrone sta nel cerchio di addestramento, un'aura del colore dell'elemento.
 -- Il campo: i cristalli-bersaglio fluttuano e girano (e si frantumano quando li colpisci), il
 -- Cristallo del Potere ruota, i bracieri divampano col colore del drago che si allena.
+--   miss     colpo a vuoto (solo a chi ha sparato)
+-- Vista dal drago: quando sei nel cerchio col drago (attributo Training) la camera passa dietro
+-- la testa del tuo drago, il mouse muove la mira (mirino al centro) e il click spara: al server
+-- va ("shoot", origine, direzione) e lui decide se hai preso un cristallo.
 --   rush     sfida Target Rush: il cristallo dorato da colpire, tempo e punti in alto
 --   rushEnd  risultato della sfida
 
@@ -17,6 +21,7 @@ local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
@@ -401,6 +406,87 @@ local function decorate(pet: Model)
 	end
 end
 
+local function startAim(event: RemoteEvent)
+	local on = false
+	local yaw, pitch = 0, -0.12
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "MiraDrago"
+	gui.ResetOnSpawn = false
+	gui.Enabled = false
+	gui.Parent = player:WaitForChild("PlayerGui")
+	for _, size in { Vector2.new(22, 3), Vector2.new(3, 22) } do
+		local bar = Instance.new("Frame")
+		bar.AnchorPoint = Vector2.new(0.5, 0.5)
+		bar.Position = UDim2.fromScale(0.5, 0.5)
+		bar.Size = UDim2.fromOffset(size.X, size.Y)
+		bar.BackgroundColor3 = Color3.fromRGB(255, 230, 140)
+		bar.BorderSizePixel = 0
+		bar.Parent = gui
+	end
+	local tip = Instance.new("TextLabel")
+	tip.AnchorPoint = Vector2.new(0.5, 0)
+	tip.Position = UDim2.new(0.5, 0, 0.5, 30)
+	tip.Size = UDim2.fromOffset(300, 22)
+	tip.BackgroundTransparency = 1
+	tip.Font = Enum.Font.GothamBold
+	tip.TextScaled = true
+	tip.TextColor3 = Color3.new(1, 1, 1)
+	tip.TextStrokeTransparency = 0.4
+	tip.Text = "Aim with the mouse · click to shoot"
+	tip.Parent = gui
+	local function myPet(): Model?
+		return petOf(player.UserId)
+	end
+	local function shoot()
+		local camera = workspace.CurrentCamera
+		event:FireServer("shoot", camera.CFrame.Position, camera.CFrame.LookVector)
+	end
+	UserInputService.InputChanged:Connect(function(input)
+		if on and input.UserInputType == Enum.UserInputType.MouseMovement then
+			yaw -= input.Delta.X * 0.0045
+			pitch = math.clamp(pitch - input.Delta.Y * 0.0045, -1.1, 0.7)
+		elseif on and input.UserInputType == Enum.UserInputType.Touch then
+			yaw -= input.Delta.X * 0.006
+			pitch = math.clamp(pitch - input.Delta.Y * 0.006, -1.1, 0.7)
+		end
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if on and not processed and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.KeyCode == Enum.KeyCode.ButtonR2) then
+			shoot()
+		end
+	end)
+	UserInputService.TouchTap:Connect(function(_, processed)
+		if on and not processed then
+			shoot()
+		end
+	end)
+	RunService.RenderStepped:Connect(function()
+		local camera = workspace.CurrentCamera
+		local pet = myPet()
+		local want = player:GetAttribute("Training") == true and pet ~= nil
+		if want and not on then
+			-- si parte guardando dove guardava la camera
+			local look = camera.CFrame.LookVector
+			yaw = math.atan2(-look.X, -look.Z)
+			pitch = -0.12
+		elseif on and not want then
+			camera.CameraType = Enum.CameraType.Custom
+			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+			UserInputService.MouseIconEnabled = true
+		end
+		on = want
+		gui.Enabled = on
+		if on and pet then
+			local head = mouthOf(pet)
+			local look = CFrame.fromOrientation(pitch, yaw, 0).LookVector
+			camera.CameraType = Enum.CameraType.Scriptable
+			camera.CFrame = CFrame.lookAt(head - look * 7 + Vector3.new(0, 2.2, 0), head + look * 60)
+			UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+			UserInputService.MouseIconEnabled = false
+		end
+	end)
+end
+
 function TrainingFX.start()
 	local remotes = ReplicatedStorage:WaitForChild("Remotes")
 	local event = remotes:WaitForChild("TrainingFX", 30) :: RemoteEvent?
@@ -414,6 +500,8 @@ function TrainingFX.start()
 				onEvolve(userId, a)
 			elseif kind == "hint" then
 				ClientState.hint = a
+			elseif kind == "miss" then
+				onHit(player.UserId, a, b, 0)
 			elseif kind == "rush" then
 				setLit(a)
 				rushEnds = os.clock() + b
@@ -434,11 +522,12 @@ function TrainingFX.start()
 	-- cristalli che fluttuano e girano, contatore della sfida
 	RunService.RenderStepped:Connect(function()
 		local t = os.clock()
+		local center = workspace:GetAttribute("TrainingCenter")
+		local serverT = workspace:GetServerTimeNow()
 		for _, m in CollectionService:GetTagged("CristalloBersaglio") do
-			local base = m:GetAttribute("Base")
-			if m:IsA("Model") and typeof(base) == "Vector3" then
+			if m:IsA("Model") and typeof(center) == "Vector3" then
 				local i = (m:GetAttribute("Index") or 1) :: number
-				m:PivotTo(CFrame.new(base + Vector3.new(0, math.sin(t * 1.4 + i) * 0.8, 0)) * CFrame.Angles(0, t * 0.9 + i, 0))
+				m:PivotTo(CFrame.new(DragonConfig.crystalAt(center, i, serverT)) * CFrame.Angles(0, t * 0.9 + i, 0))
 				local hide = hiddenUntil[m]
 				if hide and t >= hide then
 					hiddenUntil[m] = nil
@@ -462,6 +551,11 @@ function TrainingFX.start()
 			label.Text = string.format("TARGET RUSH · %ds · %d hits", math.max(0, math.ceil(rushEnds - t)), rushScore)
 		end
 	end)
+
+	-- vista dal drago e mira col mouse
+	if event then
+		startAim(event :: RemoteEvent)
+	end
 
 	local pets = workspace:WaitForChild("Pets")
 	pets.DescendantAdded:Connect(function(d)

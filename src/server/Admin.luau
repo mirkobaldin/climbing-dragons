@@ -19,6 +19,7 @@ local Progression = require(script.Parent.Progression)
 local Ropes = require(script.Parent.Ropes)
 local Tutorial = require(script.Parent.Tutorial)
 local Weather = require(script.Parent.Weather)
+local TrailerProps = require(script.Parent.TrailerProps)
 
 local Admin = {}
 
@@ -42,6 +43,8 @@ god / ungod   heal   warm   pitons
 tutorial <reset|skip>
 cinematica             scena da trailer: strapiombo, uovo e caduta
 tiktok                 scenetta: il rampino aggancia un drago
+trailer                trailer di 19 s (montagna, draghi, grotte, gas, addestramento, evoluzione)
+clip1 / clip2 / clip3  clip per TikTok: evoluzione Eclissi, grotta di ghiaccio, valle dei gas
 help]]
 
 local function isAdmin(player: Player): boolean
@@ -149,6 +152,9 @@ local function run(player: Player, text: any): (boolean, string, string?)
 		return true, "Ciak! (scena da trailer)", "cinematica"
 	elseif cmd == "tiktok" then
 		return true, "Ciak! (I added a grappling hook...)", "tiktok"
+	elseif cmd == "trailer" or cmd == "clip1" or cmd == "clip2" or cmd == "clip3" then
+		TrailerProps.prepare()
+		return true, "Ciak! (" .. cmd .. ")", "trailer " .. cmd
 	elseif cmd == "speed" and humanoid then
 		humanoid.WalkSpeed = tonumber(args[2]) or 24
 		return true, "Velocita' " .. humanoid.WalkSpeed, "speed " .. humanoid.WalkSpeed

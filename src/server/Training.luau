@@ -4,7 +4,9 @@
 --                 luce verso il cielo; finche' ci stai dentro col drago: CIRCLE_XP al secondo
 --   * BRACIERI    uno per elemento attorno al cerchio: divampano quando si allena un drago di
 --                 quell'elemento (effetto sul client)
---   * CRISTALLI   bersagli sospesi che girano: premi E e il tuo drago spara (TARGET_XP)
+--   * CRISTALLI   bersagli che volano attorno al cerchio (DragonConfig.crystalAt). Dentro il
+--                 cerchio la vista passa al tuo drago: miri col mouse e clicchi, il drago spara
+--                 (TARGET_XP). Il client manda ("shoot", origine, direzione), il server controlla
 --   * TARGET RUSH sfida di RUSH_SECONDS: si accende un cristallo dorato alla volta, colpiscilo
 --                 prima che cambi (RUSH_XP). Classifica del server sul tabellone
 --   * BANCARELLA  pass "Training XP x2" e boost "x3 per 15 minuti" a Robux
@@ -228,15 +230,15 @@ end
 -- Bersaglio: cristallo sospeso sopra un piedistallo con un anello di rune (gira e ondeggia sul
 -- client). Restituisce la parte su cui sta il prompt.
 local function buildTarget(parent: Instance, at: Vector3, index: number): Part
-	part(parent, "Piedistallo" .. index, Vector3.new(1.2, 6, 6), CFrame.new(at + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, 0, math.pi / 2), STONE, Enum.Material.Slate, Enum.PartType.Cylinder)
-	deco(part(parent, "AnelloRune", Vector3.new(0.1, 6.6, 6.6), CFrame.new(at + Vector3.new(0, 1.12, 0)) * CFrame.Angles(0, 0, math.pi / 2), RUNE, Enum.Material.Neon, Enum.PartType.Cylinder)).Transparency = 0.4
-	local base = at + Vector3.new(0, 8, 0)
-	local glass = gem(parent, "Bersaglio" .. index, CFrame.new(base), 3, Color3.fromRGB(170, 225, 255), Color3.fromRGB(90, 170, 255))
+	local glass = gem(parent, "Bersaglio" .. index, CFrame.new(at), 3, Color3.fromRGB(170, 225, 255), Color3.fromRGB(90, 170, 255))
 	local model = glass.Parent :: Model
-	model:SetAttribute("Base", base)
 	model:SetAttribute("Index", index)
+	local light = Instance.new("PointLight")
+	light.Color = RUNE
+	light.Range = 10
+	light.Brightness = 1.5
+	light.Parent = glass
 	CollectionService:AddTag(model, "CristalloBersaglio")
-	prompt(glass, "Train", "Dragon target", 26).Exclusivity = Enum.ProximityPromptExclusivity.OnePerButton -- solo il piu' vicino
 	return glass
 end
 
@@ -357,12 +359,11 @@ function Training.setup()
 		center = Vector3.new(center.X, buildCircle(folder, center), center.Z)
 		buildPowerCrystal(folder, center)
 		buildBraziers(folder, center)
-		local ring = math.clamp(math.min(size.X, size.Z) * 0.3, T.CIRCLE_RADIUS + 16, 40)
+		local _ = size
+		local ring = T.CRYSTAL_RING + 10
 		local targets: { Part } = {}
 		for k = 1, T.TARGETS do
-			local a = (k - 0.5) / T.TARGETS * 2 * math.pi
-			local at = groundAt(center + Vector3.new(math.cos(a) * ring, 0, math.sin(a) * ring))
-			table.insert(targets, buildTarget(folder, at, k))
+			table.insert(targets, buildTarget(folder, DragonConfig.crystalAt(center, k, 0), k))
 		end
 		buildSign(folder, groundAt(center + Vector3.new(ring + 16, 0, 0)), center)
 		local orb, board = buildRushAltar(folder, groundAt(center + Vector3.new(-(ring + 12), 0, 6)), center)
@@ -462,34 +463,56 @@ function Training.setup()
 			end
 		end)
 
-		-- cristalli: un colpo del drago, XP a tutti i draghi al seguito
+		-- colpi mirati: il client dice da dove e verso dove ha sparato; il server cerca il cristallo
+		-- su quella linea (dove si trova adesso e un attimo fa, per il ritardo della rete)
 		local lastHit: { [Player]: number } = {}
-		for index, glass in targets do
-			local pr = glass:FindFirstChildOfClass("ProximityPrompt") :: ProximityPrompt
-			pr.Triggered:Connect(function(player)
-				local now = os.clock()
-				if now - (lastHit[player] or 0) < T.TARGET_COOLDOWN then
-					return
+		fx.OnServerEvent:Connect(function(player: Player, action: any, origin: any, dir: any)
+			if action ~= "shoot" or typeof(origin) ~= "Vector3" or typeof(dir) ~= "Vector3" or dir.Magnitude < 0.5 then
+				return
+			end
+			local character = player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if not root or (origin - root.Position).Magnitude > 45 or not player:GetAttribute("Training") then
+				return
+			end
+			local now = os.clock()
+			if now - (lastHit[player] or 0) < T.SHOT_COOLDOWN then
+				return
+			end
+			local list = Dragons.equippedDragons(player)
+			if #list == 0 then
+				return
+			end
+			lastHit[player] = now
+			dir = dir.Unit
+			local best, bestAlong, bestPos = nil, math.huge, nil
+			local tNow = workspace:GetServerTimeNow()
+			for k = 1, #targets do
+				for _, lag in { 0, 0.12, 0.25 } do
+					local p = DragonConfig.crystalAt(center, k, tNow - lag)
+					local v = p - origin
+					local along = v:Dot(dir)
+					if along > 0 and along < 170 and (v - dir * along).Magnitude < 5.5 and along < bestAlong then
+						best, bestAlong, bestPos = k, along, p
+					end
 				end
-				local list = Dragons.equippedDragons(player)
-				if #list == 0 then
-					fx:FireClient(player, "hint", 0, "You need a dragon following you to train")
-					return
-				end
-				lastHit[player] = now
-				local r = rushes[player]
-				local golden = r ~= nil and r.lit == index
-				for _, d in list do
-					local xp = give(player, d, if golden then T.RUSH_XP else T.TARGET_XP)
-					fx:FireAllClients("hit", player.UserId, glass.Position, d.element, xp)
-				end
-				if r and golden then
-					r.score += 1
-					newLit(r)
-					fx:FireClient(player, "rush", 0, r.lit, math.max(0, r.ends - os.clock()), r.score)
-				end
-			end)
-		end
+			end
+			if not best then
+				fx:FireClient(player, "miss", 0, origin + dir * 90, list[1].element)
+				return
+			end
+			local r = rushes[player]
+			local golden = r ~= nil and r.lit == best
+			for _, d in list do
+				local xp = give(player, d, if golden then T.RUSH_XP else T.TARGET_XP)
+				fx:FireAllClients("hit", player.UserId, bestPos, d.element, xp)
+			end
+			if r and golden then
+				r.score += 1
+				newLit(r)
+				fx:FireClient(player, "rush", 0, r.lit, math.max(0, r.ends - os.clock()), r.score)
+			end
+		end)
 		Players.PlayerRemoving:Connect(function(player)
 			lastHit[player] = nil
 			rushes[player] = nil

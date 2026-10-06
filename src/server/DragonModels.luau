@@ -435,9 +435,11 @@ function DragonModels.dragon(elementId: string, rarityId: string, stage: number,
 	local element = DragonConfig.element(elementId) or DragonConfig.ELEMENTS[1]
 	local rarity = DragonConfig.rarity(rarityId)
 	local st = DragonConfig.STAGES[math.clamp(stage, 1, #DragonConfig.STAGES)]
-	local t, generic = choose(getTemplates().dragons, element.id, elementIndex(element.id))
+	-- il vecchio modello dell'Ombra e' nel Cestino: i draghi Ombra usano quello dell'Eclissi
+	local lookId = if element.id == "Ombra" then "Eclissi" else element.id
+	local t, generic = choose(getTemplates().dragons, lookId, elementIndex(lookId))
 	-- allo stadio Adulto, il modello adulto dell'elemento (se c'e')
-	local adult = getTemplates().adults[element.id]
+	local adult = getTemplates().adults[lookId]
 	if adult and stage >= #DragonConfig.STAGES then
 		t, generic = adult, false
 	end

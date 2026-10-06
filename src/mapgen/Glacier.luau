@@ -437,8 +437,12 @@ end
 
 -- vicino all'ingresso della grotta di ghiaccio azzurro (li' il fronte resta libero)
 local function nearCave(map: Heightmap.Map, x: number, z: number, r: number): boolean
-	local gc = map.features.glacierCave
-	return gc ~= nil and (Vector2.new(x, z) - Vector2.new(gc.entrance.x, gc.entrance.z)).Magnitude < r
+	for _, gc in map.features.glacierCaves or {} do
+		if (Vector2.new(x, z) - Vector2.new(gc.entrance.x, gc.entrance.z)).Magnitude < r + gc.radius then
+			return true
+		end
+	end
+	return false
 end
 
 -- Fronte: una fila di pareti di seracchi dove finisce la lingua, rivolte a valle (gli angoli
@@ -595,11 +599,7 @@ end
 
 -- Grotta di ghiaccio azzurro nel fronte del ghiacciaio: luci azzurre sotto la volta (la luce
 -- che passa nel ghiaccio), stalattiti lungo la galleria, colonne e volte nella sala
-local function glacierCave(folder: Instance, map: Heightmap.Map, rng: Random): number
-	local gc = map.features.glacierCave
-	if not gc then
-		return 0
-	end
+local function glacierCave(folder: Instance, map: Heightmap.Map, rng: Random, gc: any): number
 	local count = 0
 	local lights = Instance.new("Folder")
 	lights.Name = "LuciGrottaGhiaccio"
@@ -628,8 +628,8 @@ local function glacierCave(folder: Instance, map: Heightmap.Map, rng: Random): n
 		local p = pts[k]
 		local up = workspace:Raycast(p + Vector3.new(0, 3, 0), Vector3.new(0, 50, 0), terrainOnly)
 		if up then
-			light(p + Vector3.new(0, (up.Position.Y - p.Y) * 0.75, 0), 30, 1.3, BLUE)
-			if k % 8 == 0 and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(0.3, 0.5)) then
+			light(p + Vector3.new(0, (up.Position.Y - p.Y) * 0.75, 0), math.max(30, gc.radius * 2.6), 1.5, BLUE)
+			if k % 8 == 0 and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(0.3, 0.5) * gc.radius / 13) then
 				count += 1
 			end
 		end
@@ -643,7 +643,7 @@ local function glacierCave(folder: Instance, map: Heightmap.Map, rng: Random): n
 		local p = c + Vector3.new(math.cos(a) * h.radius * 0.6, 6, math.sin(a) * h.radius * 0.6)
 		light(p, 26, 1.2, if j % 2 == 0 then Color3.fromRGB(150, 220, 255) else BLUE)
 		local up = workspace:Raycast(p, Vector3.new(0, 90, 0), terrainOnly)
-		if up and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(0.6, 1)) then
+		if up and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(0.6, 1) * h.radius / 38) then
 			count += 1
 		end
 		local down = workspace:Raycast(p + Vector3.new(0, 4, 0), Vector3.new(0, -30, 0), terrainOnly)
@@ -827,7 +827,9 @@ function Glacier.build(map: Heightmap.Map)
 			counts.morene += moraines(ice, map, g, rng)
 		end
 		nOver = overhangIce(ice, map, rng)
-		nGrotta = glacierCave(ice, map, rng)
+		for _, gc in map.features.glacierCaves or {} do
+			nGrotta += glacierCave(ice, map, rng, gc)
+		end
 		nCave = caveIce(ice, map, rng)
 		nTop = summitIce(ice, map, rng)
 		nCap = iceCapSeracs(ice, map, rng)
