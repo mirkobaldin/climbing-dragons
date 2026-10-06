@@ -192,7 +192,7 @@ local function onHit(userId: number, target: Vector3, element: string, xp: numbe
 				end
 			end
 		end
-		if userId == player.UserId then
+		if userId == player.UserId and xp and xp > 0 then
 			floatText(mouthOf(pet) + Vector3.new(0, 2, 0), "+" .. xp .. " XP", Color3.fromRGB(255, 230, 120), false)
 		end
 	end)
