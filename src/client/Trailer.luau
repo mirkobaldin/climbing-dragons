@@ -124,7 +124,15 @@ local shake = 0
 type Actor = { model: Model, tracks: any? }
 
 local function actor(props: Instance?, name: string): Actor?
-	local m = props and props:FindFirstChild(name)
+	-- i draghi arrivano dopo la cartella (streaming): si aspettano, se no alla seconda ripresa
+	-- mancavano
+	local m = props and props:WaitForChild(name, 8)
+	if m and m:IsA("Model") then
+		local t0 = os.clock()
+		while not m:FindFirstChildWhichIsA("Bone", true) and os.clock() - t0 < 4 do
+			task.wait(0.1)
+		end
+	end
 	if not m or not m:IsA("Model") then
 		return nil
 	end

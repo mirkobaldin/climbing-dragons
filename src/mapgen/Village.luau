@@ -1167,6 +1167,8 @@ function Village.build(map: Heightmap.Map)
 		local center = rcf.Position
 		-- l'arena al centro resta libera (niente case, alberi, rocce)
 		table.insert(placedPlots, { p = center, r = 105 })
+		map.features.clearings = map.features.clearings or {}
+		table.insert(map.features.clearings, { x = center.X, z = center.Z, r = 170 }) -- anche per il bosco
 		local tries = 0
 		while nCabins < V.CABINS and tries < 1500 do
 			tries += 1
