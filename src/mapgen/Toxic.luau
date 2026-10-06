@@ -121,26 +121,13 @@ local function sign(parent: Instance, at: Vector3, center: Vector3)
 	label.Parent = gui
 end
 
-function Toxic.build(map: Heightmap.Map)
-	local old = workspace:FindFirstChild("ValleGas")
-	if old then
-		old:Destroy()
-	end
-	local t = map.features.toxic
-	if not t then
-		return
-	end
-	local T = map.cfg.TOXIC
+-- una zona: fumarole, nebbia, cartello, punti delle uova, attributi del Workspace
+local function buildZone(t: any, folder: Instance, spots: Instance?, index: number, rng: Random)
 	local terrain = workspace.Terrain
-	local rng = Random.new(map.cfg.SEED + 313)
-	local folder = Instance.new("Folder")
-	folder.Name = "ValleGas"
 	local center = Vector3.new(t.x, t.y, t.z)
-
-	-- fumarole sparse sul fondo, mai troppo vicine
 	local vents: { Vector3 } = {}
 	local tries = 0
-	while #vents < T.VENTS and tries < 200 do
+	while #vents < t.vents and tries < 200 do
 		tries += 1
 		local a, r = rng:NextNumber(0, 2 * math.pi), t.radius * math.sqrt(rng:NextNumber(0.02, 1)) * 0.55
 		local x, z = t.x + math.cos(a) * r, t.z + math.sin(a) * r
@@ -151,7 +138,7 @@ function Toxic.build(map: Heightmap.Map)
 			end
 		end
 		local hit = far and ground(x, z, t.top + 100)
-		if hit and hit.Normal.Y > 0.8 then
+		if hit and hit.Normal.Y > 0.65 then
 			table.insert(vents, hit.Position)
 		end
 	end
@@ -170,45 +157,68 @@ function Toxic.build(map: Heightmap.Map)
 		light.Shadows = false
 		light.Parent = vent
 	end
-
 	-- nebbia sul fondo
 	for k = 0, 2 do
 		local a = k / 3 * 2 * math.pi
 		local p = center + Vector3.new(math.cos(a) * t.radius * 0.3, 7, math.sin(a) * t.radius * 0.3)
 		haze(anchor(folder, "Nebbia", Vector3.new(t.radius * 0.8, 8, t.radius * 0.8), CFrame.new(p)))
 	end
-
 	-- cartello al varco, un po' fuori dall'orlo
 	local b = t.breach
-	local sx, sz = t.x + math.cos(b) * t.radius * 1.12, t.z + math.sin(b) * t.radius * 1.12
-	local at = ground(sx, sz, t.top + 200)
+	local at = ground(t.x + math.cos(b) * t.radius * 1.12, t.z + math.sin(b) * t.radius * 1.12, t.top + 200)
 	if at then
 		sign(folder, at.Position, center)
 	end
-
 	-- punti per le uova del drago Gas, vicino alle fumarole
-	local markers = workspace:FindFirstChild("MapMarkers")
-	if markers then
-		local spots = Instance.new("Folder")
-		spots.Name = "GasZone"
+	if spots then
 		for k, p in vents do
 			local a = rng:NextNumber(0, 2 * math.pi)
 			local hit = ground(p.X + math.cos(a) * 14, p.Z + math.sin(a) * 14, t.top + 100)
 			if hit then
-				local m = anchor(spots, "GasSpot" .. k, Vector3.new(4, 4, 4), CFrame.new(hit.Position + Vector3.new(0, 2, 0)))
+				local m = anchor(spots, "GasSpot" .. index .. "_" .. k, Vector3.new(4, 4, 4), CFrame.new(hit.Position + Vector3.new(0, 2, 0)))
 				m:SetAttribute("Kind", "GasSpot")
 			end
 		end
+	end
+	-- la zona per il danno (server) e la nebbia colorata (client): attributi del Workspace,
+	-- arrivano sempre al client anche con lo streaming
+	workspace:SetAttribute("GasCenter" .. index, center)
+	workspace:SetAttribute("GasRadius" .. index, t.radius)
+	workspace:SetAttribute("GasTop" .. index, t.top + 15)
+	print(string.format("[MapGen] Zona dei gas %d: centro (%d, %d, %d), raggio %d, %d fumarole", index, t.x, t.y, t.z, t.radius, #vents))
+end
+
+function Toxic.build(map: Heightmap.Map)
+	local old = workspace:FindFirstChild("ValleGas")
+	if old then
+		old:Destroy()
+	end
+	local zones = map.features.toxicZones or {}
+	local rng = Random.new(map.cfg.SEED + 313)
+	local folder = Instance.new("Folder")
+	folder.Name = "ValleGas"
+	local markers = workspace:FindFirstChild("MapMarkers")
+	local spots: Folder? = nil
+	if markers then
+		local f = Instance.new("Folder")
+		f.Name = "GasZone"
+		spots = f
+	end
+	for i, t in zones do
+		buildZone(t, folder, spots, i, rng)
+	end
+	workspace:SetAttribute("GasCount", #zones)
+	-- la prima zona anche coi nomi di prima (teletrasporto, trailer)
+	local first = zones[1]
+	if first then
+		workspace:SetAttribute("GasCenter", Vector3.new(first.x, first.y, first.z))
+		workspace:SetAttribute("GasRadius", first.radius)
+		workspace:SetAttribute("GasTop", first.top + 15)
+	end
+	if spots and markers then
 		spots.Parent = markers
 	end
-
-	-- la zona per il danno (server) e la nebbia colorata (client): gli attributi del Workspace
-	-- arrivano sempre al client, anche con lo streaming
-	workspace:SetAttribute("GasCenter", center)
-	workspace:SetAttribute("GasRadius", t.radius)
-	workspace:SetAttribute("GasTop", t.top + 15)
 	folder.Parent = workspace
-	print(string.format("[MapGen] Valle dei gas: centro (%d, %d, %d), raggio %d, %d fumarole", t.x, t.y, t.z, t.radius, #vents))
 end
 
 return Toxic

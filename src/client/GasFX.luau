@@ -20,16 +20,19 @@ local GasFX = {}
 local TINT = Color3.fromRGB(215, 205, 255)
 
 local function amount(pos: Vector3): number
-	local center = workspace:GetAttribute("GasCenter")
-	local radius = workspace:GetAttribute("GasRadius")
-	local top = workspace:GetAttribute("GasTop")
-	if typeof(center) ~= "Vector3" or type(radius) ~= "number" or type(top) ~= "number" then
-		return 0
+	local best = 0
+	for i = 1, (workspace:GetAttribute("GasCount") or 0) :: number do
+		local center = workspace:GetAttribute("GasCenter" .. i)
+		local radius = workspace:GetAttribute("GasRadius" .. i)
+		local top = workspace:GetAttribute("GasTop" .. i)
+		if typeof(center) == "Vector3" and type(radius) == "number" and type(top) == "number" and pos.Y > center.Y - 40 then
+			-- il colore si vede gia' un po' prima di entrare e poco sopra l'orlo
+			local above = math.clamp((pos.Y - top) / 40, 0, 1)
+			local d = Vector2.new(pos.X - center.X, pos.Z - center.Z).Magnitude
+			best = math.max(best, (1 - math.clamp((d - radius * 0.7) / (radius * 0.5), 0, 1)) * (1 - above))
+		end
 	end
-	-- il colore si vede gia' un po' prima di entrare e poco sopra l'orlo
-	local above = math.clamp((pos.Y - top) / 40, 0, 1)
-	local d = Vector2.new(pos.X - center.X, pos.Z - center.Z).Magnitude
-	return (1 - math.clamp((d - radius * 0.7) / (radius * 0.5), 0, 1)) * (1 - above)
+	return best
 end
 
 function GasFX.start()

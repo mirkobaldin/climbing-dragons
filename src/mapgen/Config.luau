@@ -180,7 +180,12 @@ local Config = {
 	-- scavata nel pendio, con la montagna come parete alle spalle e un orlo rialzato verso il mare.
 	-- Fondo di roccia blu-viola con croste che brillano fucsia, fumarole di gas azzurro e fucsia.
 	-- ANGLE/DIST = posizione attorno alla montagna, RADIUS = raggio, RIM = altezza minima dell'orlo
-	TOXIC = { ANGLE = math.rad(-5), DIST = 0.84, RADIUS = 175, RIM = 34, VENTS = 9 },
+	-- Piu' zone: la valle ai piedi del lato est, una conca sulla spalla nord e una piu' in alto.
+	TOXIC_ZONES = {
+		{ ANGLE = math.rad(-5), DIST = 0.84, RADIUS = 175, RIM = 34, VENTS = 9 },
+		{ ANGLE = math.rad(-86), DIST = 0.6, RADIUS = 120, RIM = 26, VENTS = 6 },
+		{ ANGLE = math.rad(91), DIST = 0.42, RADIUS = 100, RIM = 24, VENTS = 5 },
+	},
 
 	-- Lago d'alta quota + gola con pozze e salti d'acqua (cascata)
 	-- (ai piedi del grande bastione, come i laghi sotto le pareti delle Dolomiti)
@@ -266,6 +271,12 @@ local Config = {
 		-- azzurro, niente gallerie. ANGLE/DIST = dove si apre, LENGTH = quanto entra nella montagna,
 		-- WIDTH = larghezza (varia lungo la fessura), DEPTH = quanto scende sotto l'imbocco
 		CHASM = { ANGLE = -0.62, DIST = 0.76, LENGTH = 300, WIDTH = { 26, 54 }, DEPTH = 30 },
+		-- Grande Grotta: un'apertura enorme nella parete della montagna e dentro una sala di ghiaccio
+		-- grande come una cattedrale (colonne, terrazze di neve, stalattiti giganti). ANGLE = lato
+		-- della montagna, Y = quota del centro, WIDTH/HEIGHT/DEPTH = raggi della sala, INSET = di
+		-- quanto il centro sta dentro la parete (meno = apertura piu' grande)
+		GRAND = { ANGLE = 2.72, Y = 1030, WIDTH = 220, HEIGHT = 150, DEPTH = 175, INSET = 55, SHELL = 18, COLUMNS = 9 },
+		-- zone di gas sui pendii: le fumarole vanno anche dove il fondo non e' perfettamente piano
 		NICHE_FRAC = 0.45, -- anfratto segreto nella parete est
 		CATACOMB_Y = -100, -- catacomba segreta sotto il livello del mare
 	},

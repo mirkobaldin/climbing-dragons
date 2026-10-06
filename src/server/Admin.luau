@@ -153,8 +153,8 @@ local function run(player: Player, text: any): (boolean, string, string?)
 	elseif cmd == "tiktok" then
 		return true, "Ciak! (I added a grappling hook...)", "tiktok"
 	elseif cmd == "trailer" or cmd == "clip1" or cmd == "clip2" or cmd == "clip3" then
-		TrailerProps.prepare()
-		return true, "Ciak! (" .. cmd .. ")", "trailer " .. cmd
+		local take = TrailerProps.prepare()
+		return true, "Ciak! (" .. cmd .. ")", "trailer " .. cmd .. " " .. take
 	elseif cmd == "speed" and humanoid then
 		humanoid.WalkSpeed = tonumber(args[2]) or 24
 		return true, "Velocita' " .. humanoid.WalkSpeed, "speed " .. humanoid.WalkSpeed

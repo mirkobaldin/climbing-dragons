@@ -368,6 +368,30 @@ function Training.setup()
 		buildSign(folder, groundAt(center + Vector3.new(ring + 16, 0, 0)), center)
 		local orb, board = buildRushAltar(folder, groundAt(center + Vector3.new(-(ring + 12), 0, 6)), center)
 		local x2, x3 = buildStall(folder, groundAt(center + Vector3.new(0, 0, ring + 14)), center)
+		-- portale d'ingresso (il modello di Mirko in ServerStorage.Modelli.PortaleArena), con la
+		-- scalinata rivolta verso la piana
+		local models = game:GetService("ServerStorage"):FindFirstChild("Modelli")
+		local gate = models and models:FindFirstChild("PortaleArena")
+		if gate and gate:IsA("Model") then
+			local g = gate:Clone()
+			for _, d in g:GetDescendants() do
+				if d:IsA("LuaSourceContainer") then
+					d:Destroy()
+				end
+			end
+			local _, gsize = g:GetBoundingBox()
+			g:ScaleTo(g:GetScale() * 62 / gsize.Y)
+			local markers = workspace:FindFirstChild("MapMarkers")
+			local hub = markers and markers:FindFirstChild("HubSpawn")
+			local toHub = if hub and hub:IsA("BasePart") then hub.Position - center else Vector3.new(-1, 0, 1)
+			local dir = Vector3.new(toHub.X, 0, toHub.Z).Unit
+			local at = groundAt(center + dir * 82)
+			g:PivotTo(CFrame.lookAt(at, at + dir))
+			local box, bsize = g:GetBoundingBox()
+			g:PivotTo(g:GetPivot() + Vector3.new(0, at.Y - (box.Position.Y - bsize.Y / 2) - 1, 0))
+			g.Name = "PortaleArena"
+			g.Parent = folder
+		end
 		folder.Parent = workspace
 		workspace:SetAttribute("TrainingCenter", center)
 
@@ -378,7 +402,7 @@ function Training.setup()
 		end
 
 		-- Target Rush: un cristallo dorato alla volta, per giocatore
-		type Rush = { lit: number, score: number, ends: number, switchAt: number }
+		type Rush = { lit: number, score: number, ends: number, switchAt: number, armed: boolean }
 		local rushes: { [Player]: Rush } = {}
 		local lastRush: { [Player]: number } = {}
 		local best: { { name: string, score: number } } = {}
@@ -413,11 +437,10 @@ function Training.setup()
 				fx:FireClient(player, "hint", 0, "You need a dragon following you to train")
 				return
 			end
-			local r: Rush = { lit = 0, score = 0, ends = os.clock() + T.RUSH_SECONDS, switchAt = 0 }
-			newLit(r)
-			rushes[player] = r
+			-- prenotata: il tempo parte quando entri nel cerchio (entro un minuto)
+			rushes[player] = { lit = 0, score = 0, ends = os.clock() + 60, switchAt = math.huge, armed = true }
 			lastRush[player] = os.clock()
-			fx:FireClient(player, "rush", 0, r.lit, T.RUSH_SECONDS, 0)
+			fx:FireClient(player, "hint", 0, "Target Rush ready: step into the circle to start!")
 		end
 		local function endRush(player: Player)
 			local r = rushes[player]
@@ -525,7 +548,16 @@ function Training.setup()
 				task.wait(0.1)
 				local now = os.clock()
 				for player, r in rushes do
-					if now >= r.ends then
+					if r.armed then
+						if player:GetAttribute("Training") then
+							r.armed = false
+							r.ends = now + T.RUSH_SECONDS
+							newLit(r)
+							fx:FireClient(player, "rush", 0, r.lit, T.RUSH_SECONDS, 0)
+						elseif now >= r.ends then
+							rushes[player] = nil -- non e' mai entrato
+						end
+					elseif now >= r.ends then
 						endRush(player)
 					elseif now >= r.switchAt then
 						newLit(r)

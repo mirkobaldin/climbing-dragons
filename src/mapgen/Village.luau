@@ -1165,6 +1165,8 @@ function Village.build(map: Heightmap.Map)
 		local across = Vector3.new(-long.Z, 0, long.X).Unit
 		local L, W = math.max(rsize.X, rsize.Z), math.min(rsize.X, rsize.Z)
 		local center = rcf.Position
+		-- l'arena al centro resta libera (niente case, alberi, rocce)
+		table.insert(placedPlots, { p = center, r = 105 })
 		local tries = 0
 		while nCabins < V.CABINS and tries < 1500 do
 			tries += 1

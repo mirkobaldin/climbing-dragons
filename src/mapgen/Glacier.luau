@@ -654,6 +654,65 @@ local function glacierCave(folder: Instance, map: Heightmap.Map, rng: Random, gc
 	return count
 end
 
+-- Grande Grotta: stalattiti giganti dal soffitto e lungo il bordo dell'apertura, stalagmiti e
+-- colonne sul pavimento, luci azzurre (la luce del giorno entra dall'apertura)
+local function grandCaveIce(folder: Instance, map: Heightmap.Map, rng: Random): number
+	local g = map.features.grandCave
+	if not g then
+		return 0
+	end
+	local C = Vector3.new(g.center.x, g.center.y, g.center.z)
+	local out = Vector3.new(g.out.x, 0, g.out.z)
+	local side = Vector3.new(-out.Z, 0, out.X)
+	local face = Vector3.new(g.face.x, g.face.y, g.face.z)
+	-- per il trailer e le clip (gli attributi del Workspace arrivano sempre al client)
+	workspace:SetAttribute("GrandCaveCenter", C)
+	workspace:SetAttribute("GrandCaveOut", out)
+	workspace:SetAttribute("GrandCaveFace", face)
+	local count = 0
+	local lights = Instance.new("Folder")
+	lights.Name = "LuciGrandeGrotta"
+	lights.Parent = folder
+	for k = 1, 7 do
+		local a = Instance.new("Part")
+		a.Anchored, a.CanCollide, a.CanQuery, a.CanTouch, a.Transparency = true, false, false, false, 1
+		a.Size = Vector3.one
+		a.Position = C + side * rng:NextNumber(-0.6, 0.6) * g.width - out * rng:NextNumber(0, 0.6) * g.depth + Vector3.new(0, rng:NextNumber(-10, 30), 0)
+		a.Parent = lights
+		local l = Instance.new("PointLight")
+		l.Color = if k % 2 == 0 then Color3.fromRGB(150, 220, 255) else Color3.fromRGB(90, 170, 255)
+		l.Range = 60
+		l.Brightness = 1.6
+		l.Shadows = false
+		l.Parent = a
+	end
+	-- dal soffitto
+	for _ = 1, 90 do
+		local p = C + side * rng:NextNumber(-0.75, 0.75) * g.width - out * rng:NextNumber(-0.1, 0.75) * g.depth
+		local up = workspace:Raycast(p, Vector3.new(0, g.height * 1.5, 0), terrainOnly)
+		if up and up.Normal.Y < -0.3 and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(3.5, 7)) then
+			count += 1
+		end
+	end
+	-- lungo il bordo alto dell'apertura (le "zanne" della foto)
+	for k = -8, 8 do
+		local p = face - out * rng:NextNumber(4, 18) + side * (k / 8) * g.width * 0.85 + Vector3.new(0, g.height * 0.3, 0)
+		local up = workspace:Raycast(p, Vector3.new(0, g.height * 1.2, 0), terrainOnly)
+		if up and up.Normal.Y < -0.2 and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(3, 6)) then
+			count += 1
+		end
+	end
+	-- dal pavimento
+	for _ = 1, 30 do
+		local p = C + side * rng:NextNumber(-0.7, 0.7) * g.width - out * rng:NextNumber(-0.1, 0.7) * g.depth + Vector3.new(0, 10, 0)
+		local down = workspace:Raycast(p, Vector3.new(0, -g.height * 1.5, 0), terrainOnly)
+		if down and down.Normal.Y > 0.8 and standOn(folder, pick(KIT.standing, rng), down.Position, Vector3.new(rng:NextNumber(-1, 1), 0, rng:NextNumber(-1, 1)), rng:NextNumber(2.5, 5.5), 0.12, { support = Enum.Material.Snow, maxGap = 0.7, maxBury = 0.8 }) then
+			count += 1
+		end
+	end
+	return count
+end
+
 -- Vetta e spalla: grappoli di stalagmiti e colonne di ghiaccio sui ripiani innevati piatti
 local function summitIce(folder: Instance, map: Heightmap.Map, rng: Random): number
 	local M = map.cfg.MOUNTAIN
@@ -830,6 +889,7 @@ function Glacier.build(map: Heightmap.Map)
 		for _, gc in map.features.glacierCaves or {} do
 			nGrotta += glacierCave(ice, map, rng, gc)
 		end
+		nGrotta += grandCaveIce(ice, map, rng)
 		nCave = caveIce(ice, map, rng)
 		nTop = summitIce(ice, map, rng)
 		nCap = iceCapSeracs(ice, map, rng)

@@ -64,7 +64,8 @@ local function applyAction(action: string)
 	elseif cmd == "tiktok" then
 		task.spawn(require(script.Parent.GrappleSkit).play)
 	elseif cmd == "trailer" then
-		task.spawn(require(script.Parent.Trailer).play, arg)
+		local kind, take = string.match(arg, "^(%S+)%s*(%S*)$")
+		task.spawn(require(script.Parent.Trailer).play, kind or "trailer", if take and take ~= "" then take else nil)
 	elseif cmd == "fly" then
 		startFly()
 	elseif cmd == "unfly" then

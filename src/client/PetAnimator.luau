@@ -18,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
+local ClientState = require(script.Parent.ClientState)
 
 local PetAnimator = {}
 
@@ -475,6 +476,9 @@ function PetAnimator.start()
 			local vel = r.AssemblyLinearVelocity
 			local flat = Vector3.new(vel.X, 0, vel.Z)
 			local look = if flat.Magnitude > 2 then flat.Unit else Vector3.new(r.CFrame.LookVector.X, 0, r.CFrame.LookVector.Z)
+			if owner == Players.LocalPlayer and ClientState.petLook then
+				look = ClientState.petLook :: Vector3 -- nell'arena il drago si gira dove spari
+			end
 			if orbiting then
 				-- guarda nella direzione del giro
 				local moveDir = target.Position - current.Position
@@ -516,6 +520,9 @@ function PetAnimator.start()
 					tracks.idle:AdjustWeight(math.max((1 - air) * (1 - moving), 0.001), 0.1)
 					-- il passo segue la corsa del padrone
 					tracks.walk:AdjustSpeed(math.clamp(flat.Magnitude / 12, 0.6, 1.5))
+					-- i draghi grandi battono le ali piu' lenti (un adulto che sbatte come un cucciolo
+					-- sembrava un insetto)
+					tracks.fly:AdjustSpeed(math.clamp(12 / pet.size, 0.45, 1))
 				elseif pet.quad and not far then
 					animateQuad(pet, t, flat.Magnitude)
 				elseif pet.rig == "bones" and not far then

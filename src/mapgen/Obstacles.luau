@@ -183,7 +183,7 @@ function Obstacles.place(map: Heightmap.Map)
 			table.insert(openings, p)
 		end
 	end
-	for _, key in { "caveEntrances", "secretExits", "iceCaves" } do
+	for _, key in { "caveEntrances", "secretExits", "iceCaves", "keepOut" } do
 		for _, p in (map.features :: any)[key] or {} do
 			if type(p) == "table" and type(p.x) == "number" and type(p.y) == "number" then
 				table.insert(openings, p)
@@ -330,7 +330,7 @@ function Obstacles.place(map: Heightmap.Map)
 		end
 		local reach = width / 2 + depth * 1.2 + 24 + max(hi, -lo)
 		for _, p in openings do
-			if p.y > yMin - 24 and p.y < yMax + 24 and Vector3.new(p.x - face.X, 0, p.z - face.Z).Magnitude < reach then
+			if p.y > yMin - 24 - (p.keepOut or 0) and p.y < yMax + 24 + (p.keepOut or 0) and Vector3.new(p.x - face.X, 0, p.z - face.Z).Magnitude < reach + (p.keepOut or 0) then
 				return reject("grotta vicina")
 			end
 		end

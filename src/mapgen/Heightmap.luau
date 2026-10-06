@@ -1471,11 +1471,7 @@ end
 -- pendio (la montagna fa da parete), verso valle un orlo rialzato la chiude, tranne un varco
 -- da cui si entra (e da cui il gas "scivola" fuori). I materiali li decide classify (Zone.TOXIC),
 -- fumarole, nebbia e cartello li mette il modulo Toxic.
-local function carveToxicValley(map: Map)
-	local T = map.cfg.TOXIC
-	if not T then
-		return
-	end
+local function carveToxicValley(map: Map, T: any)
 	local M = map.cfg.MOUNTAIN
 	local cx = M.X + cos(T.ANGLE) * T.DIST * M.RADIUS
 	local cz = M.Z + sin(T.ANGLE) * T.DIST * M.RADIUS
@@ -1536,7 +1532,8 @@ local function carveToxicValley(map: Map)
 			top = max(top, new)
 		end
 	end)
-	map.features.toxic = { x = cx, y = floorY, z = cz, radius = R, top = top, breach = breach }
+	map.features.toxicZones = map.features.toxicZones or {}
+	table.insert(map.features.toxicZones, { x = cx, y = floorY, z = cz, radius = R, top = top, breach = breach, vents = T.VENTS })
 end
 
 -- Crepacci: archi irregolari di traverso (curvi, inclinati, di lunghezza e larghezza diverse,
@@ -1913,7 +1910,9 @@ function Heightmap.build(cfg: any, yield: () -> (), progress: (string, number) -
 		carveGlacier(map, def, k)
 	end
 	carveIceCaps(map)
-	carveToxicValley(map)
+	for _, T in cfg.TOXIC_ZONES or {} do
+		carveToxicValley(map, T)
+	end
 	progress("Vetta e sentiero", 0)
 	carveSummit(map)
 	carvePath(map)

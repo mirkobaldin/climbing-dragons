@@ -539,6 +539,109 @@ local function carveChasm(map: Heightmap.Map, terrain: Terrain, rng: Random, yie
 	table.insert(map.features.iceCaves, { x = mid.X, y = mid.Y, z = mid.Z, cy = mid.Y + 20, r = C.WIDTH[2] })
 end
 
+-- Grande Grotta: un'apertura ovale enorme nella parete e dentro una sala di ghiaccio azzurro.
+-- Si fa direttamente sui voxel, in un passaggio: dentro la sala aria; attorno, per SHELL studs e
+-- solo dentro la montagna, ghiaccio (riveste anche la cavita' della montagna vuota, cosi' non si
+-- vede il buio dentro); in basso terrazze di neve e ghiaccio; colonne di ghiaccio da terra al
+-- soffitto. La parete fuori resta roccia.
+local function carveGrandCave(map: Heightmap.Map, yield: () -> ())
+	local G = map.cfg.CAVES.GRAND
+	if not G then
+		return
+	end
+	local M = map.cfg.MOUNTAIN
+	local terrain = workspace.Terrain
+	local rs = findSurfaceR(map, G.ANGLE, G.Y)
+	if not rs then
+		return
+	end
+	local out = Vector3.new(cos(G.ANGLE), 0, sin(G.ANGLE))
+	local side = Vector3.new(-out.Z, 0, out.X)
+	local face = Vector3.new(M.X, G.Y, M.Z) + out * rs
+	local C = face - out * G.INSET
+	local floorY = C.Y - G.HEIGHT * 0.55
+	local rng = Random.new(map.cfg.SEED + 777)
+	local columns = {}
+	for k = 1, G.COLUMNS do
+		local u, v = rng:NextNumber(-0.65, 0.65), rng:NextNumber(-0.7, 0.3)
+		table.insert(columns, { p = C + side * u * G.WIDTH + out * v * G.DEPTH, r = rng:NextNumber(6, 13) })
+	end
+	local seed = rng:NextNumber(0, 100)
+	-- distanza "normalizzata" dalla sala: < 1 dentro
+	local function inside(p: Vector3): number
+		local d = p - C
+		local x, y, z = d:Dot(side) / G.WIDTH, d.Y / G.HEIGHT, d:Dot(out) / G.DEPTH
+		local n = noise(p.X / 45 + seed, p.Y / 45, p.Z / 45) * 0.14
+		return math.sqrt(x * x + y * y + z * z) + n
+	end
+	local reach = math.max(G.WIDTH, G.DEPTH) + G.SHELL + 8
+	local lo = C - Vector3.new(reach, G.HEIGHT + G.SHELL + 8, reach)
+	local hi = C + Vector3.new(reach, G.HEIGHT + G.SHELL + 8, reach)
+	local region = Region3.new(lo, hi):ExpandToGrid(4)
+	local mats, occs = terrain:ReadVoxels(region, 4)
+	local size = mats.Size
+	local origin = region.CFrame.Position - region.Size / 2
+	local ICE, SNOW, AIRM = Enum.Material.Ice, Enum.Material.Snow, Enum.Material.Air
+	local shellK = 1 + G.SHELL / math.min(G.WIDTH, G.HEIGHT, G.DEPTH)
+	for ix = 1, size.X do
+		local x = origin.X + (ix - 0.5) * 4
+		for iz = 1, size.Z do
+			local z = origin.Z + (iz - 0.5) * 4
+			local top = sampleH(map, x, z)
+			for iy = 1, size.Y do
+				local y = origin.Y + (iy - 0.5) * 4
+				local p = Vector3.new(x, y, z)
+				local k = inside(p)
+				local inMountain = top > y + 2
+				if k < 1 then
+					-- terrazze del pavimento (gradini da 6 studs che salgono verso il fondo)
+					local back = -(p - C):Dot(out) / G.DEPTH
+					local step = math.floor(math.max(0, back + 0.2) * 4) * 6
+					local floorHere = floorY + step + noise(x / 30, z / 30, seed) * 3
+					local column = false
+					for _, c in columns do
+						local dx, dz = x - c.p.X, z - c.p.Z
+						if dx * dx + dz * dz < c.r * c.r * (1 + 0.25 * math.sin(y / 9)) then
+							column = true
+						end
+					end
+					if y < floorHere and (inMountain or (p - face):Dot(out) < 25) then -- niente ripiano sospeso fuori dalla parete
+						mats[ix][iy][iz] = if y > floorHere - 6 then SNOW else ICE
+						occs[ix][iy][iz] = 1
+					elseif column then
+						mats[ix][iy][iz] = ICE
+						occs[ix][iy][iz] = 1
+					else
+						mats[ix][iy][iz] = AIRM
+						occs[ix][iy][iz] = 0
+					end
+				elseif k < shellK and inMountain and (p - face):Dot(out) < -14 then -- il bordo fuori resta roccia
+					mats[ix][iy][iz] = ICE
+					occs[ix][iy][iz] = 1
+				end
+			end
+		end
+		if ix % 6 == 0 then
+			yield()
+		end
+	end
+	terrain:WriteVoxels(region, 4, mats, occs)
+	map.features.grandCave = {
+		center = toPoint(C),
+		floor = floorY,
+		face = toPoint(face),
+		out = { x = out.X, z = out.Z },
+		width = G.WIDTH,
+		height = G.HEIGHT,
+		depth = G.DEPTH,
+	}
+	table.insert(map.features.iceCaves, { x = C.X, y = floorY, z = C.Z, cy = C.Y, r = G.WIDTH })
+	-- niente pance di roccia davanti o sopra l'apertura (prima un tetto la copriva a meta')
+	map.features.keepOut = map.features.keepOut or {}
+	table.insert(map.features.keepOut, { x = face.X, y = face.Y - G.HEIGHT, z = face.Z, keepOut = G.WIDTH * 1.6 })
+	table.insert(map.features.keepOut, { x = face.X, y = face.Y + G.HEIGHT, z = face.Z, keepOut = G.WIDTH * 1.6 })
+end
+
 -- Anfratto segreto: nel punto piu' ripido della parete est a quella quota
 local function carveNiche(map: Heightmap.Map, terrain: Terrain)
 	local M, CV = map.cfg.MOUNTAIN, map.cfg.CAVES
@@ -700,6 +803,7 @@ function Caves.carve(map: Heightmap.Map, yield: () -> (), progress: (string, num
 		end
 	end
 	print(string.format("[MapGen] Grotte: %d scavi, %d rivestiti nella cavita'", #ops, lined))
+	carveGrandCave(map, yield)
 	progress("Grotte", 1)
 end
 

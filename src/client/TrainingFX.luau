@@ -55,6 +55,12 @@ end
 
 -- punto da cui parte il colpo: la testa (osso o parte), se no il centro un po' in alto
 local function mouthOf(pet: Model): Vector3
+	-- l'osso della testa lo segna il modello (attributo HeadBone, dall'analisi dello scheletro)
+	local headName = pet:GetAttribute("HeadBone")
+	local headBone = type(headName) == "string" and pet:FindFirstChild(headName, true)
+	if headBone and headBone:IsA("Bone") then
+		return headBone.WorldPosition
+	end
 	for _, n in { "head", "spine.011", "Head" } do
 		local d = pet:FindFirstChild(n, true)
 		if d and d:IsA("Bone") then
@@ -340,6 +346,16 @@ local function onEvolve(userId: number, dragonId: number)
 	flash.OutlineColor = color
 	flash.Parent = pet
 	TweenService:Create(flash, TweenInfo.new(1.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { FillTransparency = 0 }):Play()
+	-- come nei Pokemon: tutto bianco, cresce pulsando, poi il lampo e arriva il drago grande
+	local scale0 = pet:GetScale()
+	task.spawn(function()
+		local t0 = os.clock()
+		while os.clock() - t0 < 1.4 and pet.Parent do
+			local a = (os.clock() - t0) / 1.4
+			pet:ScaleTo(scale0 * (1 + 0.9 * a * a + 0.08 * math.sin(a * 40)))
+			task.wait()
+		end
+	end)
 	task.delay(1.45, function()
 		burst(cf.Position, color, 140, 30, 1.4)
 		shockwave(cf.Position - Vector3.new(0, size.Y / 2, 0), color, radius * 4, 1)
@@ -484,6 +500,7 @@ local function startAim(event: RemoteEvent)
 		end
 		on = want
 		gui.Enabled = on
+		ClientState.petLook = if on then Vector3.new(camera.CFrame.LookVector.X, 0, camera.CFrame.LookVector.Z).Unit else nil
 		if on and pet then
 			local head = mouthOf(pet)
 			local look = CFrame.fromOrientation(pitch, yaw, 0).LookVector

@@ -22,7 +22,10 @@ local function persistent(model: Model, name: string, parent: Instance)
 	model.Parent = parent
 end
 
-function TrailerProps.prepare()
+local takes = 0
+
+-- prepara la scena e restituisce il numero della ripresa (il client aspetta proprio quella)
+function TrailerProps.prepare(): string
 	local old = workspace:FindFirstChild("TrailerProps")
 	if old then
 		old:Destroy()
@@ -57,7 +60,15 @@ function TrailerProps.prepare()
 	persistent(DragonModels.dragon("Eclissi", "Leggendario", 3, 1), "EclissiAdulto", folder)
 	persistent(DragonModels.dragon("Gas", "Epico", 2, 30), "Gas", folder)
 	persistent(DragonModels.dragon("Gelo", "Raro", 1, 10), "Gelo", folder)
+	-- la Grande Grotta (punti scritti dal generatore della mappa)
+	folder:SetAttribute("GrandCenter", workspace:GetAttribute("GrandCaveCenter"))
+	folder:SetAttribute("GrandOut", workspace:GetAttribute("GrandCaveOut"))
+	folder:SetAttribute("GrandFace", workspace:GetAttribute("GrandCaveFace"))
+	takes += 1
+	local take = tostring(takes)
+	folder:SetAttribute("Take", take)
 	folder.Parent = workspace
+	return take
 end
 
 return TrailerProps

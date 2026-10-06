@@ -14,20 +14,21 @@ local ToxicGas = {}
 local DAMAGE_PER_SECOND = 5
 local NOTICE_EVERY = 6
 
--- 0 = fuori, 1 = in pieno nel gas (sfuma sull'orlo)
+-- 0 = fuori, 1 = in pieno nel gas (sfuma sull'orlo); la zona piu' forte tra tutte
 function ToxicGas.amount(pos: Vector3): number
-	local center = workspace:GetAttribute("GasCenter")
-	local radius = workspace:GetAttribute("GasRadius")
-	local top = workspace:GetAttribute("GasTop")
-	if typeof(center) ~= "Vector3" or type(radius) ~= "number" or type(top) ~= "number" then
-		return 0
+	local best = 0
+	for i = 1, (workspace:GetAttribute("GasCount") or 0) :: number do
+		local center = workspace:GetAttribute("GasCenter" .. i)
+		local radius = workspace:GetAttribute("GasRadius" .. i)
+		local top = workspace:GetAttribute("GasTop" .. i)
+		if typeof(center) == "Vector3" and type(radius) == "number" and type(top) == "number" and pos.Y <= top and pos.Y > center.Y - 40 then
+			local d = Vector2.new(pos.X - center.X, pos.Z - center.Z).Magnitude
+			best = math.max(best, 1 - math.clamp((d - radius * 0.75) / (radius * 0.25), 0, 1))
+		end
 	end
-	if pos.Y > top then
-		return 0
-	end
-	local d = Vector2.new(pos.X - center.X, pos.Z - center.Z).Magnitude
-	return 1 - math.clamp((d - radius * 0.75) / (radius * 0.25), 0, 1)
+	return best
 end
+
 
 function ToxicGas.setup()
 	local lastNotice: { [Player]: number } = {}

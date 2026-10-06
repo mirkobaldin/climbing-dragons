@@ -1,13 +1,17 @@
 --!strict
--- Trailer (meno di 20 secondi) e clip per TikTok, girati sul client dopo i comandi admin:
---   trailer  montagna, drago in volo, grotta di ghiaccio, valle dei gas, addestramento,
---            evoluzione dell'Eclissi, titolo
---   clip1    "POV: your dragon finally hits Lv 100" -> evoluzione dell'Eclissi
---   clip2    la grotta di ghiaccio nascosta: fronte del ghiacciaio, galleria, sala
---   clip3    la valle dei gas: "never enter without a Gas dragon"
--- Le scritte stanno nella fascia centrale (40% della larghezza): tagliando il video in 3:4 per
--- TikTok restano intere. Niente bande nere. Il server (TrailerProps) prepara i draghi di scena
--- e i punti della mappa negli attributi di Workspace.TrailerProps.
+-- Trailer (meno di 20 secondi) e clip per TikTok, girati sul client dopo i comandi admin
+-- (F2): trailer, clip1, clip2, clip3. Le scritte stanno nella fascia centrale (38% della
+-- larghezza): tagliando il video in 3:4 per TikTok restano intere. Niente bande nere.
+-- Il server (TrailerProps) prepara i draghi di scena (cartella Workspace.TrailerProps con
+-- l'attributo Take: si aspetta quella giusta, prima alla seconda ripresa si prendeva la vecchia
+-- che stava sparendo) e i punti della mappa negli attributi della cartella.
+--   trailer  montagna, drago davanti alla Grande Grotta, grotta, gas, arena, evoluzione, titolo
+--   clip1    RAGE: "I was 2 meters from the top..." -> caduta -> "-47 MINUTES" -> "would you
+--            try again? YES or NO"
+--   clip2    EVOLUZIONE: "don't skip: watch what happens at level 100" -> cresce, lampo,
+--            adulto -> "which dragon should evolve next?"
+--   clip3    GRANDE GROTTA: "this mountain is hollow." -> l'apertura -> dentro -> "part 2 at
+--            1000 likes"
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -19,6 +23,11 @@ local PetAnimator = require(script.Parent.PetAnimator)
 local player = Players.LocalPlayer
 
 local Trailer = {}
+
+local ORANGE = Color3.fromRGB(255, 170, 70)
+local ICE = Color3.fromRGB(130, 210, 255)
+local RED = Color3.fromRGB(255, 70, 60)
+local GOLD = Color3.fromRGB(255, 220, 120)
 
 local function smooth(x: number): number
 	x = math.clamp(x, 0, 1)
@@ -39,9 +48,9 @@ local function groundAt(p: Vector3): Vector3
 end
 
 ------------------------------------------------------------------------------------------
--- Schermo: scritte al centro, dissolvenze, lampo
+-- Schermo: scritte al centro, dissolvenze, lampo, scossa
 
-type Screen = { gui: ScreenGui, fade: Frame, flash: Frame, big: TextLabel, small: TextLabel }
+type Screen = { gui: ScreenGui, fade: Frame, flash: Frame, red: Frame, big: TextLabel, small: TextLabel, bottom: TextLabel }
 
 local function screen(): Screen
 	local gui = Instance.new("ScreenGui")
@@ -61,13 +70,14 @@ local function screen(): Screen
 	end
 	local fade = frame(Color3.new(0, 0, 0), 0)
 	local flash = frame(Color3.new(1, 1, 1), 1)
-	local function label(y: number, h: number, font: Enum.Font): TextLabel
+	local red = frame(Color3.fromRGB(150, 0, 0), 1)
+	local function label(y: number, h: number): TextLabel
 		local l = Instance.new("TextLabel")
 		l.BackgroundTransparency = 1
 		l.AnchorPoint = Vector2.new(0.5, 0.5)
 		l.Position = UDim2.fromScale(0.5, y)
 		l.Size = UDim2.fromScale(0.38, h) -- fascia centrale: resta intera nel taglio 3:4
-		l.Font = font
+		l.Font = Enum.Font.GothamBlack
 		l.TextScaled = true
 		l.TextWrapped = true
 		l.TextColor3 = Color3.new(1, 1, 1)
@@ -78,20 +88,20 @@ local function screen(): Screen
 		l.Parent = gui
 		return l
 	end
-	local big = label(0.42, 0.11, Enum.Font.GothamBlack)
-	local small = label(0.2, 0.07, Enum.Font.GothamBlack)
+	local s = { gui = gui, fade = fade, flash = flash, red = red, big = label(0.45, 0.12), small = label(0.2, 0.09), bottom = label(0.78, 0.08) }
 	gui.Parent = player:WaitForChild("PlayerGui")
-	return { gui = gui, fade = fade, flash = flash, big = big, small = small }
+	return s
 end
 
 local function say(l: TextLabel, text: string, hold: number, color: Color3?)
 	l.Text = text
 	l.TextColor3 = color or Color3.new(1, 1, 1)
-	l.Size = UDim2.fromScale(0.34, l.Size.Y.Scale)
-	TweenService:Create(l, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { TextTransparency = 0, TextStrokeTransparency = 0.2, Size = UDim2.fromScale(0.38, l.Size.Y.Scale) }):Play()
+	local h = l.Size.Y.Scale
+	l.Size = UDim2.fromScale(0.3, h)
+	TweenService:Create(l, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { TextTransparency = 0, TextStrokeTransparency = 0.15, Size = UDim2.fromScale(0.38, h) }):Play()
 	task.delay(hold, function()
 		if l.Text == text then
-			TweenService:Create(l, TweenInfo.new(0.3), { TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
+			TweenService:Create(l, TweenInfo.new(0.25), { TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
 		end
 	end)
 end
@@ -100,18 +110,20 @@ local function fadeTo(s: Screen, alpha: number, time: number)
 	TweenService:Create(s.fade, TweenInfo.new(time), { BackgroundTransparency = 1 - alpha }):Play()
 end
 
-local function flash(s: Screen)
-	s.flash.BackgroundTransparency = 0
-	TweenService:Create(s.flash, TweenInfo.new(0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1 }):Play()
+local function flash(s: Screen, frame: Frame?)
+	local f = frame or s.flash
+	f.BackgroundTransparency = 0
+	TweenService:Create(f, TweenInfo.new(0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1 }):Play()
 end
+
+local shake = 0
 
 ------------------------------------------------------------------------------------------
 -- Draghi di scena
 
 type Actor = { model: Model, tracks: any? }
 
-local function actor(name: string): Actor?
-	local props = workspace:FindFirstChild("TrailerProps")
+local function actor(props: Instance?, name: string): Actor?
 	local m = props and props:FindFirstChild(name)
 	if not m or not m:IsA("Model") then
 		return nil
@@ -120,16 +132,16 @@ local function actor(name: string): Actor?
 	if old then
 		old:Destroy()
 	end
-	local tracks = PetAnimator.loadTracks(m)
-	return { model = m, tracks = tracks }
+	return { model = m, tracks = PetAnimator.loadTracks(m) }
 end
 
-local function pose(a: Actor?, kind: string)
+local function pose(a: Actor?, kind: string, speed: number?)
 	if not a or not a.tracks then
 		return
 	end
 	for name, track in a.tracks do
 		track:AdjustWeight(if name == kind then 1 else 0.001, 0.2)
+		track:AdjustSpeed(speed or 1)
 	end
 end
 
@@ -139,45 +151,47 @@ local function hide(a: Actor?)
 	end
 end
 
--- appoggia il drago a terra in p, guardando verso dir
 local function standAt(a: Actor?, p: Vector3, dir: Vector3)
 	if not a then
 		return
 	end
 	local _, size = a.model:GetBoundingBox()
-	local g = groundAt(p)
-	local at = g + Vector3.new(0, size.Y / 2, 0)
+	local at = groundAt(p) + Vector3.new(0, size.Y / 2, 0)
 	a.model:PivotTo(CFrame.lookAt(at, at + flat(dir)))
 end
 
 ------------------------------------------------------------------------------------------
--- Inquadrature: ogni ripresa e' { durata, camera(u) -> CFrame, update(u)? , inizio()? }
+-- Riprese
 
 type Shot = { dur: number, cam: (number) -> CFrame, update: ((number) -> ())?, start: (() -> ())?, at: Vector3? }
 
 local function run(shots: { Shot }, s: Screen)
 	local camera = workspace.CurrentCamera
-	-- prima si caricano le zone lontane (streaming), con lo schermo nero
 	for _, shot in shots do
 		if shot.at then
 			pcall(function()
-				player:RequestStreamAroundAsync(shot.at :: Vector3, 4)
+				player:RequestStreamAroundAsync(shot.at :: Vector3, 5)
 			end)
 		end
 	end
 	local current: Shot? = nil
 	local t0 = 0
-	local conn = RunService.RenderStepped:Connect(function()
+	local conn = RunService.RenderStepped:Connect(function(dt)
 		camera.CameraType = Enum.CameraType.Scriptable
 		if current then
 			local u = math.clamp((os.clock() - t0) / current.dur, 0, 1)
 			if current.update then
 				current.update(u)
 			end
-			camera.CFrame = current.cam(u)
+			local cf = current.cam(u)
+			if shake > 0 then
+				cf *= CFrame.Angles((math.random() - 0.5) * 0.05 * shake, (math.random() - 0.5) * 0.05 * shake, 0)
+				shake = math.max(0, shake - dt * 2)
+			end
+			camera.CFrame = cf
 		end
 	end)
-	fadeTo(s, 0, 0.35)
+	fadeTo(s, 0, 0.3)
 	for _, shot in shots do
 		if shot.start then
 			shot.start()
@@ -186,13 +200,12 @@ local function run(shots: { Shot }, s: Screen)
 		current = shot
 		task.wait(shot.dur)
 	end
-	fadeTo(s, 1, 0.5)
-	task.wait(0.6)
+	fadeTo(s, 1, 0.4)
+	task.wait(0.5)
 	conn:Disconnect()
 	camera.CameraType = Enum.CameraType.Custom
 end
 
--- la camera passa da a a b guardando da la a lb
 local function dolly(a: Vector3, b: Vector3, la: Vector3, lb: Vector3): (number) -> CFrame
 	return function(u)
 		local k = smooth(u)
@@ -200,7 +213,6 @@ local function dolly(a: Vector3, b: Vector3, la: Vector3, lb: Vector3): (number)
 	end
 end
 
--- giro attorno a c
 local function orbit(c: Vector3, radius: number, height: number, from: number, to: number, lookUp: number): (number) -> CFrame
 	return function(u)
 		local a = from + (to - from) * smooth(u)
@@ -208,94 +220,91 @@ local function orbit(c: Vector3, radius: number, height: number, from: number, t
 	end
 end
 
-------------------------------------------------------------------------------------------
--- Pezzi riusati
-
-local function evolution(s: Screen, center: Vector3, baby: Actor?, adult: Actor?, dur: number): Shot
+-- Evoluzione come nei Pokemon: il cucciolo diventa bianco e cresce pulsando, lampo, l'adulto
+local function evolution(s: Screen, center: Vector3, baby: Actor?, adult: Actor?, dur: number, grow: number, label: string?): Shot
 	local swapped = false
 	local look = Vector3.new(0, 0, -1)
+	local glow: Highlight? = nil
+	local scale0 = 1
 	return {
 		dur = dur,
 		at = center,
 		start = function()
 			swapped = false
+			if baby then
+				scale0 = baby.model:GetScale()
+			end
 			standAt(baby, center, look)
 			hide(adult)
 			pose(baby, "idle")
-			pose(adult, "idle")
+			pose(adult, "idle", 0.6)
+			if baby then
+				local h = Instance.new("Highlight")
+				h.FillColor = Color3.new(1, 1, 1)
+				h.OutlineColor = ORANGE
+				h.FillTransparency = 1
+				h.Parent = baby.model
+				glow = h
+			end
 		end,
 		update = function(u)
-			if baby and u < 0.55 then
-				-- il cucciolo si illumina e trema
-				local base = baby.model:GetPivot()
-				local shake = u * 0.25
-				baby.model:PivotTo(base * CFrame.Angles((math.random() - 0.5) * shake, 0, (math.random() - 0.5) * shake))
+			local t = math.clamp((u - 0.12) / (grow - 0.12), 0, 1)
+			if baby and not swapped then
+				baby.model:ScaleTo(scale0 * (1 + 1.3 * t * t + 0.07 * math.sin(t * 45) * t))
+				standAt(baby, center, look)
+				if glow then
+					glow.FillTransparency = 1 - t
+				end
 			end
-			if u >= 0.55 and not swapped then
+			if u >= grow and not swapped then
 				swapped = true
 				flash(s)
+				shake = 1.2
+				if glow then
+					glow:Destroy()
+				end
+				if baby then
+					baby.model:ScaleTo(scale0)
+				end
 				hide(baby)
 				standAt(adult, center, look)
-				say(s.big, "EVOLVED!", 1.6, Color3.fromRGB(255, 170, 70))
+				say(s.big, label or "EVOLVED!", 1.8, ORANGE)
 			end
 		end,
 		cam = function(u)
-			-- vicino al cucciolo, poi indietro e in alto per far vedere quanto e' grande
-			local k = smooth(math.max(0, (u - 0.5) / 0.5))
-			local dist = 14 + 80 * k
-			local h = 5 + 36 * k
-			local a = 0.4 + u * 0.8
+			local k = smooth(math.max(0, (u - grow) / (1 - grow)))
+			local dist = 15 + 85 * k
+			local h = 5 + 38 * k
+			local a = 0.4 + u * 0.7
 			return CFrame.lookAt(center + Vector3.new(math.sin(a) * dist, h, -math.cos(a) * dist), center + Vector3.new(0, 4 + 22 * k, 0))
 		end,
 	}
 end
 
-local function rings(center: Vector3, color: Color3)
-	for k = 1, 3 do
-		local ring = Instance.new("Part")
-		ring.Anchored = true
-		ring.CanCollide = false
-		ring.CanQuery = false
-		ring.Material = Enum.Material.Neon
-		ring.Color = color
-		ring.Shape = Enum.PartType.Cylinder
-		ring.Transparency = 0.3
-		ring.Size = Vector3.new(0.3, 4, 4)
-		ring.CFrame = CFrame.new(center + Vector3.new(0, k * 3, 0)) * CFrame.Angles(0, 0, math.pi / 2)
-		ring.Parent = workspace
-		TweenService:Create(ring, TweenInfo.new(1.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = Vector3.new(0.1, 60, 60), Transparency = 1 }):Play()
-		game:GetService("Debris"):AddItem(ring, 1.7)
-	end
-end
-
 ------------------------------------------------------------------------------------------
 
-local function data(): { [string]: any }
-	local props = workspace:WaitForChild("TrailerProps", 10)
-	return if props then props:GetAttributes() else {}
-end
-
-local function cavePath(d: { [string]: any }): { Vector3 }
-	local list = {}
-	for k = 1, (d.CaveCount or 0) :: number do
-		local p = d["Cave" .. k]
-		if typeof(p) == "Vector3" then
-			table.insert(list, p)
-		end
+local function grand(d: { [string]: any }): (Vector3?, Vector3, Vector3)
+	local c, out, face = d.GrandCenter, d.GrandOut, d.GrandFace
+	if typeof(c) == "Vector3" and typeof(out) == "Vector3" and typeof(face) == "Vector3" then
+		return c, flat(out), face
 	end
-	return list
+	return nil, Vector3.xAxis, Vector3.zero
 end
 
-local function alongPath(path: { Vector3 }, u: number): Vector3
-	local f = 1 + u * (#path - 1)
-	local i = math.clamp(math.floor(f), 1, #path - 1)
-	return path[i]:Lerp(path[i + 1], f - i)
-end
-
-function Trailer.play(kind: string)
-	local d = data()
+function Trailer.play(kind: string, take: string?)
+	-- la cartella giusta (quella di questa ripresa)
+	local props: Instance? = nil
+	local t0 = os.clock()
+	while os.clock() - t0 < 10 do
+		local p = workspace:FindFirstChild("TrailerProps")
+		if p and (not take or tostring(p:GetAttribute("Take")) == take) then
+			props = p
+			break
+		end
+		task.wait(0.1)
+	end
+	local d = if props then props:GetAttributes() else {}
 	local s = screen()
-	-- via HUD e menu durante le riprese
 	local hidden = {}
 	for _, g in player.PlayerGui:GetChildren() do
 		if g:IsA("ScreenGui") and g ~= s.gui and g.Enabled then
@@ -306,222 +315,262 @@ function Trailer.play(kind: string)
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
 	end)
-	local baby, adult, gas, gelo = actor("EclissiCucciolo"), actor("EclissiAdulto"), actor("Gas"), actor("Gelo")
+	local baby, adult, gas = actor(props, "EclissiCucciolo"), actor(props, "EclissiAdulto"), actor(props, "Gas")
 	local summit = d.Summit or Vector3.new(1300, 4100, 0)
 	local train = d.TrainingCenter or Vector3.new(-837, 70, -1186)
 	local gasC = d.GasCenter or Vector3.new(3224, 327, -168)
-	local cave = cavePath(d)
-	local caveIn = cave[1] or summit
-	local caveDir = if #cave >= 3 then flat(cave[1] - cave[3]) else Vector3.xAxis -- verso l'uscita
-	local orange = Color3.fromRGB(255, 170, 70)
-
+	local gc, gout, gface = grand(d)
+	local gside = Vector3.new(-gout.Z, 0, gout.X)
 	local shots: { Shot } = {}
-	local function add(shot: Shot)
+	local function add(shot: Shot): Shot
 		table.insert(shots, shot)
+		return shot
 	end
-	local function shotMountain(dur: number)
-		local dir = flat(Vector3.new(-1, 0, 0.35))
-		add({
-			dur = dur,
-			at = summit + dir * 900,
-			cam = dolly(summit + dir * 1700 + Vector3.new(0, -summit.Y * 0.35, 0), summit + dir * 750 + Vector3.new(0, -summit.Y * 0.1, 0), summit - Vector3.new(0, 900, 0), summit),
-		})
-	end
-	local function shotCave(dur: number, from: number, to: number)
-		if #cave < 3 then
-			return
+	local function onStart(shot: Shot, fn: () -> ())
+		local before = shot.start
+		shot.start = function()
+			if before then
+				before()
+			end
+			fn()
 		end
-		add({
-			dur = dur,
-			at = caveIn,
-			cam = function(u)
-				local k = from + (to - from) * smooth(u)
-				local p = alongPath(cave, k) - Vector3.new(0, 4, 0)
-				local q = alongPath(cave, math.min(1, k + 0.12)) - Vector3.new(0, 5, 0)
-				return CFrame.lookAt(p, q)
-			end,
-		})
 	end
-	local function shotGlacierFront(dur: number)
-		local front = caveIn + caveDir * 40
-		add({
-			dur = dur,
-			at = front,
-			cam = dolly(front + caveDir * 160 + Vector3.new(0, 30, 0), front + caveDir * 25 + Vector3.new(0, 6, 0), front + Vector3.new(0, 10, 0), caveIn),
-		})
-	end
-	local function shotFlyBy(dur: number)
-		local base = caveIn + caveDir * 140 + Vector3.new(0, 60, 0)
-		local side = Vector3.new(-caveDir.Z, 0, caveDir.X)
-		add({
+
+	-- il drago adulto vola davanti all'apertura della Grande Grotta, virando; la camera lo segue
+	local function shotDragonPass(dur: number): Shot
+		local base = if gc then gface + gout * 170 else summit - Vector3.new(0, 2500, 0)
+		return add({
 			dur = dur,
 			at = base,
 			start = function()
-				pose(adult, "fly")
+				pose(adult, "fly", 0.55)
 			end,
 			update = function(u)
 				if adult then
-					local p = base + side * (-160 + 320 * u) + Vector3.new(0, math.sin(u * 6) * 4, 0)
-					adult.model:PivotTo(CFrame.lookAt(p, p + side))
+					local a = -1.1 + 2.2 * u
+					local p = base + gside * math.sin(a) * 190 + gout * (math.cos(a) * 60 - 40) + Vector3.new(0, math.sin(u * 5) * 6, 0)
+					local q = base + gside * math.sin(a + 0.05) * 190 + gout * (math.cos(a + 0.05) * 60 - 40)
+					local bank = -math.cos(a) * 0.45
+					adult.model:PivotTo(CFrame.lookAt(p, q) * CFrame.Angles(0, 0, bank))
 				end
 			end,
 			cam = function(u)
-				local p = base + side * (-160 + 320 * u)
-				return CFrame.lookAt(base + caveDir * 90 + Vector3.new(0, -15, 0), p)
+				local a = -1.1 + 2.2 * u
+				local p = base + gside * math.sin(a) * 190 + gout * (math.cos(a) * 60 - 40)
+				return CFrame.lookAt(base + gout * 230 + Vector3.new(0, 40, 0), p:Lerp(gface, 0.35))
 			end,
 		})
 	end
-	local function shotGas(dur: number, withDragon: boolean)
-		add({
+	local function shotIntoGrand(dur: number, from: number, to: number): Shot?
+		if not gc then
+			return nil
+		end
+		local c = gc :: Vector3
+		local outside = gface + gout * 320 + Vector3.new(0, 60, 0)
+		local mouth = gface + gout * 10 + Vector3.new(0, 10, 0)
+		local deep = c - gout * 90 + Vector3.new(0, -10, 0)
+		return add({
+			dur = dur,
+			at = c,
+			cam = function(u)
+				local k = from + (to - from) * smooth(u)
+				local p = if k < 0.5 then outside:Lerp(mouth, k * 2) else mouth:Lerp(deep, (k - 0.5) * 2)
+				return CFrame.lookAt(p, c - gout * 150 + Vector3.new(0, 10 - 20 * k, 0) + gside * math.sin(k * 3) * 20)
+			end,
+		})
+	end
+	local function shotGas(dur: number): Shot
+		return add({
 			dur = dur,
 			at = gasC,
 			start = function()
-				if withDragon then
-					standAt(gas, gasC + Vector3.new(30, 0, 0), Vector3.new(1, 0, 0.3))
-					pose(gas, "walk")
-				end
+				standAt(gas, gasC + Vector3.new(30, 0, 0), Vector3.new(1, 0, 0.3))
+				pose(gas, "walk", 0.8)
 			end,
 			update = function(u)
-				if withDragon and gas then
-					local p = gasC + Vector3.new(30 + 40 * u, 0, 12 * u)
-					standAt(gas, p, Vector3.new(1, 0, 0.3))
-				end
+				standAt(gas, gasC + Vector3.new(30 + 40 * u, 0, 12 * u), Vector3.new(1, 0, 0.3))
 			end,
 			cam = orbit(gasC, 110, 40, 2.2, 3.4, 8),
-		})
-	end
-	local function shotTraining(dur: number)
-		add({
-			dur = dur,
-			at = train,
-			start = function()
-				pose(gelo, "fly")
-			end,
-			update = function(u)
-				if gelo then
-					local a = u * 4
-					local p = train + Vector3.new(math.cos(a) * 20, 14 + math.sin(a * 2) * 3, math.sin(a) * 20)
-					gelo.model:PivotTo(CFrame.lookAt(p, p + Vector3.new(-math.sin(a), 0, math.cos(a))))
-				end
-			end,
-			cam = orbit(train, 46, 18, 0.5, 1.6, 9),
 		})
 	end
 
 	if kind == "trailer" then
 		-- 19 secondi
-		shotMountain(3.2)
-		shots[#shots].start = function()
-			say(s.big, "HARDCORE CLIMBING", 2.6)
+		local s1 = add({
+			dur = 3,
+			at = summit - Vector3.new(0, 1500, 0),
+			cam = dolly(summit + flat(Vector3.new(-1, 0, 0.35)) * 1700 + Vector3.new(0, -1500, 0), summit + flat(Vector3.new(-1, 0, 0.35)) * 800 + Vector3.new(0, -400, 0), summit - Vector3.new(0, 900, 0), summit),
+		})
+		onStart(s1, function()
+			say(s.big, "HARDCORE CLIMBING", 2.4)
+		end)
+		onStart(shotDragonPass(3.4), function()
+			say(s.small, "TAME DRAGONS", 2.6, ORANGE)
+		end)
+		local g = shotIntoGrand(3, 0.1, 0.85)
+		if g then
+			onStart(g, function()
+				say(s.small, "EXPLORE GIANT ICE CAVES", 2.4, ICE)
+			end)
 		end
-		shotFlyBy(2.8)
-		shots[#shots].start = function()
-			pose(adult, "fly")
-			say(s.small, "TAME DRAGONS", 2.3, orange)
-		end
-		shotCave(2.8, 0.05, 0.6)
-		shots[#shots].start = function()
-			say(s.small, "EXPLORE ICE CAVES", 2.3, Color3.fromRGB(130, 210, 255))
-		end
-		shotGas(2.6, true)
-		local gasStart = shots[#shots].start
-		shots[#shots].start = function()
-			if gasStart then
-				gasStart()
-			end
-			say(s.small, "SURVIVE THE TOXIC VALLEY", 2.1, Color3.fromRGB(240, 110, 230))
-		end
-		shotTraining(2.6)
-		local trStart = shots[#shots].start
-		shots[#shots].start = function()
-			if trStart then
-				trStart()
-			end
-			say(s.small, "TRAIN TO LV 100", 2.1, Color3.fromRGB(255, 220, 120))
-		end
-		add(evolution(s, train + Vector3.new(0, 0, 8), baby, adult, 3.4))
-		local evo = shots[#shots]
-		local evoStart = evo.start
-		evo.start = function()
-			hide(gelo)
-			if evoStart then
-				evoStart()
-			end
-			task.delay(1.2, rings, train + Vector3.new(0, 0, 8), orange)
-		end
-		add({
-			dur = 1.6,
+		onStart(shotGas(2.4), function()
+			say(s.small, "SURVIVE THE TOXIC VALLEYS", 2, Color3.fromRGB(240, 110, 230))
+		end)
+		local arena = add({ dur = 2.4, at = train, cam = orbit(train, 50, 20, 0.6, 1.5, 9) })
+		onStart(arena, function()
+			hide(gas)
+			say(s.small, "TRAIN TO LV 100", 2, GOLD)
+		end)
+		add(evolution(s, train + Vector3.new(0, 0, 8), baby, adult, 3.2, 0.6))
+		local last = add({
+			dur = 1.8,
 			cam = shots[#shots].cam,
 			start = function()
-				fadeTo(s, 1, 0.4)
-				task.delay(0.35, function()
-					say(s.big, "HARDCORE CLIMBING", 1.5)
-					say(s.small, "PLAY NOW", 1.5, orange)
+				fadeTo(s, 1, 0.35)
+				task.delay(0.3, function()
+					say(s.big, "HARDCORE CLIMBING", 1.6)
+					say(s.bottom, "COMING SOON", 1.6, ORANGE)
 				end)
 			end,
 		})
+		local _ = last
 	elseif kind == "clip1" then
-		-- POV: il drago arriva a 100 ed evolve (circa 11 s)
-		add(evolution(s, train + Vector3.new(0, 0, 8), baby, adult, 7))
-		local evo = shots[1]
-		local evoStart = evo.start
-		evo.start = function()
-			if evoStart then
-				evoStart()
+		-- RAGE (circa 16 s): un open loop ("2 metri dalla vetta"), la caduta, il conto, il voto
+		local top = summit - Vector3.new(0, 40, 0)
+		local outDir = flat(Vector3.new(-1, 0, 0.2))
+		local ledge = groundAt(top + outDir * 60)
+		local Cinematic = require(script.Parent.Cinematic)
+		local body = Cinematic.kit.cloneActor()
+		local fallTrack: AnimationTrack? = nil
+		if body then
+			local humanoid = body:FindFirstChildOfClass("Humanoid")
+			local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+			if animator then
+				local anim = Instance.new("Animation")
+				anim.AnimationId = "rbxassetid://507767968" -- caduta R15
+				fallTrack = animator:LoadAnimation(anim)
 			end
-			say(s.small, "POV: your dragon finally hits Lv 100", 3.2)
-			task.delay(2.2, function()
-				say(s.big, "Lv 99 > 100", 1.4, Color3.fromRGB(255, 220, 120))
-			end)
-			task.delay(3.6, rings, train + Vector3.new(0, 0, 8), orange)
+			body:PivotTo(CFrame.lookAt(ledge + Vector3.new(0, 3, 0), ledge + Vector3.new(0, 3, 0) - outDir))
 		end
+		local start = ledge + Vector3.new(0, 3, 0)
+		local bottom = groundAt(start + outDir * 260 - Vector3.new(0, 400, 0))
 		add({
-			dur = 3.5,
-			cam = orbit(train + Vector3.new(0, 0, 8), 95, 40, 1.6, 2.6, 22),
+			dur = 3,
+			at = start,
+			cam = dolly(start + outDir * 14 + Vector3.new(0, 2, 6), start + outDir * 9 + Vector3.new(0, 4, 4), start, start + Vector3.new(0, 1, 0)),
 			start = function()
-				say(s.small, "was it worth the grind?", 3)
+				say(s.small, "I was 2 meters from the top...", 2.8)
 			end,
+		})
+		add({
+			dur = 3.2,
+			at = start,
+			start = function()
+				say(s.big, "then THIS happened", 1.4, RED)
+				if fallTrack then
+					(fallTrack :: AnimationTrack):Play()
+				end
+			end,
+			update = function(u)
+				if body then
+					local k = u * u
+					local p = start:Lerp(bottom + Vector3.new(0, 3, 0), k) + outDir * math.sin(u * math.pi) * 40
+					body:PivotTo(CFrame.new(p) * CFrame.Angles(u * 9, u * 4, u * 6))
+				end
+			end,
+			cam = function(u)
+				local k = u * u
+				local p = start:Lerp(bottom, k) + outDir * math.sin(u * math.pi) * 40
+				return CFrame.lookAt(start + outDir * 30 + Vector3.new(0, 20 - 160 * u, 0), p)
+			end,
+		})
+		add({
+			dur = 3,
+			at = bottom,
+			start = function()
+				flash(s, s.red)
+				shake = 1.5
+				say(s.big, "-47 MINUTES", 2.6, RED)
+				say(s.bottom, "no checkpoints. no mercy.", 2.6)
+			end,
+			cam = dolly(bottom + outDir * 25 + Vector3.new(0, 8, 0), bottom + outDir * 45 + Vector3.new(0, 30, 0), bottom, bottom),
+		})
+		add({
+			dur = 4.5,
+			at = summit - Vector3.new(0, 1500, 0),
+			start = function()
+				if body then
+					body:Destroy()
+					body = nil
+				end
+				say(s.small, "would YOU try again?", 4.2)
+				task.delay(1.2, function()
+					say(s.bottom, "comment YES or NO", 3, GOLD)
+				end)
+			end,
+			cam = dolly(bottom + outDir * 120 + Vector3.new(0, 60, 0), bottom + outDir * 900 + Vector3.new(0, 400, 0), bottom, summit),
 		})
 	elseif kind == "clip2" then
-		-- la grotta di ghiaccio nascosta (circa 11 s)
-		shotGlacierFront(3)
-		shots[#shots].start = function()
-			say(s.small, "found a hidden ice cave in my Roblox game...", 2.8)
-		end
-		shotCave(4.5, 0, 0.75)
-		shotCave(3.5, 0.75, 1)
-		shots[#shots].start = function()
-			say(s.big, "it keeps going.", 2.5, Color3.fromRGB(130, 210, 255))
-		end
-	elseif kind == "clip3" then
-		-- la valle dei gas (circa 10 s)
-		add({
-			dur = 3.5,
-			at = gasC,
-			cam = dolly(gasC + Vector3.new(260, 90, 120), gasC + Vector3.new(120, 40, 60), gasC + Vector3.new(0, 30, 0), gasC),
+		-- EVOLUZIONE (circa 15 s): curiosity gap, conto alla rovescia, rivelazione, domanda
+		local c = train + Vector3.new(0, 0, 8)
+		local count = add({
+			dur = 3.2,
+			at = c,
 			start = function()
-				say(s.small, "rule #1: never enter the toxic valley", 3.2)
+				standAt(baby, c, Vector3.new(0, 0, -1))
+				hide(adult)
+				pose(baby, "idle")
+				say(s.small, "don't skip: watch what happens at level 100", 3)
+				for k, lv in { "Lv 97", "Lv 98", "Lv 99" } do
+					task.delay(0.5 + k * 0.8, function()
+						say(s.big, lv, 0.6, GOLD)
+					end)
+				end
+			end,
+			cam = dolly(c + Vector3.new(30, 14, -30), c + Vector3.new(14, 6, -14), c + Vector3.new(0, 4, 0), c + Vector3.new(0, 4, 0)),
+		})
+		local _ = count
+		add(evolution(s, c, baby, adult, 7, 0.45, "Lv 100 · EVOLVED"))
+		add({
+			dur = 4,
+			cam = orbit(c, 95, 40, 1.4, 2.4, 22),
+			start = function()
+				say(s.small, "which dragon should evolve next?", 3.8)
+				task.delay(0.8, function()
+					say(s.bottom, "ECLIPSE  or  TOXIC GAS? comment", 3, GOLD)
+				end)
 			end,
 		})
-		shotGas(3.5, false)
-		shots[#shots].start = function()
-			say(s.big, "without a Gas dragon", 3, Color3.fromRGB(240, 110, 230))
+	elseif kind == "clip3" then
+		-- GRANDE GROTTA (circa 14 s): pattern interrupt, rivelazione, open loop finale
+		local g = shotIntoGrand(5, 0, 0.5)
+		if g then
+			onStart(g, function()
+				say(s.big, "this mountain is hollow.", 2.4)
+				task.delay(2.6, function()
+					say(s.small, "and someone carved THIS inside", 2.2, ICE)
+				end)
+			end)
 		end
-		shotGas(3, true)
-		local st = shots[#shots].start
-		shots[#shots].start = function()
-			if st then
-				st()
-			end
-			say(s.small, "...unless you have one", 2.6)
+		local inside = shotIntoGrand(5, 0.5, 1)
+		if inside then
+			onStart(inside, function()
+				say(s.small, "but that's not the biggest part...", 3, ICE)
+			end)
 		end
+		onStart(shotDragonPass(4), function()
+			say(s.big, "part 2 at 1000 likes", 3.6, GOLD)
+		end)
 	end
 	run(shots, s)
-	for _, a in { baby, adult, gas, gelo } do
+	for _, a in { baby, adult, gas } do
 		hide(a)
 	end
-	for _, g in hidden do
-		g.Enabled = true
+	if props then
+		props:Destroy() -- solo qui sul client: alla prossima ripresa il server ne fa una nuova
+	end
+	for _, gui in hidden do
+		gui.Enabled = true
 	end
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true)
