@@ -51,11 +51,6 @@ local function destinations(): { [string]: (Player) -> Vector3? }
 			local c = workspace:GetAttribute("TrainingCenter")
 			return if typeof(c) == "Vector3" then c + Vector3.new(0, 0, 70) else nil
 		end,
-		["Toxic valley (edge)"] = function()
-			local c = workspace:GetAttribute("GasCenter")
-			local r = workspace:GetAttribute("GasRadius")
-			return if typeof(c) == "Vector3" and type(r) == "number" then c + Vector3.new(r * 1.4, 0, 0) else nil
-		end,
 	}
 end
 
@@ -97,8 +92,8 @@ function Teleports.setup()
 	end)
 end
 
-Teleports.NAMES = { "Base camp (hub)", "My camp", "Dragon training", "Toxic valley (edge)" }
+Teleports.NAMES = { "Base camp (hub)", "My camp", "Dragon training" }
 -- chi puo' andarci: tutti, dal primo drago, con lo Chalet
-Teleports.NEEDS = { ["Dragon training"] = "dragon", ["Toxic valley (edge)"] = "chalet" } :: { [string]: string }
+Teleports.NEEDS = { ["Dragon training"] = "dragon" } :: { [string]: string }
 
 return Teleports

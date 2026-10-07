@@ -23,6 +23,7 @@ local Ores = require(script.Ores)
 local Scatter = require(script.Scatter)
 local Toxic = require(script.Toxic)
 local Tutorial = require(script.Tutorial)
+local ThemeZones = require(script.ThemeZones)
 local Village = require(script.Village)
 local Voxelizer = require(script.Voxelizer)
 
@@ -84,6 +85,7 @@ function MapGen.Generate(overrides: { [string]: any }?): Heightmap.Map
 	stage("Obstacles", function() Obstacles.place(map) end)
 	stage("Glacier", function() Glacier.build(map) end) -- dopo gli strapiombi: ci appende le stalattiti
 	stage("Valle dei gas", function() Toxic.build(map) end)
+	stage("Zone a tema", function() ThemeZones.build(map) end)
 	stage("Lakeside", function() Lakeside.build(map) end)
 	stage("Ores", function() Ores.place(map) end)
 	stage("Prati", function() Scatter.place(map) end)

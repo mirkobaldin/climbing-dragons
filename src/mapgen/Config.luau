@@ -314,6 +314,18 @@ local Config = {
 	--   CABINS villaggio attorno alle costole del drago (Baita)
 	--   VILLAS villette a sbalzo sui costoni della montagna (Chalet)
 	-- PLOT_HALF = meta' del lato del terreno per livello; HOUSE_SCALE = grandezza delle case
+	-- Zone a tema dei draghi (mapgen/ThemeZones): ANGLE = lato della montagna, Y = quota cercata,
+	-- RADIUS = grandezza, GROUND = due materiali del terreno (colori in Environment), COLOR = luce del
+	-- drago, STONE = pietra dell'altare. Gelo (grotte di ghiaccio) e Gas (valli) ci sono gia'.
+	THEME_ZONES = {
+		{ ELEMENT = "Roccia", ANGLE = -2.6, Y = 120, RADIUS = 140, GROUND = { "Sandstone", "Rock" }, COLOR = Color3.fromRGB(240, 190, 110), STONE = Color3.fromRGB(120, 100, 80), TITLE = "ROCKFALL CANYON", SUBTITLE = "Home of the Rock dragon" },
+		{ ELEMENT = "Ossa", ANGLE = 2.1, Y = 550, RADIUS = 120, GROUND = { "Salt", "Mud" }, COLOR = Color3.fromRGB(190, 255, 210), STONE = Color3.fromRGB(200, 195, 180), TITLE = "DRAGON GRAVEYARD", SUBTITLE = "Home of the Bone dragon" },
+		{ ELEMENT = "Tempesta", ANGLE = -1.0, Y = 1300, RADIUS = 120, GROUND = { "Slate", "Basalt" }, COLOR = Color3.fromRGB(150, 200, 255), STONE = Color3.fromRGB(70, 82, 110), TITLE = "STORM RIDGE", SUBTITLE = "Home of the Storm dragon" },
+		{ ELEMENT = "Fulmine", ANGLE = -2.0, Y = 2000, RADIUS = 110, GROUND = { "Pavement", "Basalt" }, COLOR = Color3.fromRGB(170, 140, 255), STONE = Color3.fromRGB(30, 26, 40), TITLE = "BLACK LIGHTNING SPIRES", SUBTITLE = "Home of the Black Lightning dragon" },
+		{ ELEMENT = "Cosmico", ANGLE = 1.2, Y = 3100, RADIUS = 110, GROUND = { "Concrete", "Slate" }, COLOR = Color3.fromRGB(220, 90, 255), STONE = Color3.fromRGB(60, 40, 110), TITLE = "STARFALL PLATEAU", SUBTITLE = "Home of the Cosmic dragon" },
+		{ ELEMENT = "Eclissi", ANGLE = 3.0, Y = 3600, RADIUS = 90, GROUND = { "Pavement", "Asphalt" }, COLOR = Color3.fromRGB(255, 170, 60), STONE = Color3.fromRGB(26, 24, 34), TITLE = "ECLIPSE SANCTUARY", SUBTITLE = "Home of the Eclipse dragon" },
+	},
+
 	-- case: tende sparse ai piedi della montagna (accampamento di ogni giocatore), baite sul pendio
 	-- a CABIN_Y, chalet sui costoni a VILLA_Y (quote in studs = metri dell'altimetro)
 	VILLAGE = { TENTS = 20, CABINS = 14, VILLAS = 10, BRIDGES = 3, HOUSE_SCALE = 1.6, PLOT_HALF = { 22, 30, 34 }, CABIN_Y = { 260, 340 }, VILLA_Y = { 500, 650 } },

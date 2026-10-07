@@ -88,7 +88,8 @@ local STEPS: { Step } = {
 		target = fixed("shop"),
 	},
 	{
-		text = "Casa: vai al terreno col tuo nome sulla mezzaluna e compra la Tenda (sblocca il nido)",
+		text = "Casa: questo e' il tuo accampamento ai piedi della montagna. Compra la Tenda (sblocca il nido)",
+		arrive = "camp",
 		check = function(player)
 			return ((player:GetAttribute("HouseLevel") or 0) :: number) >= 1
 		end,
@@ -96,13 +97,14 @@ local STEPS: { Step } = {
 	},
 	{
 		text = "Crafting: apri il Banco da lavoro accanto all'emporio (Ramponi, Rampino, Tuta...)",
+		arrive = "hub",
 		check = function(player)
 			return player:GetAttribute("BenchOpened") == true
 		end,
 		target = fixed("bench"),
 	},
 	{
-		text = "Uova di drago: raccogli l'uovo vicino alla parete e portalo al nido della tua tenda",
+		text = "Uova di drago: raccogli l'uovo vicino alla parete e portalo al nido della tua tenda (T > My camp)",
 		check = attributeAtLeast("EggsIncubated", "incubated0"),
 		target = eggTarget,
 	},
@@ -115,20 +117,35 @@ local STEPS: { Step } = {
 
 local DONE_TEXT = "Pronto! Usa il cartello 'Montagna' al campo o segui la strada. Buona scalata!"
 
+-- porta il giocatore al suo accampamento (terreno ai piedi della montagna) o al campo base
+local function bring(player: Player, where: string)
+	task.delay(1.5, function()
+		local p: any = nil
+		if where == "camp" then
+			p = player:GetAttribute("PlotPosition")
+		else
+			local markers = workspace:FindFirstChild("MapMarkers")
+			local hub = markers and markers:FindFirstChild("HubSpawn")
+			p = if hub and hub:IsA("BasePart") then hub.Position else nil
+		end
+		local character = player.Character
+		if typeof(p) == "Vector3" and character then
+			character:PivotTo(CFrame.new(p + Vector3.new(0, 5, 10)))
+			player:SetAttribute("Notice", if where == "camp" then "Welcome to your camp!" else "Back to the base camp")
+			player:SetAttribute("NoticeTime", os.clock())
+		end
+	end)
+end
+
 local function publish(player: Player, step: number)
 	local before = player:GetAttribute("TutorialStep")
-	if type(before) == "number" and before <= #STEPS and step > #STEPS then
-		-- finito (o saltato): si va al proprio accampamento ai piedi della montagna, cosi' non lo
-		-- si deve cercare nella mappa
-		task.delay(2, function()
-			local p = player:GetAttribute("PlotPosition")
-			local character = player.Character
-			if typeof(p) == "Vector3" and character then
-				character:PivotTo(CFrame.new(p + Vector3.new(0, 5, 10)))
-				player:SetAttribute("Notice", "Welcome to your camp!")
-				player:SetAttribute("NoticeTime", os.clock())
-			end
-		end)
+	if type(before) == "number" and before ~= step then
+		if before <= #STEPS and step > #STEPS then
+			-- finito (o saltato): al proprio accampamento, cosi' non lo si deve cercare nella mappa
+			bring(player, "camp")
+		elseif STEPS[step] and (STEPS[step] :: any).arrive then
+			bring(player, (STEPS[step] :: any).arrive)
+		end
 	end
 	player:SetAttribute("TutorialStep", step)
 	local s = STEPS[step]

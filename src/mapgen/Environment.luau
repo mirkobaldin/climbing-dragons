@@ -24,6 +24,11 @@ local MATERIAL_COLORS = {
 	CrackedLava = Color3.fromRGB(240, 80, 220),
 	-- grotta di ghiaccio: azzurro intenso
 	Ice = Color3.fromRGB(64, 150, 214),
+	-- zone a tema: ossa (bianco osso), guglie del fulmine nero e santuario (nero viola), altopiano
+	-- cosmico (viola)
+	Salt = Color3.fromRGB(226, 218, 198),
+	Pavement = Color3.fromRGB(28, 24, 40),
+	Concrete = Color3.fromRGB(70, 44, 130),
 }
 
 function Environment.apply()

@@ -437,13 +437,16 @@ function Training.setup()
 		-- terreno piatto sotto tutta l'arena (prima era storto e spuntava dalla piattaforma)
 		workspace.Terrain:FillCylinder(CFrame.new(center - Vector3.new(0, 5, 0)), 10, ARENA_H * 1.45, Enum.Material.Ground)
 		workspace.Terrain:FillCylinder(CFrame.new(center + Vector3.new(0, 30, 0)), 60, ARENA_H * 1.45, Enum.Material.Air)
-		local arena = prop(folder, "arenadrago", ARENA_H, CFrame.new(center - Vector3.new(0, ARENA_H * 0.18, 0))) -- i cristalli volano dentro
+		-- la piattaforma del modello sta al 35% dell'altezza: va a filo del terreno (prima era sopra la
+		-- testa e si camminava sotto). L'ingresso del modello (lato +Z) guarda il portale.
+		local gateDir = Vector3.new(math.cos(gateA), 0, math.sin(gateA))
+		local arena = prop(folder, "arenadrago", ARENA_H, CFrame.lookAt(center, center - gateDir) - Vector3.new(0, ARENA_H * 0.35, 0))
 		if arena then
 			arena.Name = "ArenaOssa"
 			-- la mesh ha la collisione a scatola: un anello di muri invisibili lungo le ossa, aperto
 			-- verso il portale
 			local _, asize = arena:GetBoundingBox()
-			local R = math.min(asize.X, asize.Z) * 0.46
+			local R = math.min(asize.X, asize.Z) * 0.31 -- il bordo della piattaforma, dove iniziano le ossa
 			local N = 40
 			for k = 0, N - 1 do
 				local a = k / N * 2 * math.pi
@@ -642,7 +645,8 @@ function Training.setup()
 			local golden = r ~= nil and r.lit == best
 			for _, d in list do
 				local xp = give(player, d, if golden then T.RUSH_XP else T.TARGET_XP)
-				fx:FireAllClients("hit", player.UserId, bestPos, d.element, xp)
+				-- solo a chi spara: ognuno si addestra "da solo" (meno lag con tanti giocatori)
+				fx:FireClient(player, "hit", player.UserId, bestPos, d.element, xp)
 			end
 			if r and golden then
 				r.score += 1

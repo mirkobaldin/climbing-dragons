@@ -166,6 +166,56 @@ function AdminClient.start()
 		return Enum.ContextActionResult.Pass
 	end, false, Enum.KeyCode.Semicolon, Enum.KeyCode.F2)
 
+	-- sul telefono non c'e' F2: due pulsanti visibili solo agli admin (il server controlla
+	-- comunque ogni comando). "Admin" apre la barra (esce la tastiera), "God" accende e spegne
+	-- la modalita' dio con un tocco.
+	local buttons = Instance.new("ScreenGui")
+	buttons.Name = "AdminButtons"
+	buttons.ResetOnSpawn = false
+	buttons.Enabled = false
+	buttons.Parent = player:WaitForChild("PlayerGui")
+	local godOn = false
+	for k, info in { { "Admin", Color3.fromRGB(60, 70, 110) }, { "God", Color3.fromRGB(150, 110, 30) } } do
+		local b = Instance.new("TextButton")
+		b.Name = info[1]
+		b.AnchorPoint = Vector2.new(1, 0)
+		b.Position = UDim2.new(1, -12, 0, 150 + (k - 1) * 44)
+		b.Size = UDim2.fromOffset(84, 38)
+		b.BackgroundColor3 = info[2]
+		b.Font = Enum.Font.GothamBold
+		b.TextSize = 16
+		b.TextColor3 = Color3.new(1, 1, 1)
+		b.Text = info[1]
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 8)
+		corner.Parent = b
+		b.Parent = buttons
+		b.Activated:Connect(function()
+			if info[1] == "Admin" then
+				if gui.Enabled then
+					gui.Enabled = false
+				else
+					open()
+				end
+			else
+				godOn = not godOn
+				local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+				local fn = remote and remote:FindFirstChild("AdminCommand")
+				if fn and fn:IsA("RemoteFunction") then
+					task.spawn(function()
+						fn:InvokeServer(if godOn then "god" else "ungod")
+					end)
+				end
+				b.Text = if godOn then "God ON" else "God"
+			end
+		end)
+	end
+	local function showButtons()
+		buttons.Enabled = player:GetAttribute("IsAdmin") == true
+	end
+	showButtons()
+	player:GetAttributeChangedSignal("IsAdmin"):Connect(showButtons)
+
 	box.FocusLost:Connect(function(enter)
 		if not enter then
 			return

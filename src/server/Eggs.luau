@@ -105,6 +105,16 @@ local function collectSpots()
 	add("SecretExits", "Ombra")
 	add("IceCaves", "Gelo")
 	add("GasZone", "Gas") -- valle dei gas tossici
+	-- nidi delle zone a tema: le uova di quel drago (piu' volte: sono i posti migliori)
+	local nests = markers:FindFirstChild("ThemeNests")
+	for _, m in (if nests then nests:GetChildren() else {}) :: { Instance } do
+		local el = m:GetAttribute("Element")
+		if m:IsA("BasePart") and type(el) == "string" then
+			for _ = 1, 4 do
+				table.insert(spots, { position = m.Position, element = el })
+			end
+		end
+	end
 	add("Ponds", "Gelo")
 	add("Rivers", "Gelo")
 	add("PathPoints", byAltitude)

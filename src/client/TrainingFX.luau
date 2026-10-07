@@ -422,6 +422,38 @@ local function decorate(pet: Model)
 	end
 end
 
+-- Addestramento isolato: mentre miri non vedi gli altri giocatori ne' i loro draghi (con
+-- 12-24 persone nell'arena era un caos e laggava). Si rimettono quando esci dal cerchio.
+local hiddenOthers: { BasePart } = {}
+local function hideOthers(hide: boolean)
+	for _, p in hiddenOthers do
+		p.LocalTransparencyModifier = 0
+	end
+	table.clear(hiddenOthers)
+	if not hide then
+		return
+	end
+	local function hideModel(m: Instance)
+		for _, d in m:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.LocalTransparencyModifier = 1
+				table.insert(hiddenOthers, d)
+			end
+		end
+	end
+	for _, other in Players:GetPlayers() do
+		if other ~= player and other.Character then
+			hideModel(other.Character)
+		end
+	end
+	local pets = workspace:FindFirstChild("Pets")
+	for _, m in (if pets then pets:GetChildren() else {}) :: { Instance } do
+		if m:GetAttribute("Owner") ~= player.UserId then
+			hideModel(m)
+		end
+	end
+end
+
 local function startAim(event: RemoteEvent)
 	local on = false
 	local yaw, pitch = 0, -0.12
@@ -498,6 +530,11 @@ local function startAim(event: RemoteEvent)
 					(d :: any).LocalTransparencyModifier = if want then 1 else 0
 				end
 			end
+		end
+		if want ~= on then
+			hideOthers(want)
+		elseif on and os.clock() % 2 < 0.02 then
+			hideOthers(true) -- chi arriva dopo
 		end
 		on = want
 		gui.Enabled = on

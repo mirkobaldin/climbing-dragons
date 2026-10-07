@@ -901,15 +901,7 @@ local function plot(parent: Instance, cf: CFrame, S: number, level: number, zone
 	local b = builder(parent, "Plot" .. plotCount)
 	b.model:SetAttribute("Level", level) -- 1 tenda, 2 baita, 3 chalet: la casa di quel livello sta qui
 	b.model:SetAttribute("Zone", zone)
-	for _, x in { -S, S } do
-		for _, z in { -S, S } do
-			b.block(Vector3.new(0.6, 2.4, 0.6), cf * CFrame.new(x, 1.2, z), WOOD_DARK, Enum.Material.Wood)
-		end
-	end
-	for _, side in { -1, 1 } do
-		b.block(Vector3.new(0.3, 0.3, S * 2), cf * CFrame.new(side * S, 2, 0), WOOD, Enum.Material.Wood).CanCollide = false
-		b.block(Vector3.new(S * 2, 0.3, 0.3), cf * CFrame.new(0, 2, side * S), WOOD, Enum.Material.Wood).CanCollide = false
-	end
+	-- niente recinto (paletti e corde): resta solo il cartello col nome
 	local post = b.block(Vector3.new(0.6, 5, 0.6), cf * CFrame.new(S - 3, 2.5, -S - 1), WOOD_DARK, Enum.Material.Wood)
 	local board = b.block(Vector3.new(6, 3, 0.3), cf * CFrame.new(S - 3, 5, -S - 1.2), LIGHT_WOOD, Enum.Material.WoodPlanks)
 	board.Name = "PlotSign"
@@ -1148,13 +1140,40 @@ function Village.build(map: Heightmap.Map)
 	end
 	-- tende sparse tutto attorno ai piedi della montagna (ognuno ha il suo accampamento, ci
 	-- arriva a fine tutorial), girate verso la montagna
+	-- zone dove non vanno tende: arena (costole), campo base e tutorial
+	local keepAway: { { p: Vector3, r: number } } = { { p = Vector3.new(cx, 0, cz), r = 450 } }
+	do
+		local lm = workspace:FindFirstChild("Landmarks")
+		local rb = lm and lm:FindFirstChild("DragonRibs")
+		if rb and rb:IsA("Model") then
+			local p = rb:GetPivot().Position
+			table.insert(keepAway, { p = Vector3.new(p.X, 0, p.Z), r = 450 })
+		end
+		local tut = workspace:FindFirstChild("Tutorial")
+		if tut then
+			for _, d in tut:GetDescendants() do
+				if d:IsA("BasePart") then
+					table.insert(keepAway, { p = Vector3.new(d.Position.X, 0, d.Position.Z), r = 300 })
+					break
+				end
+			end
+		end
+	end
 	do
 		local M = cfg.MOUNTAIN
 		local mc = Vector3.new(M.X, 0, M.Z)
 		nTents = ring(1, "Tende", V.TENTS, mc, M.RADIUS * 0.85, M.RADIUS * 1.25, function(at)
 			return Vector3.new(mc.X - at.X, 0, mc.Z - at.Z).Unit
 		end, 10, function(p)
-			return p.Y > 15 and p.Y < 220 and not BAD[zoneAt(p.X, p.Z)]
+			if p.Y < 15 or p.Y > 220 or BAD[zoneAt(p.X, p.Z)] then
+				return false
+			end
+			for _, far in keepAway do
+				if (Vector3.new(p.X, 0, p.Z) - far.p).Magnitude < far.r then
+					return false
+				end
+			end
+			return true
 		end)
 	end
 	local _ = campC
