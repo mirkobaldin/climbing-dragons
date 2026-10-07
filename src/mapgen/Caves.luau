@@ -544,8 +544,40 @@ end
 -- solo dentro la montagna, ghiaccio (riveste anche la cavita' della montagna vuota, cosi' non si
 -- vede il buio dentro); in basso terrazze di neve e ghiaccio; colonne di ghiaccio da terra al
 -- soffitto. La parete fuori resta roccia.
-local function carveGrandCave(map: Heightmap.Map, yield: () -> ())
-	local G = map.cfg.CAVES.GRAND
+-- Ghiaccio che sfuma nella roccia attorno all'apertura: chiazze (piu' fitte vicino al bordo)
+-- di ghiaccio, poi ghiacciaio e neve, sulla superficie della parete. Niente stacco netto.
+local function iceFade(face: Vector3, out: Vector3, side: Vector3, G: any, rng: Random, yield: () -> ())
+	local terrain = workspace.Terrain
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { terrain }
+	local M = Enum.Material
+	local rocks = { M.Rock, M.Slate, M.Basalt, M.Ground, M.Limestone, M.Mud, M.Sandstone, M.Grass, M.LeafyGrass }
+	local W, H = G.WIDTH * 0.95, G.HEIGHT * 0.95
+	for k = 1, 420 do
+		local a = rng:NextNumber(0, 2 * math.pi)
+		local f = rng:NextNumber() ^ 1.7 -- 0 = sul bordo, 1 = lontano
+		local extra = f * G.FADE
+		local q = face + side * math.cos(a) * (W + extra) + Vector3.new(0, math.sin(a) * (H + extra), 0)
+		local hit = workspace:Raycast(q + out * 160, -out * 320, params)
+		if hit and hit.Material ~= M.Air and hit.Material ~= M.Water then
+			local s = rng:NextNumber(10, 26) * (1 - f * 0.5)
+			local to = if f < 0.45 then M.Ice elseif f < 0.75 then M.Glacier else M.Snow
+			local region = Region3.new(hit.Position - Vector3.one * s, hit.Position + Vector3.one * s):ExpandToGrid(4)
+			for _, from in rocks do
+				terrain:ReplaceMaterial(region, 4, from, to)
+			end
+			if to == M.Ice then
+				terrain:ReplaceMaterial(region, 4, M.Snow, M.Glacier)
+			end
+		end
+		if k % 25 == 0 then
+			yield()
+		end
+	end
+end
+
+local function carveGrandCave(map: Heightmap.Map, yield: () -> (), G: any, key: string)
 	if not G then
 		return
 	end
@@ -564,19 +596,24 @@ local function carveGrandCave(map: Heightmap.Map, yield: () -> ())
 	local columns = {}
 	for k = 1, G.COLUMNS do
 		local u, v = rng:NextNumber(-0.65, 0.65), rng:NextNumber(-0.7, 0.3)
-		table.insert(columns, { p = C + side * u * G.WIDTH + out * v * G.DEPTH, r = rng:NextNumber(6, 13) })
+		if math.abs(u) > 0.2 then -- al centro il corridoio dall'apertura al trono resta libero
+			table.insert(columns, { p = C + side * u * G.WIDTH + out * v * G.DEPTH, r = rng:NextNumber(6, 13) })
+		end
 	end
 	local seed = rng:NextNumber(0, 100)
 	-- distanza "normalizzata" dalla sala: < 1 dentro
 	local function inside(p: Vector3): number
 		local d = p - C
 		local x, y, z = d:Dot(side) / G.WIDTH, d.Y / G.HEIGHT, d:Dot(out) / G.DEPTH
+		if G.OPEN and y > 0 then
+			y *= 0.4 -- cratere: la sala sale fino a sfondare il pendio
+		end
 		local n = noise(p.X / 45 + seed, p.Y / 45, p.Z / 45) * 0.14
 		return math.sqrt(x * x + y * y + z * z) + n
 	end
 	local reach = math.max(G.WIDTH, G.DEPTH) + G.SHELL + 8
 	local lo = C - Vector3.new(reach, G.HEIGHT + G.SHELL + 8, reach)
-	local hi = C + Vector3.new(reach, G.HEIGHT + G.SHELL + 8, reach)
+	local hi = C + Vector3.new(reach, (if G.OPEN then G.HEIGHT * 2.5 else G.HEIGHT) + G.SHELL + 8, reach)
 	local region = Region3.new(lo, hi):ExpandToGrid(4)
 	local mats, occs = terrain:ReadVoxels(region, 4)
 	local size = mats.Size
@@ -626,7 +663,8 @@ local function carveGrandCave(map: Heightmap.Map, yield: () -> ())
 		end
 	end
 	terrain:WriteVoxels(region, 4, mats, occs)
-	map.features.grandCave = {
+	iceFade(face, out, side, G, rng, yield)
+	map.features[key] = {
 		center = toPoint(C),
 		floor = floorY,
 		face = toPoint(face),
@@ -803,7 +841,8 @@ function Caves.carve(map: Heightmap.Map, yield: () -> (), progress: (string, num
 		end
 	end
 	print(string.format("[MapGen] Grotte: %d scavi, %d rivestiti nella cavita'", #ops, lined))
-	carveGrandCave(map, yield)
+	carveGrandCave(map, yield, map.cfg.CAVES.GRAND, "grandCave")
+	carveGrandCave(map, yield, map.cfg.CAVES.CRATER, "craterCave")
 	progress("Grotte", 1)
 end
 

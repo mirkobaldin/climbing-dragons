@@ -173,12 +173,65 @@ end
 
 type Shot = { dur: number, cam: (number) -> CFrame, update: ((number) -> ())?, start: (() -> ())?, at: Vector3? }
 
+-- la camera non entra mai nel terreno: se finisce dentro (voxel pieno) sale finche' e' fuori
+local function solidAt(p: Vector3): boolean
+	local region = Region3.new(p - Vector3.one * 2, p + Vector3.one * 2):ExpandToGrid(4)
+	local ok, mats, occs = pcall(function()
+		return workspace.Terrain:ReadVoxels(region, 4)
+	end)
+	if not ok then
+		return false
+	end
+	local _ = mats
+	return occs[1][1][1] > 0.3
+end
+local function keepOut(cf: CFrame): CFrame
+	local p = cf.Position
+	for _ = 1, 30 do
+		if not solidAt(p) then
+			break
+		end
+		p += Vector3.new(0, 4, 0)
+	end
+	return cf.Rotation + p
+end
+
 local function run(shots: { Shot }, s: Screen)
 	local camera = workspace.CurrentCamera
+	-- STREAMING: la mappa arriva solo attorno al personaggio. Prima la camera andava lontano e
+	-- terreno e modelli si caricavano mentre passava (tutto a scatti, sfarfallio). Ora il tuo
+	-- personaggio (nascosto, fermo) va dove gira ogni scena: si precarica tutto a schermo nero e
+	-- durante il trailer il personaggio segue le scene.
+	local me = player.Character
+	local myRoot = me and me:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local homeCf = me and me:GetPivot()
+	local hiddenParts: { BasePart } = {}
+	local function hideAll(m: Instance?)
+		if not m then
+			return
+		end
+		for _, d in m:GetDescendants() do
+			if d:IsA("BasePart") and d.LocalTransparencyModifier < 1 then
+				d.LocalTransparencyModifier = 1
+				table.insert(hiddenParts, d)
+			end
+		end
+	end
+	hideAll(me)
+	hideAll(workspace:FindFirstChild("Pets"))
+	if myRoot then
+		myRoot.Anchored = true
+	end
+	local function focus(at: Vector3?)
+		if at and me and myRoot then
+			me:PivotTo(CFrame.new(at + Vector3.new(0, 30, 0)))
+		end
+	end
 	for _, shot in shots do
 		if shot.at then
+			focus(shot.at)
 			pcall(function()
-				player:RequestStreamAroundAsync(shot.at :: Vector3, 5)
+				player:RequestStreamAroundAsync(shot.at :: Vector3, 3)
 			end)
 		end
 	end
@@ -191,7 +244,7 @@ local function run(shots: { Shot }, s: Screen)
 			if current.update then
 				current.update(u)
 			end
-			local cf = current.cam(u)
+			local cf = keepOut(current.cam(u))
 			if shake > 0 then
 				cf *= CFrame.Angles((math.random() - 0.5) * 0.05 * shake, (math.random() - 0.5) * 0.05 * shake, 0)
 				shake = math.max(0, shake - dt * 2)
@@ -201,6 +254,7 @@ local function run(shots: { Shot }, s: Screen)
 	end)
 	fadeTo(s, 0, 0.3)
 	for _, shot in shots do
+		focus(shot.at)
 		if shot.start then
 			shot.start()
 		end
@@ -212,6 +266,30 @@ local function run(shots: { Shot }, s: Screen)
 	task.wait(0.5)
 	conn:Disconnect()
 	camera.CameraType = Enum.CameraType.Custom
+	for _, d in hiddenParts do
+		d.LocalTransparencyModifier = 0
+	end
+	if me and myRoot and homeCf then
+		me:PivotTo(homeCf)
+		myRoot.Anchored = false
+	end
+end
+
+-- volo con la virata nelle curve e il corpo che sale e scende col battito (prima scivolava
+-- dritto come una statua spinta)
+local function flyAlong(a: Actor?, path: (number) -> Vector3, u: number, beat: number)
+	if not a then
+		return
+	end
+	local p, q, r = path(u), path(u + 0.004), path(u - 0.004)
+	local dir = q - r
+	if dir.Magnitude < 1e-3 then
+		return
+	end
+	local turn = (q - p).Unit:Cross((p - r).Unit).Y
+	local bob = math.sin(os.clock() * 2 * math.pi / beat) * 1.2
+	local pitch = math.cos(os.clock() * 2 * math.pi / beat) * 0.05
+	a.model:PivotTo(CFrame.lookAt(p + Vector3.new(0, bob, 0), p + dir) * CFrame.Angles(pitch, 0, math.clamp(-turn * 60, -0.7, 0.7)))
 end
 
 local function dolly(a: Vector3, b: Vector3, la: Vector3, lb: Vector3): (number) -> CFrame
@@ -347,6 +425,10 @@ function Trailer.play(kind: string, take: string?)
 	-- il drago adulto vola davanti all'apertura della Grande Grotta, virando; la camera lo segue
 	local function shotDragonPass(dur: number): Shot
 		local base = if gc then gface + gout * 170 else summit - Vector3.new(0, 2500, 0)
+		local function path(u: number): Vector3
+			local a = -1.1 + 2.2 * u
+			return base + gside * math.sin(a) * 190 + gout * (math.cos(a) * 60 - 40)
+		end
 		return add({
 			dur = dur,
 			at = base,
@@ -354,13 +436,7 @@ function Trailer.play(kind: string, take: string?)
 				pose(adult, "fly", 0.55)
 			end,
 			update = function(u)
-				if adult then
-					local a = -1.1 + 2.2 * u
-					local p = base + gside * math.sin(a) * 190 + gout * (math.cos(a) * 60 - 40) + Vector3.new(0, math.sin(u * 5) * 6, 0)
-					local q = base + gside * math.sin(a + 0.05) * 190 + gout * (math.cos(a + 0.05) * 60 - 40)
-					local bank = -math.cos(a) * 0.45
-					adult.model:PivotTo(CFrame.lookAt(p, q) * CFrame.Angles(0, 0, bank))
-				end
+				flyAlong(adult, path, u, 1.2 / 0.55)
 			end,
 			cam = function(u)
 				local a = -1.1 + 2.2 * u
@@ -402,36 +478,184 @@ function Trailer.play(kind: string, take: string?)
 		})
 	end
 
+	-- rampino: il sosia sale lungo la corda fino al bordo dello strapiombo (punto della cinematica)
+	local function shotGrapple(dur: number): Shot?
+		local spot, nrm = workspace:GetAttribute("CineSpot"), workspace:GetAttribute("CineNormal")
+		if typeof(spot) ~= "Vector3" or typeof(nrm) ~= "Vector3" then
+			return nil
+		end
+		local n = flat(nrm)
+		local side = Vector3.new(-n.Z, 0, n.X)
+		local lip = spot + n * 2
+		local from = lip + n * 7 - Vector3.new(0, 75, 0)
+		local Cinematic = require(script.Parent.Cinematic)
+		local body: Model? = nil
+		local rope = Instance.new("Part")
+		rope.Anchored, rope.CanCollide, rope.CanQuery, rope.CanTouch = true, false, false, false
+		rope.Color = Color3.fromRGB(90, 70, 50)
+		rope.Material = Enum.Material.Fabric
+		local hook = Instance.new("Part")
+		hook.Anchored, hook.CanCollide, hook.CanQuery, hook.CanTouch = true, false, false, false
+		hook.Size = Vector3.new(1, 1, 1.6)
+		hook.Color = Color3.fromRGB(60, 60, 66)
+		hook.Material = Enum.Material.Metal
+		local function bodyAt(u: number): Vector3
+			return from:Lerp(lip + n * 3 + Vector3.new(0, 2, 0), smooth(u * 1.15))
+		end
+		return add({
+			dur = dur,
+			at = lip,
+			start = function()
+				body = Cinematic.kit.cloneActor()
+				hook.CFrame = CFrame.lookAt(lip, lip - n)
+				hook.Parent = workspace
+				rope.Parent = workspace
+			end,
+			update = function(u)
+				local p = bodyAt(u)
+				if body then
+					(body :: Model):PivotTo(CFrame.lookAt(p, p - n) * CFrame.Angles(math.rad(-15), 0, math.sin(u * 9) * 0.12))
+				end
+				local hand = p + Vector3.new(0, 2.5, 0) - n * 0.6
+				rope.Size = Vector3.new(0.25, 0.25, (lip - hand).Magnitude)
+				rope.CFrame = CFrame.lookAt((lip + hand) / 2, lip)
+				if u >= 0.999 then
+					rope.Parent, hook.Parent = nil, nil
+					if body then
+						(body :: Model):Destroy()
+						body = nil
+					end
+				end
+			end,
+			cam = function(u)
+				local p = bodyAt(u)
+				return CFrame.lookAt(lip + n * 34 + side * 22 - Vector3.new(0, 55 - 40 * smooth(u), 0), p + Vector3.new(0, 4, 0))
+			end,
+		})
+	end
+	-- stormo: tutti i draghi in volo a V davanti alla parete, guidati dall'Eclissi adulto
+	local flock: { Actor } = {}
+	local function shotFlock(dur: number): Shot
+		local base = if gc then gface + gout * 140 + Vector3.new(0, 20, 0) else summit - Vector3.new(0, 2600, 0)
+		local dir = gside
+		local function lead(u: number): Vector3
+			return base + dir * (-200 + 400 * u) + gout * math.sin(u * 3) * 20 + Vector3.new(0, 15 * u, 0)
+		end
+		return add({
+			dur = dur,
+			at = base,
+			start = function()
+				pose(adult, "fly", 0.55)
+				for _, a in flock do
+					pose(a, "fly", 0.9)
+				end
+			end,
+			update = function(u)
+				flyAlong(adult, lead, u, 1.2 / 0.55)
+				for k, a in flock do
+					local row = math.ceil(k / 2)
+					local sideK = if k % 2 == 0 then 1 else -1
+					local off = -dir * (40 + row * 24) + gout * sideK * row * 20 + Vector3.new(0, math.sin(k * 1.9) * 6, 0)
+					flyAlong(a, function(x: number): Vector3
+						return lead(x) + off
+					end, u, 1.2 / 0.9 + k * 0.03)
+				end
+			end,
+			cam = function(u)
+				local p = lead(u)
+				-- la camera vola con lo stormo, dietro c'e' la Grande Grotta
+				return CFrame.lookAt(p + gout * 95 - dir * 55 + Vector3.new(0, 14, 0), p - dir * 35 - gout * 10)
+			end,
+		})
+	end
+	-- dentro la Grande Grotta fino al trono del Re Yeti
+	local function shotKing(dur: number): Shot?
+		local den = workspace:GetAttribute("GrandCaveDen")
+		if not gc or typeof(den) ~= "CFrame" then
+			return nil
+		end
+		local throne = den.Position
+		local mouth = gface + gout * 60 + Vector3.new(0, 30, 0)
+		local close = throne + gout * 55 + Vector3.new(0, 18, 0)
+		return add({
+			dur = dur,
+			at = throne,
+			cam = function(u)
+				local k = smooth(u)
+				return CFrame.lookAt(mouth:Lerp(close, k), throne + Vector3.new(0, 10 + 10 * (1 - k), 0))
+			end,
+		})
+	end
+	-- il cratere sopra i 2000 m: dall'alto si scende verso il Titano di ghiaccio
+	local function shotCrater(dur: number): Shot?
+		local c, out, den = workspace:GetAttribute("CraterCaveCenter"), workspace:GetAttribute("CraterCaveOut"), workspace:GetAttribute("CraterCaveDen")
+		if typeof(c) ~= "Vector3" or typeof(out) ~= "Vector3" or typeof(den) ~= "CFrame" then
+			return nil
+		end
+		local o = flat(out)
+		local target = den.Position + Vector3.new(0, 15, 0)
+		return add({
+			dur = dur,
+			at = c,
+			cam = dolly(c + o * 330 + Vector3.new(0, 260, 0), c + o * 130 + Vector3.new(0, 70, 0), target, target),
+		})
+	end
+
 	if kind == "trailer" then
-		-- 19 secondi
+		-- 19 secondi: montagna, rampino, stormo, grotta col re, cratere col titano, gas,
+		-- evoluzione nell'arena, titolo
+		for _, e in { "Roccia", "Brace", "Gelo", "Cosmico", "Tempesta", "Sole", "Fulmine", "Ossa", "Gas" } do
+			local a = actor(props, "Stormo" .. e)
+			if a then
+				table.insert(flock, a)
+			end
+		end
 		local s1 = add({
-			dur = 3,
+			dur = 2.4,
 			at = summit - Vector3.new(0, 1500, 0),
-			cam = dolly(summit + flat(Vector3.new(-1, 0, 0.35)) * 1700 + Vector3.new(0, -1500, 0), summit + flat(Vector3.new(-1, 0, 0.35)) * 800 + Vector3.new(0, -400, 0), summit - Vector3.new(0, 900, 0), summit),
+			cam = dolly(summit + flat(Vector3.new(-1, 0, 0.35)) * 1700 + Vector3.new(0, -1500, 0), summit + flat(Vector3.new(-1, 0, 0.35)) * 900 + Vector3.new(0, -500, 0), summit - Vector3.new(0, 900, 0), summit),
 		})
 		onStart(s1, function()
-			say(s.big, "HARDCORE CLIMBING", 2.4)
+			say(s.big, "HARDCORE CLIMBING", 2.1)
 		end)
-		onStart(shotDragonPass(3.4), function()
-			say(s.small, "TAME DRAGONS", 2.6, ORANGE)
-		end)
-		local g = shotIntoGrand(3, 0.1, 0.85)
-		if g then
-			onStart(g, function()
-				say(s.small, "EXPLORE GIANT ICE CAVES", 2.4, ICE)
+		local gr = shotGrapple(2.2)
+		if gr then
+			onStart(gr, function()
+				say(s.small, "GRAPPLE YOUR WAY UP", 2, ICE)
 			end)
 		end
-		onStart(shotGas(2.4), function()
-			say(s.small, "SURVIVE THE TOXIC VALLEYS", 2, Color3.fromRGB(240, 110, 230))
+		onStart(shotFlock(2.8), function()
+			say(s.small, "TAME 11 DRAGONS", 2.5, ORANGE)
 		end)
-		local arena = add({ dur = 2.4, at = train, cam = orbit(train, 50, 20, 0.6, 1.5, 9) })
-		onStart(arena, function()
+		local king = shotKing(2.8)
+		if king then
+			onStart(king, function()
+				hide(adult)
+				for _, a in flock do
+					hide(a)
+				end
+				say(s.small, "GIANT ICE CAVES...", 1.3, ICE)
+				task.delay(1.3, function()
+					say(s.big, "...AND THEIR KING", 1.4, ICE)
+				end)
+			end)
+		end
+		local crater = shotCrater(1.8)
+		if crater then
+			onStart(crater, function()
+				say(s.small, "THE ICE TITAN AWAITS", 1.6, ICE)
+			end)
+		end
+		onStart(shotGas(1.6), function()
+			say(s.small, "SURVIVE THE TOXIC VALLEYS", 1.4, Color3.fromRGB(240, 110, 230))
+		end)
+		local evo = add(evolution(s, train + Vector3.new(0, 0, 8), baby, adult, 3, 0.55))
+		onStart(evo, function()
 			hide(gas)
-			say(s.small, "TRAIN TO LV 100", 2, GOLD)
+			say(s.small, "TRAIN TO LV 100", 1.5, GOLD)
 		end)
-		add(evolution(s, train + Vector3.new(0, 0, 8), baby, adult, 3.2, 0.6))
 		local last = add({
-			dur = 1.8,
+			dur = 2.2,
 			cam = shots[#shots].cam,
 			start = function()
 				fadeTo(s, 1, 0.35)
@@ -560,10 +784,14 @@ function Trailer.play(kind: string, take: string?)
 				end)
 			end)
 		end
-		local inside = shotIntoGrand(5, 0.5, 1)
-		if inside then
-			onStart(inside, function()
-				say(s.small, "but that's not the biggest part...", 3, ICE)
+		-- dentro: il trono, e chi ci sta seduto
+		local king = shotKing(5)
+		if king then
+			onStart(king, function()
+				say(s.small, "and something LIVES in here...", 2.4, ICE)
+				task.delay(2.6, function()
+					say(s.big, "the YETI KING", 2.2, ICE)
+				end)
 			end)
 		end
 		onStart(shotDragonPass(4), function()

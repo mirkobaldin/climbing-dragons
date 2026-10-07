@@ -60,6 +60,25 @@ EnemyConfig.TYPES = {
 	},
 } :: { [string]: EnemyType }
 
+-- Capi: uno per tana, nella sala di ghiaccio (attributo <den> del Workspace, lo scrive il
+-- generatore della mappa). kind = modello di ServerStorage.Nemici; throne = aspetta seduto sul
+-- trono di ghiaccio finche' non arrivi.
+export type Boss = EnemyType & { kind: string, den: string, throne: boolean }
+EnemyConfig.BOSSES = {
+	{
+		kind = "Yeti", den = "GrandCaveDen", throne = true,
+		name = "Yeti King", height = 20, health = 1400, speed = 13, damage = 34, reach = 13,
+		cooldown = 2, hitAt = 0.5, knockback = 90, aggro = 75, leash = 140, coins = 200, xp = 450,
+		count = 1, respawn = 600,
+	},
+	{
+		kind = "GolemGhiaccio", den = "CraterCaveDen", throne = false,
+		name = "Ice Titan", height = 34, health = 2600, speed = 8, damage = 48, reach = 20,
+		cooldown = 2.8, hitAt = 0.5, knockback = 130, aggro = 80, leash = 120, coins = 400, xp = 900,
+		count = 1, respawn = 900,
+	},
+} :: { Boss }
+
 -- Danno dei tuoi colpi (click con l'attrezzo in mano vicino al nemico)
 EnemyConfig.PLAYER_DAMAGE = { Piccozza = 22, Piccone = 16 }
 EnemyConfig.PLAYER_REACH = 11

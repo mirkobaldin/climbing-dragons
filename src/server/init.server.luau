@@ -26,7 +26,7 @@ local Ocean = require(script.Ocean)
 
 local remotes = Remotes.setup()
 Unstuck.setup() -- per primo: non deve dipendere da quello che viene dopo
-task.spawn(function()
+task.defer(function() -- dopo l'avvio: non deve rubare tempo al resto
 	local ok, err = pcall(CinematicSpots.setup)
 	if not ok then
 		warn("[Cinematica] " .. tostring(err))
@@ -182,13 +182,15 @@ remotes.ClimbState.OnServerEvent:Connect(function(player, climbing)
 	local _ = climbing
 	Tools.setOffhandVisible(player.Character, true)
 end)
+task.wait() -- il lavoro di prima (animazioni) non deve sommarsi al resto: niente timeout
+Admin.setup() -- presto: F2 deve funzionare anche se un sistema dopo si rompe
 Tools.setup()
 Ropes.setup(remotes)
 Hazards.setup(remotes)
 Weather.setup()
 Dragons.setup()
 Training.setup()
-task.spawn(Enemies.setup) -- cerca i punti sulla montagna: non deve fermare gli altri sistemi
+task.defer(Enemies.setup) -- cerca i punti sulla montagna: non deve fermare gli altri sistemi
 ToxicGas.setup()
 Teleports.setup()
 Economy.setup()
@@ -198,5 +200,5 @@ BaseCamps.setup()
 Mining.setup()
 Eggs.setup(remotes)
 task.spawn(Tutorial.setup) -- aspetta la cartella Tutorial senza bloccare il resto
-Admin.setup()
+-- (Admin.setup e' all'inizio)
 Shop.setup(remotes)

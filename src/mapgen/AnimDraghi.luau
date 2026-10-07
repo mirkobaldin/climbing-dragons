@@ -508,6 +508,22 @@ local function hump(p: number, a: number, b: number): number
 end
 -- fasi del battito del tucano: ala piu' in basso e piu' in alto
 local FLY_LOW, FLY_HIGH = 0.44, 0.08
+-- ampiezza del battito per il rig in lavorazione: la si abbassa finche' nessun osso di un'ala
+-- passa oltre la meta' del corpo (prima in alto le ali si incrociavano sopra la schiena)
+local flyAmp = 1
+-- ali aperte in volo: nei modelli le ali sono ripiegate all'indietro lungo il corpo, e battere
+-- un'ala che punta indietro attorno all'asse avanti-indietro la faceva solo girare su se' stessa
+-- (il drago sembrava una statua). Per ogni ala: gomito disteso, ala portata di lato (20 gradi
+-- indietro) e appena sopra l'orizzontale; il battito parte da li'. Misurate sul rig.
+type Spread = { elbow: number, sweep: number, elev: number }
+local spreads: { Spread } = {}
+
+-- angolo (gradi, col segno) per portare a su b girando attorno ad axis
+local function signedAngle(a: Vector3, b: Vector3, axis: Vector3): number
+	local pa = a - axis * a:Dot(axis)
+	local pb = b - axis * b:Dot(axis)
+	return math.deg(math.atan2(pa:Cross(pb):Dot(axis), pa:Dot(pb)))
+end
 
 local function buildFly(sk: Skel, s: Signs, t: number): Poses
 	local poses: Poses = {}
@@ -521,7 +537,16 @@ local function buildFly(sk: Skel, s: Signs, t: number): Poses
 			-- sulle ali a catena lunga (es. Roccia, 7 ossa in fila) le ossa in ritardo si sommavano
 			-- e la punta faceva quasi un giro: l'ampiezza dopo il gomito si divide tra le ossa
 			local amp = if k == 1 then 42 elseif k == 2 then 16 else 10 * math.min(1, 2 / math.max(#w.arm - 2, 1))
-			add(poses, sk, b, sk.fwd, flap * amp * wave("fly", "wing", p - lag))
+			add(poses, sk, b, sk.fwd, flap * amp * flyAmp * wave("fly", "wing", p - lag))
+		end
+		local sp = spreads[i]
+		if sp then
+			-- prima si apre l'ala (di lato, poi all'altezza giusta), il battito si somma sopra
+			add(poses, sk, w.arm[1], sk.fwd, sp.elev)
+			add(poses, sk, w.arm[1], UP, sp.sweep)
+			if w.arm[2] then
+				add(poses, sk, w.arm[2], UP, sp.elbow)
+			end
 		end
 		-- risalita: avambraccio e dita si richiudono; discesa: le punte vanno avanti (l'ala si gonfia)
 		-- a campana su tutta la risalita e la discesa: prima si accendeva di colpo al cambio e la
@@ -569,21 +594,36 @@ end
 local function buildWalk(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 	local poses: Poses = {}
 	local p = t / WALK_T
-	-- zampe: oscillazione della coscia dal giaguaro; il piede si alza mentre la zampa va avanti
+	-- zampe: appoggio e volo. Prima la coscia oscillava avanti e indietro come un pendolo (le
+	-- zampe "a dondolo"): ora per il 62% del passo il piede sta a terra e la zampa scorre
+	-- indietro a velocita' costante, poi si stacca, il ginocchio si piega, torna avanti morbida
+	-- e si distende prima di appoggiare.
+	local STANCE = 0.62
 	for i, leg in sk.legs do
-		local ph = p + leg.phase
-		local key = if leg.front then "arm" else "thigh"
-		local swing = wave("walk", key, ph)
-		local ahead = wave("walk", key, ph + 0.04) - wave("walk", key, ph - 0.04)
-		local lift = math.max(0, ahead) * 4 -- solo quando va avanti
-		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * 20 * swing)
+		local ph = (p + leg.phase) % 1
+		local swing, lift
+		if ph < STANCE then
+			swing = 1 - 2 * ph / STANCE
+			lift = 0
+		else
+			local x = (ph - STANCE) / (1 - STANCE)
+			swing = -1 + 2 * x * x * (3 - 2 * x)
+			lift = math.sin(math.pi * x)
+		end
+		local amp = if leg.front then 20 else 24
+		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * amp * swing)
 		if leg.bones[2] then
-			add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * math.min(28, 28 * lift))
+			add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * 42 * lift)
 		end
 		if leg.bones[3] then
-			add(poses, sk, leg.bones[3], sk.right, (s["lift" .. i] or 1) * -math.min(16, 16 * lift))
+			-- piede: in volo le dita scendono, all'appoggio torna piatto
+			add(poses, sk, leg.bones[3], sk.right, (s["lift" .. i] or 1) * -24 * lift)
 		end
 	end
+	-- il corpo si abbassa un poco a ogni appoggio (due volte per passo): niente "carrello"
+	local hipsRest = sk.rest[sk.hips]
+	local drop = sk.height * 0.012 * (0.5 + 0.5 * math.cos(4 * math.pi * p))
+	poses[sk.hips] = CFrame.new(hipsRest:VectorToObjectSpace(Vector3.new(0, -drop, 0))) * (poses[sk.hips] or CFrame.identity)
 	-- bacino che ondeggia, schiena che compensa, testa che dondola a ogni passo
 	add(poses, sk, sk.hips, UP, 4 * wave("walk", "pelvis", p))
 	add(poses, sk, sk.hips, sk.fwd, 2.5 * wave("walk", "pelvis", p + 0.25))
@@ -737,6 +777,55 @@ function AnimDraghi.genera(soloNome: string?): string
 			for i, w in sk.wings do
 				folds[i] = bestFold(sk, s, i, w, fold)
 			end
+			-- ali aperte per il volo (vedi spreads)
+			spreads = {}
+			for i, w in sk.wings do
+				local sp: Spread = { elbow = 0, sweep = 0, elev = 0 }
+				local elbow = w.arm[2]
+				if elbow then
+					sp.elbow = 0.7 * signedAngle(flat(w.tip.WorldPosition - elbow.WorldPosition), flat(elbow.WorldPosition - w.arm[1].WorldPosition), UP)
+					elbow.Transform = bodyRot(sk, elbow, UP, sp.elbow)
+				end
+				local d = w.tip.WorldPosition - w.arm[1].WorldPosition
+				local side = sk.right * w.side * math.cos(math.rad(20)) - sk.fwd * math.sin(math.rad(20))
+				sp.sweep = signedAngle(d, side, UP)
+				local d2 = CFrame.fromAxisAngle(UP, math.rad(sp.sweep)) * d
+				sp.elev = signedAngle(d2, flat(d2) * math.cos(math.rad(8)) + UP * math.sin(math.rad(8)), sk.fwd)
+				if elbow then
+					elbow.Transform = CFrame.identity
+				end
+				spreads[i] = sp
+			end
+			-- ampiezza del volo: si prova il battito sul rig e si abbassa se un'ala passa la meta'
+			flyAmp = 1
+			local hipsPos = sk.rest[sk.hips].Position
+			for _, try in { 1, 0.85, 0.7, 0.58, 0.46, 0.36 } do
+				flyAmp = try
+				local crossed = false
+				for k = 0, 15 do
+					local poses = buildFly(sk, s, k / 16 * FLY_T)
+					for b, cf in poses do
+						b.Transform = cf
+					end
+					for _, w in sk.wings do
+						local shoulder = math.abs((w.arm[1].WorldPosition - hipsPos):Dot(sk.right))
+						for _, b in wingBones(w) do
+							if (b.WorldPosition - hipsPos):Dot(sk.right) * w.side < shoulder * 0.5 then
+								crossed = true
+							end
+						end
+					end
+					for b in poses do
+						b.Transform = CFrame.identity
+					end
+					if crossed then
+						break
+					end
+				end
+				if not crossed then
+					break
+				end
+			end
 			local store = saves:FindFirstChild(rig.Name) or Instance.new("Model")
 			store.Name = rig.Name
 			store.Parent = saves
@@ -760,7 +849,7 @@ function AnimDraghi.genera(soloNome: string?): string
 				end
 			end
 			local f1 = folds[1]
-			table.insert(report, string.format("%s: ali %d, zampe %d, coda %d ossa, collo %d ossa | piega: indietro %d, giu' %d, gomito %d, dita %d", rig.Name, #sk.wings, #sk.legs, #sk.tail, #sk.neck,
+			table.insert(report, string.format("%s (volo %.2f): ali %d, zampe %d, coda %d ossa, collo %d ossa | piega: indietro %d, giu' %d, gomito %d, dita %d", rig.Name, flyAmp, #sk.wings, #sk.legs, #sk.tail, #sk.neck,
 				f1 and f1.sweep or 0, f1 and f1.down or 0, f1 and f1.elbow or 0, f1 and f1.finger or 0))
 		end
 	end

@@ -129,6 +129,24 @@ local function buildIdle(sk: Skel, s: Signs, p: number): Poses
 	return poses
 end
 
+-- seduto sul trono: cosce avanti, ginocchia ad angolo retto, schiena dritta, braccia sui
+-- braccioli, respiro lento
+local function buildSit(sk: Skel, s: Signs, p: number): Poses
+	local poses: Poses = {}
+	base(poses, sk, s, -4)
+	local b, right = sk.b, sk.right
+	local breath = math.sin(2 * math.pi * p)
+	for _, side in { "Left", "Right" } do
+		add(poses, sk, b[side .. "UpLeg"], right, s[side .. "Swing"] * 85)
+		add(poses, sk, b[side .. "Leg"], right, s[side .. "Knee"] * 90)
+		add(poses, sk, b[side .. "Arm"], right, s[side .. "ArmFwd"] * 35)
+		add(poses, sk, b[side .. "ForeArm"], right, s[side .. "Elbow"] * 40)
+	end
+	add(poses, sk, b.Spine1, right, s.Lean * -2 * breath)
+	add(poses, sk, b.Neck, UP, 8 * math.sin(2 * math.pi * p))
+	return poses
+end
+
 -- attacco: 0..0.4 carica (braccia su, busto indietro), 0.4..0.55 colpo (braccia giu' e avanti,
 -- busto in avanti), poi si torna alla posa di riposo
 local function buildAttack(sk: Skel, s: Signs, t: number): Poses
@@ -216,6 +234,7 @@ function AnimNemici.genera(soloNome: string?): string
 				["nemico-cammina"] = { 1.2, true, function(t) return buildWalk(sk, s, t / 1.2) end },
 				["nemico-fermo"] = { 2.4, true, function(t) return buildIdle(sk, s, t / 2.4) end },
 				["nemico-attacco"] = { 1.0, false, function(t) return buildAttack(sk, s, t) end },
+				["nemico-seduto"] = { 3.2, true, function(t) return buildSit(sk, s, t / 3.2) end },
 			} do
 				local old = store:FindFirstChild(name)
 				if old then
@@ -229,7 +248,7 @@ function AnimNemici.genera(soloNome: string?): string
 					d.Transform = CFrame.identity
 				end
 			end
-			table.insert(report, rig.Name .. ": cammina, fermo, attacco")
+			table.insert(report, rig.Name .. ": cammina, fermo, attacco, seduto")
 		end
 	end
 	return table.concat(report, "\n")

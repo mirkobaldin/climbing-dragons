@@ -347,7 +347,8 @@ local function onWall(parent: Instance, name: string?, wallPoint: Vector3, n: Ve
 end
 
 -- APPESO SOTTO UN TETTO piatto: la cima tocca la roccia in tutti e cinque i punti controllati
-local function hangUnder(parent: Instance, name: string?, roofPoint: Vector3, yaw: number, scale: number): Model?
+-- bury = parte dell'altezza da infilare nel soffitto (la lastra in cima non deve vedersi)
+local function hangUnder(parent: Instance, name: string?, roofPoint: Vector3, yaw: number, scale: number, bury: number?): Model?
 	if not name then
 		return nil
 	end
@@ -368,6 +369,9 @@ local function hangUnder(parent: Instance, name: string?, roofPoint: Vector3, ya
 	end
 	if touching < 3 then
 		return reject(m)
+	end
+	if bury then
+		m:PivotTo(m:GetPivot() + Vector3.new(0, size.Y * bury, 0))
 	end
 	commit(parent, name, m, size)
 	return m
@@ -656,8 +660,8 @@ end
 
 -- Grande Grotta: stalattiti giganti dal soffitto e lungo il bordo dell'apertura, stalagmiti e
 -- colonne sul pavimento, luci azzurre (la luce del giorno entra dall'apertura)
-local function grandCaveIce(folder: Instance, map: Heightmap.Map, rng: Random): number
-	local g = map.features.grandCave
+local function grandCaveIce(folder: Instance, map: Heightmap.Map, rng: Random, key: string, attr: string): number
+	local g = map.features[key]
 	if not g then
 		return 0
 	end
@@ -666,12 +670,17 @@ local function grandCaveIce(folder: Instance, map: Heightmap.Map, rng: Random): 
 	local side = Vector3.new(-out.Z, 0, out.X)
 	local face = Vector3.new(g.face.x, g.face.y, g.face.z)
 	-- per il trailer e le clip (gli attributi del Workspace arrivano sempre al client)
-	workspace:SetAttribute("GrandCaveCenter", C)
-	workspace:SetAttribute("GrandCaveOut", out)
-	workspace:SetAttribute("GrandCaveFace", face)
+	workspace:SetAttribute(attr .. "Center", C)
+	workspace:SetAttribute(attr .. "Out", out)
+	workspace:SetAttribute(attr .. "Face", face)
+	-- la tana del capo (trono del re yeti / titano di ghiaccio): in fondo alla sala, guarda fuori
+	local den = workspace:Raycast(C - out * g.depth * 0.5 + Vector3.new(0, g.height * 0.3, 0), Vector3.new(0, -g.height * 2, 0), terrainOnly)
+	if den then
+		workspace:SetAttribute(attr .. "Den", CFrame.lookAt(den.Position, den.Position + out))
+	end
 	local count = 0
 	local lights = Instance.new("Folder")
-	lights.Name = "LuciGrandeGrotta"
+	lights.Name = "Luci" .. attr
 	lights.Parent = folder
 	for k = 1, 7 do
 		local a = Instance.new("Part")
@@ -690,7 +699,7 @@ local function grandCaveIce(folder: Instance, map: Heightmap.Map, rng: Random): 
 	for _ = 1, 90 do
 		local p = C + side * rng:NextNumber(-0.75, 0.75) * g.width - out * rng:NextNumber(-0.1, 0.75) * g.depth
 		local up = workspace:Raycast(p, Vector3.new(0, g.height * 1.5, 0), terrainOnly)
-		if up and up.Normal.Y < -0.3 and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(3.5, 7)) then
+		if up and up.Normal.Y < -0.3 and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(3.5, 7), 0.35) then
 			count += 1
 		end
 	end
@@ -698,12 +707,13 @@ local function grandCaveIce(folder: Instance, map: Heightmap.Map, rng: Random): 
 	for k = -8, 8 do
 		local p = face - out * rng:NextNumber(4, 18) + side * (k / 8) * g.width * 0.85 + Vector3.new(0, g.height * 0.3, 0)
 		local up = workspace:Raycast(p, Vector3.new(0, g.height * 1.2, 0), terrainOnly)
-		if up and up.Normal.Y < -0.2 and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(3, 6)) then
+		if up and up.Normal.Y < -0.2 and hangUnder(folder, pick(KIT.hanging, rng), up.Position, rng:NextNumber(0, 6.28), rng:NextNumber(3, 6), 0.35) then
 			count += 1
 		end
 	end
-	-- dal pavimento
-	for _ = 1, 30 do
+	-- dal pavimento: niente (alcuni pezzi del kit sono stalattite + stalagmite unite e sembravano
+	-- clessidre); le colonne vere sono di terreno e entrano nel soffitto
+	for _ = 1, 0 do
 		local p = C + side * rng:NextNumber(-0.7, 0.7) * g.width - out * rng:NextNumber(-0.1, 0.7) * g.depth + Vector3.new(0, 10, 0)
 		local down = workspace:Raycast(p, Vector3.new(0, -g.height * 1.5, 0), terrainOnly)
 		if down and down.Normal.Y > 0.8 and standOn(folder, pick(KIT.standing, rng), down.Position, Vector3.new(rng:NextNumber(-1, 1), 0, rng:NextNumber(-1, 1)), rng:NextNumber(2.5, 5.5), 0.12, { support = Enum.Material.Snow, maxGap = 0.7, maxBury = 0.8 }) then
@@ -889,7 +899,8 @@ function Glacier.build(map: Heightmap.Map)
 		for _, gc in map.features.glacierCaves or {} do
 			nGrotta += glacierCave(ice, map, rng, gc)
 		end
-		nGrotta += grandCaveIce(ice, map, rng)
+		nGrotta += grandCaveIce(ice, map, rng, "grandCave", "GrandCave")
+		nGrotta += grandCaveIce(ice, map, rng, "craterCave", "CraterCave")
 		nCave = caveIce(ice, map, rng)
 		nTop = summitIce(ice, map, rng)
 		nCap = iceCapSeracs(ice, map, rng)

@@ -60,6 +60,12 @@ function TrailerProps.prepare(): string
 	persistent(DragonModels.dragon("Eclissi", "Leggendario", 3, 1), "EclissiAdulto", folder)
 	persistent(DragonModels.dragon("Gas", "Epico", 2, 30), "Gas", folder)
 	persistent(DragonModels.dragon("Gelo", "Raro", 1, 10), "Gelo", folder)
+	-- lo stormo del trailer: tutti gli altri draghi
+	for _, e in { "Roccia", "Brace", "Gelo", "Cosmico", "Tempesta", "Sole", "Fulmine", "Ossa", "Gas" } do
+		local m = DragonModels.dragon(e, "Epico", 2, 30)
+		m:ScaleTo(m:GetScale() * 2.2) -- nello stormo si vedono da lontano
+		persistent(m, "Stormo" .. e, folder)
+	end
 	-- la Grande Grotta (punti scritti dal generatore della mappa)
 	folder:SetAttribute("GrandCenter", workspace:GetAttribute("GrandCaveCenter"))
 	folder:SetAttribute("GrandOut", workspace:GetAttribute("GrandCaveOut"))

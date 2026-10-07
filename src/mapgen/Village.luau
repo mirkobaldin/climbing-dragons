@@ -940,12 +940,21 @@ end
 -- pivot a terra e ingresso verso -Z): 1 Tenda, 2 Baita, 3 Chalet, ognuno col suo nido
 buildTemplates = function()
 	local ServerStorageService = game:GetService("ServerStorage")
-	local old = ServerStorageService:FindFirstChild("PlotBuildings")
-	if old then
-		old:Destroy()
+	-- si rifanno solo le tre case: il resto della cartella (modelli messi a mano) non si tocca
+	-- (prima la cartella si cancellava tutta e sono spariti i modelli dell'arena)
+	local folder = ServerStorageService:FindFirstChild("PlotBuildings")
+	if folder then
+		for _, n in { "Tenda", "Baita", "Chalet" } do
+			local old = folder:FindFirstChild(n)
+			if old then
+				old:Destroy()
+			end
+		end
+		folder.Parent = nil
+	else
+		folder = Instance.new("Folder")
+		folder.Name = "PlotBuildings"
 	end
-	local folder = Instance.new("Folder")
-	folder.Name = "PlotBuildings"
 	local levels = {
 		{
 			name = "Tenda",

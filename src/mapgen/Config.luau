@@ -275,7 +275,11 @@ local Config = {
 		-- grande come una cattedrale (colonne, terrazze di neve, stalattiti giganti). ANGLE = lato
 		-- della montagna, Y = quota del centro, WIDTH/HEIGHT/DEPTH = raggi della sala, INSET = di
 		-- quanto il centro sta dentro la parete (meno = apertura piu' grande)
-		GRAND = { ANGLE = 2.72, Y = 1030, WIDTH = 220, HEIGHT = 150, DEPTH = 175, INSET = 55, SHELL = 18, COLUMNS = 9 },
+		-- FADE = quanto si allarga attorno all'apertura il ghiaccio che sfuma nella roccia
+		GRAND = { ANGLE = 2.72, Y = 1500, WIDTH = 300, HEIGHT = 190, DEPTH = 230, INSET = 55, SHELL = 20, COLUMNS = 10, FADE = 170 },
+		-- Grotta-cratere sopra i 2000 m: stessa sala di ghiaccio, ma il tetto e' sfondato (OPEN) e
+		-- dall'alto si vede un cratere nella montagna. Ci vive il Titano di ghiaccio (golem).
+		CRATER = { ANGLE = 0.4, Y = 2450, WIDTH = 190, HEIGHT = 120, DEPTH = 170, INSET = 95, SHELL = 18, COLUMNS = 5, FADE = 140, OPEN = true },
 		-- zone di gas sui pendii: le fumarole vanno anche dove il fondo non e' perfettamente piano
 		NICHE_FRAC = 0.45, -- anfratto segreto nella parete est
 		CATACOMB_Y = -100, -- catacomba segreta sotto il livello del mare

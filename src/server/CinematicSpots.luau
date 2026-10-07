@@ -52,6 +52,9 @@ local function tryClimb(spot: Vector3, n0: Vector3, under: number): (number, boo
 	local steps, roof = 0, false
 	for _ = 1, 50 * 30 do
 		steps += 1
+		if steps % 150 == 0 then
+			task.wait() -- niente timeout all'avvio (bloccava anche F2)
+		end
 		local hit = workspace:Raycast(pos + up * CLIMB_STEP + n * 3, -n * 9, terrainOnly)
 		if not hit then
 			break
@@ -107,6 +110,9 @@ function CinematicSpots.findNose(M: any, top: number)
 	local candidates: { any } = {}
 	for deg = 0, 357, 3 do
 		local a = math.rad(deg)
+		if deg % 15 == 0 then
+			task.wait()
+		end
 		local dir = Vector3.new(math.cos(a), 0, math.sin(a))
 		local radii: { number } = {}
 		local normals: { Vector3 } = {}

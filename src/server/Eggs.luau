@@ -60,12 +60,17 @@ local function collectSpots()
 		warn("[Uova] MapMarkers non trovato: genera la mappa con MapGen")
 		return
 	end
+	local count = 0
 	local function add(folderName: string, element: string | (Vector3) -> string)
 		local f = markers:FindFirstChild(folderName)
 		if not f then
 			return
 		end
 		for _, m in f:GetChildren() do
+			count += 1
+			if count % 400 == 0 then
+				task.wait()
+			end
 			if m:IsA("BasePart") then
 				local el = if type(element) == "function" then element(m.Position) else element
 				table.insert(spots, { position = m.Position, element = el :: string })
@@ -462,7 +467,7 @@ function Eggs.setup(remotes: { [string]: RemoteEvent })
 	task.spawn(altarEggs, "AltareUovo", "Ombra")
 	task.spawn(altarEggs, "AltareVetta", DragonConfig.SUMMIT_EGG or "Sole")
 
-	task.spawn(function()
+	task.defer(function() -- dopo l'avvio (tanti marcatori: niente timeout)
 		collectSpots()
 		tutorialEgg()
 		for _ = 1, DragonConfig.MAX_WORLD_EGGS do

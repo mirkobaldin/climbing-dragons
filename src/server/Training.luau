@@ -70,6 +70,40 @@ local function deco(p: Part): Part
 	return p
 end
 
+-- Modelli di Mirko (ServerStorage.PlotBuildings): copia senza script, alta "height", con la base
+-- in cf. Le mesh hanno la collisione a scatola (non si cambia da script): niente collisioni, si
+-- cammina sul terreno. Il perno finisce al centro del modello (i cristalli li muove il client).
+local function prop(parent: Instance, name: string, height: number, cf: CFrame): Model?
+	local ServerStorage = game:GetService("ServerStorage")
+	local src: Instance? = nil
+	for _, folderName in { "Modelli", "PlotBuildings" } do
+		local store = ServerStorage:FindFirstChild(folderName)
+		src = src or (store and store:FindFirstChild(name))
+	end
+	if not src or not src:IsA("Model") then
+		return nil
+	end
+	local m = src:Clone()
+	for _, d in m:GetDescendants() do
+		if d:IsA("LuaSourceContainer") then
+			d:Destroy()
+		elseif d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanTouch = false
+			d.CanQuery = false
+		end
+	end
+	local _, size = m:GetBoundingBox()
+	m:ScaleTo(m:GetScale() * height / size.Y)
+	m:PivotTo(cf.Rotation + m:GetPivot().Position)
+	local box, s = m:GetBoundingBox()
+	m:PivotTo(m:GetPivot() + (cf.Position - (box.Position - Vector3.new(0, s.Y / 2, 0))))
+	m.WorldPivot = (m:GetBoundingBox())
+	m.Parent = parent
+	return m
+end
+
 local function prompt(parent: Instance, action: string, object: string, distance: number): ProximityPrompt
 	local pr = Instance.new("ProximityPrompt")
 	pr.ActionText = action
@@ -152,8 +186,16 @@ end
 
 -- Cristallo del Potere sopra il centro del cerchio, con il raggio di luce verso il cielo
 local function buildPowerCrystal(parent: Instance, floor: Vector3)
-	local glass = gem(parent, "CristalloPotere", CFrame.new(floor + Vector3.new(0, 13, 0)), 5, Color3.fromRGB(190, 235, 255), RUNE)
-	local model = glass.Parent :: Model
+	local model = prop(parent, "crystal target", 16, CFrame.new(floor + Vector3.new(0, 5, 0)))
+	local glass: BasePart
+	if model then
+		model.Name = "CristalloPotere"
+		glass = model:FindFirstChildWhichIsA("BasePart", true) :: BasePart
+	else
+		glass = gem(parent, "CristalloPotere", CFrame.new(floor + Vector3.new(0, 13, 0)), 5, Color3.fromRGB(190, 235, 255), RUNE)
+		model = glass.Parent :: Model
+	end
+	local model = model :: Model
 	model:SetAttribute("Base", floor + Vector3.new(0, 13, 0))
 	CollectionService:AddTag(model, "CristalloPotere")
 	local light = Instance.new("PointLight")
@@ -208,9 +250,14 @@ local function buildBraziers(parent: Instance, center: Vector3)
 		local model = Instance.new("Model")
 		model.Name = "Braciere" .. e.id
 		model:SetAttribute("Element", e.id)
-		part(model, "Colonna", Vector3.new(3.2, 1.6, 1.6), CFrame.new(p + Vector3.new(0, 1.6, 0)) * CFrame.Angles(0, 0, math.pi / 2), STONE, Enum.Material.Slate, Enum.PartType.Cylinder)
-		part(model, "Coppa", Vector3.new(0.8, 3, 3), CFrame.new(p + Vector3.new(0, 3.5, 0)) * CFrame.Angles(0, 0, math.pi / 2), DARK, Enum.Material.Metal, Enum.PartType.Cylinder)
-		local glow = deco(part(model, "Brace", Vector3.new(0.3, 2.4, 2.4), CFrame.new(p + Vector3.new(0, 3.95, 0)) * CFrame.Angles(0, 0, math.pi / 2), e.glow, Enum.Material.Neon, Enum.PartType.Cylinder))
+		local H = 7
+		local mesh = prop(model, "braciere draconico", H, CFrame.lookAt(p, Vector3.new(center.X, p.Y, center.Z)))
+		if not mesh then
+			H = 4
+			part(model, "Colonna", Vector3.new(3.2, 1.6, 1.6), CFrame.new(p + Vector3.new(0, 1.6, 0)) * CFrame.Angles(0, 0, math.pi / 2), STONE, Enum.Material.Slate, Enum.PartType.Cylinder)
+			part(model, "Coppa", Vector3.new(0.8, 3, 3), CFrame.new(p + Vector3.new(0, 3.5, 0)) * CFrame.Angles(0, 0, math.pi / 2), DARK, Enum.Material.Metal, Enum.PartType.Cylinder)
+		end
+		local glow = deco(part(model, "Brace", Vector3.new(0.3, 2.4, 2.4), CFrame.new(p + Vector3.new(0, H - 0.05, 0)) * CFrame.Angles(0, 0, math.pi / 2), e.glow, Enum.Material.Neon, Enum.PartType.Cylinder))
 		local fire = Instance.new("Fire")
 		fire.Size = 3
 		fire.Heat = 8
@@ -229,9 +276,17 @@ end
 
 -- Bersaglio: cristallo sospeso sopra un piedistallo con un anello di rune (gira e ondeggia sul
 -- client). Restituisce la parte su cui sta il prompt.
-local function buildTarget(parent: Instance, at: Vector3, index: number): Part
-	local glass = gem(parent, "Bersaglio" .. index, CFrame.new(at), 3, Color3.fromRGB(170, 225, 255), Color3.fromRGB(90, 170, 255))
-	local model = glass.Parent :: Model
+local function buildTarget(parent: Instance, at: Vector3, index: number): BasePart
+	local model = prop(parent, "crystal target", 7, CFrame.new(at - Vector3.new(0, 3.5, 0)))
+	local glass: BasePart
+	if model then
+		model.Name = "Bersaglio" .. index
+		glass = model:FindFirstChildWhichIsA("BasePart", true) :: BasePart
+	else
+		glass = gem(parent, "Bersaglio" .. index, CFrame.new(at), 3, Color3.fromRGB(170, 225, 255), Color3.fromRGB(90, 170, 255))
+		model = glass.Parent :: Model
+	end
+	local model = model :: Model
 	model:SetAttribute("Index", index)
 	local light = Instance.new("PointLight")
 	light.Color = RUNE
@@ -253,9 +308,18 @@ local function buildRushAltar(parent: Instance, at: Vector3, center: Vector3): (
 	light.Range = 14
 	light.Brightness = 2
 	light.Parent = orb
-	local board = part(parent, "TabelloneRecord", Vector3.new(9, 6, 0.4), look * CFrame.new(-8, 4.5, 0), WOOD, Enum.Material.WoodPlanks)
-	part(parent, "PaloTabellone", Vector3.new(0.6, 7.5, 0.6), look * CFrame.new(-12, 3.75, 0), WOOD, Enum.Material.Wood)
-	part(parent, "PaloTabellone", Vector3.new(0.6, 7.5, 0.6), look * CFrame.new(-4, 3.75, 0), WOOD, Enum.Material.Wood)
+	local board: Part
+	local stele = prop(parent, "rune scoreboard", 16, look * CFrame.new(-9, 0, 0))
+	if stele then
+		-- la lastra e' al centro del modello, sul davanti (verso il cerchio)
+		local box, s = stele:GetBoundingBox()
+		board = deco(part(parent, "TabelloneRecord", Vector3.new(s.X * 0.5, s.Y * 0.42, 0.2), CFrame.lookAt(box.Position, box.Position + look.LookVector) * CFrame.new(0, -s.Y * 0.04, -s.Z * 0.5 - 0.2), WOOD, Enum.Material.SmoothPlastic))
+		board.Transparency = 1
+	else
+		board = part(parent, "TabelloneRecord", Vector3.new(9, 6, 0.4), look * CFrame.new(-8, 4.5, 0), WOOD, Enum.Material.WoodPlanks)
+		part(parent, "PaloTabellone", Vector3.new(0.6, 7.5, 0.6), look * CFrame.new(-12, 3.75, 0), WOOD, Enum.Material.Wood)
+		part(parent, "PaloTabellone", Vector3.new(0.6, 7.5, 0.6), look * CFrame.new(-4, 3.75, 0), WOOD, Enum.Material.Wood)
+	end
 	local gui = Instance.new("SurfaceGui")
 	gui.Face = Enum.NormalId.Back
 	gui.PixelsPerStud = 40
@@ -360,8 +424,28 @@ function Training.setup()
 		buildPowerCrystal(folder, center)
 		buildBraziers(folder, center)
 		local _ = size
+		local arena = prop(folder, "arenadrago", 50, CFrame.new(center - Vector3.new(0, 9, 0))) -- i cristalli volano dentro
+		if arena then
+			arena.Name = "ArenaOssa"
+		end
+		local hubMarker = workspace:FindFirstChild("MapMarkers") and (workspace :: any).MapMarkers:FindFirstChild("HubSpawn")
+		local gateA = if hubMarker then math.atan2(hubMarker.Position.Z - center.Z, hubMarker.Position.X - center.X) else 0
+		for k = 0, 7 do
+			local a = (k + 0.5) / 8 * 2 * math.pi
+			local off = math.abs((a - gateA + math.pi) % (2 * math.pi) - math.pi)
+			local p = groundAt(center + Vector3.new(math.cos(a), 0, math.sin(a)) * (T.CRYSTAL_RING + 40))
+			if off < 0.45 then
+				continue -- davanti al portale
+			end
+			local pillar = prop(folder, "dragon pillar", 22, CFrame.lookAt(p, Vector3.new(center.X, p.Y, center.Z)) - Vector3.new(0, 1, 0))
+			if pillar then
+				-- collisione: un cilindro invisibile nella colonna
+				local c = part(pillar, "Collisione", Vector3.new(22, 5, 5), CFrame.new(p + Vector3.new(0, 10, 0)) * CFrame.Angles(0, 0, math.pi / 2), STONE, Enum.Material.Slate, Enum.PartType.Cylinder)
+				c.Transparency = 1
+			end
+		end
 		local ring = T.CRYSTAL_RING + 10
-		local targets: { Part } = {}
+		local targets: { BasePart } = {}
 		for k = 1, T.TARGETS do
 			table.insert(targets, buildTarget(folder, DragonConfig.crystalAt(center, k, 0), k))
 		end
@@ -390,6 +474,12 @@ function Training.setup()
 			local box, bsize = g:GetBoundingBox()
 			g:PivotTo(g:GetPivot() + Vector3.new(0, at.Y - (box.Position.Y - bsize.Y / 2) - 1, 0))
 			g.Name = "PortaleArena"
+			-- la mesh ha la collisione a scatola: chiudeva il passaggio. Si cammina sul terreno.
+			for _, d in g:GetDescendants() do
+				if d:IsA("BasePart") then
+					d.CanCollide = false
+				end
+			end
 			g.Parent = folder
 		end
 		folder.Parent = workspace

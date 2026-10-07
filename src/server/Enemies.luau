@@ -33,9 +33,12 @@ type Enemy = {
 	target: Player?,
 	lastAttack: number,
 	nextWander: number,
-	tracks: { walk: AnimationTrack?, idle: AnimationTrack?, attack: AnimationTrack? },
+	tracks: { walk: AnimationTrack?, idle: AnimationTrack?, attack: AnimationTrack?, sit: AnimationTrack? },
 	damagedBy: { [Player]: number },
 	dead: boolean,
+	boss: EnemyConfig.Boss?,
+	seated: boolean?,
+	homeCF: CFrame?,
 }
 
 local enemies: { Enemy } = {}
@@ -67,7 +70,7 @@ local function animId(kind: string, which: string): string?
 	if RunService:IsStudio() then
 		local saves = ServerStorage:FindFirstChild("RBX_ANIMSAVES")
 		local set = saves and saves:FindFirstChild(kind)
-		local names = { walk = "nemico-cammina", idle = "nemico-fermo", attack = "nemico-attacco" }
+		local names = { walk = "nemico-cammina", idle = "nemico-fermo", attack = "nemico-attacco", sit = "nemico-seduto" }
 		local kfs = set and set:FindFirstChild(names[which])
 		if kfs and kfs:IsA("KeyframeSequence") then
 			local ok, id = pcall(function()
@@ -200,7 +203,7 @@ local function build(kind: string, def: EnemyConfig.EnemyType, at: Vector3): Ene
 		target = nil,
 		lastAttack = 0,
 		nextWander = os.clock() + math.random() * 4,
-		tracks = { walk = load("walk", true), idle = load("idle", true), attack = load("attack", false) },
+		tracks = { walk = load("walk", true), idle = load("idle", true), attack = load("attack", false), sit = load("sit", true) },
 		damagedBy = {},
 		dead = false,
 	}
@@ -302,6 +305,8 @@ local function damageEnemy(enemy: Enemy, player: Player?, amount: number)
 	fxEvent:FireAllClients("hurt", enemy.model, amount)
 end
 
+local spawnBoss: (EnemyConfig.Boss) -> ()
+
 local function die(enemy: Enemy)
 	enemy.dead = true
 	for _, t in enemy.tracks do
@@ -319,6 +324,10 @@ local function die(enemy: Enemy)
 		table.remove(enemies, idx)
 	end
 	task.delay(enemy.def.respawn, function()
+		if enemy.boss then
+			spawnBoss(enemy.boss)
+			return
+		end
 		local at = spawnFor(enemy.kind)
 		if at then
 			local e = build(enemy.kind, enemy.def, at)
@@ -373,9 +382,132 @@ local function nearestPlayer(enemy: Enemy): (Player?, number)
 	return best, bestDist
 end
 
+------------------------------------------------------------------------------------------
+-- Capi
+
+-- Trono di ghiaccio su misura: il sedile all'altezza dell'anca (la posa seduta tiene ferme le
+-- anche), il poggiapiedi sotto le caviglie, schienale alto con le punte
+local function buildThrone(enemy: Enemy, den: CFrame)
+	local H = enemy.def.height
+	local hip = enemy.model:FindFirstChild("mixamorig:LeftUpLeg", true)
+	local knee = enemy.model:FindFirstChild("mixamorig:LeftLeg", true)
+	local ankle = enemy.model:FindFirstChild("mixamorig:LeftFoot", true)
+	local hipY = if hip and hip:IsA("Bone") then hip.WorldPosition.Y else den.Y + H * 0.48
+	local shin = if knee and ankle and knee:IsA("Bone") and ankle:IsA("Bone") then (knee.WorldPosition - ankle.WorldPosition).Magnitude else H * 0.25
+	local ground = den.Y
+	local seatTop = hipY - H * 0.05
+	local feet = hipY - shin - H * 0.05
+	local model = Instance.new("Model")
+	model.Name = "TronoDiGhiaccio"
+	local ICE = Color3.fromRGB(150, 210, 245)
+	local function block(name: string, size: Vector3, cf: CFrame, collide: boolean, neon: boolean?): Part
+		local p = Instance.new("Part")
+		p.Name = name
+		p.Anchored = true
+		p.CanCollide = collide
+		p.Size = size
+		p.CFrame = cf
+		p.Material = if neon then Enum.Material.Neon else Enum.Material.Glass
+		p.Color = if neon then Color3.fromRGB(110, 200, 255) else ICE
+		p.Transparency = if neon then 0.1 else 0.15
+		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
+		p.Parent = model
+		return p
+	end
+	local function at(x: number, y: number, z: number): CFrame
+		-- x = di lato, y = quota assoluta, z = avanti (verso l'uscita)
+		local p = den * Vector3.new(x, 0, -z)
+		return CFrame.lookAt(Vector3.new(p.X, y, p.Z), Vector3.new(p.X, y, p.Z) + den.LookVector)
+	end
+	-- pedana a gradini
+	block("Pedana", Vector3.new(H * 1.9, 1, H * 1.6), at(0, ground + 0.4, -0.05 * H), true)
+	block("Poggiapiedi", Vector3.new(H * 0.9, feet - ground, H * 0.35), at(0, (ground + feet) / 2, 0.32 * H), false)
+	block("Sedile", Vector3.new(H * 0.95, seatTop - ground, H * 0.5), at(0, (ground + seatTop) / 2, -0.08 * H), false)
+	block("Schienale", Vector3.new(H * 1.05, H * 1.25, H * 0.16), at(0, seatTop + H * 0.6, -0.36 * H), true)
+	block("Bordo", Vector3.new(H * 1.12, H * 0.06, H * 0.2), at(0, seatTop + H * 0.06, -0.36 * H), false, true)
+	for _, side in { -1, 1 } do
+		block("Bracciolo", Vector3.new(H * 0.16, H * 0.3, H * 0.55), at(side * H * 0.52, seatTop + H * 0.1, -0.08 * H), true)
+		block("Pilastro", Vector3.new(H * 0.22, H * 1.55, H * 0.22), at(side * H * 0.56, ground + H * 0.78 + (seatTop - ground) * 0.2, -0.36 * H), true)
+	end
+	-- punte di ghiaccio sullo schienale (piu' alte al centro)
+	for k = -3, 3 do
+		local h = H * (0.55 - math.abs(k) * 0.1)
+		local spike = block("Punta", Vector3.new(H * 0.12, h, H * 0.12), at(k * H * 0.15, seatTop + H * 1.2 + h / 2, -0.36 * H) * CFrame.Angles(0, math.rad(45), math.rad(k * 6)), false)
+		spike.Transparency = 0.25
+	end
+	local glow = Instance.new("PointLight")
+	glow.Color = Color3.fromRGB(120, 200, 255)
+	glow.Range = H * 2.5
+	glow.Brightness = 2
+	glow.Parent = model:FindFirstChild("Schienale")
+	model.Parent = folder
+end
+
+local function sit(enemy: Enemy)
+	if enemy.seated or not enemy.homeCF then
+		return
+	end
+	enemy.seated = true
+	enemy.humanoid:MoveTo(enemy.root.Position)
+	enemy.root.Anchored = true
+	enemy.root.CFrame = enemy.homeCF :: CFrame
+	if enemy.tracks.sit then
+		(enemy.tracks.sit :: AnimationTrack):Play(0.6)
+	end
+end
+
+local function stand(enemy: Enemy)
+	if not enemy.seated then
+		return
+	end
+	enemy.seated = false
+	if enemy.tracks.sit then
+		(enemy.tracks.sit :: AnimationTrack):Stop(0.4)
+	end
+	enemy.root.Anchored = false
+end
+
+-- Il capo nella sua tana (si riusa anche quando ricompare; dichiarato prima di die)
+spawnBoss = function(def: EnemyConfig.Boss)
+	local den = workspace:GetAttribute(def.den)
+	if typeof(den) ~= "CFrame" then
+		return
+	end
+	local e = build(def.kind, def, den.Position)
+	if not e then
+		return
+	end
+	e.boss = def
+	e.nextWander = math.huge
+	e.model:SetAttribute("Boss", true)
+	if def.throne then
+		-- in piedi sul punto della tana, girato verso l'uscita: da qui si misura il trono
+		e.root.CFrame = CFrame.lookAt(e.root.Position, e.root.Position + den.LookVector)
+		e.homeCF = e.root.CFrame
+		e.home = e.root.Position
+		buildThrone(e, den)
+		sit(e)
+	end
+	table.insert(enemies, e)
+	e.humanoid.Died:Connect(function()
+		stand(e)
+		die(e)
+	end)
+end
+
 local function think(enemy: Enemy)
 	if enemy.dead then
 		return
+	end
+	if enemy.boss and enemy.boss.throne then
+		-- sul trono finche' nessuno si avvicina; quando torna a casa si risiede
+		local near = nearestPlayer(enemy)
+		local fromHome0 = (enemy.root.Position - enemy.home).Magnitude
+		if not near and not enemy.target and fromHome0 < 5 then
+			sit(enemy)
+			return
+		end
+		stand(enemy)
 	end
 	local fromHome = (enemy.root.Position - enemy.home).Magnitude
 	-- bersaglio: chi lo ha colpito, se e' ancora vicino; altrimenti il piu' vicino a vista
@@ -522,6 +654,9 @@ function Enemies.setup()
 					end
 				end
 			end
+		end
+		for _, def in EnemyConfig.BOSSES do
+			spawnBoss(def)
 		end
 		print(string.format("[Nemici] %d in giro", #enemies))
 		while true do
