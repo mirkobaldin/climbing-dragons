@@ -332,8 +332,8 @@ local function scanTemplates(): { eggs: { Template }, dragons: { Template }, adu
 	end
 	local function scanFolder(folder: Instance)
 		for _, child in folder:GetChildren() do
-			if child:IsA("Folder") and (child.Name == "Cestino" or child.Name == "ModelliSorgente") then
-				continue -- roba scartata o sorgenti da Blender: non sono modelli del gioco
+			if child:IsA("Folder") and (child.Name == "Cestino" or child.Name == "ModelliSorgente" or child.Name == "Modelli") then
+				continue -- roba scartata, sorgenti da Blender, modelli di scena (es. "dragon pillar"): non sono draghi
 			elseif child:IsA("Folder") then
 				scanFolder(child)
 			else
