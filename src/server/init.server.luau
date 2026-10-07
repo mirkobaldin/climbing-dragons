@@ -117,7 +117,7 @@ do
 		-- cosi' ogni drago usa le sue. "Drago_Ombra_Rig" vale per il modello "Drago_Ombra".
 		local dragonOut = Instance.new("Folder")
 		dragonOut.Name = "DragonAnimSaves"
-		local DRAGON = { dragovolo = "Dragon_Fly", dragocammina = "Dragon_Walk", dragofermo = "Dragon_Idle", dragonfly = "Dragon_Fly", dragonwalk = "Dragon_Walk", dragonidle = "Dragon_Idle" }
+		local DRAGON = { dragovolo = "Dragon_Fly", dragocammina = "Dragon_Walk", dragofermo = "Dragon_Idle", dragopicchiata = "Dragon_Dive", dragonfly = "Dragon_Fly", dragonwalk = "Dragon_Walk", dragonidle = "Dragon_Idle" }
 		-- cartelle con lo stesso nome (es. vecchi salvataggi automatici) si uniscono; quelle del
 		-- rig ("..._Rig") hanno la precedenza
 		local picked: { [string]: { [string]: { kfs: KeyframeSequence, rig: boolean } } } = {}

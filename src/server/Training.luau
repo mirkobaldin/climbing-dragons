@@ -298,7 +298,7 @@ local function buildTarget(parent: Instance, at: Vector3, index: number): BasePa
 	glow.FillColor = Color3.fromRGB(150, 220, 255)
 	glow.FillTransparency = 0.55
 	glow.OutlineColor = Color3.fromRGB(200, 240, 255)
-	glow.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	glow.DepthMode = Enum.HighlightDepthMode.Occluded -- prima si vedevano attraverso tutta la mappa
 	glow.Parent = model
 	CollectionService:AddTag(model, "CristalloBersaglio")
 	return glass
@@ -443,19 +443,24 @@ function Training.setup()
 		local arena = prop(folder, "arenadrago", ARENA_H, CFrame.lookAt(center, center + gateDir) - Vector3.new(0, ARENA_H * 0.35, 0))
 		if arena then
 			arena.Name = "ArenaOssa"
-			-- la mesh ha la collisione a scatola: un anello di muri invisibili lungo le ossa, aperto
-			-- verso il portale
+			-- l'arena e' tutta chiusa (un cilindro invisibile grande quanto le ossa): dentro ci vanno
+			-- solo i draghi. Tu sali sulla pedana davanti alle scale e "diventi" il tuo drago, che
+			-- vola al centro (prima si camminava nella mesh e il drago aveva le zampe nel pavimento)
 			local _, asize = arena:GetBoundingBox()
-			local R = math.min(asize.X, asize.Z) * 0.31 -- il bordo della piattaforma, dove iniziano le ossa
-			local N = 40
-			for k = 0, N - 1 do
-				local a = k / N * 2 * math.pi
-				if math.abs((a - gateA + math.pi) % (2 * math.pi) - math.pi) > 0.32 then
-					local p = center + Vector3.new(math.cos(a), 0, math.sin(a)) * R
-					local wall = part(arena, "Muro", Vector3.new(2 * math.pi * R / N + 1, 40, 4), CFrame.lookAt(p + Vector3.new(0, 18, 0), Vector3.new(center.X, p.Y + 18, center.Z)), STONE, Enum.Material.SmoothPlastic)
-					wall.Transparency = 1
-				end
-			end
+			local R = math.min(asize.X, asize.Z) * 0.47
+			local block = part(arena, "Recinto", Vector3.new(80, R * 2, R * 2), CFrame.new(center + Vector3.new(0, 30, 0)) * CFrame.Angles(0, 0, math.pi / 2), STONE, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+			block.Transparency = 1
+			local padAt = groundAt(center + gateDir * (R + 7))
+			local pad = part(folder, "PedanaDrago", Vector3.new(1.2, 12, 12), CFrame.new(padAt + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(40, 40, 52), Enum.Material.Slate, Enum.PartType.Cylinder)
+			local ring = deco(part(folder, "AnelloPedana", Vector3.new(0.3, 12.6, 12.6), CFrame.new(padAt + Vector3.new(0, 1.15, 0)) * CFrame.Angles(0, 0, math.pi / 2), RUNE, Enum.Material.Neon, Enum.PartType.Cylinder))
+			ring.Transparency = 0.2
+			local glowP = Instance.new("PointLight")
+			glowP.Color = RUNE
+			glowP.Range = 16
+			glowP.Brightness = 2
+			glowP.Parent = ring
+			local _ = pad
+			workspace:SetAttribute("TrainingPad", padAt)
 		end
 		for k = 0, 7 do
 			local a = (k + 0.5) / 8 * 2 * math.pi
@@ -480,9 +485,12 @@ function Training.setup()
 		local function around(da: number, dist: number): Vector3
 			return groundAt(center + Vector3.new(math.cos(gateA + da), 0, math.sin(gateA + da)) * dist)
 		end
-		buildSign(folder, around(0.5, ring + 6), center)
-		local orb, board = buildRushAltar(folder, around(-math.pi / 2, ring + 2), center)
-		local x2, x3 = buildStall(folder, around(math.pi / 2, ring + 2), center)
+		-- altare della sfida, bancarella e cartello fuori dall'arena (chiusa), ai lati della pedana
+		local outR = if arena then math.min(arena:GetExtentsSize().X, arena:GetExtentsSize().Z) * 0.47 else ring
+		local arc = 14 / math.max(outR, 1) -- 14 studs di lato
+		buildSign(folder, around(arc * 2.2, outR + 16), center)
+		local orb, board = buildRushAltar(folder, around(-arc, outR + 9), center)
+		local x2, x3 = buildStall(folder, around(arc, outR + 9), center)
 		-- portale d'ingresso (il modello di Mirko in ServerStorage.Modelli.PortaleArena), con la
 		-- scalinata rivolta verso la piana
 		local models = game:GetService("ServerStorage"):FindFirstChild("Modelli")
@@ -700,8 +708,11 @@ function Training.setup()
 				local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 				local inside = false
 				if root then
-					local d = root.Position - center
-					inside = Vector3.new(d.X, 0, d.Z).Magnitude <= T.CIRCLE_RADIUS and math.abs(d.Y) < 12
+					-- sulla pedana davanti all'arena (se non c'e' l'arena: nel cerchio)
+					local padAt = workspace:GetAttribute("TrainingPad")
+					local d = root.Position - (if typeof(padAt) == "Vector3" then padAt else center)
+					local r = if typeof(padAt) == "Vector3" then 7 else T.CIRCLE_RADIUS
+					inside = Vector3.new(d.X, 0, d.Z).Magnitude <= r and math.abs(d.Y) < 12
 				end
 				local list = if inside then Dragons.equippedDragons(player) else {}
 				player:SetAttribute("Training", #list > 0)

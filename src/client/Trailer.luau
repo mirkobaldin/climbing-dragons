@@ -141,6 +141,12 @@ local function actor(props: Instance?, name: string): Actor?
 	if old then
 		old:Destroy()
 	end
+	-- niente contorno (il bagliore della rarita' sembrava la selezione di Studio)
+	for _, d in m:GetDescendants() do
+		if d:IsA("Highlight") then
+			d:Destroy()
+		end
+	end
 	return { model = m, tracks = PetAnimator.loadTracks(m) }
 end
 
@@ -165,7 +171,8 @@ local function standAt(a: Actor?, p: Vector3, dir: Vector3)
 		return
 	end
 	local _, size = a.model:GetBoundingBox()
-	local at = groundAt(p) + Vector3.new(0, size.Y / 2, 0)
+	-- un poco sopra il terreno: nell'arena il pavimento del modello sta poco sopra (zampe dentro)
+	local at = groundAt(p) + Vector3.new(0, size.Y / 2 + 1.5, 0)
 	a.model:PivotTo(CFrame.lookAt(at, at + flat(dir)))
 end
 
@@ -232,10 +239,12 @@ local function run(shots: { Shot }, s: Screen)
 		if shot.at then
 			focus(shot.at)
 			pcall(function()
-				player:RequestStreamAroundAsync(shot.at :: Vector3, 3)
+				player:RequestStreamAroundAsync(shot.at :: Vector3, 5)
 			end)
 		end
 	end
+	-- un attimo in piu': il terreno lontano (biomi, cristalli) finisce di comparire
+	task.wait(2)
 	local current: Shot? = nil
 	local t0 = 0
 	local conn = RunService.RenderStepped:Connect(function(dt)
@@ -288,8 +297,16 @@ local function flyAlong(a: Actor?, path: (number) -> Vector3, u: number, beat: n
 		return
 	end
 	local turn = (q - p).Unit:Cross((p - r).Unit).Y
-	local bob = math.sin(os.clock() * 2 * math.pi / beat) * 1.2
-	local pitch = math.cos(os.clock() * 2 * math.pi / beat) * 0.05
+	-- poco dondolio (prima sembrava una banana appesa che oscilla)
+	local bob = math.sin(os.clock() * 2 * math.pi / beat) * 0.45
+	local pitch = math.cos(os.clock() * 2 * math.pi / beat) * 0.015
+	-- in picchiata: ali chiuse all'indietro (animazione drago-picchiata)
+	local tracks = a.tracks
+	if tracks and tracks.dive and tracks.fly then
+		local diving = dir.Unit.Y < -0.3
+		tracks.dive:AdjustWeight(if diving then 1 else 0.001, 0.3)
+		tracks.fly:AdjustWeight(if diving then 0.001 else 1, 0.3)
+	end
 	a.model:PivotTo(CFrame.lookAt(p + Vector3.new(0, bob, 0), p + dir) * CFrame.Angles(pitch, 0, math.clamp(-turn * 60, -0.7, 0.7)))
 end
 
@@ -864,12 +881,17 @@ function Trailer.play(kind: string, take: string?)
 				shake = math.max(shake, 0.6)
 			end)
 		end
-		local ECL = Color3.fromRGB(255, 160, 60)
 
 		if kind == "clip4" then
-			-- BOSS: il Re Yeti si sveglia sul trono, l'Eclissi adulto lo combatte, crolla
-			local den = workspace:GetAttribute("GrandCaveDen")
-			if typeof(den) == "CFrame" and gc then
+			-- BOSS: nel cratere sopra i 2000 m il Titano di ghiaccio si risveglia, tre draghi (Eclissi,
+			-- Gelo, Fulmine Nero) gli girano attorno e lo colpiscono, il Titano crolla
+			local den = workspace:GetAttribute("CraterCaveDen")
+			local allies: { { a: Actor?, color: Color3, phase: number } } = {
+				{ a = adult, color = Color3.fromRGB(255, 160, 60), phase = 0 },
+				{ a = actor(props, "StormoGelo"), color = Color3.fromRGB(140, 220, 255), phase = 0.33 },
+				{ a = actor(props, "StormoFulmine"), color = Color3.fromRGB(180, 130, 255), phase = 0.66 },
+			}
+			if typeof(den) == "CFrame" then
 				local throne = den.Position
 				local out = den.LookVector
 				local side = den.RightVector
@@ -881,7 +903,7 @@ function Trailer.play(kind: string, take: string?)
 				local function prepareYeti()
 					local folder = workspace:FindFirstChild("Nemici")
 					for _, m in (if folder then folder:GetChildren() else {}) :: { Instance } do
-						if m:IsA("Model") and m:GetAttribute("Boss") and m:FindFirstChild("mixamorig:Hips", true) and (m:GetPivot().Position - throne).Magnitude < 60 then
+						if m:IsA("Model") and m:GetAttribute("Boss") and (m:GetPivot().Position - throne).Magnitude < 90 then
 							real = m
 						end
 					end
@@ -907,7 +929,7 @@ function Trailer.play(kind: string, take: string?)
 					end
 					-- animazioni (copie client delle pose salvate)
 					local set = game:GetService("ReplicatedStorage"):FindFirstChild("EnemyAnimSaves")
-					set = set and set:FindFirstChild("Yeti")
+					set = set and set:FindFirstChild("GolemGhiaccio")
 					for name, key in { sit = "nemico-seduto", idle = "nemico-fermo", attack = "nemico-attacco", walk = "nemico-cammina" } do
 						local k = set and set:FindFirstChild(key)
 						if k and k:IsA("KeyframeSequence") then
@@ -920,7 +942,7 @@ function Trailer.play(kind: string, take: string?)
 					-- barra della vita (senza scritte)
 					local bb = Instance.new("BillboardGui")
 					bb.Size = UDim2.fromScale(12, 1.1)
-					bb.StudsOffsetWorldSpace = Vector3.new(0, 16, 0)
+					bb.StudsOffsetWorldSpace = Vector3.new(0, 26, 0)
 					bb.AlwaysOnTop = true
 					bb.Adornee = c.PrimaryPart or c:FindFirstChildWhichIsA("BasePart", true)
 					local back = Instance.new("Frame")
@@ -945,60 +967,76 @@ function Trailer.play(kind: string, take: string?)
 						end
 					end
 				end
-				local fightC = throne + out * 45
-				local function dragonPath(u: number): Vector3
-					local a = u * math.pi * 2.2
-					return fightC + side * math.sin(a) * 50 + out * (math.cos(a) * 35 + 15) + Vector3.new(0, 30 + 8 * math.sin(a * 2), 0)
+				local fightC = throne + out * 30
+				local function pathFor(phase: number): (number) -> Vector3
+					return function(u: number): Vector3
+						local a = (u + phase) * math.pi * 2.2
+						return fightC + side * math.sin(a) * 70 + out * (math.cos(a) * 55 + 10) + Vector3.new(0, 42 + 10 * math.sin(a * 2 + phase * 6), 0)
+					end
 				end
-				-- 1) il trono nel buio della grotta, si avvicina piano (3 s)
+				local function flyAll(u: number)
+					for _, al in allies do
+						flyAlong(al.a, pathFor(al.phase), u, 2)
+					end
+				end
+				local HIT = Vector3.new(0, 20, 0) -- petto del Titano
+				-- 1) il cratere: si scende verso il Titano immobile (3 s)
 				add({
 					dur = 3,
 					at = throne,
 					start = function()
 						prepareYeti()
-						hide(adult)
+						for _, al in allies do
+							hide(al.a)
+						end
 					end,
-					cam = dolly(throne + out * 110 + Vector3.new(0, 25, 0), throne + out * 45 + Vector3.new(0, 14, 0), throne + Vector3.new(0, 12, 0), throne + Vector3.new(0, 12, 0)),
+					cam = dolly(throne + out * 150 + Vector3.new(0, 120, 0), throne + out * 70 + Vector3.new(0, 30, 0), throne + Vector3.new(0, 15, 0), throne + Vector3.new(0, 18, 0)),
 				})
-				-- 2) si alza: inquadratura dal basso, scossa (2 s)
+				-- 2) si risveglia: inquadratura dal basso, scossa, lampo rosso (2 s)
 				add({
 					dur = 2,
 					at = throne,
 					start = function()
 						play("idle")
-						shake = 1.2
+						shake = 1.4
 						flash(s, s.red)
 					end,
-					cam = dolly(throne + out * 22 + side * 6 + Vector3.new(0, 3, 0), throne + out * 18 + side * 4 + Vector3.new(0, 2, 0), throne + Vector3.new(0, 18, 0), throne + Vector3.new(0, 22, 0)),
+					cam = dolly(throne + out * 34 + side * 8 + Vector3.new(0, 3, 0), throne + out * 28 + side * 6 + Vector3.new(0, 2, 0), throne + Vector3.new(0, 26, 0), throne + Vector3.new(0, 32, 0)),
 				})
-				-- 3) combattimento: il drago gira attorno e spara, il Re colpisce (6 s)
+				-- 3) combattimento: tre draghi gli girano attorno e sparano, il Titano colpisce (6 s)
 				local nextShot = 0
 				local nextSwing = 0
 				local life = 1
+				local turn = 0
 				add({
 					dur = 6,
 					at = throne,
 					start = function()
-						pose(adult, "fly", 0.6)
+						for _, al in allies do
+							pose(al.a, "fly", 0.7)
+						end
 					end,
 					update = function(u)
-						flyAlong(adult, dragonPath, u, 2)
+						flyAll(u)
 						local t = os.clock()
-						if adult and t > nextShot then
-							nextShot = t + 0.45
-							local from = adult.model:GetPivot().Position
-							fireball(from, throne + Vector3.new(0, 14, 0) + side * (math.random() - 0.5) * 6, ECL)
-							life = math.max(0.12, life - 0.06)
-							if hp then
-								TweenService:Create(hp, TweenInfo.new(0.3), { Size = UDim2.fromScale(life, 1) }):Play()
+						if t > nextShot then
+							nextShot = t + 0.3
+							turn = turn % #allies + 1
+							local al = allies[turn]
+							if al.a then
+								fireball(al.a.model:GetPivot().Position, throne + HIT + side * (math.random() - 0.5) * 8, al.color)
+								life = math.max(0.12, life - 0.035)
+								if hp then
+									TweenService:Create(hp, TweenInfo.new(0.3), { Size = UDim2.fromScale(life, 1) }):Play()
+								end
 							end
 						end
 						if t > nextSwing then
 							nextSwing = t + 1.6
 							play("attack")
 							task.delay(0.5, function()
-								sparkBurst(throne + out * 12 + Vector3.new(0, 2, 0), Color3.fromRGB(180, 230, 255), 4)
-								shake = 1
+								sparkBurst(throne + out * 18 + Vector3.new(0, 2, 0), Color3.fromRGB(180, 230, 255), 6)
+								shake = 1.2
 							end)
 							task.delay(1.1, function()
 								play("idle")
@@ -1007,16 +1045,18 @@ function Trailer.play(kind: string, take: string?)
 					end,
 					cam = function(u)
 						local a = 0.6 + u * 1.4
-						return CFrame.lookAt(throne + out * 70 * math.cos(a * 0.4) + side * 60 * math.sin(a) + Vector3.new(0, 22, 0), throne + Vector3.new(0, 14, 0))
+						return CFrame.lookAt(throne + out * 95 * math.cos(a * 0.4) + side * 80 * math.sin(a) + Vector3.new(0, 30, 0), throne + HIT)
 					end,
 				})
-				-- 4) colpo finale: lampo, il Re crolla all'indietro (3 s)
+				-- 4) colpo finale: i tre insieme, lampo, il Titano crolla all'indietro (3 s)
 				add({
 					dur = 3,
 					at = throne,
 					start = function()
-						if adult then
-							fireball(adult.model:GetPivot().Position, throne + Vector3.new(0, 14, 0), Color3.fromRGB(255, 220, 120))
+						for _, al in allies do
+							if al.a then
+								fireball(al.a.model:GetPivot().Position, throne + HIT, al.color)
+							end
 						end
 						task.delay(0.4, function()
 							flash(s)
@@ -1044,15 +1084,18 @@ function Trailer.play(kind: string, take: string?)
 						end)
 					end,
 					update = function(u)
-						flyAlong(adult, dragonPath, 1 + u * 0.1, 2)
+						flyAll(1 + u * 0.1)
 					end,
-					cam = dolly(throne + out * 40 + side * 25 + Vector3.new(0, 10, 0), throne + out * 55 + side * 30 + Vector3.new(0, 18, 0), throne + Vector3.new(0, 10, 0), throne + Vector3.new(0, 4, 0)),
+					cam = dolly(throne + out * 60 + side * 35 + Vector3.new(0, 14, 0), throne + out * 80 + side * 40 + Vector3.new(0, 24, 0), throne + Vector3.new(0, 14, 0), throne + Vector3.new(0, 6, 0)),
 				})
-				-- 5) uscita: la camera indietreggia verso l'apertura (2.5 s)
+				-- 5) uscita: la camera sale fuori dal cratere coi draghi che girano sopra (2.5 s)
 				add({
 					dur = 2.5,
 					at = throne,
-					cam = dolly(throne + out * 60 + Vector3.new(0, 20, 0), gface + gout * 120 + Vector3.new(0, 40, 0), throne + Vector3.new(0, 6, 0), throne + Vector3.new(0, 6, 0)),
+					update = function(u)
+						flyAll(1.1 + u * 0.3)
+					end,
+					cam = dolly(throne + out * 80 + Vector3.new(0, 30, 0), throne + out * 120 + Vector3.new(0, 230, 0), throne + Vector3.new(0, 10, 0), throne + Vector3.new(0, 10, 0)),
 				})
 				-- pulizia
 				local cleanup = shots[#shots]
@@ -1098,20 +1141,45 @@ function Trailer.play(kind: string, take: string?)
 			if gc then
 				table.insert(stops, 2, { c = gface + gout * 10, r = 160 })
 			end
+			-- la camera sta dal lato della valle (lontano dal centro della montagna) e si sceglie
+			-- l'angolo da cui la zona si vede senza roccia in mezzo: prima passava dentro la montagna
+			local mc = workspace:GetAttribute("CineCenter")
+			local function viewAngle(c: Vector3, r: number): number
+				local out = if typeof(mc) == "Vector3" then flat(c - Vector3.new(mc.X, c.Y, mc.Z)) else Vector3.xAxis
+				local base = math.atan2(out.Z, out.X)
+				for _, off in { 0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2 } do
+					local a = base + off
+					local cam = c + Vector3.new(math.cos(a) * r, r * 0.55, math.sin(a) * r)
+					local ok = not solidAt(cam)
+					for _, f in { 0.15, 0.4, 0.7 } do
+						if ok and workspace:Raycast(cam, (c + Vector3.new(0, 8, 0) - cam) * f, terrainOnly) then
+							ok = false
+						end
+					end
+					local hit = workspace:Raycast(cam, c + Vector3.new(0, 8, 0) - cam, terrainOnly)
+					if ok and (not hit or (hit.Position - c).Magnitude < r * 0.35) then
+						return a
+					end
+				end
+				return base
+			end
 			for k, st in stops do
 				local last = k == #stops
+				local a0 = 0
 				add({
-					dur = if last then 2.4 else 1.15,
+					dur = if last then 2.6 else 1.3,
 					at = st.c,
 					start = function()
+						-- qui la zona e' gia' caricata (i raggi vedono il terreno)
+						a0 = viewAngle(st.c, st.r * 1.25)
 						if k > 1 then
 							flash(s)
 						end
 					end,
 					cam = function(u)
-						local a = k * 1.3 + u * (if last then 0.5 else 0.9)
-						local r = st.r * (if last then 1.1 - 0.5 * smooth(u) else 1)
-						return CFrame.lookAt(st.c + Vector3.new(math.cos(a) * r, st.r * 0.35, math.sin(a) * r), st.c + Vector3.new(0, 8, 0))
+						local a = a0 + (u - 0.5) * (if last then 0.3 else 0.35)
+						local r = st.r * 1.25 * (if last then 1 - 0.35 * smooth(u) else 1)
+						return CFrame.lookAt(st.c + Vector3.new(math.cos(a) * r, r * 0.55, math.sin(a) * r), st.c + Vector3.new(0, 8, 0))
 					end,
 				})
 			end
@@ -1122,15 +1190,54 @@ function Trailer.play(kind: string, take: string?)
 			local co = workspace:GetAttribute("CraterCaveOut")
 			if gc and typeof(cc) == "Vector3" and typeof(co) == "Vector3" then
 				local o = flat(co)
-				local pts = {
-					cc + o * 260 + Vector3.new(0, 220, 0),
-					cc + o * 120 + Vector3.new(0, 120, 0),
-					(cc + o * 300):Lerp(gface + gout * 300, 0.5) + Vector3.new(0, 150, 0),
-					gface + gout * 220 + Vector3.new(0, 60, 0),
-					gface + gout * 40 + Vector3.new(0, 15, 0),
-					(gc :: Vector3) + Vector3.new(0, -10, 0),
-					(gc :: Vector3) - gout * 100 + Vector3.new(0, -5, 0),
-				}
+				-- percorso sempre FUORI dalla montagna: a ogni tappa si misura col raggio quanto e'
+				-- larga la montagna a quella quota e si vola 110 studs piu' in fuori (prima il drago
+				-- passava dentro la roccia)
+				local mcv = workspace:GetAttribute("CineCenter")
+				local mc = if typeof(mcv) == "Vector3" then mcv else Vector3.zero
+				local function surfaceR(a: number, y: number): number
+					local dir = Vector3.new(math.cos(a), 0, math.sin(a))
+					local from = Vector3.new(mc.X, y, mc.Z) + dir * 4000
+					local hit = workspace:Raycast(from, -dir * 4000, terrainOnly)
+					return if hit then (Vector3.new(hit.Position.X, 0, hit.Position.Z) - Vector3.new(mc.X, 0, mc.Z)).Magnitude else 0
+				end
+				local function angleOf(p: Vector3): number
+					return math.atan2(p.Z - mc.Z, p.X - mc.X)
+				end
+				local pts: { Vector3 } = { gface, gface + gout, gface + gout * 2 }
+				-- si calcola all'inizio della ripresa, quando il terreno e' gia' caricato
+				local function buildPath()
+					local a1, a2 = angleOf(cc), angleOf(gface)
+					local da = (a2 - a1 + math.pi) % (2 * math.pi) - math.pi
+					local y1, y2 = cc.Y + 160, gface.Y + 60
+					pts = { cc + o * 60 + Vector3.new(0, 200, 0) }
+					local N = 9
+					for k = 1, N do
+						local f = k / N
+						local a = a1 + da * f
+						local y = y1 + (y2 - y1) * f
+						local r = math.max(surfaceR(a, y), surfaceR(a, y - 60), surfaceR(a, y + 60)) + 110
+						table.insert(pts, Vector3.new(mc.X + math.cos(a) * r, y, mc.Z + math.sin(a) * r))
+					end
+					table.insert(pts, gface + gout * 90 + Vector3.new(0, 25, 0))
+					table.insert(pts, gface + gout * 10 + Vector3.new(0, 10, 0))
+					table.insert(pts, (gc :: Vector3) + Vector3.new(0, -10, 0))
+					table.insert(pts, (gc :: Vector3) - gout * 90 + Vector3.new(0, -10, 0))
+					-- se un tratto passa nella roccia, il punto dopo si sposta ancora in fuori
+					for k = 2, #pts - 4 do
+						for _ = 1, 4 do
+							if workspace:Raycast(pts[k - 1], pts[k] - pts[k - 1], terrainOnly) then
+								local p = pts[k]
+								local out = flat(p - Vector3.new(mc.X, p.Y, mc.Z))
+								pts[k] = p + out * 60 + Vector3.new(0, 20, 0)
+							end
+						end
+					end
+				end
+				-- ripresa cortissima sul cratere: serve solo a caricare quella zona prima del volo
+				add({ dur = 0.05, at = cc, cam = function()
+					return CFrame.lookAt(cc + o * 200 + Vector3.new(0, 200, 0), cc)
+				end })
 				-- curva morbida che passa per tutti i punti (Catmull-Rom)
 				local function path(u: number): Vector3
 					u = math.clamp(u, 0, 1)
@@ -1149,6 +1256,7 @@ function Trailer.play(kind: string, take: string?)
 					dur = 11,
 					at = gface,
 					start = function()
+						buildPath()
 						pose(adult, "fly", 0.7)
 					end,
 					update = function(u)

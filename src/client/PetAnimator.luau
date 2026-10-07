@@ -166,11 +166,15 @@ local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationT
 			local kWalk = kf("Dragon_Walk") or kFly
 			local kIdle = kf("Dragon_Idle") or kWalk
 			if kFly and kWalk and kIdle then
-				local tracks = {
+				local tracks: { [string]: any } = {
 					fly = KfsPlayer.load(model, kFly),
 					walk = KfsPlayer.load(model, kWalk),
 					idle = KfsPlayer.load(model, kIdle),
 				}
+				local kDive = kf("Dragon_Dive")
+				if kDive then
+					tracks.dive = KfsPlayer.load(model, kDive) -- picchiata (trailer e discese veloci)
+				end
 				for _, t in tracks do
 					t:Play(0, 0.001)
 				end
@@ -467,7 +471,9 @@ function PetAnimator.start()
 			local bob = (math.sin(t * 2 + pet.phase) * 0.35 + math.abs(math.sin(flapT)) * 0.3) * s
 			local offset = Vector3.new(side * (2.2 + s * 1.3), 1.6 + s * 0.7 + bob, 2 + s * 1.2 + (if pet.slot > 2 then 4 else 0))
 			-- ogni tanto fa un giro intorno al padrone (3 secondi)
-			local orbiting = t >= pet.nextOrbit and t < pet.nextOrbit + 3
+			-- addestramento: il tuo drago vola fermo nel punto indicato (centro dell'arena)
+			local anchored = owner == Players.LocalPlayer and ClientState.petAnchor ~= nil
+			local orbiting = not anchored and t >= pet.nextOrbit and t < pet.nextOrbit + 3
 			if orbiting then
 				local a = (t - pet.nextOrbit) / 3 * math.pi * 2
 				local radius = math.max(4, offset.Magnitude)
@@ -481,8 +487,8 @@ function PetAnimator.start()
 			if pet.quad or pet.tracks then
 				local hum = character and character:FindFirstChildOfClass("Humanoid")
 				local grounded = hum ~= nil and hum.FloorMaterial ~= Enum.Material.Air and not r:FindFirstChild("ClimbAttachment")
-				pet.airBlend += ((if grounded then 0 else 1) - pet.airBlend) * math.min(1, dt * 3)
-				if grounded then
+				pet.airBlend += ((if grounded and not anchored then 0 else 1) - pet.airBlend) * math.min(1, dt * 3)
+				if grounded and not anchored then
 					local beside = r.CFrame * CFrame.new(side * (3 + s * (if s > 3 then 2.2 else 1.5)), 0, if s > 3 then 1 + s * 0.4 else 2 + s)
 					local params = RaycastParams.new()
 					params.FilterType = Enum.RaycastFilterType.Include
@@ -493,6 +499,9 @@ function PetAnimator.start()
 					target = CFrame.new(ground:Lerp(target.Position, pet.airBlend)) * target.Rotation
 				end
 				pet.walkPhase += dt * (2 + r.AssemblyLinearVelocity.Magnitude * 0.45)
+			end
+			if anchored then
+				target = CFrame.new((ClientState.petAnchor :: Vector3) + Vector3.new(0, bob, 0))
 			end
 			local current = pet.cf or target
 			local alpha = 1 - math.exp(-dt * (if t >= pet.nextOrbit and t < pet.nextOrbit + 3 then 9 else 5))
@@ -540,7 +549,12 @@ function PetAnimator.start()
 					local tracks = pet.tracks
 					local air = pet.airBlend
 					local moving = math.clamp(flat.Magnitude / 8, 0, 1)
-					tracks.fly:AdjustWeight(math.max(air, 0.001), 0.1)
+					-- in caduta veloce (il padrone scende in fretta) le ali si chiudono: picchiata
+					local dive = if (tracks :: any).dive and vel.Y < -25 then air else 0
+					if (tracks :: any).dive then
+						(tracks :: any).dive:AdjustWeight(math.max(dive, 0.001), 0.2)
+					end
+					tracks.fly:AdjustWeight(math.max(air - dive, 0.001), 0.1)
 					tracks.walk:AdjustWeight(math.max((1 - air) * moving, 0.001), 0.1)
 					tracks.idle:AdjustWeight(math.max((1 - air) * (1 - moving), 0.001), 0.1)
 					-- il passo segue la corsa del padrone

@@ -12,7 +12,8 @@ local ClientState = {
 	eggFinder = nil :: string?, -- testo della bussola delle uova
 	fovOffset = 0, -- apertura extra del campo visivo (arrampicata)
 	gas = 0,
-	petLook = nil :: Vector3?, -- dove guarda il tuo drago (vista dal drago nell'arena: dove miri) -- quanto sei dentro la valle dei gas (0-1): il meteo infittisce la nebbia
+	petLook = nil :: Vector3?,
+	petAnchor = nil :: Vector3?, -- addestramento: dove vola fermo il tuo drago (centro dell'arena) -- dove guarda il tuo drago (vista dal drago nell'arena: dove miri) -- quanto sei dentro la valle dei gas (0-1): il meteo infittisce la nebbia
 	noFallUntil = 0, -- niente danni da caduta fino a (os.clock), es. dopo il Rampino
 }
 

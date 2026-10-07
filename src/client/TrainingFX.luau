@@ -251,7 +251,13 @@ local function setLit(index: number)
 	end
 end
 
+-- colpi e tiri della sessione di addestramento (scheda del drago)
+local trainingSession = { hits = 0, shots = 0 }
+
 local function onHit(userId: number, target: Vector3, element: string, xp: number)
+	if userId == Players.LocalPlayer.UserId and xp > 0 then
+		trainingSession.hits += 1
+	end
 	local pet = petOf(userId)
 	if not pet then
 		return
@@ -483,12 +489,112 @@ local function startAim(event: RemoteEvent)
 	tip.TextStrokeTransparency = 0.4
 	tip.Text = "Aim with the mouse · click to shoot"
 	tip.Parent = gui
+	-- scheda del drago (a destra): livello, XP al prossimo livello, strada fino all'evoluzione,
+	-- moltiplicatore, colpi e precisione della sessione
+	local card = Instance.new("Frame")
+	card.Name = "SchedaDrago"
+	card.AnchorPoint = Vector2.new(1, 0.5)
+	card.Position = UDim2.new(1, -16, 0.55, 0)
+	card.Size = UDim2.fromOffset(250, 200)
+	card.BackgroundColor3 = Color3.fromRGB(18, 20, 30)
+	card.BackgroundTransparency = 0.15
+	card.Parent = gui
+	local cc = Instance.new("UICorner")
+	cc.CornerRadius = UDim.new(0, 12)
+	cc.Parent = card
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(255, 200, 90)
+	stroke.Transparency = 0.5
+	stroke.Thickness = 1.5
+	stroke.Parent = card
+	local function line(y: number, h: number, size: number, bold: boolean): TextLabel
+		local l = Instance.new("TextLabel")
+		l.Position = UDim2.fromOffset(14, y)
+		l.Size = UDim2.new(1, -28, 0, h)
+		l.BackgroundTransparency = 1
+		l.Font = if bold then Enum.Font.GothamBlack else Enum.Font.GothamMedium
+		l.TextSize = size
+		l.TextXAlignment = Enum.TextXAlignment.Left
+		l.TextColor3 = Color3.new(1, 1, 1)
+		l.RichText = true
+		l.Parent = card
+		return l
+	end
+	local function bar(y: number, color: Color3): Frame
+		local back = Instance.new("Frame")
+		back.Position = UDim2.fromOffset(14, y)
+		back.Size = UDim2.new(1, -28, 0, 8)
+		back.BackgroundColor3 = Color3.fromRGB(45, 48, 62)
+		back.BorderSizePixel = 0
+		back.Parent = card
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(1, 0)
+		c.Parent = back
+		local fill = Instance.new("Frame")
+		fill.Size = UDim2.fromScale(0, 1)
+		fill.BackgroundColor3 = color
+		fill.BorderSizePixel = 0
+		fill.Parent = back
+		c:Clone().Parent = fill
+		return fill
+	end
+	local nameL = line(10, 22, 18, true)
+	local levelL = line(34, 18, 14, false)
+	local xpFill = bar(56, Color3.fromRGB(110, 200, 255))
+	local evoL = line(70, 18, 13, false)
+	local evoFill = bar(92, Color3.fromRGB(255, 170, 70))
+	local multL = line(108, 18, 13, false)
+	local hitsL = line(130, 18, 13, false)
+	local powerL = line(152, 36, 13, false)
+	powerL.TextWrapped = true
+	local session = trainingSession
+	local function refreshCard()
+		local raw = player:GetAttribute("DragonData")
+		local ok, data = pcall(function()
+			return game:GetService("HttpService"):JSONDecode(raw :: string)
+		end)
+		if not ok or type(data) ~= "table" then
+			return
+		end
+		local id = data.equipped and data.equipped[1]
+		local d: any = nil
+		for _, x in data.dragons or {} do
+			if x.id == id then
+				d = x
+			end
+		end
+		if not d then
+			return
+		end
+		local lv = d.level or 1
+		local need = DragonConfig.xpForLevel(lv)
+		local xp = d.xp or 0
+		nameL.Text = string.format("%s <font color=\"#ffc86a\">%s</font>", d.element, d.rarity)
+		levelL.Text = string.format("Lv %d · %d / %d XP", lv, math.floor(xp), need)
+		xpFill.Size = UDim2.fromScale(math.clamp(xp / need, 0, 1), 1)
+		evoL.Text = if lv >= 100 then "Evolved!" else string.format("Evolution: Lv %d / 100", lv)
+		evoFill.Size = UDim2.fromScale(math.clamp(lv / 100, 0, 1), 1)
+		multL.Text = string.format("XP boost: <b>x%.1f</b>", (player:GetAttribute("TrainingMult") or 1) :: number)
+		local acc = if session.shots > 0 then math.floor(session.hits / session.shots * 100) else 0
+		hitsL.Text = string.format("Hits: <b>%d</b> · Accuracy: <b>%d%%</b>", session.hits, acc)
+		powerL.Text = string.format("Attack: <b>%.1f</b> dmg · Stage %d", 8 + 0.15 * lv, d.stage or 1)
+	end
+	player:GetAttributeChangedSignal("DragonData"):Connect(refreshCard)
+	task.spawn(function()
+		while true do
+			if gui.Enabled then
+				refreshCard()
+			end
+			task.wait(0.5)
+		end
+	end)
 	local function myPet(): Model?
 		return petOf(player.UserId)
 	end
 	local function shoot()
 		local camera = workspace.CurrentCamera
 		event:FireServer("shoot", camera.CFrame.Position, camera.CFrame.LookVector)
+		session.shots += 1
 	end
 	UserInputService.InputChanged:Connect(function(input)
 		if on and input.UserInputType == Enum.UserInputType.MouseMovement then
@@ -536,6 +642,14 @@ local function startAim(event: RemoteEvent)
 			hideOthers(want)
 		elseif on and os.clock() % 2 < 0.02 then
 			hideOthers(true) -- chi arriva dopo
+		end
+		if want ~= on then
+			-- sulla pedana il tuo drago vola al centro dell'arena e tu lo guidi da li'
+			local c = workspace:GetAttribute("TrainingCenter")
+			ClientState.petAnchor = if want and typeof(c) == "Vector3" then c + Vector3.new(0, 18, 0) else nil
+			if want then
+				session.hits, session.shots = 0, 0
+			end
 		end
 		on = want
 		gui.Enabled = on

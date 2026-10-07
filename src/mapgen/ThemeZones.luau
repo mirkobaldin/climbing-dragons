@@ -68,21 +68,20 @@ local function particles(p: BasePart, color: Color3, texture: string, rate: numb
 	e.Parent = p
 end
 
--- cristallo: prisma allungato a punta (due parti: corpo e punta), inclinato
+-- cristallo: solo il segnaposto (altezza e base); al suo posto va un cristallo-modello di Mirko
+-- (i prismi fatti a blocchi non ci sono piu'). Restituisce un punto luce invisibile alla base.
 local function crystal(parent: Instance, base: Vector3, h: number, tilt: Vector3, color: Color3, rng: Random): Part
 	local holder = Instance.new("Model")
 	holder.Name = "Cristallo"
 	holder:SetAttribute("Height", h)
 	holder:SetAttribute("Base", base)
 	holder.Parent = parent
-	parent = holder
-	local w = h * 0.22
-	local cf = CFrame.new(base) * CFrame.Angles(tilt.X, rng:NextNumber(0, 6.28), tilt.Z)
-	local body = part(parent, "Cristallo", Vector3.new(w, h, w), cf * CFrame.new(0, h / 2 - h * 0.1, 0), color, M.Neon)
-	body.Transparency = 0.15
-	local tip = part(parent, "Punta", Vector3.new(w * 0.72, w * 0.72, w * 0.72), cf * CFrame.new(0, h - h * 0.1, 0) * CFrame.Angles(math.rad(45), 0, math.rad(45)), color, M.Neon)
-	tip.Transparency = 0.15
-	return body
+	local light = part(holder, "LuceCristallo", Vector3.one, CFrame.new(base + Vector3.new(0, h * 0.4, 0)), color, M.SmoothPlastic)
+	light.Transparency = 1
+	light.CanCollide = false
+	local _ = tilt
+	local _ = rng
+	return light
 end
 
 -- guglia: pila di blocchi che si stringono salendo
@@ -181,9 +180,22 @@ local function placeModel(parent: Instance, tpl: Model, base: Vector3, h: number
 	end
 	local _, s0 = m:GetBoundingBox()
 	m:ScaleTo(m:GetScale() * h / s0.Y)
-	m:PivotTo(CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0))
+	-- forma diversa ogni volta: allungato o schiacciato su un solo asse
+	local axis = rng:NextInteger(1, 3)
+	local k = rng:NextNumber(0.7, 1.6)
+	local f = Vector3.new(if axis == 1 then k else 1, if axis == 2 then k else 1, if axis == 3 then k else 1)
+	local pv = m:GetPivot()
+	for _, p in m:GetDescendants() do
+		if p:IsA("BasePart") then
+			local rel = pv:PointToObjectSpace(p.Position)
+			p.Size = p.Size * f
+			p.Position = pv:PointToWorldSpace(rel * f)
+		end
+	end
+	-- e inclinato un poco
+	m:PivotTo(CFrame.new(base) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 6.28), rng:NextNumber(-0.3, 0.3)))
 	local box, s = m:GetBoundingBox()
-	m:PivotTo(m:GetPivot() + Vector3.new(0, base.Y - (box.Position.Y - s.Y / 2) - 0.5, 0))
+	m:PivotTo(m:GetPivot() + Vector3.new(0, base.Y - (box.Position.Y - s.Y / 2) - 0.5 - s.Y * 0.06, 0))
 	m.Name = "Cristallo"
 	m.Parent = parent
 end
@@ -456,32 +468,21 @@ function ThemeZones.build(map: Heightmap.Map)
 		if build then
 			build(zone, t)
 		end
-		-- cristalli: se in ServerStorage.Modelli c'e' "Cristallo_<Elemento>" si usa quel modello
-		local store = game:GetService("ServerStorage"):FindFirstChild("Modelli")
-		local _ = store
+		-- in ogni zona anche grappoli di cristalli grandi (prima alcune zone, es. Tempesta, non ne
+		-- avevano: si vedevano solo le guglie)
+		for _, p in points(18) do
+			crystal(zf, p, rng:NextNumber(8, 20), Vector3.zero, t.COLOR, rng)
+		end
+		-- i cristalli sono solo i modelli di Mirko (ServerStorage.Modelli, "Cristallo_<elemento>"),
+		-- piu' grandi, inclinati e allungati su un asse; i segnaposto senza modello si tolgono
 		local models = crystalModels(t.ELEMENT)
-		if #models > 0 then
-			for _, holder in zf:GetDescendants() do
-				if holder:IsA("Model") and holder.Name == "Cristallo" and holder:GetAttribute("Height") then
-					local tpl = models[rng:NextInteger(1, #models)]
-					local m = tpl:Clone()
-					for _, d in m:GetDescendants() do
-						if d:IsA("LuaSourceContainer") then
-							d:Destroy()
-						elseif d:IsA("BasePart") then
-							d.Anchored = true
-						end
-					end
-					local _, s0 = m:GetBoundingBox()
-					m:ScaleTo(m:GetScale() * (holder:GetAttribute("Height") :: number) * 1.3 / s0.Y)
-					local base = holder:GetAttribute("Base") :: Vector3
-					m:PivotTo(CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0))
-					local box, s = m:GetBoundingBox()
-					m:PivotTo(m:GetPivot() + Vector3.new(0, base.Y - (box.Position.Y - s.Y / 2) - 0.5, 0))
-					m.Name = "Cristallo"
-					m.Parent = holder.Parent
-					holder:Destroy()
+		for _, holder in zf:GetDescendants() do
+			if holder:IsA("Model") and holder.Name == "Cristallo" and holder:GetAttribute("Height") then
+				if #models > 0 then
+					local h = (holder:GetAttribute("Height") :: number) * 1.8
+					placeModel(holder.Parent :: Instance, models[rng:NextInteger(1, #models)], holder:GetAttribute("Base") :: Vector3, h, rng)
 				end
+				holder:Destroy()
 			end
 		end
 		-- nido al centro e cartello sul bordo verso valle

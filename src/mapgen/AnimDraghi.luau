@@ -562,31 +562,55 @@ local function buildFly(sk: Skel, s: Signs, t: number): Poses
 			end
 		end
 	end
-	-- corpo che segue il battito, testa in ritardo
-	add(poses, sk, sk.hips, sk.right, 4 * wave("fly", "hips", p))
+	-- corpo che segue il battito, testa in ritardo (ampiezze piccole: prima corpo, collo e coda
+	-- ondeggiavano tutti insieme e il drago sembrava una banana che dondola)
+	add(poses, sk, sk.hips, sk.right, 1.5 * wave("fly", "hips", p))
 	for _, b in sk.spine do
-		add(poses, sk, b, sk.right, 2 * wave("fly", "chest", p))
+		add(poses, sk, b, sk.right, 0.8 * wave("fly", "chest", p))
 	end
 	for k, b in sk.neck do
 		local share = if k == #sk.neck then 0.4 else 0.6 / math.max(#sk.neck - 1, 1)
-		add(poses, sk, b, sk.right, (s.neckPitch or 1) * 10 * share * wave("fly", "head", p))
+		add(poses, sk, b, sk.right, (s.neckPitch or 1) * 4 * share * wave("fly", "head", p))
 	end
-	-- zampe: raccolte all'indietro, penzolano col battito (ginocchio e piede in ritardo)
+	-- zampe: raccolte all'indietro, penzolano appena col battito
 	for i, leg in sk.legs do
-		local tuck = if leg.front then -20 else -30
-		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * (tuck + 12 * wave("fly", "leg", p)))
+		local tuck = if leg.front then -28 else -38
+		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * (tuck + 5 * wave("fly", "leg", p)))
 		if leg.bones[2] then
-			add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * (10 + 10 * wave("fly", "leg", p - 0.12)))
+			add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * (16 + 5 * wave("fly", "leg", p - 0.12)))
 		end
 		if leg.bones[3] then
-			add(poses, sk, leg.bones[3], sk.right, (s["lift" .. i] or 1) * -8 * wave("fly", "leg", p - 0.22))
+			add(poses, sk, leg.bones[3], sk.right, (s["lift" .. i] or 1) * -6 * wave("fly", "leg", p - 0.22))
 		end
 	end
-	-- coda: onda che va verso la punta
+	-- coda tesa: solo un'onda leggera verso la punta
 	for k, b in sk.tail do
 		local f = (k - 1) / math.max(#sk.tail - 1, 1)
-		add(poses, sk, b, UP, (s.tailYaw or 1) * (3 + 5 * f) * math.sin(2 * math.pi * (p - 0.1 * k)))
-		add(poses, sk, b, sk.right, (s.tailPitch or 1) * 2.5 * wave("fly", "hips", p - 0.08 * k))
+		add(poses, sk, b, UP, (s.tailYaw or 1) * (1.5 + 2.5 * f) * math.sin(2 * math.pi * (p - 0.1 * k)))
+		add(poses, sk, b, sk.right, (s.tailPitch or 1) * 1.2 * wave("fly", "hips", p - 0.08 * k))
+	end
+	return poses
+end
+
+-- picchiata: ali chiuse strette all'indietro (le punte vibrano nel vento), collo teso in avanti,
+-- zampe raccolte, coda dritta con un fremito
+local DIVE_T = 0.8
+local function buildDive(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / DIVE_T
+	foldWings(poses, sk, s, folds, 3 * math.sin(4 * math.pi * p))
+	for _, b in sk.neck do
+		add(poses, sk, b, sk.right, (s.neckPitch or 1) * -5 / math.max(#sk.neck, 1))
+	end
+	for i, leg in sk.legs do
+		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * (if leg.front then -40 else -50))
+		if leg.bones[2] then
+			add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * 30)
+		end
+	end
+	for k, b in sk.tail do
+		local f = (k - 1) / math.max(#sk.tail - 1, 1)
+		add(poses, sk, b, UP, (s.tailYaw or 1) * 2.5 * f * math.sin(2 * math.pi * (2 * p - 0.15 * k)))
 	end
 	return poses
 end
@@ -782,8 +806,10 @@ function AnimDraghi.genera(soloNome: string?): string
 			-- l'adulto tiene le ali "un attimo piegate", i cuccioli un po' di piu'
 			local fold = if string.find(string.lower(rig.Name), "adulto") then 0.55 else 0.75
 			local folds = {}
+			local foldsDive = {} -- in picchiata le ali si chiudono del tutto
 			for i, w in sk.wings do
 				folds[i] = bestFold(sk, s, i, w, fold)
+				foldsDive[i] = bestFold(sk, s, i, w, 1)
 			end
 			-- ali aperte per il volo (vedi spreads)
 			spreads = {}
@@ -841,6 +867,7 @@ function AnimDraghi.genera(soloNome: string?): string
 				["drago-volo"] = { FLY_T, function(t) return buildFly(sk, s, t) end },
 				["drago-cammina"] = { WALK_T, function(t) return buildWalk(sk, s, t, folds) end },
 				["drago-fermo"] = { IDLE_T, function(t) return buildIdle(sk, s, t, folds) end },
+				["drago-picchiata"] = { DIVE_T, function(t) return buildDive(sk, s, t, foldsDive) end },
 			} do
 				local old = store:FindFirstChild(name)
 				if old then
