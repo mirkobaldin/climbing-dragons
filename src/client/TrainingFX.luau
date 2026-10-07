@@ -493,8 +493,8 @@ local function startAim(event: RemoteEvent)
 	-- moltiplicatore, colpi e precisione della sessione
 	local card = Instance.new("Frame")
 	card.Name = "SchedaDrago"
-	card.AnchorPoint = Vector2.new(1, 0.5)
-	card.Position = UDim2.new(1, -16, 0.55, 0)
+	card.AnchorPoint = Vector2.new(1, 1)
+	card.Position = UDim2.new(1, -16, 1, -90) -- in basso a destra (sopra c'erano Admin e God)
 	card.Size = UDim2.fromOffset(250, 200)
 	card.BackgroundColor3 = Color3.fromRGB(18, 20, 30)
 	card.BackgroundTransparency = 0.15
