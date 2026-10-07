@@ -47,6 +47,10 @@ local function destinations(): { [string]: (Player) -> Vector3? }
 			local p = player:GetAttribute("PlotSpawn") or player:GetAttribute("PlotPosition")
 			return if typeof(p) == "Vector3" then p else nil
 		end,
+		["Muscle Beach (gym)"] = function()
+			local c = workspace:GetAttribute("GymCenter")
+			return if typeof(c) == "Vector3" then c + Vector3.new(0, 0, 30) else nil
+		end,
 		["Dragon training"] = function()
 			local c = workspace:GetAttribute("TrainingCenter")
 			return if typeof(c) == "Vector3" then c + Vector3.new(0, 0, 70) else nil
@@ -93,7 +97,7 @@ function Teleports.setup()
 	end)
 end
 
-Teleports.NAMES = { "Base camp (hub)", "My camp", "Dragon training" }
+Teleports.NAMES = { "Base camp (hub)", "My camp", "Dragon training", "Muscle Beach (gym)" }
 -- chi puo' andarci: tutti, dal primo drago, con lo Chalet
 Teleports.NEEDS = { ["Dragon training"] = "dragon" } :: { [string]: string }
 

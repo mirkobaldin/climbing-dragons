@@ -9,7 +9,7 @@ local Players = game:GetService("Players")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local TweenService = game:GetService("TweenService")
 
-local IMAGE = "" -- es. "rbxassetid://1234567890"
+local IMAGE = "rbxassetid://138361268163291" -- la key art "CLIMB - Reach higher" (ha gia' il logo)
 local MIN_TIME = 3
 local TIPS = {
 	"No checkpoints. Every meter counts.",
@@ -78,8 +78,10 @@ local function label(text: string, y: number, h: number, font: Enum.Font, color:
 	l.Parent = bg
 	return l
 end
-label("HARDCORE CLIMBING", 0.72, 0.09, Enum.Font.GothamBlack, Color3.new(1, 1, 1))
-label("& DRAGONS", 0.79, 0.04, Enum.Font.GothamBold, Color3.fromRGB(255, 180, 90))
+if IMAGE == "" then
+	label("HARDCORE CLIMBING", 0.72, 0.09, Enum.Font.GothamBlack, Color3.new(1, 1, 1))
+	label("& DRAGONS", 0.79, 0.04, Enum.Font.GothamBold, Color3.fromRGB(255, 180, 90))
+end
 local tip = label(TIPS[math.random(1, #TIPS)], 0.93, 0.03, Enum.Font.Gotham, Color3.fromRGB(220, 225, 240))
 
 -- barra
@@ -101,6 +103,14 @@ bar.Parent = barBack
 corner:Clone().Parent = bar
 
 gui.Parent = player:WaitForChild("PlayerGui")
+-- l'immagine prima di tutto il resto: appare subito, mentre la mappa si carica dietro
+if IMAGE ~= "" then
+	task.spawn(function()
+		pcall(function()
+			ContentProvider:PreloadAsync({ IMAGE })
+		end)
+	end)
+end
 
 -- avanzamento: tempo, gioco caricato, coda dei contenuti, personaggio
 local maxQueue = 1

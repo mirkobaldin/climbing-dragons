@@ -59,7 +59,7 @@ function Sprint.start()
 			humanoid.WalkSpeed = if sprinting then base * bolt * ClimbConfig.SPRINT_SPEED / ClimbConfig.WALK_SPEED else base
 		end
 		if sprinting and grounded then
-			ClientState.stamina = math.max(0, ClientState.stamina - ClimbConfig.SPRINT_DRAIN / ClientState.regenBoost * dt)
+			ClientState.stamina = math.max(0, ClientState.stamina - ClimbConfig.SPRINT_DRAIN / ClientState.regenBoost * dt * (1 - math.min(0.4, ((Players.LocalPlayer:GetAttribute("Fitness") or 0) :: number) * 0.01))) -- palestra
 		end
 		local camera = workspace.CurrentCamera
 		if camera then

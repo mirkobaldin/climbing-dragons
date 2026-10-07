@@ -969,7 +969,10 @@ buildTemplates = function()
 		model:ScaleTo((currentMap :: Heightmap.Map).cfg.VILLAGE.HOUSE_SCALE) -- case piu' grandi
 		-- nido nell'angolo dietro, dentro il recinto del terreno
 		local half = (currentMap :: Heightmap.Map).cfg.VILLAGE.PLOT_HALF[k]
-		nest(model, origin * CFrame.new(-(half - 10), 0, half - 10))
+		-- il modello viene poi ingrandito di HOUSE_SCALE: si divide, se no il nido finiva fuori dal
+		-- terreno (nelle rocce dietro lo Chalet)
+		local S = (currentMap :: Heightmap.Map).cfg.VILLAGE.HOUSE_SCALE
+		nest(model, origin * CFrame.new(-(half - 10) / S, 0, (half - 10) / S))
 		-- niente banco da lavoro in casa: si crafta al campo base, e con lo Chalet alla forgia
 		-- (la costruisce Economy accanto al punto d'arrivo)
 		local _ = workbench
@@ -1245,10 +1248,13 @@ function Village.build(map: Heightmap.Map)
 				continue
 			end
 			local cf = CFrame.lookAt(at, at + out) -- la porta guarda la valle
+			-- ripiano largo e ben spianato: roccia piena sotto, tutto libero sopra (anche oltre il
+			-- terreno, cosi' il pendio non entra nella casa)
 			T:FillBall(cf * Vector3.new(0, -half * 1.1, 0), half * 1.25, Enum.Material.Rock)
-			T:FillBlock(cf * CFrame.new(0, 30, 0), Vector3.new(half * 2 + 12, 60, half * 2 + 12), Enum.Material.Air)
+			T:FillBlock(cf * CFrame.new(0, -6, 0), Vector3.new(half * 2 + 24, 12, half * 2 + 24), Enum.Material.Rock)
+			T:FillBlock(cf * CFrame.new(0, 34, 0), Vector3.new(half * 2 + 30, 68, half * 2 + 30), Enum.Material.Air)
 			local ledge = builder(folder, "Ripiano")
-			ledge.block(Vector3.new(half * 2 + 8, 2, half * 2 + 8), cf * CFrame.new(0, -1, 0), STONE, Enum.Material.Slate)
+			ledge.block(Vector3.new(half * 2 + 20, 2, half * 2 + 20), cf * CFrame.new(0, -1, 0), STONE, Enum.Material.Slate)
 			addPlot(2, "Pendio", cf)
 			nCabins += 1
 		end
@@ -1286,9 +1292,10 @@ function Village.build(map: Heightmap.Map)
 			-- dietro: un masso tondo di roccia sotto la meta' interna (un blocco squadrato si vedeva
 			-- sotto la pedana); sopra: tutto libero
 			T:FillBall(cf * Vector3.new(0, -half * 1.05, half * 0.55), half * 1.0, Enum.Material.Rock)
-			T:FillBlock(cf * CFrame.new(0, 26, 0), Vector3.new(half * 2 + 10, 52, half * 2 + 10), Enum.Material.Air)
+			-- tutto libero sopra la pedana, con margine largo (prima il nido finiva nella roccia)
+			T:FillBlock(cf * CFrame.new(0, 34, 0), Vector3.new(half * 2 + 30, 68, half * 2 + 30), Enum.Material.Air)
 			local villa = builder(folder, "Costone")
-			villa.block(Vector3.new(half * 2 + 6, 1.6, half * 2 + 6), cf * CFrame.new(0, -0.8, 0), Color3.fromRGB(232, 232, 228), Enum.Material.Concrete)
+			villa.block(Vector3.new(half * 2 + 16, 1.6, half * 2 + 16), cf * CFrame.new(0, -0.8, 0), Color3.fromRGB(232, 232, 228), Enum.Material.Concrete)
 			-- pilastri inclinati sotto la parte che sporge
 			for _, u in { -0.8, -0.3, 0.3, 0.8 } do
 				for _, v in { -0.85, -0.35 } do

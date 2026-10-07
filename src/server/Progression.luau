@@ -91,6 +91,7 @@ local function save(player: Player)
 		dragons = Dragons.serialize(player),
 		economy = Economy.serialize(player),
 		tutorial = player:GetAttribute("TutorialStep"),
+		fitness = { player:GetAttribute("Fitness") or 0, player:GetAttribute("FitnessXP") or 0 }, -- palestra
 	}
 	for _, v in inventory(player):GetChildren() do
 		if v:IsA("IntValue") then
@@ -136,6 +137,10 @@ local function load(player: Player)
 			dragonData = data.dragons
 			economyData = data.economy
 			tutorial = data.tutorial
+			if type(data.fitness) == "table" then
+				player:SetAttribute("Fitness", tonumber(data.fitness[1]) or 0)
+				player:SetAttribute("FitnessXP", tonumber(data.fitness[2]) or 0)
+			end
 		elseif not ok then
 			warn("[Progression] Caricamento non riuscito (in Studio attiva l'accesso alle API): " .. tostring(data))
 		end

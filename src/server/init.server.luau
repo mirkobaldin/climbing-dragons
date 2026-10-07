@@ -12,6 +12,7 @@ local Training = require(script.Training)
 local Enemies = require(script.Enemies)
 local ToxicGas = require(script.ToxicGas)
 local Teleports = require(script.Teleports)
+local Gym = require(script.Gym)
 local Progression = require(script.Progression)
 local Mining = require(script.Mining)
 local Eggs = require(script.Eggs)
@@ -144,6 +145,16 @@ do
 			end
 		end
 		dragonOut.Parent = game:GetService("ReplicatedStorage")
+		-- animazioni dei nemici (cammina, fermo, attacco, seduto) anche per il client: le usano
+		-- le clip (KfsPlayer) e, in futuro, i nemici sul telefono
+		local enemyOut = Instance.new("Folder")
+		enemyOut.Name = "EnemyAnimSaves"
+		for _, set in saves:GetChildren() do
+			if set.Name == "Yeti" or set.Name == "GolemGhiaccio" then
+				set:Clone().Parent = enemyOut
+			end
+		end
+		enemyOut.Parent = game:GetService("ReplicatedStorage")
 		for _, rigSaves in saves:GetChildren() do
 			local isDummy = rigSaves.Name == "ManichinoArrampicata"
 			if string.sub(rigSaves.Name, 1, 6) == "Drago_" and rigSaves.Name ~= "Drago_Ombra_Rig" then
@@ -193,6 +204,7 @@ Training.setup()
 task.defer(Enemies.setup) -- cerca i punti sulla montagna: non deve fermare gli altri sistemi
 ToxicGas.setup()
 Teleports.setup()
+Gym.setup()
 Economy.setup()
 Survival.setup()
 Progression.setup(remotes)

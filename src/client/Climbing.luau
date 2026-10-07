@@ -764,6 +764,8 @@ local function climbStep(dt: number)
 	drain *= (if icy then ClimbConfig.ICE_MULTIPLIER else 1) * (if axe then 1 else ClimbConfig.NO_AXE_MULTIPLIER) * ClientState.windFactor
 	-- piu' la roccia sporge, piu' peso sta sulle braccia: verticale 1x, tetto 3.4x
 	drain *= 1 + 2.4 * roofness
+	-- palestra: ogni livello Fitness toglie l'1% di fatica (fino al 40%)
+	drain *= 1 - math.min(0.4, ((game:GetService("Players").LocalPlayer:GetAttribute("Fitness") or 0) :: number) * 0.01)
 	ClientState.stamina = math.max(0, ClientState.stamina - drain * dt)
 	if ClientState.stamina <= 0 then
 		ClientState.hint = "Sei esausto! Riposa a terra o appeso alla corda."

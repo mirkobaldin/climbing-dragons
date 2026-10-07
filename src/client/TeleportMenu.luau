@@ -12,7 +12,7 @@ local player = Players.LocalPlayer
 
 local TeleportMenu = {}
 
-local NAMES = { "Base camp (hub)", "My camp", "Dragon training" }
+local NAMES = { "Base camp (hub)", "My camp", "Dragon training", "Muscle Beach (gym)" }
 
 function TeleportMenu.start()
 	local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Teleport", 30) :: RemoteEvent?

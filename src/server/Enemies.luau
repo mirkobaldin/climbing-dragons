@@ -419,18 +419,48 @@ local function buildThrone(enemy: Enemy, den: CFrame)
 		local p = den * Vector3.new(x, 0, -z)
 		return CFrame.lookAt(Vector3.new(p.X, y, p.Z), Vector3.new(p.X, y, p.Z) + den.LookVector)
 	end
-	-- pedana a gradini
-	block("Pedana", Vector3.new(H * 1.9, 1, H * 1.6), at(0, ground + 0.4, -0.05 * H), true)
+	-- il trono di cristalli di Mirko (ServerStorage.Modelli "throne"): fa da sfondo e da pedana
+	-- di neve; il sedile e i braccioli restano quelli qui sotto (il Re ci si siede sopra)
+	local store = ServerStorage:FindFirstChild("Modelli")
+	local tpl: Instance? = nil
+	for _, m in (if store then store:GetChildren() else {}) :: { Instance } do
+		if m:IsA("Model") and string.lower((string.gsub(m.Name, "%s", ""))) == "throne" then
+			tpl = m
+		end
+	 end
+	if tpl then
+		local deco = (tpl :: Model):Clone()
+		for _, d in deco:GetDescendants() do
+			if d:IsA("LuaSourceContainer") then
+				d:Destroy()
+			elseif d:IsA("BasePart") then
+				d.Anchored = true
+				d.CanCollide = false -- collisione a scatola: chiuderebbe il Re dentro
+			end
+		end
+		local _, s0 = deco:GetBoundingBox()
+		deco:ScaleTo(deco:GetScale() * H * 2 / s0.Y)
+		deco:PivotTo(at(0, ground, -0.55 * H) * deco:GetPivot().Rotation)
+		local box, s = deco:GetBoundingBox()
+		deco:PivotTo(deco:GetPivot() + Vector3.new(0, ground - (box.Position.Y - s.Y / 2) - 0.3, 0))
+		deco.Name = "TronoCristalli"
+		deco.Parent = model
+	else
+		-- pedana a gradini
+		block("Pedana", Vector3.new(H * 1.9, 1, H * 1.6), at(0, ground + 0.4, -0.05 * H), true)
+	end
 	block("Poggiapiedi", Vector3.new(H * 0.9, feet - ground, H * 0.35), at(0, (ground + feet) / 2, 0.32 * H), false)
 	block("Sedile", Vector3.new(H * 0.95, seatTop - ground, H * 0.5), at(0, (ground + seatTop) / 2, -0.08 * H), false)
 	block("Schienale", Vector3.new(H * 1.05, H * 1.25, H * 0.16), at(0, seatTop + H * 0.6, -0.36 * H), true)
 	block("Bordo", Vector3.new(H * 1.12, H * 0.06, H * 0.2), at(0, seatTop + H * 0.06, -0.36 * H), false, true)
 	for _, side in { -1, 1 } do
 		block("Bracciolo", Vector3.new(H * 0.16, H * 0.3, H * 0.55), at(side * H * 0.52, seatTop + H * 0.1, -0.08 * H), true)
-		block("Pilastro", Vector3.new(H * 0.22, H * 1.55, H * 0.22), at(side * H * 0.56, ground + H * 0.78 + (seatTop - ground) * 0.2, -0.36 * H), true)
+		if not tpl then
+			block("Pilastro", Vector3.new(H * 0.22, H * 1.55, H * 0.22), at(side * H * 0.56, ground + H * 0.78 + (seatTop - ground) * 0.2, -0.36 * H), true)
+		end
 	end
 	-- punte di ghiaccio sullo schienale (piu' alte al centro)
-	for k = -3, 3 do
+	for k = -3, if tpl then -4 else 3 do
 		local h = H * (0.55 - math.abs(k) * 0.1)
 		local spike = block("Punta", Vector3.new(H * 0.12, h, H * 0.12), at(k * H * 0.15, seatTop + H * 1.2 + h / 2, -0.36 * H) * CFrame.Angles(0, math.rad(45), math.rad(k * 6)), false)
 		spike.Transparency = 0.25

@@ -19,6 +19,7 @@ local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 
 local PetAnimator = require(script.Parent.PetAnimator)
+local KfsPlayer = require(script.Parent.KfsPlayer)
 
 local player = Players.LocalPlayer
 
@@ -807,6 +808,358 @@ function Trailer.play(kind: string, take: string?)
 		onStart(shotDragonPass(4), function()
 			say(s.big, "part 2 at 1000 likes", 3.6, GOLD)
 		end)
+	end
+	if kind == "clip4" or kind == "clip5" or kind == "clip6" then
+		-- clip SENZA scritte (i testi si mettono nell'editor di TikTok: docs/TIKTOK_CLIPS.md)
+		local function sparkBurst(at: Vector3, color: Color3, size: number)
+			local p = Instance.new("Part")
+			p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.Transparency = true, false, false, false, 1
+			p.Size = Vector3.one
+			p.Position = at
+			p.Parent = workspace
+			local e = Instance.new("ParticleEmitter")
+			e.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+			e.Color = ColorSequence.new(color)
+			e.LightEmission = 1
+			e.Size = NumberSequence.new(size, 0)
+			e.Speed = NumberRange.new(size * 4, size * 9)
+			e.SpreadAngle = Vector2.new(180, 180)
+			e.Lifetime = NumberRange.new(0.4, 0.9)
+			e.Parent = p
+			e:Emit(60)
+			local l = Instance.new("PointLight")
+			l.Color = color
+			l.Range = size * 10
+			l.Brightness = 4
+			l.Parent = p
+			TweenService:Create(l, TweenInfo.new(0.5), { Brightness = 0 }):Play()
+			task.delay(1.2, function()
+				p:Destroy()
+			end)
+		end
+		local function fireball(from: Vector3, to: Vector3, color: Color3)
+			local b = Instance.new("Part")
+			b.Shape = Enum.PartType.Ball
+			b.Anchored, b.CanCollide, b.CanQuery, b.CanTouch = true, false, false, false
+			b.Material = Enum.Material.Neon
+			b.Color = color
+			b.Size = Vector3.one * 3
+			b.Position = from
+			b.Parent = workspace
+			local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+			a0.Position, a1.Position = Vector3.new(0, 1, 0), Vector3.new(0, -1, 0)
+			a0.Parent, a1.Parent = b, b
+			local tr = Instance.new("Trail")
+			tr.Attachment0, tr.Attachment1 = a0, a1
+			tr.Color = ColorSequence.new(color)
+			tr.LightEmission = 1
+			tr.Lifetime = 0.3
+			tr.Transparency = NumberSequence.new(0, 1)
+			tr.Parent = b
+			local tw = TweenService:Create(b, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position = to })
+			tw:Play()
+			tw.Completed:Connect(function()
+				b:Destroy()
+				sparkBurst(to, color, 3)
+				shake = math.max(shake, 0.6)
+			end)
+		end
+		local ECL = Color3.fromRGB(255, 160, 60)
+
+		if kind == "clip4" then
+			-- BOSS: il Re Yeti si sveglia sul trono, l'Eclissi adulto lo combatte, crolla
+			local den = workspace:GetAttribute("GrandCaveDen")
+			if typeof(den) == "CFrame" and gc then
+				local throne = den.Position
+				local out = den.LookVector
+				local side = den.RightVector
+				local yeti: Model? = nil
+				local real: Model? = nil
+				local tracks: { [string]: any } = {}
+				local hp: Frame? = nil
+				local function prepareYeti()
+					local folder = workspace:FindFirstChild("Nemici")
+					for _, m in (if folder then folder:GetChildren() else {}) :: { Instance } do
+						if m:IsA("Model") and m:GetAttribute("Boss") and m:FindFirstChild("mixamorig:Hips", true) and (m:GetPivot().Position - throne).Magnitude < 60 then
+							real = m
+						end
+					end
+					if not real then
+						return
+					end
+					local r = real :: Model
+					r.Archivable = true
+					local c = r:Clone()
+					for _, d in c:GetDescendants() do
+						if d:IsA("Humanoid") or d:IsA("Animator") or d:IsA("AnimationController") or d:IsA("BillboardGui") or d:IsA("LuaSourceContainer") then
+							d:Destroy()
+						elseif d:IsA("BasePart") then
+							d.Anchored = true
+							d.CanCollide = false
+						end
+					end
+					c.Parent = workspace
+					yeti = c
+					for _, d in r:GetDescendants() do
+						if d:IsA("BasePart") then
+							d.LocalTransparencyModifier = 1
+						end
+					end
+					-- animazioni (copie client delle pose salvate)
+					local set = game:GetService("ReplicatedStorage"):FindFirstChild("EnemyAnimSaves")
+					set = set and set:FindFirstChild("Yeti")
+					for name, key in { sit = "nemico-seduto", idle = "nemico-fermo", attack = "nemico-attacco", walk = "nemico-cammina" } do
+						local k = set and set:FindFirstChild(key)
+						if k and k:IsA("KeyframeSequence") then
+							tracks[name] = KfsPlayer.load(c, k)
+						end
+					end
+					if tracks.sit then
+						tracks.sit:Play(0, 1)
+					end
+					-- barra della vita (senza scritte)
+					local bb = Instance.new("BillboardGui")
+					bb.Size = UDim2.fromScale(12, 1.1)
+					bb.StudsOffsetWorldSpace = Vector3.new(0, 16, 0)
+					bb.AlwaysOnTop = true
+					bb.Adornee = c.PrimaryPart or c:FindFirstChildWhichIsA("BasePart", true)
+					local back = Instance.new("Frame")
+					back.Size = UDim2.fromScale(1, 1)
+					back.BackgroundColor3 = Color3.fromRGB(30, 30, 34)
+					back.BorderSizePixel = 0
+					back.Parent = bb
+					local fill = Instance.new("Frame")
+					fill.Size = UDim2.fromScale(1, 1)
+					fill.BackgroundColor3 = Color3.fromRGB(230, 60, 50)
+					fill.BorderSizePixel = 0
+					fill.Parent = back
+					bb.Parent = c
+					hp = fill
+				end
+				local function play(name: string)
+					for n, t in tracks do
+						if n == name then
+							t:Play(0.25, 1)
+						else
+							t:Stop(0.25)
+						end
+					end
+				end
+				local fightC = throne + out * 45
+				local function dragonPath(u: number): Vector3
+					local a = u * math.pi * 2.2
+					return fightC + side * math.sin(a) * 50 + out * (math.cos(a) * 35 + 15) + Vector3.new(0, 30 + 8 * math.sin(a * 2), 0)
+				end
+				-- 1) il trono nel buio della grotta, si avvicina piano (3 s)
+				add({
+					dur = 3,
+					at = throne,
+					start = function()
+						prepareYeti()
+						hide(adult)
+					end,
+					cam = dolly(throne + out * 110 + Vector3.new(0, 25, 0), throne + out * 45 + Vector3.new(0, 14, 0), throne + Vector3.new(0, 12, 0), throne + Vector3.new(0, 12, 0)),
+				})
+				-- 2) si alza: inquadratura dal basso, scossa (2 s)
+				add({
+					dur = 2,
+					at = throne,
+					start = function()
+						play("idle")
+						shake = 1.2
+						flash(s, s.red)
+					end,
+					cam = dolly(throne + out * 22 + side * 6 + Vector3.new(0, 3, 0), throne + out * 18 + side * 4 + Vector3.new(0, 2, 0), throne + Vector3.new(0, 18, 0), throne + Vector3.new(0, 22, 0)),
+				})
+				-- 3) combattimento: il drago gira attorno e spara, il Re colpisce (6 s)
+				local nextShot = 0
+				local nextSwing = 0
+				local life = 1
+				add({
+					dur = 6,
+					at = throne,
+					start = function()
+						pose(adult, "fly", 0.6)
+					end,
+					update = function(u)
+						flyAlong(adult, dragonPath, u, 2)
+						local t = os.clock()
+						if adult and t > nextShot then
+							nextShot = t + 0.45
+							local from = adult.model:GetPivot().Position
+							fireball(from, throne + Vector3.new(0, 14, 0) + side * (math.random() - 0.5) * 6, ECL)
+							life = math.max(0.12, life - 0.06)
+							if hp then
+								TweenService:Create(hp, TweenInfo.new(0.3), { Size = UDim2.fromScale(life, 1) }):Play()
+							end
+						end
+						if t > nextSwing then
+							nextSwing = t + 1.6
+							play("attack")
+							task.delay(0.5, function()
+								sparkBurst(throne + out * 12 + Vector3.new(0, 2, 0), Color3.fromRGB(180, 230, 255), 4)
+								shake = 1
+							end)
+							task.delay(1.1, function()
+								play("idle")
+							end)
+						end
+					end,
+					cam = function(u)
+						local a = 0.6 + u * 1.4
+						return CFrame.lookAt(throne + out * 70 * math.cos(a * 0.4) + side * 60 * math.sin(a) + Vector3.new(0, 22, 0), throne + Vector3.new(0, 14, 0))
+					end,
+				})
+				-- 4) colpo finale: lampo, il Re crolla all'indietro (3 s)
+				add({
+					dur = 3,
+					at = throne,
+					start = function()
+						if adult then
+							fireball(adult.model:GetPivot().Position, throne + Vector3.new(0, 14, 0), Color3.fromRGB(255, 220, 120))
+						end
+						task.delay(0.4, function()
+							flash(s)
+							shake = 2
+							if hp then
+								hp.Size = UDim2.fromScale(0, 1)
+							end
+							for _, t in tracks do
+								t:Stop(0.3)
+							end
+							local y = yeti
+							if y then
+								local cf0 = y:GetPivot()
+								local fall = Instance.new("NumberValue")
+								fall.Changed:Connect(function(v)
+									y:PivotTo(cf0 * CFrame.new(0, -v * 3, v * 4) * CFrame.Angles(-v * 1.4, 0, 0))
+								end)
+								TweenService:Create(fall, TweenInfo.new(1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), { Value = 1 }):Play()
+							end
+							for k = 1, 4 do
+								task.delay(0.2 * k, function()
+									sparkBurst(throne + Vector3.new(math.random(-8, 8), 6 + math.random() * 10, math.random(-8, 8)), Color3.fromRGB(255, 220, 90), 5)
+								end)
+							end
+						end)
+					end,
+					update = function(u)
+						flyAlong(adult, dragonPath, 1 + u * 0.1, 2)
+					end,
+					cam = dolly(throne + out * 40 + side * 25 + Vector3.new(0, 10, 0), throne + out * 55 + side * 30 + Vector3.new(0, 18, 0), throne + Vector3.new(0, 10, 0), throne + Vector3.new(0, 4, 0)),
+				})
+				-- 5) uscita: la camera indietreggia verso l'apertura (2.5 s)
+				add({
+					dur = 2.5,
+					at = throne,
+					cam = dolly(throne + out * 60 + Vector3.new(0, 20, 0), gface + gout * 120 + Vector3.new(0, 40, 0), throne + Vector3.new(0, 6, 0), throne + Vector3.new(0, 6, 0)),
+				})
+				-- pulizia
+				local cleanup = shots[#shots]
+				local before = cleanup.start
+				cleanup.start = function()
+					if before then
+						before()
+					end
+					task.delay(2.4, function()
+						if yeti then
+							(yeti :: Model):Destroy()
+						end
+						if real then
+							for _, d in (real :: Model):GetDescendants() do
+								if d:IsA("BasePart") then
+									d.LocalTransparencyModifier = 0
+								end
+							end
+						end
+					end)
+				end
+			end
+		elseif kind == "clip5" then
+			-- GIRO DELLE ZONE: tagli veloci (pattern interrupt) con un lampo tra una e l'altra
+			local stops: { { c: Vector3, r: number } } = {}
+			local seen = {}
+			for i = 1, (workspace:GetAttribute("ThemeZoneCount") or 0) :: number do
+				local e = workspace:GetAttribute("ThemeZone" .. i .. "Element")
+				local c = workspace:GetAttribute("ThemeZone" .. i .. "Center")
+				local r = workspace:GetAttribute("ThemeZone" .. i .. "Radius")
+				if type(e) == "string" and not seen[e] and typeof(c) == "Vector3" and type(r) == "number" then
+					seen[e] = true
+					table.insert(stops, { c = c, r = r })
+				end
+			end
+			local gas1 = workspace:GetAttribute("GasCenter1")
+			if typeof(gas1) == "Vector3" then
+				table.insert(stops, 4, { c = gas1, r = 140 })
+			end
+			if gc then
+				table.insert(stops, 2, { c = gface + gout * 10, r = 160 })
+			end
+			for k, st in stops do
+				local last = k == #stops
+				add({
+					dur = if last then 2.4 else 1.15,
+					at = st.c,
+					start = function()
+						if k > 1 then
+							flash(s)
+						end
+					end,
+					cam = function(u)
+						local a = k * 1.3 + u * (if last then 0.5 else 0.9)
+						local r = st.r * (if last then 1.1 - 0.5 * smooth(u) else 1)
+						return CFrame.lookAt(st.c + Vector3.new(math.cos(a) * r, st.r * 0.35, math.sin(a) * r), st.c + Vector3.new(0, 8, 0))
+					end,
+				})
+			end
+		elseif kind == "clip6" then
+			-- VOLO: camera dietro all'Eclissi adulto, dal cratere in picchiata lungo la montagna
+			-- fino dentro la Grande Grotta
+			local cc = workspace:GetAttribute("CraterCaveCenter")
+			local co = workspace:GetAttribute("CraterCaveOut")
+			if gc and typeof(cc) == "Vector3" and typeof(co) == "Vector3" then
+				local o = flat(co)
+				local pts = {
+					cc + o * 260 + Vector3.new(0, 220, 0),
+					cc + o * 120 + Vector3.new(0, 120, 0),
+					(cc + o * 300):Lerp(gface + gout * 300, 0.5) + Vector3.new(0, 150, 0),
+					gface + gout * 220 + Vector3.new(0, 60, 0),
+					gface + gout * 40 + Vector3.new(0, 15, 0),
+					(gc :: Vector3) + Vector3.new(0, -10, 0),
+					(gc :: Vector3) - gout * 100 + Vector3.new(0, -5, 0),
+				}
+				-- curva morbida che passa per tutti i punti (Catmull-Rom)
+				local function path(u: number): Vector3
+					u = math.clamp(u, 0, 1)
+					local n = #pts - 1
+					local x = u * n
+					local i = math.min(math.floor(x), n - 1)
+					local t = x - i
+					local p0 = pts[math.max(1, i)]
+					local p1 = pts[i + 1]
+					local p2 = pts[i + 2]
+					local p3 = pts[math.min(#pts, i + 3)]
+					local t2, t3 = t * t, t * t * t
+					return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
+				end
+				add({
+					dur = 11,
+					at = gface,
+					start = function()
+						pose(adult, "fly", 0.7)
+					end,
+					update = function(u)
+						flyAlong(adult, path, smooth(u) * 0.97, 1.6)
+					end,
+					cam = function(u)
+						local k = smooth(u) * 0.97
+						local p = path(k)
+						local dir = (path(k + 0.01) - path(math.max(0, k - 0.01))).Unit
+						return CFrame.lookAt(p - dir * 45 + Vector3.new(0, 14, 0), p + dir * 30)
+					end,
+				})
+			end
+		end
 	end
 	run(shots, s)
 	for _, a in { baby, adult, gas } do

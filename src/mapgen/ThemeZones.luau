@@ -150,6 +150,44 @@ local function nest(parent: Instance, markers: Instance?, at: Vector3, element: 
 	end
 end
 
+-- i cristalli di Mirko in ServerStorage.Modelli per quell'elemento (maiuscole, spazi e "_"
+-- non contano; "fulminenero" = Fulmine)
+local ALIAS: { [string]: string } = { fulminenero = "fulmine" }
+local function crystalModels(element: string): { Model }
+	local out = {}
+	local store = game:GetService("ServerStorage"):FindFirstChild("Modelli")
+	local want = "cristallo" .. string.lower(element)
+	for _, m in (if store then store:GetChildren() else {}) :: { Instance } do
+		local n = string.lower((string.gsub(m.Name, "[%s_]", "")))
+		for from, to in ALIAS do
+			n = string.gsub(n, from, to)
+		end
+		if m:IsA("Model") and n == want then
+			table.insert(out, m)
+		end
+	end
+	return out
+end
+
+-- un cristallo-modello alto h appoggiato in base
+local function placeModel(parent: Instance, tpl: Model, base: Vector3, h: number, rng: Random)
+	local m = tpl:Clone()
+	for _, d in m:GetDescendants() do
+		if d:IsA("LuaSourceContainer") then
+			d:Destroy()
+		elseif d:IsA("BasePart") then
+			d.Anchored = true
+		end
+	end
+	local _, s0 = m:GetBoundingBox()
+	m:ScaleTo(m:GetScale() * h / s0.Y)
+	m:PivotTo(CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0))
+	local box, s = m:GetBoundingBox()
+	m:PivotTo(m:GetPivot() + Vector3.new(0, base.Y - (box.Position.Y - s.Y / 2) - 0.5, 0))
+	m.Name = "Cristallo"
+	m.Parent = parent
+end
+
 ------------------------------------------------------------------------------------------
 
 type Zone = { center: Vector3, radius: number, rng: Random, folder: Instance, points: (number) -> { Vector3 } }
@@ -325,7 +363,9 @@ function ThemeZones.build(map: Heightmap.Map)
 	end
 	local made = {}
 	local centers: { Vector3 } = {} -- le zone non si sovrappongono
-	for i, t in list do
+	for i, t0 in list do
+		local t = table.clone(t0)
+		t.RADIUS *= 1.4 -- zone piu' grandi
 		local rng = Random.new(cfg.SEED + 900 + i)
 		-- centro: attorno all'angolo scelto, alla quota piu' vicina a Y, dove c'e' poco ghiacciaio
 		-- e il terreno e' meno ripido (prima molte zone finivano su un ghiacciaio in pendenza)
@@ -338,7 +378,7 @@ function ThemeZones.build(map: Heightmap.Map)
 				local clash = false
 				if hit then
 					for _, o in centers do
-						if (o - hit.Position).Magnitude < 280 then
+						if (o - hit.Position).Magnitude < 340 then
 							clash = true
 						end
 					end
@@ -387,11 +427,13 @@ function ThemeZones.build(map: Heightmap.Map)
 		end
 		-- terreno a chiazze coi materiali del tema (piu' fitte al centro: sfuma ai bordi)
 		local T = workspace.Terrain
-		for k = 1, 260 do
+		for k = 1, 480 do
 			local a = rng:NextNumber(0, 2 * math.pi)
-			local f = rng:NextNumber() ^ 0.8
-			local r = t.RADIUS * 1.15 * f
-			local hit = down(center.X + math.cos(a) * r, center.Z + math.sin(a) * r, center.Y + 400)
+			local f = rng:NextNumber() ^ 0.75 * 1.6 -- 0 = centro, 1.6 = fuori
+			local r = t.RADIUS * f
+			-- oltre il raggio le chiazze si diradano: il tema sfuma nella roccia attorno
+			local keep = f < 0.9 or rng:NextNumber() < (1.6 - f) / 0.7
+			local hit = keep and down(center.X + math.cos(a) * r, center.Z + math.sin(a) * r, center.Y + 400)
 			if hit then
 				local s = rng:NextNumber(8, 18) * (1.2 - f * 0.6)
 				local region = Region3.new(hit.Position - Vector3.one * s, hit.Position + Vector3.one * s):ExpandToGrid(4)
@@ -416,10 +458,12 @@ function ThemeZones.build(map: Heightmap.Map)
 		end
 		-- cristalli: se in ServerStorage.Modelli c'e' "Cristallo_<Elemento>" si usa quel modello
 		local store = game:GetService("ServerStorage"):FindFirstChild("Modelli")
-		local tpl = store and store:FindFirstChild("Cristallo_" .. t.ELEMENT)
-		if tpl and tpl:IsA("Model") then
+		local _ = store
+		local models = crystalModels(t.ELEMENT)
+		if #models > 0 then
 			for _, holder in zf:GetDescendants() do
 				if holder:IsA("Model") and holder.Name == "Cristallo" and holder:GetAttribute("Height") then
+					local tpl = models[rng:NextInteger(1, #models)]
 					local m = tpl:Clone()
 					for _, d in m:GetDescendants() do
 						if d:IsA("LuaSourceContainer") then
@@ -460,6 +504,42 @@ function ThemeZones.build(map: Heightmap.Map)
 		nests.Parent = markers
 	end
 	folder.Parent = workspace
+	local extra = Instance.new("Folder")
+	extra.Name = "CristalliGeloGas"
+	extra.Parent = folder
+	local rng = Random.new(cfg.SEED + 991)
+	local function scatter(element: string, c: Vector3, radius: number, n: number, fromY: number)
+		local models = crystalModels(element)
+		if #models == 0 then
+			return
+		end
+		local placed = 0
+		for _ = 1, n * 6 do
+			if placed >= n then
+				break
+			end
+			local a = rng:NextNumber(0, 2 * math.pi)
+			local r = radius * math.sqrt(rng:NextNumber())
+			local hit = workspace:Raycast(Vector3.new(c.X + math.cos(a) * r, fromY, c.Z + math.sin(a) * r), Vector3.new(0, -fromY + c.Y - 60, 0), terrainOnly)
+			if hit and hit.Normal.Y > 0.6 then
+				placeModel(extra, models[rng:NextInteger(1, #models)], hit.Position, rng:NextNumber(5, 12), rng)
+				placed += 1
+			end
+		end
+	end
+	for _, key in { "GrandCave", "CraterCave" } do
+		local den = workspace:GetAttribute(key .. "Den")
+		if typeof(den) == "CFrame" then
+			-- dentro la sala: i raggi partono poco sopra il pavimento (sopra c'e' il soffitto)
+			scatter("Gelo", den.Position, 110, 14, den.Position.Y + 25)
+		end
+	end
+	for i = 1, (workspace:GetAttribute("GasCount") or 0) :: number do
+		local c, r = workspace:GetAttribute("GasCenter" .. i), workspace:GetAttribute("GasRadius" .. i)
+		if typeof(c) == "Vector3" and type(r) == "number" then
+			scatter("Gas", c, r * 0.8, 10, c.Y + 300)
+		end
+	end
 	print("[MapGen] Zone a tema: " .. table.concat(made, ", "))
 end
 
