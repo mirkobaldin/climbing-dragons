@@ -448,7 +448,8 @@ local function hideOthers(hide: boolean)
 	end
 	local pets = workspace:FindFirstChild("Pets")
 	for _, m in (if pets then pets:GetChildren() else {}) :: { Instance } do
-		if m:GetAttribute("Owner") ~= player.UserId then
+		-- Pets contiene una cartella per giocatore (nome = UserId): la tua resta visibile
+		if m.Name ~= tostring(player.UserId) and m:GetAttribute("Owner") ~= player.UserId then
 			hideModel(m)
 		end
 	end

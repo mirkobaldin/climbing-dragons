@@ -150,9 +150,9 @@ DragonConfig.TRAINING = {
 	TARGET_XP = 14, -- XP per ogni colpo a un bersaglio
 	TARGET_COOLDOWN = 1.1, -- secondi tra un colpo e l'altro
 	CIRCLE_XP = 3, -- XP al secondo stando nel cerchio di addestramento
-	CIRCLE_RADIUS = 16,
+	CIRCLE_RADIUS = 36, -- copre tutto il simbolo al centro dell'arena (arena in scala 2)
 	TARGETS = 6,
-	CRYSTAL_RING = 38, -- i cristalli-bersaglio girano attorno al cerchio a questa distanza
+	CRYSTAL_RING = 56, -- i cristalli-bersaglio girano attorno al cerchio a questa distanza
 	SHOT_COOLDOWN = 0.6, -- secondi tra un colpo e l'altro (si mira col mouse dalla vista del drago)
 	GROWTH = 0.2, -- a livello 100 il drago e' piu' grande del 20% rispetto al livello 1
 	-- sfida "Target Rush": RUSH_SECONDS di tempo, si accende un cristallo dorato alla volta
@@ -177,7 +177,7 @@ function DragonConfig.crystalAt(center: Vector3, index: number, t: number): Vect
 	local speed = 0.22 + 0.05 * (index % 3)
 	local r = TR.CRYSTAL_RING + 7 * math.sin(index * 1.7) + 6 * math.sin(t * 0.5 + index * 0.9)
 	local a = (index - 0.5) / TR.TARGETS * 2 * math.pi + dir * speed * t
-	local h = 9 + 4 * math.sin(index * 2.3) + 2.5 * math.sin(t * 1.3 + index)
+	local h = 15 + 5 * math.sin(index * 2.3) + 3 * math.sin(t * 1.3 + index)
 	return center + Vector3.new(math.cos(a) * r, h, math.sin(a) * r)
 end
 

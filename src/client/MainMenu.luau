@@ -318,6 +318,24 @@ function MainMenu.start()
 	column.Position = UDim2.new(0, 10, 0.46, 0)
 	column.Size = UDim2.new(0, 70, 0, 4 * 78)
 	Theme.list(column, 8)
+	-- "Hide": nasconde e rimostra la colonna (resta solo questo pulsantino)
+	local hideBtn = Instance.new("TextButton")
+	hideBtn.Name = "NascondiIcone"
+	hideBtn.AnchorPoint = Vector2.new(0, 0)
+	hideBtn.Position = UDim2.new(0, 10, 0.46, (4 * 78) / 2 + 4) -- sotto la colonna
+	hideBtn.Size = UDim2.new(0, 70, 0, 26)
+	hideBtn.BackgroundColor3 = Theme.BG
+	hideBtn.BackgroundTransparency = 0.2
+	hideBtn.Font = Enum.Font.GothamBold
+	hideBtn.TextSize = 13
+	hideBtn.TextColor3 = Theme.TEXT
+	hideBtn.Text = "Hide"
+	hideBtn.Parent = gui
+	Theme.corner(hideBtn, 10)
+	hideBtn.Activated:Connect(function()
+		column.Visible = not column.Visible
+		hideBtn.Text = if column.Visible then "Hide" else "Show"
+	end)
 
 	-- finestra
 	local window = Theme.frame(gui, Theme.BG, 0.06)

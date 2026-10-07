@@ -44,8 +44,8 @@ local function destinations(): { [string]: (Player) -> Vector3? }
 			return marker("HubSpawn")
 		end,
 		["My camp"] = function(player)
-			local p = player:GetAttribute("PlotPosition")
-			return if typeof(p) == "Vector3" then p + Vector3.new(0, 0, 8) else nil
+			local p = player:GetAttribute("PlotSpawn") or player:GetAttribute("PlotPosition")
+			return if typeof(p) == "Vector3" then p else nil
 		end,
 		["Dragon training"] = function()
 			local c = workspace:GetAttribute("TrainingCenter")
@@ -85,7 +85,8 @@ function Teleports.setup()
 			return
 		end
 		last[player] = os.clock()
-		character:PivotTo(CFrame.new(ground(at)))
+		-- il tuo accampamento: il punto e' gia' a terra (o sulla pedana dello Chalet)
+		character:PivotTo(CFrame.new(if name == "My camp" then at + Vector3.new(0, 2, 0) else ground(at)))
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		last[player] = nil

@@ -175,11 +175,22 @@ function AdminClient.start()
 	buttons.Enabled = false
 	buttons.Parent = player:WaitForChild("PlayerGui")
 	local godOn = false
+	local row = Instance.new("Frame")
+	row.Name = "Riga"
+	row.AnchorPoint = Vector2.new(1, 0)
+	row.Position = UDim2.new(1, -12, 0, 170) -- sotto il riquadro dell'ora
+	row.Size = UDim2.fromOffset(190, 40)
+	row.BackgroundTransparency = 1
+	row.Parent = buttons
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+	layout.Padding = UDim.new(0, 12)
+	layout.Parent = row
 	for k, info in { { "Admin", Color3.fromRGB(60, 70, 110) }, { "God", Color3.fromRGB(150, 110, 30) } } do
 		local b = Instance.new("TextButton")
 		b.Name = info[1]
-		b.AnchorPoint = Vector2.new(1, 0)
-		b.Position = UDim2.new(1, -12, 0, 150 + (k - 1) * 44)
+		b.LayoutOrder = k
 		b.Size = UDim2.fromOffset(84, 38)
 		b.BackgroundColor3 = info[2]
 		b.Font = Enum.Font.GothamBold
@@ -189,7 +200,7 @@ function AdminClient.start()
 		local corner = Instance.new("UICorner")
 		corner.CornerRadius = UDim.new(0, 8)
 		corner.Parent = b
-		b.Parent = buttons
+		b.Parent = row
 		b.Activated:Connect(function()
 			if info[1] == "Admin" then
 				if gui.Enabled then

@@ -186,7 +186,7 @@ end
 
 -- Cristallo del Potere sopra il centro del cerchio, con il raggio di luce verso il cielo
 local function buildPowerCrystal(parent: Instance, floor: Vector3)
-	local model = prop(parent, "crystal target", 16, CFrame.new(floor + Vector3.new(0, 5, 0)))
+	local model = prop(parent, "crystal target", 22, CFrame.new(floor + Vector3.new(0, 24, 0))) -- alto sopra il cerchio
 	local glass: BasePart
 	if model then
 		model.Name = "CristalloPotere"
@@ -196,7 +196,7 @@ local function buildPowerCrystal(parent: Instance, floor: Vector3)
 		model = glass.Parent :: Model
 	end
 	local model = model :: Model
-	model:SetAttribute("Base", floor + Vector3.new(0, 13, 0))
+	model:SetAttribute("Base", floor + Vector3.new(0, 35, 0))
 	CollectionService:AddTag(model, "CristalloPotere")
 	local light = Instance.new("PointLight")
 	light.Color = RUNE
@@ -243,7 +243,7 @@ end
 -- Un braciere per elemento, attorno al cerchio, col fuoco del colore del drago
 local function buildBraziers(parent: Instance, center: Vector3)
 	local list = DragonConfig.ELEMENTS
-	local r = T.CIRCLE_RADIUS + 20 -- sul bordo della piattaforma (prima stavano in mezzo)
+	local r = T.CIRCLE_RADIUS + 24 -- sul bordo della piattaforma (prima stavano in mezzo)
 	for k, e in list do
 		local a = (k - 1) / #list * 2 * math.pi
 		local p = groundAt(center + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r))
@@ -433,14 +433,14 @@ function Training.setup()
 		local _ = size
 		local hubMarker = workspace:FindFirstChild("MapMarkers") and (workspace :: any).MapMarkers:FindFirstChild("HubSpawn")
 		local gateA = if hubMarker then math.atan2(hubMarker.Position.Z - center.Z, hubMarker.Position.X - center.X) else 0
-		local ARENA_H = 60 -- 1.2 volte quella di prima
+		local ARENA_H = 100 -- il doppio di quella di prima
 		-- terreno piatto sotto tutta l'arena (prima era storto e spuntava dalla piattaforma)
 		workspace.Terrain:FillCylinder(CFrame.new(center - Vector3.new(0, 5, 0)), 10, ARENA_H * 1.45, Enum.Material.Ground)
 		workspace.Terrain:FillCylinder(CFrame.new(center + Vector3.new(0, 30, 0)), 60, ARENA_H * 1.45, Enum.Material.Air)
 		-- la piattaforma del modello sta al 35% dell'altezza: va a filo del terreno (prima era sopra la
-		-- testa e si camminava sotto). L'ingresso del modello (lato +Z) guarda il portale.
+		-- testa e si camminava sotto). Le scale del modello (lato -Z, davanti) guardano il portale.
 		local gateDir = Vector3.new(math.cos(gateA), 0, math.sin(gateA))
-		local arena = prop(folder, "arenadrago", ARENA_H, CFrame.lookAt(center, center - gateDir) - Vector3.new(0, ARENA_H * 0.35, 0))
+		local arena = prop(folder, "arenadrago", ARENA_H, CFrame.lookAt(center, center + gateDir) - Vector3.new(0, ARENA_H * 0.35, 0))
 		if arena then
 			arena.Name = "ArenaOssa"
 			-- la mesh ha la collisione a scatola: un anello di muri invisibili lungo le ossa, aperto
@@ -460,8 +460,9 @@ function Training.setup()
 		for k = 0, 7 do
 			local a = (k + 0.5) / 8 * 2 * math.pi
 			local off = math.abs((a - gateA + math.pi) % (2 * math.pi) - math.pi)
-			local p = groundAt(center + Vector3.new(math.cos(a), 0, math.sin(a)) * (T.CRYSTAL_RING + 40))
-			if off < 0.45 then
+			local outer = if arena then math.max(arena:GetExtentsSize().X, arena:GetExtentsSize().Z) * 0.56 else T.CRYSTAL_RING + 40
+			local p = groundAt(center + Vector3.new(math.cos(a), 0, math.sin(a)) * outer)
+			if off < 0.7 then
 				continue -- davanti al portale
 			end
 			local pillar = prop(folder, "dragon pillar", 22, CFrame.lookAt(p, Vector3.new(center.X, p.Y, center.Z)) - Vector3.new(0, 1, 0))
@@ -476,9 +477,12 @@ function Training.setup()
 		for k = 1, T.TARGETS do
 			table.insert(targets, buildTarget(folder, DragonConfig.crystalAt(center, k, 0), k))
 		end
-		buildSign(folder, groundAt(center + Vector3.new(ring + 16, 0, 0)), center)
-		local orb, board = buildRushAltar(folder, groundAt(center + Vector3.new(-(ring + 12), 0, 6)), center)
-		local x2, x3 = buildStall(folder, groundAt(center + Vector3.new(0, 0, ring + 14)), center)
+		local function around(da: number, dist: number): Vector3
+			return groundAt(center + Vector3.new(math.cos(gateA + da), 0, math.sin(gateA + da)) * dist)
+		end
+		buildSign(folder, around(0.5, ring + 6), center)
+		local orb, board = buildRushAltar(folder, around(-math.pi / 2, ring + 2), center)
+		local x2, x3 = buildStall(folder, around(math.pi / 2, ring + 2), center)
 		-- portale d'ingresso (il modello di Mirko in ServerStorage.Modelli.PortaleArena), con la
 		-- scalinata rivolta verso la piana
 		local models = game:GetService("ServerStorage"):FindFirstChild("Modelli")
@@ -496,7 +500,8 @@ function Training.setup()
 			local hub = markers and markers:FindFirstChild("HubSpawn")
 			local toHub = if hub and hub:IsA("BasePart") then hub.Position - center else Vector3.new(-1, 0, 1)
 			local dir = Vector3.new(toHub.X, 0, toHub.Z).Unit
-			local at = groundAt(center + dir * 82)
+			local reach = if arena then math.max(arena:GetExtentsSize().X, arena:GetExtentsSize().Z) * 0.5 + 18 else 82
+			local at = groundAt(center + dir * reach)
 			g:PivotTo(CFrame.lookAt(at, at + dir))
 			local box, bsize = g:GetBoundingBox()
 			g:PivotTo(g:GetPivot() + Vector3.new(0, at.Y - (box.Position.Y - bsize.Y / 2) - 1, 0))
@@ -504,6 +509,7 @@ function Training.setup()
 			-- la mesh ha la collisione a scatola: chiudeva il passaggio. Si cammina sul terreno.
 			for _, d in g:GetDescendants() do
 				if d:IsA("BasePart") then
+					d.Anchored = true -- reimportato non ancorato: senza collisione cadeva nel vuoto
 					d.CanCollide = false
 				end
 			end

@@ -122,7 +122,7 @@ local function bring(player: Player, where: string)
 	task.delay(1.5, function()
 		local p: any = nil
 		if where == "camp" then
-			p = player:GetAttribute("PlotPosition")
+			p = player:GetAttribute("PlotSpawn") or player:GetAttribute("PlotPosition")
 		else
 			local markers = workspace:FindFirstChild("MapMarkers")
 			local hub = markers and markers:FindFirstChild("HubSpawn")
@@ -130,7 +130,7 @@ local function bring(player: Player, where: string)
 		end
 		local character = player.Character
 		if typeof(p) == "Vector3" and character then
-			character:PivotTo(CFrame.new(p + Vector3.new(0, 5, 10)))
+			character:PivotTo(CFrame.new(p + Vector3.new(0, 2, 0)))
 			player:SetAttribute("Notice", if where == "camp" then "Welcome to your camp!" else "Back to the base camp")
 			player:SetAttribute("NoticeTime", os.clock())
 		end

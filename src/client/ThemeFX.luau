@@ -60,6 +60,7 @@ function ThemeFX.start()
 		accum = 0
 		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local inside: string? = nil
+		local insideTitle: string? = nil
 		if root then
 			for i = 1, (workspace:GetAttribute("ThemeZoneCount") or 0) :: number do
 				local c = workspace:GetAttribute("ThemeZone" .. i .. "Center")
@@ -67,6 +68,8 @@ function ThemeFX.start()
 				local e = workspace:GetAttribute("ThemeZone" .. i .. "Element")
 				if typeof(c) == "Vector3" and type(r) == "number" and type(e) == "string" and ((root :: BasePart).Position - c).Magnitude < r * 1.1 then
 					inside = e
+					local tt = workspace:GetAttribute("ThemeZone" .. i .. "Title")
+					insideTitle = if type(tt) == "string" then tt else nil
 				end
 			end
 		end
@@ -74,7 +77,7 @@ function ThemeFX.start()
 			current = inside
 			TweenService:Create(cc, TweenInfo.new(1.5), { TintColor = if inside then TINT[inside] or Color3.new(1, 1, 1) else Color3.new(1, 1, 1) }):Play()
 			if inside then
-				title.Text = NAMES[inside] or inside
+				title.Text = insideTitle or NAMES[inside] or inside
 				title.TextTransparency = 0
 				task.delay(3, function()
 					TweenService:Create(title, TweenInfo.new(1), { TextTransparency = 1 }):Play()

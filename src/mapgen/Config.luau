@@ -324,6 +324,19 @@ local Config = {
 		{ ELEMENT = "Fulmine", ANGLE = -2.0, Y = 2000, RADIUS = 110, GROUND = { "Pavement", "Basalt" }, COLOR = Color3.fromRGB(170, 140, 255), STONE = Color3.fromRGB(30, 26, 40), TITLE = "BLACK LIGHTNING SPIRES", SUBTITLE = "Home of the Black Lightning dragon" },
 		{ ELEMENT = "Cosmico", ANGLE = 1.2, Y = 3100, RADIUS = 110, GROUND = { "Concrete", "Slate" }, COLOR = Color3.fromRGB(220, 90, 255), STONE = Color3.fromRGB(60, 40, 110), TITLE = "STARFALL PLATEAU", SUBTITLE = "Home of the Cosmic dragon" },
 		{ ELEMENT = "Eclissi", ANGLE = 3.0, Y = 3600, RADIUS = 90, GROUND = { "Pavement", "Asphalt" }, COLOR = Color3.fromRGB(255, 170, 60), STONE = Color3.fromRGB(26, 24, 34), TITLE = "ECLIPSE SANCTUARY", SUBTITLE = "Home of the Eclipse dragon" },
+		-- altre zone per drago (2-3 ciascuno), a lati e quote diverse
+		{ ELEMENT = "Roccia", ANGLE = 0.9, Y = 160, RADIUS = 100, GROUND = { "Sandstone", "Rock" }, COLOR = Color3.fromRGB(240, 190, 110), STONE = Color3.fromRGB(120, 100, 80), TITLE = "AMBER HOLLOW", SUBTITLE = "Home of the Rock dragon" },
+		{ ELEMENT = "Roccia", ANGLE = -1.6, Y = 380, RADIUS = 100, GROUND = { "Sandstone", "Rock" }, COLOR = Color3.fromRGB(240, 190, 110), STONE = Color3.fromRGB(120, 100, 80), TITLE = "BOULDER STEPS", SUBTITLE = "Home of the Rock dragon" },
+		{ ELEMENT = "Ossa", ANGLE = -0.3, Y = 800, RADIUS = 100, GROUND = { "Salt", "Mud" }, COLOR = Color3.fromRGB(190, 255, 210), STONE = Color3.fromRGB(200, 195, 180), TITLE = "BONE RIDGE", SUBTITLE = "Home of the Bone dragon" },
+		{ ELEMENT = "Ossa", ANGLE = 1.6, Y = 1050, RADIUS = 95, GROUND = { "Salt", "Mud" }, COLOR = Color3.fromRGB(190, 255, 210), STONE = Color3.fromRGB(200, 195, 180), TITLE = "WYRM'S REST", SUBTITLE = "Home of the Bone dragon" },
+		{ ELEMENT = "Tempesta", ANGLE = 2, Y = 1750, RADIUS = 100, GROUND = { "Slate", "Basalt" }, COLOR = Color3.fromRGB(150, 200, 255), STONE = Color3.fromRGB(70, 82, 110), TITLE = "THUNDER SHELF", SUBTITLE = "Home of the Storm dragon" },
+		{ ELEMENT = "Tempesta", ANGLE = 0, Y = 1900, RADIUS = 95, GROUND = { "Slate", "Basalt" }, COLOR = Color3.fromRGB(150, 200, 255), STONE = Color3.fromRGB(70, 82, 110), TITLE = "GALE PASS", SUBTITLE = "Home of the Storm dragon" },
+		{ ELEMENT = "Fulmine", ANGLE = 1, Y = 2300, RADIUS = 95, GROUND = { "Pavement", "Basalt" }, COLOR = Color3.fromRGB(170, 140, 255), STONE = Color3.fromRGB(30, 26, 40), TITLE = "VOID CRAGS", SUBTITLE = "Home of the Black Lightning dragon" },
+		{ ELEMENT = "Fulmine", ANGLE = -0.6, Y = 2600, RADIUS = 95, GROUND = { "Pavement", "Basalt" }, COLOR = Color3.fromRGB(170, 140, 255), STONE = Color3.fromRGB(30, 26, 40), TITLE = "STATIC PEAKS", SUBTITLE = "Home of the Black Lightning dragon" },
+		{ ELEMENT = "Cosmico", ANGLE = -2.4, Y = 2850, RADIUS = 95, GROUND = { "Concrete", "Slate" }, COLOR = Color3.fromRGB(220, 90, 255), STONE = Color3.fromRGB(60, 40, 110), TITLE = "NEBULA BASIN", SUBTITLE = "Home of the Cosmic dragon" },
+		{ ELEMENT = "Cosmico", ANGLE = 0.2, Y = 3300, RADIUS = 90, GROUND = { "Concrete", "Slate" }, COLOR = Color3.fromRGB(220, 90, 255), STONE = Color3.fromRGB(60, 40, 110), TITLE = "COMET CRATER", SUBTITLE = "Home of the Cosmic dragon" },
+		{ ELEMENT = "Eclissi", ANGLE = -1.2, Y = 3450, RADIUS = 85, GROUND = { "Pavement", "Asphalt" }, COLOR = Color3.fromRGB(255, 170, 60), STONE = Color3.fromRGB(26, 24, 34), TITLE = "UMBRAL GATE", SUBTITLE = "Home of the Eclipse dragon" },
+		{ ELEMENT = "Eclissi", ANGLE = 1.9, Y = 3800, RADIUS = 80, GROUND = { "Pavement", "Asphalt" }, COLOR = Color3.fromRGB(255, 170, 60), STONE = Color3.fromRGB(26, 24, 34), TITLE = "CORONA TERRACE", SUBTITLE = "Home of the Eclipse dragon" },
 	},
 
 	-- case: tende sparse ai piedi della montagna (accampamento di ogni giocatore), baite sul pendio

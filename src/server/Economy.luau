@@ -138,6 +138,91 @@ local function plotSign(plot: Model): TextLabel?
 	return gui and gui:FindFirstChild("Owner") :: TextLabel?
 end
 
+-- Punto d'arrivo del teletrasporto: fuori dalla casa, sul terreno o sulla pedana del terreno.
+-- Prima si arrivava al centro, cioe' dentro la tenda (non si usciva) o sotto la pedana dello
+-- Chalet. Si provano punti attorno al centro: a terra, alla quota del terreno, senza tetto sopra.
+local PLOT_HALF = { 22, 30, 34 }
+local function plotSpawn(plot: Model): Vector3
+	local center = plot:GetPivot()
+	local half = PLOT_HALF[(plot:GetAttribute("Level") or 1) :: number] or 24
+	local skip = { plot:FindFirstChild("House") }
+	for _, p in Players:GetPlayers() do
+		if p.Character then
+			table.insert(skip, p.Character)
+		end
+	end
+	local downParams = RaycastParams.new()
+	downParams.FilterType = Enum.RaycastFilterType.Exclude
+	downParams.FilterDescendantsInstances = skip :: { Instance }
+	local house = plot:FindFirstChild("House")
+	local upParams = RaycastParams.new()
+	upParams.FilterType = Enum.RaycastFilterType.Include
+	upParams.FilterDescendantsInstances = if house then { house } else {}
+	for _, r in { half * 0.8, half * 0.95, half + 4, half * 0.6 } do
+		for k = 0, 11 do
+			-- prima davanti alla porta (-Z), poi tutto attorno
+			local a = math.pi + (if k % 2 == 0 then 1 else -1) * math.ceil(k / 2) * (math.pi / 6)
+			local p = center * Vector3.new(math.sin(a) * r, 0, math.cos(a) * r)
+			local hit = workspace:Raycast(p + Vector3.new(0, 60, 0), Vector3.new(0, -120, 0), downParams)
+			if hit and hit.Normal.Y > 0.7 and math.abs(hit.Position.Y - center.Y) < 8 then
+				local roof = house and workspace:Raycast(hit.Position + Vector3.new(0, 1, 0), Vector3.new(0, 30, 0), upParams)
+				if not roof then
+					return hit.Position + Vector3.new(0, 3, 0)
+				end
+			end
+		end
+	end
+	return center.Position + Vector3.new(0, 4, 0)
+end
+
+-- Forgia dello Chalet: incudine e braciere accanto al punto d'arrivo, apre il crafting come il
+-- banco del campo base (tag Workbench)
+local function buildForge(plot: Model, at: Vector3)
+	local old = plot:FindFirstChild("Forgia")
+	if old then
+		old:Destroy()
+	end
+	local forge = Instance.new("Model")
+	forge.Name = "Forgia"
+	local center = plot:GetPivot()
+	local side = center.RightVector
+	local base = at + side * 7 - Vector3.new(0, 3, 0)
+	local look = CFrame.lookAt(base, base - side)
+	local function block(name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material): Part
+		local p = Instance.new("Part")
+		p.Name = name
+		p.Anchored = true
+		p.Size = size
+		p.CFrame = cf
+		p.Color = color
+		p.Material = material
+		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
+		p.Parent = forge
+		return p
+	end
+	block("Base", Vector3.new(4, 2, 2.4), look * CFrame.new(0, 1, 0), Color3.fromRGB(70, 66, 64), Enum.Material.Slate)
+	local anvil = block("Incudine", Vector3.new(3.6, 1, 1.4), look * CFrame.new(0, 2.5, 0), Color3.fromRGB(50, 52, 58), Enum.Material.Metal)
+	local coals = block("Braciere", Vector3.new(2.6, 0.6, 2.6), look * CFrame.new(3.6, 1.6, 0), Color3.fromRGB(255, 120, 40), Enum.Material.Neon)
+	block("Focolare", Vector3.new(3.2, 1.4, 3.2), look * CFrame.new(3.6, 0.7, 0), Color3.fromRGB(90, 80, 74), Enum.Material.Cobblestone)
+	local fire = Instance.new("Fire")
+	fire.Size = 4
+	fire.Heat = 6
+	fire.Parent = coals
+	local light = Instance.new("PointLight")
+	light.Color = Color3.fromRGB(255, 150, 70)
+	light.Range = 16
+	light.Parent = coals
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = "Craft"
+	prompt.ObjectText = "Forge"
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = anvil
+	CollectionService:AddTag(anvil, "Workbench")
+	forge.Parent = plot
+end
+
 local function buildHouse(player: Player)
 	local s = state(player)
 	local plot = s.plot
@@ -178,6 +263,15 @@ local function buildHouse(player: Player)
 		end
 	end
 	model.Parent = plot
+	-- dove arriva il teletrasporto "My camp" (e il tutorial)
+	local spawnAt = plotSpawn(plot)
+	player:SetAttribute("PlotSpawn", spawnAt)
+	local forge = plot:FindFirstChild("Forgia")
+	if s.house >= 3 then
+		buildForge(plot, spawnAt)
+	elseif forge then
+		forge:Destroy()
+	end
 end
 
 local function assignPlot(player: Player)

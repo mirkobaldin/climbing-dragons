@@ -13,71 +13,104 @@ Quando li importi, mettili in **ServerStorage.Modelli** (nemici e boss in Server
 
 ---
 
-## 1. Nemici delle zone
+## 1. Nemici delle zone (versione SEMPLICE)
 
-### Roccia: Canyon delle Frane
+Quelli di prima venivano troppo complessi: piume una per una, ossa sottili, mantelli strappati, fumo, punte ovunque. Su Meshy diventano mesh sporche e il rig si rompe. Queste versioni hanno:
 
-**Basilisco di Roccia** (nemico comune)
-> A stylized rock basilisk creature, a long low six-legged lizard about the size of a horse, its back covered in overlapping sandstone plates in warm ochre, tan and dusty brown, with clusters of glowing amber crystals growing between the plates along the spine. Heavy blunt head with a jaw full of stone teeth, small glowing amber eyes, thick armored tail ending in a club of rock. Legs short and powerful with stone claws. Standing in a neutral pose on all six legs, tail straight behind, mouth closed. Full body, centered, no background, no shadow, game-ready creature for Roblox, PBR materials, stylized semi-realistic.
+- **forme grandi e chiuse**, stile "giocattolo / Clash Royale", proporzioni un po' cartoon (testa e mani grandi);
+- **niente parti sottili** (niente piume singole, dita lunghe, catene, mantelli strappati, capelli);
+- **niente effetti** (fumo, fulmini, scintille, nebbia: quelli li fa il gioco con le particelle);
+- **2-3 colori principali** del drago della zona, più un colore luminoso per occhi e cristalli;
+- **superfici lisce o a grandi sfaccettature**, ali come lastre spesse e piene, senza buchi.
+
+Chiusura uguale per tutti:
+> Simple chunky stylized 3D game character, toy-like proportions, big readable shapes, smooth solid surfaces, no thin parts, no particles, no smoke, no lightning effects, no transparency. Neutral pose: [POSA]. Full body, centered, plain white background, no shadow, front 3/4 view, Roblox game asset.
+
+Posa: bipedi "standing straight, A-pose, arms slightly away from the body"; quadrupedi "standing on four legs, tail straight back"; creature con ali "wings fully opened to the sides, flat and solid".
+
+### Roccia
+**Basilisco di Roccia** (comune)
+> A low wide lizard made of big rounded sandstone plates in warm ochre and tan, four short thick legs, a heavy blunt head with two small glowing amber eyes, a short thick tail ending in a round rock club, three large amber crystals sticking out of the back. + chiusura (quadrupede)
 
 **Colosso d'Ambra** (boss)
-> A towering stylized golem made of stacked sandstone and granite boulders in ochre, rust and dark brown, held together by veins of glowing molten amber light. Massive shoulders made of canyon rock formations, a giant amber crystal embedded in the center of the chest pulsing with warm orange-gold light, small amber crystals sprouting from the shoulders and back like a crown. Head small and sunken between the shoulders with two glowing amber eyes. Huge arms ending in boulder fists, thick column legs. Neutral A-pose, arms slightly away from the body, standing straight. Full body, centered, no background, no shadow, game boss asset for Roblox, PBR, stylized semi-realistic.
+> A huge round golem made of a few big smooth boulders in ochre and brown, a large glowing amber crystal in the middle of the chest, two big boulder fists, short thick legs, a small head with two glowing amber eyes, two amber crystals on the shoulders. + chiusura (bipede)
 
-### Ossa: Cimitero dei Draghi
+### Ossa
+**Guerriero d'Ossa** (comune)
+> A cute chunky skeleton warrior with thick rounded bones in ivory white, a big round dragon-skull helmet with two short horns, glowing mint-green eyes, a simple bone shield on one arm, a short wide bone club in the other hand, a solid grey cloth belt. + chiusura (bipede)
 
-**Revenant d'Ossa** (nemico comune)
-> A stylized undead skeletal warrior, tall and thin, made of old ivory-white and yellowed bones, wearing the skull of a small dragon as a helmet with two curved horns. Ribcage visible with a faint pale-green ghostly flame burning inside the chest, matching pale green glowing eye sockets. Tattered dark grey cloth hanging from the waist and shoulders, a rusty bone-handled curved blade strapped to the back. Bony fingers, cracked bones with small moss details. Neutral A-pose, arms slightly away from the body, standing straight. Full body, centered, no background, no shadow, Roblox game enemy, PBR, stylized semi-realistic.
+**Wyrm d'Ossa** (boss)
+> A big chunky bone dragon on four legs, ivory white thick rounded bones forming a solid body (ribs closed with a pale green glowing core inside), a large horned skull head with glowing green eyes, two big solid bone wings shaped like thick plates, a short thick bony tail. + chiusura (creatura con ali)
 
-**Wyrm Scheletrico** (boss)
-> A huge stylized skeletal dragon wyrm, made entirely of ancient ivory and bone-white bones with cracks and darker stains, long serpentine spine with large vertebrae and long curved ribs, four bony legs with big talons, skeletal wings with tattered translucent pale-green membranes between the wing bones. Massive horned dragon skull with glowing pale mint-green eyes and a green ghostly mist leaking from the jaws and ribcage. Standing on four legs in a neutral pose, wings opened to the sides, tail straight behind. Full body, centered, no background, no shadow, Roblox boss creature, PBR, stylized semi-realistic.
-
-### Tempesta: Cresta della Tempesta
-
-**Arpia della Tempesta** (nemico comune)
-> A stylized storm harpy, a slim humanoid bird creature with large wings for arms, feathers in slate grey, steel blue and stormy dark navy, the wing tips crackling with thin pale-blue electric arcs. Bird-like legs with sharp dark talons, a feathered crest on the head that looks like wind-swept storm clouds, sharp beak-like face with glowing light-blue eyes. Small rain-cloud wisps around the shoulders. Neutral pose standing upright, wings spread open to the sides. Full body, centered, no background, no shadow, Roblox game enemy, PBR, stylized semi-realistic.
+### Tempesta
+**Arpia della Tempesta** (comune)
+> A chunky round bird creature standing on two thick legs, body made of large smooth feather plates in slate grey and storm blue, two big wing shapes made of solid layered panels, a round head with a short yellow-grey beak and glowing pale blue eyes, a small cloud-shaped crest. + chiusura (creatura con ali)
 
 **Roc del Tuono** (boss)
-> A gigantic stylized thunderbird roc, an enormous eagle-like bird with feathers in dark storm grey and deep navy blue with lighter blue-white feather edges, a long tail of feathers shaped like lightning bolts glowing pale electric blue, a massive hooked beak of dark steel color, glowing white-blue eyes, and small static arcs running between the feathers of the wings. Standing upright on strong talons in a neutral pose, wings fully spread to the sides, tail straight down. Full body, centered, no background, no shadow, Roblox boss creature, PBR, stylized semi-realistic.
+> A huge chunky eagle made of large smooth feather plates in dark navy and storm grey, a white chest, big solid wings shaped like wide panels with a pale blue lightning-bolt pattern painted on them, a strong steel-grey beak, glowing white-blue eyes, thick talons. + chiusura (creatura con ali)
 
-### Fulmine Nero: Guglie del Fulmine Nero
-
-**Pantera del Vuoto** (nemico comune)
-> A stylized void panther, a sleek muscular big cat with a jet-black body made of glossy obsidian-like fur, glowing violet and lavender lightning veins running across the body like cracks, long tail ending in a crackling purple spark. Sharp ears with small crystal tips, glowing violet eyes, slightly open jaw with white fangs. Standing in a neutral pose on all four legs, tail straight behind. Full body, centered, no background, no shadow, Roblox game enemy, PBR, stylized semi-realistic.
+### Fulmine Nero
+**Pantera del Vuoto** (comune)
+> A chunky stylized black panther with a smooth glossy body, thick legs and big paws, a round head with short ears and glowing violet eyes, a few wide painted violet lightning stripes on the body, a thick tail with a violet glowing tip. + chiusura (quadrupede)
 
 **Sentinella d'Ossidiana** (boss)
-> A tall stylized obsidian sentinel construct, an armored humanoid made of black volcanic glass plates with sharp faceted edges, deep purple-black color with glossy reflections, glowing violet lightning running through the joints and seams, a crown of jagged obsidian spikes on the head, a single vertical glowing violet eye slit. Huge spiked shoulders, long arms ending in blade-like crystal hands, purple electric arcs jumping between the fingers. Neutral A-pose, arms away from the body, standing straight. Full body, centered, no background, no shadow, Roblox boss asset, PBR, stylized semi-realistic.
+> A big blocky golem made of large faceted black obsidian blocks with purple reflections, wide shoulders, big block fists, short thick legs, a square head with one horizontal glowing violet visor, a few violet glowing lines on the chest. + chiusura (bipede)
 
-### Cosmico: Altopiano delle Stelle
+### Cosmico
+**Spettro Stellare** (comune)
+> A cute floating ghost-like creature with a solid rounded body in deep purple with small painted white stars, a hood shape over the head, two big glowing white round eyes, two short round arms, the lower body ends in a solid rounded tail (no wisps). + chiusura (bipede)
 
-**Spettro Stellare** (nemico comune)
-> A stylized star wraith, a floating ghostly humanoid figure whose body is a translucent deep purple and indigo nebula with tiny white stars and magenta star dust inside, a hooded cloak made of dark violet cosmic fabric with glowing magenta edges, no legs (the lower body fades into a wispy starry tail), long thin arms with glowing white fingertips, a dark hood with two bright white star eyes. Neutral pose floating upright, arms slightly away from the body. Full body, centered, no background, no shadow, Roblox game enemy, PBR, stylized semi-realistic.
+**Serpente Stellare** (boss)
+> A big chunky cosmic serpent dragon lying in a wide S shape, thick smooth body in dark purple and indigo with painted white star dots and magenta spots, a round head with two short horns and glowing white eyes, a row of rounded purple crystals along the back, no legs. + chiusura (quadrupede, "body laid flat in an S curve")
 
-**Divoratore di Stelle** (boss)
-> A gigantic stylized cosmic serpent dragon, a long coiling body covered in deep violet and midnight blue scales with constellations of glowing white and magenta stars across it, translucent purple crystal spikes along the spine, a large head with a mane of glowing magenta nebula smoke, four glowing white eyes, and a mouth with a swirling galaxy inside. Small purple crystal wings near the head. Body laid out in a gentle S curve in a neutral pose, head facing forward. Full body, centered, no background, no shadow, Roblox boss creature, PBR, stylized semi-realistic.
-
-### Eclissi: Santuario dell'Eclissi
-
-**Cavaliere dell'Eclissi** (nemico comune)
-> A stylized eclipse knight, a tall armored warrior in matte black and dark navy plate armor with thin glowing gold and orange lines tracing the edges like the corona of an eclipse, a round helmet with a black visor and a thin glowing gold ring around the face, a tattered dark navy cape with a gold eclipse symbol, holding no weapon (a black and gold crescent-shaped sword on the back). Neutral A-pose, arms slightly away from the body, standing straight. Full body, centered, no background, no shadow, Roblox game enemy, PBR, stylized semi-realistic.
+### Eclissi
+**Cavaliere dell'Eclissi** (comune)
+> A chunky armored knight with smooth rounded plate armor in matte black and dark navy, thick gold trims, a round helmet with a black visor and a thin glowing gold ring around the face, a big round black shield with a gold eclipse symbol, a short wide sword. + chiusura (bipede)
 
 **Guardiano dell'Eclissi** (boss)
-> A huge stylized eclipse guardian, a giant armored figure made of black obsidian and dark navy metal with a floating black disc behind its head surrounded by a burning ring of gold-orange light (a solar eclipse halo), cracks across the armor glowing gold and amber, four arms, two holding nothing and two resting at the sides, a faceless dark helmet with a single thin glowing gold line for eyes, small floating black stone fragments orbiting the shoulders. Neutral pose, all arms slightly away from the body, standing straight. Full body, centered, no background, no shadow, Roblox boss asset, PBR, stylized semi-realistic.
+> A huge chunky armored giant in matte black and dark navy with thick gold trims, a large solid black disc with a glowing gold rim attached behind the head like a halo, big round shoulder plates, big fists, a faceless helmet with one glowing gold line for eyes. + chiusura (bipede)
 
-### Gas: Valli Tossiche (al posto di melma, falena e strisciante)
-
-**Predatore della Palude** (nemico comune)
-> A stylized toxic swamp lurker, a low crocodile-like amphibian predator with dark indigo and deep blue scaly skin, glowing cyan and magenta poison sacs along its sides and throat, rows of small translucent cyan spikes along the back, wide flat head with glowing magenta eyes, webbed clawed feet, a thick tail. Toxic drips glowing cyan around the mouth. Standing in a neutral pose on four legs, tail straight behind, mouth closed. Full body, centered, no background, no shadow, Roblox game enemy, PBR, stylized semi-realistic.
+### Gas
+**Predatore della Palude** (comune)
+> A chunky crocodile-like creature with a wide smooth body in dark indigo blue, big rounded glowing cyan sacs on its sides, a wide head with glowing magenta eyes, short thick legs, a row of rounded cyan spikes along the back, a thick tail. + chiusura (quadrupede)
 
 **Idra Tossica** (boss)
-> A gigantic stylized three-headed toxic hydra, a heavy reptilian body with deep royal blue and indigo scales, bright cyan glowing patterns along the scales and glowing magenta-pink spines on the three long necks, each head with a frill of translucent cyan membrane and glowing magenta eyes, thick legs with dark claws, a long tail ending in a spiked bulb filled with glowing toxic liquid. The three necks raised and spread apart in a neutral pose, standing on four legs. Full body, centered, no background, no shadow, Roblox boss creature, PBR, stylized semi-realistic.
+> A big chunky three-headed hydra with a round heavy body in royal blue, three thick short necks with simple round dragon heads, glowing magenta eyes, rounded cyan spikes on the necks, a big glowing cyan belly, four thick legs, a short thick tail. + chiusura (quadrupede)
 
-### Gelo: Grotte di ghiaccio (opzionale, oggi usiamo yeti e golem ingranditi)
-
+### Gelo (opzionale)
 **Re Yeti** (boss)
-> A huge stylized yeti king, a massive ape-like beast with thick long white and pale-blue fur, frost crystals growing on the shoulders and forearms, a crown of jagged blue ice spikes growing from the head, a long white beard frozen into icicles, glowing icy blue eyes, big dark grey hands and feet with thick claws, a cape of frozen fur. Neutral A-pose, arms slightly away from the body, standing straight. Full body, centered, no background, no shadow, Roblox boss asset, PBR, stylized semi-realistic.
+> A huge chunky yeti with thick smooth white fur shaped in big rounded clumps, pale blue face and hands, a crown of a few big blue ice crystals, glowing icy blue eyes, big round fists. + chiusura (bipede)
 
 **Titano di Ghiaccio** (boss)
-> A colossal stylized ice titan golem made of thick blocks of glacier ice in pale cyan and deep blue, with frozen dark rocks trapped inside the ice, a glowing white-blue core visible through the chest, snow piled on the shoulders, sharp ice shards growing from the back, a heavy head with a jaw of icicles and two glowing pale-blue eyes. Huge arms ending in ice fists. Neutral A-pose, arms away from the body, standing straight. Full body, centered, no background, no shadow, Roblox boss asset, PBR, stylized semi-realistic.
+> A huge golem made of a few big smooth blocks of light blue ice, a glowing white core in the chest, two big ice block fists, snow caps on the shoulders, a small square head with two glowing blue eyes. + chiusura (bipede)
+
+---
+
+## 1b. Cristalli delle zone a tema
+
+Mettili in `ServerStorage.Modelli` con questi nomi esatti e alla prossima rigenerazione della mappa prendono il posto dei cristalli fatti a blocchi:
+
+| Nome del modello | Prompt |
+|---|---|
+| `Cristallo_Roccia` | A cluster of 3 to 5 chunky amber crystals growing out of a rough sandstone base, warm orange-gold, glowing from inside, big faceted shapes, stylized. |
+| `Cristallo_Ossa` | A cluster of pale mint-green crystals growing out of an old ivory dragon bone lying on the ground, chunky faceted shapes, soft green glow, stylized. |
+| `Cristallo_Tempesta` | A cluster of steel-blue crystals with white tips, a jagged lightning-bolt shape, on a dark slate rock base, chunky faceted, stylized. |
+| `Cristallo_Fulmine` | A cluster of glossy black obsidian crystals with glowing violet cracks running through them, sharp but chunky facets, on a black rock base, stylized. |
+| `Cristallo_Cosmico` | A cluster of deep purple and magenta crystals with tiny white star dots inside, one tall central crystal, rounded rock base, stylized. |
+| `Cristallo_Eclissi` | A cluster of matte black crystals with glowing gold-orange edges, a black disc with a gold ring on the tallest crystal, dark rock base, stylized. |
+| `Cristallo_Gelo` | A cluster of clear light-blue ice crystals with frosty white edges, on a snowy rock base, stylized. |
+| `Cristallo_Gas` | A cluster of glowing cyan crystals with magenta tips, a few round bubbles on the rock base, dark indigo rock, stylized. |
+
+Chiusura per tutti:
+> Single prop, centered, plain white background, no shadow, Roblox game asset.
+
+---
+
+## 1c. Immagine della schermata di caricamento (Codex o qualsiasi generatore)
+
+> Epic wide 16:9 key art for a Roblox game called "Hardcore Climbing". A gigantic snowy K2-like mountain with ice cliffs and a huge glowing blue ice cave in its face, a tiny climber with an ice axe on a ledge in the foreground, and a large dark navy dragon with gold glowing lines and a black-and-gold eclipse ring flying past the peak at sunset. Warm orange sky at the horizon, deep blue night at the top, a few stars. Stylized, vibrant, painterly 3D look like a mobile game splash screen. No text, no logo. Keep the lower third darker and simple, because the title goes there.
+
+Caricala su Roblox (Creator Hub → Development Items → Images), copia l'id e incollalo in `src/first/LoadingScreen.client.luau`, alla riga `local IMAGE = ""`.
 
 ---
 
@@ -120,14 +153,14 @@ Per tutti: "Single small item, centered, 3/4 view from above, no background, no 
 |---|---|---|
 | **Frammento d'Ambra** | Basilisco, Colosso, rocce del canyon | A chunk of raw golden amber crystal with a warm inner glow, rough sandstone still attached at the base, small trapped bubbles inside. |
 | **Cuore del Colosso** | Colosso d'Ambra (raro) | A large heart-shaped amber crystal with molten orange light pulsing inside, cracked sandstone shell around it. |
-| **Osso Antico** | Revenant, Wyrm | A large old ivory dragon bone, slightly curved, with cracks, moss spots and faint pale-green runes carved on it. |
-| **Teschio del Wyrm** | Wyrm Scheletrico (raro) | A small dragon skull of ivory bone with two curved horns and pale-green glowing eye sockets. |
+| **Osso Antico** | Guerriero d'Ossa, Wyrm d'Ossa | A large old ivory dragon bone, slightly curved, with cracks, moss spots and faint pale-green runes carved on it. |
+| **Teschio del Wyrm** | Wyrm d'Ossa (raro) | A small dragon skull of ivory bone with two curved horns and pale-green glowing eye sockets. |
 | **Piuma di Tempesta** | Arpia, Roc | A long storm feather in slate grey and steel blue with a pale-blue electric glow along the edge and tiny sparks. |
 | **Penna del Tuono** | Roc del Tuono (raro) | A huge dark navy feather shaped like a lightning bolt, glowing electric white-blue core. |
 | **Scheggia d'Ossidiana** | Pantera, guglie del fulmine | A sharp shard of black obsidian glass with glowing violet lightning cracks inside. |
 | **Nucleo della Sentinella** | Sentinella d'Ossidiana (raro) | A faceted black crystal sphere with a single glowing violet eye-like core and purple arcs around it. |
 | **Polvere di Stelle** | Spettro, cristalli cosmici | A small glass vial filled with glowing purple and magenta star dust, tiny stars floating inside, silver cork. |
-| **Stella Caduta** | Divoratore di Stelle (raro) | A small fallen star, a glowing white-pink crystal star shape with a purple nebula halo. |
+| **Stella Caduta** | Serpente Stellare (raro) | A small fallen star, a glowing white-pink crystal star shape with a purple nebula halo. |
 | **Frammento d'Eclissi** | Cavaliere | A black crescent-shaped stone fragment with a thin glowing gold-orange rim. |
 | **Corona dell'Eclissi** | Guardiano (raro) | A black disc with a burning gold-orange ring of light around it, like a solar eclipse. |
 | **Spora Tossica** | Predatore della palude, fumarole | A round glowing spore pod with a cyan translucent skin and magenta veins, dripping glowing liquid. |
@@ -150,3 +183,5 @@ Per tutti: "Single small item, centered, 3/4 view from above, no background, no 
   > A fantasy blacksmith crafting table of dark wood and iron, an anvil on one side, a rack of ice axes, dragon scales hanging on hooks, glowing blue runes on the front, small tools and crystals on top. Single object, centered, no background, no shadow, Roblox prop, PBR, stylized.
 - **Scheletro di drago gigante (Cimitero):**
   > A giant dragon skeleton lying on its side, ivory weathered bones, long ribcage, horned skull, broken wing bones, moss and pale green glow in the eye sockets. Single object, full view, no background, no shadow, Roblox environment prop, PBR, stylized.
+- **Arena alternativa con ingresso chiaro** (se quella di adesso non ti convince):
+  > A circular dragon training arena seen from above at 3/4 view, a flat round stone floor with a big glowing rune circle in the middle, a ring of low stone walls with dragon bones as decoration, ONE single wide clear entrance with big stairs and two dragon skull statues on the sides of the entrance, the rest of the ring closed, 8 stone braziers around the floor. Chunky stylized shapes, no thin parts. Single object, centered, plain white background, no shadow, Roblox environment asset.

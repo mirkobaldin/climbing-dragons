@@ -70,6 +70,12 @@ end
 
 -- cristallo: prisma allungato a punta (due parti: corpo e punta), inclinato
 local function crystal(parent: Instance, base: Vector3, h: number, tilt: Vector3, color: Color3, rng: Random): Part
+	local holder = Instance.new("Model")
+	holder.Name = "Cristallo"
+	holder:SetAttribute("Height", h)
+	holder:SetAttribute("Base", base)
+	holder.Parent = parent
+	parent = holder
 	local w = h * 0.22
 	local cf = CFrame.new(base) * CFrame.Angles(tilt.X, rng:NextNumber(0, 6.28), tilt.Z)
 	local body = part(parent, "Cristallo", Vector3.new(w, h, w), cf * CFrame.new(0, h / 2 - h * 0.1, 0), color, M.Neon)
@@ -318,6 +324,7 @@ function ThemeZones.build(map: Heightmap.Map)
 		nests.Name = "ThemeNests"
 	end
 	local made = {}
+	local centers: { Vector3 } = {} -- le zone non si sovrappongono
 	for i, t in list do
 		local rng = Random.new(cfg.SEED + 900 + i)
 		-- centro: attorno all'angolo scelto, alla quota piu' vicina a Y, dove c'e' poco ghiacciaio
@@ -328,7 +335,15 @@ function ThemeZones.build(map: Heightmap.Map)
 			local dir = Vector3.new(math.cos(t.ANGLE + da), 0, math.sin(t.ANGLE + da))
 			for r = Mo.RADIUS * 0.05, Mo.RADIUS * 1.3, 16 do
 				local hit = down(Mo.X + dir.X * r, Mo.Z + dir.Z * r, Mo.HEIGHT + 600)
-				if hit and hit.Material ~= M.Water and math.abs(hit.Position.Y - t.Y) < 160 then
+				local clash = false
+				if hit then
+					for _, o in centers do
+						if (o - hit.Position).Magnitude < 280 then
+							clash = true
+						end
+					end
+				end
+				if hit and not clash and hit.Material ~= M.Water and math.abs(hit.Position.Y - t.Y) < 160 then
 					local p = hit.Position
 					local bad = 0
 					for k = 1, 10 do
@@ -351,6 +366,7 @@ function ThemeZones.build(map: Heightmap.Map)
 			continue
 		end
 		local center = best :: Vector3
+		table.insert(centers, center)
 		local zf = Instance.new("Folder")
 		zf.Name = t.ELEMENT
 		zf.Parent = folder
@@ -398,6 +414,32 @@ function ThemeZones.build(map: Heightmap.Map)
 		if build then
 			build(zone, t)
 		end
+		-- cristalli: se in ServerStorage.Modelli c'e' "Cristallo_<Elemento>" si usa quel modello
+		local store = game:GetService("ServerStorage"):FindFirstChild("Modelli")
+		local tpl = store and store:FindFirstChild("Cristallo_" .. t.ELEMENT)
+		if tpl and tpl:IsA("Model") then
+			for _, holder in zf:GetDescendants() do
+				if holder:IsA("Model") and holder.Name == "Cristallo" and holder:GetAttribute("Height") then
+					local m = tpl:Clone()
+					for _, d in m:GetDescendants() do
+						if d:IsA("LuaSourceContainer") then
+							d:Destroy()
+						elseif d:IsA("BasePart") then
+							d.Anchored = true
+						end
+					end
+					local _, s0 = m:GetBoundingBox()
+					m:ScaleTo(m:GetScale() * (holder:GetAttribute("Height") :: number) * 1.3 / s0.Y)
+					local base = holder:GetAttribute("Base") :: Vector3
+					m:PivotTo(CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0))
+					local box, s = m:GetBoundingBox()
+					m:PivotTo(m:GetPivot() + Vector3.new(0, base.Y - (box.Position.Y - s.Y / 2) - 0.5, 0))
+					m.Name = "Cristallo"
+					m.Parent = holder.Parent
+					holder:Destroy()
+				end
+			end
+		end
 		-- nido al centro e cartello sul bordo verso valle
 		nest(zf, nests, center, t.ELEMENT, t.COLOR, t.STONE)
 		local outward = Vector3.new(center.X - Mo.X, 0, center.Z - Mo.Z).Unit
@@ -409,6 +451,7 @@ function ThemeZones.build(map: Heightmap.Map)
 		workspace:SetAttribute("ThemeZone" .. i .. "Center", center)
 		workspace:SetAttribute("ThemeZone" .. i .. "Radius", t.RADIUS)
 		workspace:SetAttribute("ThemeZone" .. i .. "Element", t.ELEMENT)
+		workspace:SetAttribute("ThemeZone" .. i .. "Title", t.TITLE)
 		table.insert(made, string.format("%s a %d m", t.ELEMENT, math.floor(center.Y)))
 		task.wait()
 	end

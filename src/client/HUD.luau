@@ -138,7 +138,8 @@ function HUD.start()
 
 	-- Tutorial (sotto la scheda del giocatore)
 	local quest = card(gui)
-	quest.Position = UDim2.new(0, 10, 0, 88)
+	quest.AnchorPoint = Vector2.new(0.5, 0)
+	quest.Position = UDim2.new(0.5, 0, 0, 62) -- in alto al centro, sotto le monete: non copre le icone
 	quest.Size = UDim2.new(0, 300, 0, 0)
 	quest.Visible = false
 	Theme.padding(quest, 10)

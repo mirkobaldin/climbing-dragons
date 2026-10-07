@@ -970,8 +970,9 @@ buildTemplates = function()
 		-- nido nell'angolo dietro, dentro il recinto del terreno
 		local half = (currentMap :: Heightmap.Map).cfg.VILLAGE.PLOT_HALF[k]
 		nest(model, origin * CFrame.new(-(half - 10), 0, half - 10))
-		-- banco da lavoro di casa, nell'altro angolo: l'equipaggiamento si costruisce anche qui
-		workbench(model, origin * CFrame.new(half - 9, 0, half - 12))
+		-- niente banco da lavoro in casa: si crafta al campo base, e con lo Chalet alla forgia
+		-- (la costruisce Economy accanto al punto d'arrivo)
+		local _ = workbench
 		-- le parti dei builder sono dentro sotto-modelli: tutto e' gia' ancorato
 	end
 	folder.Parent = ServerStorageService

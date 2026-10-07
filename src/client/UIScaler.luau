@@ -8,7 +8,8 @@ local Players = game:GetService("Players")
 
 local UIScaler = {}
 
-local SKIP = { Trailer = true, Cinematica = true, DeathScreen = true, MobileControls = true, MiraDrago = true }
+-- solo le nostre interfacce: sulla chat di Roblox il UIScale mandava in loop il ridimensionamento
+local ONLY = { ClimbHUD = true, MainMenu = true, Teletrasporto = true, AdminButtons = true, AdminBar = true, TargetRush = true, NomeZona = true, Mirino = true }
 local scales: { UIScale } = {}
 
 local function factor(): number
@@ -33,7 +34,7 @@ local function attach(obj: Instance)
 end
 
 local function watch(gui: Instance)
-	if not gui:IsA("ScreenGui") or SKIP[gui.Name] then
+	if not gui:IsA("ScreenGui") or not ONLY[gui.Name] then
 		return
 	end
 	for _, c in gui:GetChildren() do
