@@ -243,7 +243,7 @@ end
 -- Un braciere per elemento, attorno al cerchio, col fuoco del colore del drago
 local function buildBraziers(parent: Instance, center: Vector3)
 	local list = DragonConfig.ELEMENTS
-	local r = T.CIRCLE_RADIUS + 6
+	local r = T.CIRCLE_RADIUS + 20 -- sul bordo della piattaforma (prima stavano in mezzo)
 	for k, e in list do
 		local a = (k - 1) / #list * 2 * math.pi
 		local p = groundAt(center + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r))
@@ -290,9 +290,16 @@ local function buildTarget(parent: Instance, at: Vector3, index: number): BasePa
 	model:SetAttribute("Index", index)
 	local light = Instance.new("PointLight")
 	light.Color = RUNE
-	light.Range = 10
-	light.Brightness = 1.5
+	light.Range = 24
+	light.Brightness = 4
 	light.Parent = glass
+	-- si vedono sempre, anche dietro le ossa dell'arena (prima si perdevano)
+	local glow = Instance.new("Highlight")
+	glow.FillColor = Color3.fromRGB(150, 220, 255)
+	glow.FillTransparency = 0.55
+	glow.OutlineColor = Color3.fromRGB(200, 240, 255)
+	glow.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	glow.Parent = model
 	CollectionService:AddTag(model, "CristalloBersaglio")
 	return glass
 end
@@ -424,12 +431,29 @@ function Training.setup()
 		buildPowerCrystal(folder, center)
 		buildBraziers(folder, center)
 		local _ = size
-		local arena = prop(folder, "arenadrago", 50, CFrame.new(center - Vector3.new(0, 9, 0))) -- i cristalli volano dentro
-		if arena then
-			arena.Name = "ArenaOssa"
-		end
 		local hubMarker = workspace:FindFirstChild("MapMarkers") and (workspace :: any).MapMarkers:FindFirstChild("HubSpawn")
 		local gateA = if hubMarker then math.atan2(hubMarker.Position.Z - center.Z, hubMarker.Position.X - center.X) else 0
+		local ARENA_H = 60 -- 1.2 volte quella di prima
+		-- terreno piatto sotto tutta l'arena (prima era storto e spuntava dalla piattaforma)
+		workspace.Terrain:FillCylinder(CFrame.new(center - Vector3.new(0, 5, 0)), 10, ARENA_H * 1.45, Enum.Material.Ground)
+		workspace.Terrain:FillCylinder(CFrame.new(center + Vector3.new(0, 30, 0)), 60, ARENA_H * 1.45, Enum.Material.Air)
+		local arena = prop(folder, "arenadrago", ARENA_H, CFrame.new(center - Vector3.new(0, ARENA_H * 0.18, 0))) -- i cristalli volano dentro
+		if arena then
+			arena.Name = "ArenaOssa"
+			-- la mesh ha la collisione a scatola: un anello di muri invisibili lungo le ossa, aperto
+			-- verso il portale
+			local _, asize = arena:GetBoundingBox()
+			local R = math.min(asize.X, asize.Z) * 0.46
+			local N = 40
+			for k = 0, N - 1 do
+				local a = k / N * 2 * math.pi
+				if math.abs((a - gateA + math.pi) % (2 * math.pi) - math.pi) > 0.32 then
+					local p = center + Vector3.new(math.cos(a), 0, math.sin(a)) * R
+					local wall = part(arena, "Muro", Vector3.new(2 * math.pi * R / N + 1, 40, 4), CFrame.lookAt(p + Vector3.new(0, 18, 0), Vector3.new(center.X, p.Y + 18, center.Z)), STONE, Enum.Material.SmoothPlastic)
+					wall.Transparency = 1
+				end
+			end
+		end
 		for k = 0, 7 do
 			local a = (k + 0.5) / 8 * 2 * math.pi
 			local off = math.abs((a - gateA + math.pi) % (2 * math.pi) - math.pi)

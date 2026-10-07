@@ -61,7 +61,8 @@ function TrailerProps.prepare(): string
 	persistent(DragonModels.dragon("Gas", "Epico", 2, 30), "Gas", folder)
 	persistent(DragonModels.dragon("Gelo", "Raro", 1, 10), "Gelo", folder)
 	-- lo stormo del trailer: tutti gli altri draghi
-	for _, e in { "Roccia", "Brace", "Gelo", "Cosmico", "Tempesta", "Sole", "Fulmine", "Ossa", "Gas" } do
+	-- gli 8 draghi coi modelli (Eclissi adulto guida, gli altri 7 dietro)
+	for _, e in { "Roccia", "Gelo", "Cosmico", "Tempesta", "Fulmine", "Ossa", "Gas" } do
 		local m = DragonModels.dragon(e, "Epico", 2, 30)
 		m:ScaleTo(m:GetScale() * 2.2) -- nello stormo si vedono da lontano
 		persistent(m, "Stormo" .. e, folder)

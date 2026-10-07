@@ -43,14 +43,11 @@ local function destinations(): { [string]: (Player) -> Vector3? }
 		["Base camp (hub)"] = function()
 			return marker("HubSpawn")
 		end,
-		["My chalet"] = function(player)
+		["My camp"] = function(player)
 			local p = player:GetAttribute("PlotPosition")
 			return if typeof(p) == "Vector3" then p + Vector3.new(0, 0, 8) else nil
 		end,
-		["Glacier camp"] = function()
-			return plotsOf(1)
-		end,
-		["Dragon village"] = function()
+		["Dragon training"] = function()
 			local c = workspace:GetAttribute("TrainingCenter")
 			return if typeof(c) == "Vector3" then c + Vector3.new(0, 0, 70) else nil
 		end,
@@ -71,8 +68,12 @@ function Teleports.setup()
 		if type(name) ~= "string" then
 			return
 		end
-		if ((player:GetAttribute("HouseLevel") or 0) :: number) < 3 then
-			player:SetAttribute("Notice", "Teleport unlocks with the Chalet")
+		local need = Teleports.NEEDS[name]
+		local blocked = if need == "dragon" then ((player:GetAttribute("DragonCount") or 0) :: number) < 1
+			elseif need == "chalet" then ((player:GetAttribute("HouseLevel") or 0) :: number) < 3
+			else false
+		if blocked then
+			player:SetAttribute("Notice", if need == "dragon" then "Unlocks with your first dragon" else "Unlocks with the Chalet")
 			player:SetAttribute("NoticeTime", os.clock())
 			return
 		end
@@ -96,6 +97,8 @@ function Teleports.setup()
 	end)
 end
 
-Teleports.NAMES = { "Base camp (hub)", "My chalet", "Glacier camp", "Dragon village", "Toxic valley (edge)" }
+Teleports.NAMES = { "Base camp (hub)", "My camp", "Dragon training", "Toxic valley (edge)" }
+-- chi puo' andarci: tutti, dal primo drago, con lo Chalet
+Teleports.NEEDS = { ["Dragon training"] = "dragon", ["Toxic valley (edge)"] = "chalet" } :: { [string]: string }
 
 return Teleports

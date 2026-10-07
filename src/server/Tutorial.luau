@@ -116,6 +116,20 @@ local STEPS: { Step } = {
 local DONE_TEXT = "Pronto! Usa il cartello 'Montagna' al campo o segui la strada. Buona scalata!"
 
 local function publish(player: Player, step: number)
+	local before = player:GetAttribute("TutorialStep")
+	if type(before) == "number" and before <= #STEPS and step > #STEPS then
+		-- finito (o saltato): si va al proprio accampamento ai piedi della montagna, cosi' non lo
+		-- si deve cercare nella mappa
+		task.delay(2, function()
+			local p = player:GetAttribute("PlotPosition")
+			local character = player.Character
+			if typeof(p) == "Vector3" and character then
+				character:PivotTo(CFrame.new(p + Vector3.new(0, 5, 10)))
+				player:SetAttribute("Notice", "Welcome to your camp!")
+				player:SetAttribute("NoticeTime", os.clock())
+			end
+		end)
+	end
 	player:SetAttribute("TutorialStep", step)
 	local s = STEPS[step]
 	player:SetAttribute("TutorialText", if s then string.format("(%d/%d) %s", step, #STEPS, s.text) else nil)

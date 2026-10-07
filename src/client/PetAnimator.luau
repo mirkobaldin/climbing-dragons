@@ -17,6 +17,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local KfsPlayer = require(script.Parent.KfsPlayer)
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
 
@@ -152,6 +153,30 @@ local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationT
 	local fly, walk, idle
 	if type(key) == "string" then
 		local published = DragonConfig.DRAGON_ANIMS[key]
+		-- senza ID pubblicati: le pose salvate si suonano a mano (anche sul telefono; prima
+		-- funzionavano solo in Studio e nel gioco il drago restava fermo)
+		local saves = ReplicatedStorage:FindFirstChild("DragonAnimSaves")
+		local set = saves and saves:FindFirstChild(key)
+		if set and not (published and published.fly and published.fly ~= "") then
+			local function kf(name: string): KeyframeSequence?
+				local k = set:FindFirstChild(name)
+				return if k and k:IsA("KeyframeSequence") then k else nil
+			end
+			local kFly = kf("Dragon_Fly")
+			local kWalk = kf("Dragon_Walk") or kFly
+			local kIdle = kf("Dragon_Idle") or kWalk
+			if kFly and kWalk and kIdle then
+				local tracks = {
+					fly = KfsPlayer.load(model, kFly),
+					walk = KfsPlayer.load(model, kWalk),
+					idle = KfsPlayer.load(model, kIdle),
+				}
+				for _, t in tracks do
+					t:Play(0, 0.001)
+				end
+				return tracks :: any
+			end
+		end
 		fly = modelAnim(key, "Dragon_Fly", published and published.fly)
 		walk = modelAnim(key, "Dragon_Walk", published and published.walk) or fly
 		idle = modelAnim(key, "Dragon_Idle", published and published.idle) or walk

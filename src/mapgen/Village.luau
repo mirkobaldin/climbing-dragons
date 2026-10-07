@@ -1103,7 +1103,7 @@ function Village.build(map: Heightmap.Map)
 		plot(plots, cf, HALF[level], level, zone)
 		table.insert(placedPlots, { p = cf.Position, r = HALF[level] * 1.42 })
 	end
-	local function ring(level: number, zone: string, count: number, center: Vector3, r0: number, r1: number, face: (Vector3) -> Vector3, maxDiff: number): number
+	local function ring(level: number, zone: string, count: number, center: Vector3, r0: number, r1: number, face: (Vector3) -> Vector3, maxDiff: number, accept: ((Vector3) -> boolean)?): number
 		local half = HALF[level]
 		local placed, tries = 0, 0
 		while placed < count and tries < 1500 do
@@ -1113,7 +1113,7 @@ function Village.build(map: Heightmap.Map)
 			local x, z = center.X + cos(a) * r, center.Z + sin(a) * r
 			if not crowdedPlot(Vector3.new(x, 0, z), half * 1.42) then
 				local y = flatSpot(x, z, half, maxDiff)
-				if y then
+				if y and (not accept or accept(Vector3.new(x, y, z))) then
 					local at = Vector3.new(x, y, z)
 					local cf = CFrame.lookAt(at, at + face(at))
 					local hit = realGround(x, z)
@@ -1146,20 +1146,18 @@ function Village.build(map: Heightmap.Map)
 		-- davanti all'ingresso della grotta non si mette niente
 		table.insert(placedPlots, { p = avoid, r = 40 })
 	end
-	if campC then
-		local hit = realGround(campC.X, campC.Z)
-		if hit then
-			campfire(folder, CFrame.new(hit.Position), true)
-		end
-		local c = campC :: Vector3
-		nTents = ring(1, "Tende", V.TENTS, c, 40, 340, function(at)
-			return Vector3.new(c.X - at.X, 0, c.Z - at.Z).Unit -- verso il falo'
-		end, 16)
-		for k = 0, 7 do
-			local a = k / 8 * 2 * math.pi
-			lantern(folder, c.X + cos(a) * 34, c.Z + sin(a) * 34)
-		end
+	-- tende sparse tutto attorno ai piedi della montagna (ognuno ha il suo accampamento, ci
+	-- arriva a fine tutorial), girate verso la montagna
+	do
+		local M = cfg.MOUNTAIN
+		local mc = Vector3.new(M.X, 0, M.Z)
+		nTents = ring(1, "Tende", V.TENTS, mc, M.RADIUS * 0.85, M.RADIUS * 1.25, function(at)
+			return Vector3.new(mc.X - at.X, 0, mc.Z - at.Z).Unit
+		end, 10, function(p)
+			return p.Y > 15 and p.Y < 220 and not BAD[zoneAt(p.X, p.Z)]
+		end)
 	end
+	local _ = campC
 
 	-- 2) villaggio attorno alle costole del drago (al centro c'e' la zona di addestramento)
 	local nCabins = 0
@@ -1179,7 +1177,7 @@ function Village.build(map: Heightmap.Map)
 		map.features.clearings = map.features.clearings or {}
 		table.insert(map.features.clearings, { x = center.X, z = center.Z, r = 170 }) -- anche per il bosco
 		local tries = 0
-		while nCabins < V.CABINS and tries < 1500 do
+		while false and nCabins < V.CABINS and tries < 1500 do -- le baite ora stanno sul pendio (sotto)
 			tries += 1
 			local side = if rng:NextNumber() < 0.5 then -1 else 1
 			local along = rng:NextNumber(-L * 0.45, L * 0.45)
@@ -1205,6 +1203,37 @@ function Village.build(map: Heightmap.Map)
 		end
 	end
 
+	-- 2b) baite sul pendio della montagna, a CABIN_Y: un ripiano scavato nel pendio (sopra tutto
+	-- libero, sotto un masso di roccia) con una pedana di pietra piatta
+	do
+		local M = cfg.MOUNTAIN
+		local half = HALF[2]
+		local T = workspace.Terrain
+		local tries = 0
+		while nCabins < V.CABINS and tries < 6000 do
+			tries += 1
+			local a = rng:NextNumber(0, 2 * math.pi)
+			local out = Vector3.new(cos(a), 0, sin(a))
+			local r = M.RADIUS * rng:NextNumber(0.45, 1)
+			local x, z = M.X + out.X * r, M.Z + out.Z * r
+			local hit = realGround(x, z)
+			if not hit or hit.Position.Y < V.CABIN_Y[1] or hit.Position.Y > V.CABIN_Y[2] or BAD[zoneAt(x, z)] then
+				continue
+			end
+			local at = Vector3.new(x, hit.Position.Y + 1, z)
+			if crowdedPlot(at, half * 4) then
+				continue
+			end
+			local cf = CFrame.lookAt(at, at + out) -- la porta guarda la valle
+			T:FillBall(cf * Vector3.new(0, -half * 1.1, 0), half * 1.25, Enum.Material.Rock)
+			T:FillBlock(cf * CFrame.new(0, 30, 0), Vector3.new(half * 2 + 12, 60, half * 2 + 12), Enum.Material.Air)
+			local ledge = builder(folder, "Ripiano")
+			ledge.block(Vector3.new(half * 2 + 8, 2, half * 2 + 8), cf * CFrame.new(0, -1, 0), STONE, Enum.Material.Slate)
+			addPlot(2, "Pendio", cf)
+			nCabins += 1
+		end
+	end
+
 	-- 3) villette sui costoni: una piazzola sul bordo di un salto, con la casa che sporge sul
 	-- vuoto sorretta da pilastri bianchi (come le ville sulle scogliere)
 	local nVillas = 0
@@ -1219,13 +1248,13 @@ function Village.build(map: Heightmap.Map)
 			local out = Vector3.new(cos(a), 0, sin(a))
 			local x, z = M.X + out.X * r, M.Z + out.Z * r
 			local hit = realGround(x, z)
-			if not hit or hit.Position.Y < 180 or hit.Position.Y > 1300 or BAD[zoneAt(x, z)] then
+			if not hit or hit.Position.Y < V.VILLA_Y[1] or hit.Position.Y > V.VILLA_Y[2] or BAD[zoneAt(x, z)] then
 				continue
 			end
 			local y = hit.Position.Y
 			local front = realGround(x + out.X * (half + 24), z + out.Z * (half + 24))
 			local back = realGround(x - out.X * half, z - out.Z * half)
-			if not front or not back or y - front.Position.Y < 35 or back.Position.Y - y > 45 then
+			if not front or not back or y - front.Position.Y < 15 or back.Position.Y - y > 60 then
 				continue -- serve un salto davanti e niente parete enorme dietro
 			end
 			local at = Vector3.new(x, y + 2, z)
@@ -1266,7 +1295,7 @@ function Village.build(map: Heightmap.Map)
 	for _, o in placedPlots do
 		table.insert(map.features.clearings, { x = o.p.X, z = o.p.Z, r = o.r + 12 })
 	end
-	print(string.format("[MapGen] Case: %d terreni tende, %d nel villaggio delle costole, %d villette sui costoni", nTents, nCabins, nVillas))
+	print(string.format("[MapGen] Case: %d tende ai piedi della montagna, %d baite sul pendio, %d chalet sui costoni", nTents, nCabins, nVillas))
 
 	-- Lanterne attorno al cerchio del falo' della piana
 	local lanterns = Instance.new("Folder")

@@ -499,8 +499,18 @@ function Trailer.play(kind: string, take: string?)
 		hook.Size = Vector3.new(1, 1, 1.6)
 		hook.Color = Color3.fromRGB(60, 60, 66)
 		hook.Material = Enum.Material.Metal
+		-- sale lungo la parete vera: a ogni quota si cerca la roccia con un raggio da fuori e si sta
+		-- 3 studs davanti (prima la linea dritta passava dentro la montagna)
 		local function bodyAt(u: number): Vector3
-			return from:Lerp(lip + n * 3 + Vector3.new(0, 2, 0), smooth(u * 1.15))
+			local p = from:Lerp(lip + n * 3 + Vector3.new(0, 2, 0), smooth(u * 1.15))
+			local hit = workspace:Raycast(p + n * 80, -n * 160, terrainOnly)
+			if hit then
+				local d = (p - hit.Position):Dot(n)
+				if d < 3 then
+					p += n * (3 - d)
+				end
+			end
+			return p
 		end
 		return add({
 			dur = dur,
@@ -604,7 +614,7 @@ function Trailer.play(kind: string, take: string?)
 	if kind == "trailer" then
 		-- 19 secondi: montagna, rampino, stormo, grotta col re, cratere col titano, gas,
 		-- evoluzione nell'arena, titolo
-		for _, e in { "Roccia", "Brace", "Gelo", "Cosmico", "Tempesta", "Sole", "Fulmine", "Ossa", "Gas" } do
+		for _, e in { "Roccia", "Gelo", "Cosmico", "Tempesta", "Fulmine", "Ossa", "Gas" } do
 			local a = actor(props, "Stormo" .. e)
 			if a then
 				table.insert(flock, a)
@@ -625,7 +635,7 @@ function Trailer.play(kind: string, take: string?)
 			end)
 		end
 		onStart(shotFlock(2.8), function()
-			say(s.small, "TAME 11 DRAGONS", 2.5, ORANGE)
+			say(s.small, "TAME 8 DRAGONS", 2.5, ORANGE)
 		end)
 		local king = shotKing(2.8)
 		if king then

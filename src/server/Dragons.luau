@@ -93,6 +93,7 @@ end
 -- Pubblica lo stato al client e aggiorna abilita' e draghi al seguito
 local function publish(player: Player)
 	local s = Dragons.state(player)
+	player:SetAttribute("DragonCount", #s.dragons) -- sblocca il teletrasporto all'addestramento
 	player:SetAttribute("DragonData", HttpService:JSONEncode({
 		dragons = s.dragons,
 		equipped = s.equipped,

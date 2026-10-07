@@ -642,7 +642,8 @@ local function buildWalk(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 		local key = tailKeys[math.clamp(math.floor(f * 3.999) + 1, 1, 4)]
 		add(poses, sk, b, UP, (s.tailYaw or 1) * (3 + 6 * f) * wave("walk", key, p))
 	end
-	foldWings(poses, sk, s, folds, 2 * math.sin(2 * math.pi * p))
+	-- le ali chiuse si sollevano un poco a ogni passo (per l'equilibrio): prima erano ferme
+	foldWings(poses, sk, s, folds, 7 * math.sin(4 * math.pi * p))
 	return poses
 end
 

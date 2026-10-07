@@ -487,6 +487,7 @@ local function startAim(event: RemoteEvent)
 			pitch = -0.12
 		elseif on and not want then
 			camera.CameraType = Enum.CameraType.Custom
+			camera.FieldOfView = 70
 			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 			UserInputService.MouseIconEnabled = true
 		end
@@ -505,7 +506,9 @@ local function startAim(event: RemoteEvent)
 			local head = mouthOf(pet)
 			local look = CFrame.fromOrientation(pitch, yaw, 0).LookVector
 			camera.CameraType = Enum.CameraType.Scriptable
-			camera.CFrame = CFrame.lookAt(head - look * 7 + Vector3.new(0, 2.2, 0), head + look * 60)
+			-- piu' indietro e piu' in alto, campo largo: prima si vedeva troppo poco
+			camera.FieldOfView = 88
+			camera.CFrame = CFrame.lookAt(head - look * 16 + Vector3.new(0, 6, 0), head + look * 60)
 			UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
 			UserInputService.MouseIconEnabled = false
 		end

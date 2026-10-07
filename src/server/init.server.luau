@@ -43,7 +43,7 @@ end)
 do
 	local RunService = game:GetService("RunService")
 	local saves = game:GetService("ServerStorage"):FindFirstChild("RBX_ANIMSAVES")
-	if RunService:IsStudio() and saves then
+	if saves then -- anche nel gioco pubblicato: i draghi le suonano con KfsPlayer
 		local out = Instance.new("Folder")
 		out.Name = "ClimbAnimSaves"
 		-- "climb-idle", "Climb_Idle", "climb idle"... vanno tutti bene; le tue (sul Rig) vincono su

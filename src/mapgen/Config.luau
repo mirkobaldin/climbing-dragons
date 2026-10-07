@@ -314,7 +314,9 @@ local Config = {
 	--   CABINS villaggio attorno alle costole del drago (Baita)
 	--   VILLAS villette a sbalzo sui costoni della montagna (Chalet)
 	-- PLOT_HALF = meta' del lato del terreno per livello; HOUSE_SCALE = grandezza delle case
-	VILLAGE = { TENTS = 14, CABINS = 12, VILLAS = 10, BRIDGES = 3, HOUSE_SCALE = 1.6, PLOT_HALF = { 22, 30, 34 } },
+	-- case: tende sparse ai piedi della montagna (accampamento di ogni giocatore), baite sul pendio
+	-- a CABIN_Y, chalet sui costoni a VILLA_Y (quote in studs = metri dell'altimetro)
+	VILLAGE = { TENTS = 20, CABINS = 14, VILLAS = 10, BRIDGES = 3, HOUSE_SCALE = 1.6, PLOT_HALF = { 22, 30, 34 }, CABIN_Y = { 260, 340 }, VILLA_Y = { 500, 650 } },
 
 	-- Ostacoli sulla montagna
 	OBSTACLES = {

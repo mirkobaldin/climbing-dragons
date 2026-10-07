@@ -12,7 +12,7 @@ local player = Players.LocalPlayer
 
 local TeleportMenu = {}
 
-local NAMES = { "Base camp (hub)", "My chalet", "Glacier camp", "Dragon village", "Toxic valley (edge)" }
+local NAMES = { "Base camp (hub)", "My camp", "Dragon training", "Toxic valley (edge)" }
 
 function TeleportMenu.start()
 	local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Teleport", 30) :: RemoteEvent?
@@ -61,7 +61,7 @@ function TeleportMenu.start()
 		end)
 	end
 	local function refresh()
-		open.Visible = ((player:GetAttribute("HouseLevel") or 0) :: number) >= 3
+		open.Visible = true -- per tutti: il server dice cosa e' ancora bloccato
 		if not open.Visible then
 			panel.Visible = false
 		end
