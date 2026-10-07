@@ -372,7 +372,7 @@ local function nearestPlayer(enemy: Enemy): (Player?, number)
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-		if root and humanoid and humanoid.Health > 0 then
+		if root and humanoid and humanoid.Health > 0 and not player:GetAttribute("Filming") then
 			local d = (root.Position - enemy.root.Position).Magnitude
 			if d < bestDist and math.abs(root.Position.Y - enemy.root.Position.Y) < 40 then
 				best, bestDist = player, d
@@ -439,8 +439,9 @@ local function buildThrone(enemy: Enemy, den: CFrame)
 			end
 		end
 		local _, s0 = deco:GetBoundingBox()
-		deco:ScaleTo(deco:GetScale() * H * 2 / s0.Y)
-		deco:PivotTo(at(0, ground, -0.55 * H) * deco:GetPivot().Rotation)
+		deco:ScaleTo(deco:GetScale() * H * 1.7 / s0.Y)
+		-- dietro al Re, come sfondo (davanti lo copriva)
+		deco:PivotTo(at(0, ground, -1.25 * H) * deco:GetPivot().Rotation)
 		local box, s = deco:GetBoundingBox()
 		deco:PivotTo(deco:GetPivot() + Vector3.new(0, ground - (box.Position.Y - s.Y / 2) - 0.3, 0))
 		deco.Name = "TronoCristalli"
@@ -547,7 +548,7 @@ local function think(enemy: Enemy)
 		local character = target.Character
 		targetRoot = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-		if not targetRoot or not humanoid or humanoid.Health <= 0 or ((targetRoot :: BasePart).Position - enemy.root.Position).Magnitude > enemy.def.aggro * 1.6 then
+		if (target :: Player):GetAttribute("Filming") or not targetRoot or not humanoid or humanoid.Health <= 0 or ((targetRoot :: BasePart).Position - enemy.root.Position).Magnitude > enemy.def.aggro * 1.6 then
 			target, targetRoot = nil, nil
 		end
 	end

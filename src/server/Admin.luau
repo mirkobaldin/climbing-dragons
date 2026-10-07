@@ -155,6 +155,13 @@ local function run(player: Player, text: any): (boolean, string, string?)
 		return true, "Ciak! (I added a grappling hook...)", "tiktok"
 	elseif cmd == "trailer" or cmd == "clip1" or cmd == "clip2" or cmd == "clip3" or cmd == "clip4" or cmd == "clip5" or cmd == "clip6" then
 		local take = TrailerProps.prepare()
+		-- mentre giri la clip i nemici ti ignorano (il personaggio nascosto segue la camera)
+		player:SetAttribute("Filming", true)
+		task.delay(120, function()
+			if player.Parent then
+				player:SetAttribute("Filming", nil)
+			end
+		end)
 		return true, "Ciak! (" .. cmd .. ")", "trailer " .. cmd .. " " .. take
 	elseif cmd == "speed" and humanoid then
 		humanoid.WalkSpeed = tonumber(args[2]) or 24

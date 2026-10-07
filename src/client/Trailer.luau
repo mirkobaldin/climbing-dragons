@@ -875,6 +875,7 @@ function Trailer.play(kind: string, take: string?)
 				local side = den.RightVector
 				local yeti: Model? = nil
 				local real: Model? = nil
+				local realCf: CFrame? = nil
 				local tracks: { [string]: any } = {}
 				local hp: Frame? = nil
 				local function prepareYeti()
@@ -887,22 +888,21 @@ function Trailer.play(kind: string, take: string?)
 					if not real then
 						return
 					end
+					-- si usa il Re vero, solo qui sul client: le sue animazioni del server si fermano e le
+					-- pose le suona KfsPlayer (una copia del modello risultava invisibile)
 					local r = real :: Model
-					r.Archivable = true
-					local c = r:Clone()
-					for _, d in c:GetDescendants() do
-						if d:IsA("Humanoid") or d:IsA("Animator") or d:IsA("AnimationController") or d:IsA("BillboardGui") or d:IsA("LuaSourceContainer") then
-							d:Destroy()
-						elseif d:IsA("BasePart") then
-							d.Anchored = true
-							d.CanCollide = false
+					local c = r
+					yeti = c
+					realCf = r:GetPivot()
+					local animator = r:FindFirstChildWhichIsA("Animator", true)
+					if animator then
+						for _, t in animator:GetPlayingAnimationTracks() do
+							t:Stop(0)
 						end
 					end
-					c.Parent = workspace
-					yeti = c
 					for _, d in r:GetDescendants() do
-						if d:IsA("BasePart") then
-							d.LocalTransparencyModifier = 1
+						if d:IsA("BillboardGui") then
+							d.Enabled = false -- nome e barra del boss vero
 						end
 					end
 					-- animazioni (copie client delle pose salvate)
@@ -1062,13 +1062,16 @@ function Trailer.play(kind: string, take: string?)
 						before()
 					end
 					task.delay(2.4, function()
-						if yeti then
-							(yeti :: Model):Destroy()
+						for _, t in tracks do
+							t:Stop(0.2)
+						end
+						if real and realCf then
+							(real :: Model):PivotTo(realCf :: CFrame)
 						end
 						if real then
 							for _, d in (real :: Model):GetDescendants() do
-								if d:IsA("BasePart") then
-									d.LocalTransparencyModifier = 0
+								if d:IsA("BillboardGui") then
+									d.Enabled = true
 								end
 							end
 						end
