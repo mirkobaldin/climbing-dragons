@@ -765,7 +765,7 @@ local function climbStep(dt: number)
 	-- piu' la roccia sporge, piu' peso sta sulle braccia: verticale 1x, tetto 3.4x
 	drain *= 1 + 2.4 * roofness
 	-- palestra: ogni livello Fitness toglie l'1% di fatica (fino al 40%)
-	drain *= 1 - math.min(0.4, ((game:GetService("Players").LocalPlayer:GetAttribute("Fitness") or 0) :: number) * 0.01)
+	drain *= 1 - math.min(0.4, ((game:GetService("Players").LocalPlayer:GetAttribute("Resistenza") or 0) :: number) * 0.01)
 	ClientState.stamina = math.max(0, ClientState.stamina - drain * dt)
 	if ClientState.stamina <= 0 then
 		ClientState.hint = "Sei esausto! Riposa a terra o appeso alla corda."
@@ -809,7 +809,9 @@ local function ropeStep(dt: number)
 			elseif grounded then ClimbConfig.REGEN_GROUND
 			elseif hanging then ClimbConfig.REGEN_ROPE
 			else 0
-		ClientState.stamina = math.min(ClimbConfig.STAMINA_MAX, ClientState.stamina + regen * ClientState.regenBoost * dt)
+		-- palestra: Recupero +2% per livello
+		local recovery = 1 + ((game:GetService("Players").LocalPlayer:GetAttribute("Recupero") or 0) :: number) * 0.02
+		ClientState.stamina = math.min(ClimbConfig.STAMINA_MAX, ClientState.stamina + regen * ClientState.regenBoost * recovery * dt)
 	end
 end
 

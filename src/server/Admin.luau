@@ -45,7 +45,8 @@ cinematica             scena da trailer: strapiombo, uovo e caduta
 tiktok                 scenetta: il rampino aggancia un drago
 trailer                trailer di 19 s (montagna, draghi, grotte, gas, addestramento, evoluzione)
 clip1 / clip2 / clip3  clip per TikTok: evoluzione Eclissi, grotta di ghiaccio, valle dei gas
-clip4 / clip5 / clip6  clip senza scritte: boss Re Yeti, giro delle zone dei draghi, volo del drago
+clip4 / clip5 / clip6  clip senza scritte: boss Titano, giro delle zone dei draghi, volo del drago
+clip7 ... clip11       giro della mappa, una sola mappa, rampino, gas, giorno 1 / giorno 30
 help]]
 
 local function isAdmin(player: Player): boolean
@@ -153,7 +154,7 @@ local function run(player: Player, text: any): (boolean, string, string?)
 		return true, "Ciak! (scena da trailer)", "cinematica"
 	elseif cmd == "tiktok" then
 		return true, "Ciak! (I added a grappling hook...)", "tiktok"
-	elseif cmd == "trailer" or cmd == "clip1" or cmd == "clip2" or cmd == "clip3" or cmd == "clip4" or cmd == "clip5" or cmd == "clip6" then
+	elseif cmd == "trailer" or (string.match(cmd, "^clip%d+$") and (tonumber(string.sub(cmd, 5)) or 99) <= 11) then
 		local take = TrailerProps.prepare()
 		-- mentre giri la clip i nemici ti ignorano (il personaggio nascosto segue la camera)
 		player:SetAttribute("Filming", true)

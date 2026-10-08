@@ -70,11 +70,12 @@ end
 
 -- cristallo: solo il segnaposto (altezza e base); al suo posto va un cristallo-modello di Mirko
 -- (i prismi fatti a blocchi non ci sono piu'). Restituisce un punto luce invisibile alla base.
-local function crystal(parent: Instance, base: Vector3, h: number, tilt: Vector3, color: Color3, rng: Random): Part
+local function crystal(parent: Instance, base: Vector3, h: number, tilt: Vector3, color: Color3, rng: Random, normal: Vector3?): Part
 	local holder = Instance.new("Model")
 	holder.Name = "Cristallo"
 	holder:SetAttribute("Height", h)
 	holder:SetAttribute("Base", base)
+	holder:SetAttribute("Normal", normal or Vector3.yAxis) -- cresce perpendicolare alla roccia
 	holder.Parent = parent
 	local light = part(holder, "LuceCristallo", Vector3.one, CFrame.new(base + Vector3.new(0, h * 0.4, 0)), color, M.SmoothPlastic)
 	light.Transparency = 1
@@ -169,33 +170,40 @@ local function crystalModels(element: string): { Model }
 end
 
 -- un cristallo-modello alto h appoggiato in base
-local function placeModel(parent: Instance, tpl: Model, base: Vector3, h: number, rng: Random)
+local function placeModel(parent: Instance, tpl: Model, base: Vector3, h: number, rng: Random, normal: Vector3?)
 	local m = tpl:Clone()
 	for _, d in m:GetDescendants() do
 		if d:IsA("LuaSourceContainer") then
 			d:Destroy()
 		elseif d:IsA("BasePart") then
 			d.Anchored = true
+			d.CanCollide = false -- le mesh hanno la collisione a scatola: si inciampava nel vuoto
 		end
 	end
 	local _, s0 = m:GetBoundingBox()
-	m:ScaleTo(m:GetScale() * h / s0.Y)
-	-- forma diversa ogni volta: allungato o schiacciato su un solo asse
-	local axis = rng:NextInteger(1, 3)
-	local k = rng:NextNumber(0.7, 1.6)
-	local f = Vector3.new(if axis == 1 then k else 1, if axis == 2 then k else 1, if axis == 3 then k else 1)
-	local pv = m:GetPivot()
+	m:ScaleTo(m:GetScale() * h / math.max(s0.Y, 0.05))
+	-- forma diversa ogni volta: altezza e larghezza cambiano in modo indipendente (alti e sottili,
+	-- bassi e larghi, schiacciati di lato...). Si deforma ogni parte nei suoi assi.
+	local f = Vector3.new(rng:NextNumber(0.55, 1.5), rng:NextNumber(0.6, 2.3), rng:NextNumber(0.55, 1.5))
+	m:PivotTo(CFrame.new())
 	for _, p in m:GetDescendants() do
 		if p:IsA("BasePart") then
-			local rel = pv:PointToObjectSpace(p.Position)
-			p.Size = p.Size * f
-			p.Position = pv:PointToWorldSpace(rel * f)
+			local rel = p.Position
+			local localF = p.CFrame:VectorToObjectSpace(f)
+			p.Size = p.Size * Vector3.new(math.abs(localF.X), math.abs(localF.Y), math.abs(localF.Z))
+			p.Position = rel * f
 		end
 	end
-	-- e inclinato un poco
-	m:PivotTo(CFrame.new(base) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 6.28), rng:NextNumber(-0.3, 0.3)))
+	-- inclinato a caso, poi appoggiato con la base sulla roccia lungo la sua normale (sulle pareti
+	-- delle grotte e sotto le isole crescono di lato o a testa in giu')
+	local tilt = CFrame.Angles(rng:NextNumber(-0.35, 0.35), rng:NextNumber(0, 6.28), rng:NextNumber(-0.35, 0.35))
+	m:PivotTo(tilt)
 	local box, s = m:GetBoundingBox()
-	m:PivotTo(m:GetPivot() + Vector3.new(0, base.Y - (box.Position.Y - s.Y / 2) - 0.5 - s.Y * 0.06, 0))
+	local lift = -(box.Position.Y - s.Y / 2) - s.Y * 0.12 -- un poco affondato
+	local n = (normal or Vector3.yAxis).Unit
+	local axis = Vector3.yAxis:Cross(n)
+	local rot = if axis.Magnitude < 1e-3 then (if n.Y > 0 then CFrame.identity else CFrame.Angles(math.pi, 0, 0)) else CFrame.fromAxisAngle(axis.Unit, math.acos(math.clamp(n.Y, -1, 1)))
+	m:PivotTo(CFrame.new(base) * rot * CFrame.new(0, lift, 0) * tilt)
 	m.Name = "Cristallo"
 	m.Parent = parent
 end
@@ -259,62 +267,31 @@ BUILD.Ossa = function(z, t)
 	local _ = t
 end
 
+-- Tempesta e Fulmine Nero: le isole volanti le fa shapeZone; qui solo vento, nuvole basse e
+-- scintille (niente guglie o prismi: sembravano i vecchi cristalli)
 BUILD.Tempesta = function(z, t)
-	local STORM = Color3.fromRGB(78, 92, 128)
-	local BLUE = Color3.fromRGB(150, 200, 255)
-	for _, p in z.points(18) do
-		local top = spire(z.folder, p, z.rng:NextNumber(18, 40), z.rng:NextNumber(5, 9), STORM, M.Slate, z.rng)
-		if z.rng:NextNumber() < 0.35 then
-			local rod = part(z.folder, "Parafulmine", Vector3.new(0.5, 6, 0.5), top.CFrame * CFrame.new(0, top.Size.Y / 2 + 3, 0), BLUE, M.Neon)
-			rod.CanCollide = false
-			glow(rod, BLUE, 14, 1)
-		end
+	for _, p in z.points(8) do
+		local a = part(z.folder, "Vento", Vector3.one, CFrame.new(p + Vector3.new(0, z.rng:NextNumber(10, 30), 0)), t.COLOR, M.SmoothPlastic)
+		a.Transparency, a.CanCollide, a.CanQuery = 1, false, false
+		particles(a, Color3.fromRGB(200, 215, 235), SMOKE, 3, 6, 6, 3)
 	end
-	-- rocce che fluttuano nel vento
-	for _, p in z.points(10) do
-		local r = part(z.folder, "RocciaSospesa", Vector3.new(z.rng:NextNumber(5, 12), z.rng:NextNumber(3, 7), z.rng:NextNumber(5, 12)), CFrame.new(p + Vector3.new(0, z.rng:NextNumber(14, 35), 0)) * CFrame.Angles(z.rng:NextNumber(0, 1), z.rng:NextNumber(0, 6), 0), STORM, M.Slate)
-		particles(r, Color3.fromRGB(200, 215, 235), SMOKE, 3, 3, 4, 2)
-	end
-	local _ = t
 end
 
 BUILD.Fulmine = function(z, t)
-	local OBSIDIAN = Color3.fromRGB(22, 18, 30)
-	local VIOLET = Color3.fromRGB(170, 140, 255)
-	for _, p in z.points(16) do
-		local h = z.rng:NextNumber(20, 45)
-		local top = spire(z.folder, p, h, z.rng:NextNumber(4, 8), OBSIDIAN, M.Glass, z.rng)
-		-- vena viola che sale lungo la guglia
-		local vein = part(z.folder, "Vena", Vector3.new(0.5, h * 0.9, 0.5), CFrame.new(p + Vector3.new(0, h * 0.45, 0)) * CFrame.Angles(0, 0, z.rng:NextNumber(-0.1, 0.1)), VIOLET, M.Neon)
-		vein.CanCollide = false
-		if z.rng:NextNumber() < 0.5 then
-			glow(top, VIOLET, 18, 1.5)
-			particles(top, VIOLET, SPARK, 6, 1.2, 6, 0.6)
-		end
+	for _, p in z.points(8) do
+		local a = part(z.folder, "Scintille", Vector3.one, CFrame.new(p + Vector3.new(0, z.rng:NextNumber(4, 20), 0)), t.COLOR, M.SmoothPlastic)
+		a.Transparency, a.CanCollide, a.CanQuery = 1, false, false
+		particles(a, t.COLOR, SPARK, 6, 1.2, 6, 0.6)
 	end
-	for _, p in z.points(18) do
-		crystal(z.folder, p, z.rng:NextNumber(2, 5), Vector3.new(z.rng:NextNumber(-0.5, 0.5), 0, z.rng:NextNumber(-0.5, 0.5)), VIOLET, z.rng)
-	end
-	local _ = t
 end
 
+-- Cosmico: la grotta-geode la fa shapeZone; qui polvere di stelle che sale (particelle)
 BUILD.Cosmico = function(z, t)
-	local PURPLE = Color3.fromRGB(120, 70, 220)
-	local MAGENTA = Color3.fromRGB(220, 90, 255)
-	for _, p in z.points(14) do
-		-- grappolo di cristalli
-		for _ = 1, z.rng:NextInteger(3, 6) do
-			local q = p + Vector3.new(z.rng:NextNumber(-4, 4), 0, z.rng:NextNumber(-4, 4))
-			crystal(z.folder, q, z.rng:NextNumber(4, 14), Vector3.new(z.rng:NextNumber(-0.5, 0.5), 0, z.rng:NextNumber(-0.5, 0.5)), if z.rng:NextNumber() < 0.5 then PURPLE else MAGENTA, z.rng)
-		end
+	for _, p in z.points(6) do
+		local a = part(z.folder, "Polvere", Vector3.one, CFrame.new(p + Vector3.new(0, 3, 0)), t.COLOR, M.SmoothPlastic)
+		a.Transparency, a.CanCollide, a.CanQuery = 1, false, false
+		particles(a, Color3.fromRGB(255, 230, 255), SPARK, 5, 0.8, 2, 3)
 	end
-	for _, p in z.points(12) do
-		local orb = part(z.folder, "Stella", Vector3.one * z.rng:NextNumber(1.5, 3.5), CFrame.new(p + Vector3.new(0, z.rng:NextNumber(10, 30), 0)), Color3.fromRGB(240, 220, 255), M.Neon, Enum.PartType.Ball)
-		orb.CanCollide = false
-		glow(orb, MAGENTA, 20, 1.2)
-		particles(orb, Color3.fromRGB(255, 230, 255), SPARK, 5, 0.8, 2, 2)
-	end
-	local _ = t
 end
 
 BUILD.Eclissi = function(z, t)
@@ -349,6 +326,220 @@ BUILD.Eclissi = function(z, t)
 		particles(ember, GOLD, SPARK, 4, 0.6, 3, 1.5)
 	end
 	local _ = t
+end
+
+------------------------------------------------------------------------------------------
+-- Forme delle zone (al posto della piattaforma piatta):
+--   canyon  (Roccia)            una gola scavata nel pendio, pareti a strati
+--   bowl    (Ossa)              una conca, il cimitero sul fondo
+--   cave    (Cosmico, Eclissi)  una grotta scavata nella montagna, aperta verso la valle
+--   islands (Tempesta, Fulmine) isole che fluttuano, collegate da sassi sospesi
+-- Si lavora sui voxel (come la Grande Grotta): dentro la forma aria, sotto il pavimento il
+-- materiale del tema, attorno un guscio di roccia SOLO dove c'e' la montagna (la montagna e' cava:
+-- senza guscio si sfonderebbe nel vuoto interno).
+
+local SHAPE = { Roccia = "canyon", Ossa = "bowl", Cosmico = "cave", Eclissi = "cave", Tempesta = "islands", Fulmine = "islands" }
+
+type Stage = { stage: Vector3, nest: Vector3, castFrom: number, spots: { { p: Vector3, n: Vector3 } } }
+
+-- modifica i voxel nella scatola: classify(p, top) restituisce (materiale, pieno?) o nil (non toccare)
+local function editVoxels(map: Heightmap.Map, lo: Vector3, hi: Vector3, classify: (Vector3, number) -> (Enum.Material?, number?))
+	local T = workspace.Terrain
+	local region = Region3.new(lo, hi):ExpandToGrid(4)
+	local mats, occs = T:ReadVoxels(region, 4)
+	local size = mats.Size
+	local origin = region.CFrame.Position - region.Size / 2
+	for ix = 1, size.X do
+		local x = origin.X + (ix - 0.5) * 4
+		for iz = 1, size.Z do
+			local z = origin.Z + (iz - 0.5) * 4
+			local top = Heightmap.sampleH(map, x, z)
+			for iy = 1, size.Y do
+				local m, o = classify(Vector3.new(x, origin.Y + (iy - 0.5) * 4, z), top)
+				if m then
+					mats[ix][iy][iz] = m
+					occs[ix][iy][iz] = o or 1
+				end
+			end
+		end
+		if ix % 8 == 0 then
+			task.wait()
+		end
+	end
+	T:WriteVoxels(region, 4, mats, occs)
+end
+
+local function strata(y: number, a: Enum.Material, b: Enum.Material): Enum.Material
+	return if math.floor(y / 9) % 2 == 0 then a else b
+end
+
+-- punti sulle superfici di una cavita': raggi dal centro in tutte le direzioni (pareti, soffitto,
+-- pavimento), con la normale per far crescere i cristalli verso l'interno
+local function cavitySpots(c: Vector3, reach: number, n: number, rng: Random, below: boolean?): { { p: Vector3, n: Vector3 } }
+	local out = {}
+	for _ = 1, n * 3 do
+		if #out >= n then
+			break
+		end
+		local d = Vector3.new(rng:NextNumber(-1, 1), rng:NextNumber(if below then -1 else -0.6, if below then -0.2 else 0.9), rng:NextNumber(-1, 1))
+		if d.Magnitude > 0.1 then
+			local hit = workspace:Raycast(c, d.Unit * reach, terrainOnly)
+			if hit then
+				table.insert(out, { p = hit.Position, n = hit.Normal })
+			end
+		end
+	end
+	return out
+end
+
+local function shapeZone(map: Heightmap.Map, kind: string, t: any, center: Vector3, out: Vector3, rng: Random, zf: Instance): Stage
+	local R = t.RADIUS
+	local side = Vector3.new(-out.Z, 0, out.X)
+	local g1, g2 = (M :: any)[t.GROUND[1]], (M :: any)[t.GROUND[2]]
+	local seed = rng:NextNumber(0, 100)
+	local function wob(p: Vector3, s: number): number
+		return math.noise(p.X / s + seed, p.Y / s, p.Z / s)
+	end
+	if kind == "canyon" then
+		-- gola lungo il pendio (di traverso), larga 26-40, profonda ~26, pareti a strati
+		local L, W, D = R * 0.95, R * 0.17, 26
+		local floorY = center.Y - D
+		editVoxels(map, center - Vector3.new(L + 30, D + 12, L + 30), center + Vector3.new(L + 30, 70, L + 30), function(p, top)
+			local d = p - center
+			local s, lat = d:Dot(side), d:Dot(out)
+			local w = W * (1 + 0.35 * math.sin(s / 23 + seed)) * (1 + math.max(0, p.Y - floorY) / 55)
+			local k = math.max(math.abs(lat) / w, math.abs(s) / L) + wob(p, 30) * 0.12
+			local fl = floorY + wob(p, 40) * 3
+			if k < 1 and p.Y > fl then
+				return M.Air, 0
+			elseif k < 1 and p.Y > fl - 6 then
+				return g1, 1
+			elseif k < 1 + 10 / w and p.Y > fl - 6 and top > p.Y + 2 then
+				return strata(p.Y, M.Sandstone, M.Rock), 1
+			end
+			return nil
+		end)
+		local spots = {}
+		for _ = 1, 50 do
+			local s = rng:NextNumber(-0.9, 0.9) * L
+			local q = center + side * s + Vector3.new(0, rng:NextNumber(-D + 4, 10), 0)
+			local dir = out * (if rng:NextNumber() < 0.5 then 1 else -1) + Vector3.new(0, rng:NextNumber(-0.8, 0.2), 0)
+			local hit = workspace:Raycast(q, dir.Unit * 60, terrainOnly)
+			if hit and #spots < 34 then
+				table.insert(spots, { p = hit.Position, n = hit.Normal })
+			end
+		end
+		local nestAt = down(center.X, center.Z, center.Y + 40)
+		return { stage = Vector3.new(center.X, floorY, center.Z), nest = if nestAt then nestAt.Position else center, castFrom = 60, spots = spots }
+	elseif kind == "bowl" then
+		-- conca: ellissoide schiacciato aperto in alto, fondo a ~0.3R sotto il bordo
+		local rx, ry = R * 0.85, R * 0.32
+		local c = center + Vector3.new(0, ry * 0.15, 0)
+		local floorY = c.Y - ry * 0.75
+		editVoxels(map, c - Vector3.new(rx + 16, ry + 16, rx + 16), c + Vector3.new(rx + 16, ry + 50, rx + 16), function(p, top)
+			local d = p - c
+			local k = math.sqrt((d.X / rx) ^ 2 + (d.Y / ry) ^ 2 + (d.Z / rx) ^ 2) + wob(p, 35) * 0.1
+			local fl = floorY + wob(p, 45) * 3
+			if k < 1 and p.Y > fl then
+				return M.Air, 0
+			elseif k < 1 then
+				return g1, 1
+			elseif k < 1 + 12 / ry and top > p.Y + 2 and p.Y < c.Y then
+				return g2, 1
+			end
+			-- sopra il bordo: niente pendio dentro la conca
+			if p.Y >= c.Y and math.sqrt(d.X * d.X + d.Z * d.Z) < rx then
+				return M.Air, 0
+			end
+			return nil
+		end)
+		local stage = Vector3.new(c.X, floorY, c.Z)
+		return { stage = stage, nest = stage, castFrom = 120, spots = cavitySpots(c + Vector3.new(0, 4, 0), rx * 1.2, 30, rng, true) }
+	elseif kind == "cave" then
+		-- grotta: ellissoide scavato dentro la montagna, l'apertura verso la valle
+		local rx, ry, rz = R * 0.6, R * 0.42, R * 0.6
+		-- la bocca va dove il pendio e' davvero alto: si cerca la parete della montagna a meta'
+		-- altezza della grotta (prima su un ripiano piano la grotta restava senza tetto)
+		local face = center
+		local Mo = map.cfg.MOUNTAIN
+		local theta = math.atan2(center.Z - Mo.Z, center.X - Mo.X)
+		local rs = Heightmap.findSurfaceR(map, theta, center.Y + ry * 1.1)
+		if rs then
+			face = Vector3.new(Mo.X + math.cos(theta) * rs, center.Y, Mo.Z + math.sin(theta) * rs)
+		end
+		local c = face - out * rz * 0.45 + Vector3.new(0, ry * 0.55, 0)
+		local floorY = c.Y - ry * 0.6
+		local SH = 12
+		editVoxels(map, c - Vector3.new(rx + rz + SH, ry + SH, rx + rz + SH), c + Vector3.new(rx + rz + SH, ry + SH, rx + rz + SH), function(p, top)
+			local d = p - c
+			local k = math.sqrt((d:Dot(side) / rx) ^ 2 + (d.Y / ry) ^ 2 + (d:Dot(out) / rz) ^ 2) + wob(p, 28) * 0.13
+			local fl = floorY + wob(p, 30) * 2.5
+			if k < 1 and p.Y > fl then
+				return M.Air, 0
+			elseif k < 1 and p.Y > fl - 8 then
+				return g1, 1
+			elseif k < 1 + SH / ry and (p - face):Dot(out) < -6 and top > p.Y + 2 then
+				return g2, 1 -- guscio colorato del tema (pareti e soffitto)
+			end
+			return nil
+		end)
+		local stage = Vector3.new(c.X, floorY, c.Z)
+		local ground = down(c.X, c.Z, c.Y + 4)
+		return { stage = stage, nest = if ground then ground.Position else stage, castFrom = ry * 0.4, spots = cavitySpots(c, math.max(rx, ry, rz) * 1.6, 46, rng) }
+	end
+	-- isole volanti: una grande al centro (col nido) e 5-6 attorno a quote diverse, sassi sospesi
+	-- a spirale dal suolo fino all'isola centrale
+	local T = workspace.Terrain
+	local spots = {}
+	local function island(at: Vector3, r: number)
+		T:FillCylinder(CFrame.new(at), 6, r, g1)
+		for k = 1, 4 do
+			local rr = r * (1 - k * 0.2)
+			T:FillBall(at - Vector3.new(rng:NextNumber(-2, 2), k * r * 0.3, rng:NextNumber(-2, 2)), rr, if k % 2 == 0 then g2 else g1)
+		end
+		T:FillCylinder(CFrame.new(at + Vector3.new(0, 12, 0)), 18, r + 2, M.Air) -- cima piatta
+		for _ = 1, 5 do
+			local a = rng:NextNumber(0, 2 * math.pi)
+			local q = at + Vector3.new(math.cos(a) * r * rng:NextNumber(0.1, 0.75), 30, math.sin(a) * r * rng:NextNumber(0.1, 0.75))
+			local hit = workspace:Raycast(q, Vector3.new(0, -60, 0), terrainOnly)
+			if hit then
+				table.insert(spots, { p = hit.Position, n = hit.Normal })
+			end
+		end
+		-- cristalli appesi sotto (a testa in giu')
+		for _ = 1, 2 do
+			local q = at - Vector3.new(rng:NextNumber(-r, r) * 0.3, r * 2.2, rng:NextNumber(-r, r) * 0.3)
+			local hit = workspace:Raycast(q, Vector3.new(0, r * 2.5, 0), terrainOnly)
+			if hit and hit.Normal.Y < -0.3 then
+				table.insert(spots, { p = hit.Position, n = hit.Normal })
+			end
+		end
+	end
+	local mainAt = center + Vector3.new(0, 45, 0)
+	island(mainAt, R * 0.3)
+	local n = rng:NextInteger(7, 9)
+	for k = 1, n do
+		local a = k / n * 2 * math.pi + rng:NextNumber(-0.25, 0.25)
+		local r = R * rng:NextNumber(0.55, 1.05)
+		local g = down(center.X + math.cos(a) * r, center.Z + math.sin(a) * r, center.Y + 400)
+		local baseY = if g then math.max(g.Position.Y, center.Y) else center.Y
+		island(Vector3.new(center.X + math.cos(a) * r, baseY + rng:NextNumber(35, 120), center.Z + math.sin(a) * r), R * rng:NextNumber(0.13, 0.22))
+		if k % 2 == 0 then
+			task.wait()
+		end
+	end
+	-- sassi sospesi: spirale dal suolo all'isola centrale (si sale saltando)
+	local a0 = rng:NextNumber(0, 2 * math.pi)
+	local steps = 9
+	for k = 1, steps do
+		local f = k / (steps + 1)
+		local a = a0 + f * math.pi * 1.4
+		local r = R * 0.3 + 14 * (1 - f) + 6
+		local p = center + Vector3.new(math.cos(a) * r, 4 + f * 41, math.sin(a) * r)
+		T:FillBall(p, 4.5, g2)
+	end
+	local _ = zf
+	return { stage = mainAt, nest = mainAt + Vector3.new(0, 0.5, 0), castFrom = 400, spots = spots }
 end
 
 ------------------------------------------------------------------------------------------
@@ -408,6 +599,12 @@ function ThemeZones.build(map: Heightmap.Map)
 						end
 					end
 					local score = math.abs(p.Y - t.Y) * 0.15 + bad * 10 + math.abs(da) * 20
+					if SHAPE[t.ELEMENT] == "cave" or SHAPE[t.ELEMENT] == "canyon" then
+						-- grotte e gole vogliono il pendio: dietro (verso la montagna) il terreno sale
+						local inward = down(p.X - dir.X * t.RADIUS * 0.5, p.Z - dir.Z * t.RADIUS * 0.5, p.Y + 600)
+						local rise = if inward then inward.Position.Y - p.Y else 0
+						score += math.max(0, t.RADIUS * 0.45 - rise) * 0.4 - bad * 6
+					end
 					if score < bestScore then
 						best, bestScore = p, score
 					end
@@ -460,34 +657,67 @@ function ThemeZones.build(map: Heightmap.Map)
 				task.wait()
 			end
 		end
-		-- ripiano piatto al centro (meta' del raggio): ci stanno l'altare, i nemici e si cammina
-		T:FillCylinder(CFrame.new(center - Vector3.new(0, 7, 0)), 14, t.RADIUS * 0.5, (M :: any)[t.GROUND[1]])
-		T:FillCylinder(CFrame.new(center + Vector3.new(0, 45, 0)), 90, t.RADIUS * 0.5, M.Air)
-		local zone: Zone = { center = center, radius = t.RADIUS, rng = rng, folder = zf, points = points }
+		-- la forma della zona (gola, conca, grotta, isole volanti)
+		local outward = Vector3.new(center.X - Mo.X, 0, center.Z - Mo.Z).Unit
+		local st = shapeZone(map, SHAPE[t.ELEMENT] or "bowl", t, center, outward, rng, zf)
+		local stage = st.stage
+		-- i punti per gli oggetti ora stanno sul fondo della forma (per le grotte i raggi partono
+		-- da dentro, non dal cielo che colpirebbe il tetto)
+		local function stagePoints(n: number): { Vector3 }
+			local out = {}
+			local tries = 0
+			while #out < n and tries < n * 12 do
+				tries += 1
+				local a = rng:NextNumber(0, 2 * math.pi)
+				local r = t.RADIUS * math.sqrt(rng:NextNumber()) * (if SHAPE[t.ELEMENT] == "cave" then 0.45 else 0.8)
+				local hit = down(stage.X + math.cos(a) * r, stage.Z + math.sin(a) * r, stage.Y + st.castFrom)
+				if hit and hit.Normal.Y > 0.5 and math.abs(hit.Position.Y - stage.Y) < t.RADIUS * 0.6 then
+					table.insert(out, hit.Position)
+				end
+			end
+			return out
+		end
+		local _ = points
+		local zone: Zone = { center = stage, radius = t.RADIUS * (if SHAPE[t.ELEMENT] == "cave" then 0.5 else 1), rng = rng, folder = zf, points = stagePoints }
 		local build = BUILD[t.ELEMENT]
 		if build then
 			build(zone, t)
 		end
-		-- in ogni zona anche grappoli di cristalli grandi (prima alcune zone, es. Tempesta, non ne
-		-- avevano: si vedevano solo le guglie)
-		for _, p in points(18) do
-			crystal(zf, p, rng:NextNumber(8, 20), Vector3.zero, t.COLOR, rng)
+		-- tanti cristalli: sulle superfici della forma (pareti delle grotte e della gola, sotto e
+		-- sopra le isole) e a grappoli sul fondo
+		for _, sp in st.spots do
+			crystal(zf, sp.p, rng:NextNumber(6, 18), Vector3.zero, t.COLOR, rng, sp.n)
+		end
+		for _, p in stagePoints(9) do
+			for _ = 1, rng:NextInteger(2, 4) do
+				local q = p + Vector3.new(rng:NextNumber(-6, 6), 0, rng:NextNumber(-6, 6))
+				local hit = down(q.X, q.Z, q.Y + 20)
+				if hit then
+					crystal(zf, hit.Position, rng:NextNumber(5, 16), Vector3.zero, t.COLOR, rng, hit.Normal)
+				end
+			end
 		end
 		-- i cristalli sono solo i modelli di Mirko (ServerStorage.Modelli, "Cristallo_<elemento>"),
-		-- piu' grandi, inclinati e allungati su un asse; i segnaposto senza modello si tolgono
+		-- grandi, deformati e inclinati; i segnaposto senza modello si tolgono
 		local models = crystalModels(t.ELEMENT)
 		for _, holder in zf:GetDescendants() do
 			if holder:IsA("Model") and holder.Name == "Cristallo" and holder:GetAttribute("Height") then
 				if #models > 0 then
 					local h = (holder:GetAttribute("Height") :: number) * 1.8
-					placeModel(holder.Parent :: Instance, models[rng:NextInteger(1, #models)], holder:GetAttribute("Base") :: Vector3, h, rng)
+					placeModel(holder.Parent :: Instance, models[rng:NextInteger(1, #models)], holder:GetAttribute("Base") :: Vector3, h, rng, holder:GetAttribute("Normal") :: Vector3?)
 				end
 				holder:Destroy()
 			end
 		end
-		-- nido al centro e cartello sul bordo verso valle
-		nest(zf, nests, center, t.ELEMENT, t.COLOR, t.STONE)
-		local outward = Vector3.new(center.X - Mo.X, 0, center.Z - Mo.Z).Unit
+		-- luci del tema dentro la forma
+		for k = 1, 5 do
+			local q = stage + Vector3.new(rng:NextNumber(-1, 1) * t.RADIUS * 0.35, 10 + k * 3, rng:NextNumber(-1, 1) * t.RADIUS * 0.35)
+			local l = part(zf, "LuceZona", Vector3.one, CFrame.new(q), t.COLOR, M.SmoothPlastic)
+			l.Transparency, l.CanCollide, l.CanQuery = 1, false, false
+			glow(l, t.COLOR, 45, 1.4)
+		end
+		-- nido sul fondo (o sull'isola centrale) e cartello sul bordo verso valle
+		nest(zf, nests, st.nest, t.ELEMENT, t.COLOR, t.STONE)
 		local edge = center + outward * t.RADIUS * 0.85
 		local eh = down(edge.X, edge.Z, center.Y + 300)
 		if eh then
@@ -497,6 +727,9 @@ function ThemeZones.build(map: Heightmap.Map)
 		workspace:SetAttribute("ThemeZone" .. i .. "Radius", t.RADIUS)
 		workspace:SetAttribute("ThemeZone" .. i .. "Element", t.ELEMENT)
 		workspace:SetAttribute("ThemeZone" .. i .. "Title", t.TITLE)
+		workspace:SetAttribute("ThemeZone" .. i .. "Stage", stage) -- il cuore della forma (clip)
+		workspace:SetAttribute("ThemeZone" .. i .. "Out", outward)
+		workspace:SetAttribute("ThemeZone" .. i .. "Shape", SHAPE[t.ELEMENT] or "bowl")
 		table.insert(made, string.format("%s a %d m", t.ELEMENT, math.floor(center.Y)))
 		task.wait()
 	end

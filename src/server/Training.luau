@@ -186,7 +186,7 @@ end
 
 -- Cristallo del Potere sopra il centro del cerchio, con il raggio di luce verso il cielo
 local function buildPowerCrystal(parent: Instance, floor: Vector3)
-	local model = prop(parent, "crystal target", 22, CFrame.new(floor + Vector3.new(0, 24, 0))) -- alto sopra il cerchio
+	local model = prop(parent, "crystal target", 26, CFrame.new(floor + Vector3.new(0, 58, 0))) -- alto sopra l'arena
 	local glass: BasePart
 	if model then
 		model.Name = "CristalloPotere"
@@ -196,7 +196,7 @@ local function buildPowerCrystal(parent: Instance, floor: Vector3)
 		model = glass.Parent :: Model
 	end
 	local model = model :: Model
-	model:SetAttribute("Base", floor + Vector3.new(0, 35, 0))
+	model:SetAttribute("Base", floor + Vector3.new(0, 71, 0))
 	CollectionService:AddTag(model, "CristalloPotere")
 	local light = Instance.new("PointLight")
 	light.Color = RUNE

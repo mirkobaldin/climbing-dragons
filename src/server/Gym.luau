@@ -12,6 +12,16 @@ local Gym = {}
 
 Gym.MAX_LEVEL = 40
 Gym.XP_PER_LEVEL = 5
+Gym.SET_TIME = 4 -- secondi di una serie (il personaggio fa l'esercizio, poi +1 serie)
+-- tre statistiche, ognuna allenata da due attrezzi:
+--   Forza       danno con le piccozze +2% per livello      (panca, manubri)
+--   Resistenza  arrampicata e corsa stancano -1% per livello (trazioni, corda)
+--   Recupero    la stamina torna +2% piu' veloce per livello (squat, sacco da boxe)
+Gym.STATS = {
+	Forza = { name = "Strength", bonus = "pickaxe damage +%d%%", per = 2 },
+	Resistenza = { name = "Endurance", bonus = "stamina use -%d%%", per = 1 },
+	Recupero = { name = "Recovery", bonus = "stamina regen +%d%%", per = 2 },
+}
 
 local terrainOnly = RaycastParams.new()
 terrainOnly.FilterType = Enum.RaycastFilterType.Include
@@ -70,11 +80,18 @@ local function palm(parent: Instance, base: Vector3, rng: Random)
 end
 
 -- prompt di un attrezzo
-local function station(parent: Instance, anchor: BasePart, action: string, name: string)
+-- kind = esercizio (animazione sul client), stat = cosa allena, pose = dove sta il corpo:
+-- per gli esercizi in piedi e' il punto a terra (il server aggiunge l'altezza delle anche),
+-- per panca, trazioni e corda e' gia' la posizione del bacino
+local function station(parent: Instance, anchor: BasePart, action: string, name: string, kind: string, stat: string, pose: CFrame, standing: boolean)
+	anchor:SetAttribute("Exercise", kind)
+	anchor:SetAttribute("Stat", stat)
+	anchor:SetAttribute("Pose", pose)
+	anchor:SetAttribute("Standing", standing)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = action
-	prompt.ObjectText = name
-	prompt.HoldDuration = 3
+	prompt.ObjectText = name .. " · " .. Gym.STATS[stat].name
+	prompt.HoldDuration = 0
 	prompt.MaxActivationDistance = 9
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = anchor
@@ -114,13 +131,15 @@ local function build(center: Vector3, facing: Vector3): Folder
 		part(folder, "Supporto", Vector3.new(0.4, 4.6, 0.4), at(-16 + x, -11) * CFrame.new(0, 2.3, 0), IRON, Enum.Material.Metal)
 	end
 	barbell(folder, at(-16, -11) * CFrame.new(0, 4.3, 0), 8)
-	station(folder, bench, "Bench press", "Bench")
+	-- sdraiato sulla panca, faccia in su, testa verso il bilanciere
+	local lie = at(-16, -9) * CFrame.new(0, 2.9, 0)
+	station(folder, bench, "Bench press", "Bench", "bench", "Forza", CFrame.lookAt(lie.Position, lie.Position + Vector3.yAxis, look.LookVector), false)
 	-- sbarra per le trazioni e anelli
 	for _, x in { -3.5, 3.5 } do
 		part(folder, "Montante", Vector3.new(0.5, 10, 0.5), at(x, 10) * CFrame.new(0, 5, 0), IRON, Enum.Material.Metal)
 	end
 	local pull = part(folder, "Sbarra", Vector3.new(7.5, 0.4, 0.4), at(0, 10) * CFrame.new(0, 9.6, 0), CHROME, Enum.Material.Metal)
-	station(folder, pull, "Pull-ups", "Pull-up bar")
+	station(folder, pull, "Pull-ups", "Pull-up bar", "pullup", "Resistenza", at(0, 10) * CFrame.new(0, 5.8, 0), false)
 	for _, x in { -1.5, 1.5 } do
 		part(folder, "Corda", Vector3.new(0.15, 3, 0.15), at(x, 10) * CFrame.new(0, 8, 0), Color3.fromRGB(200, 180, 140), Enum.Material.Fabric)
 		part(folder, "Anello", Vector3.new(0.3, 1.2, 1.2), at(x, 10) * CFrame.new(0, 6.4, 0) * CFrame.Angles(0, math.pi / 2, 0), WOOD, Enum.Material.Wood, Enum.PartType.Cylinder)
@@ -134,7 +153,7 @@ local function build(center: Vector3, facing: Vector3): Folder
 			part(folder, "Peso", Vector3.new(0.35, 0.8 + k * 0.1, 0.8 + k * 0.1), at(x + s, -10) * CFrame.new(0, 2.6, 0), IRON, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
 		end
 	end
-	station(folder, rack, "Dumbbell curls", "Dumbbells")
+	station(folder, rack, "Dumbbell curls", "Dumbbells", "curl", "Forza", at(16, -6.5) * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, 0.6, 0), true)
 	-- squat rack
 	for _, x in { -3, 3 } do
 		for _, z in { -1.5, 1.5 } do
@@ -143,17 +162,17 @@ local function build(center: Vector3, facing: Vector3): Folder
 	end
 	local squat = part(folder, "Base", Vector3.new(7, 0.4, 4), at(16, 8) * CFrame.new(0, 0.8, 0), IRON, Enum.Material.Metal)
 	barbell(folder, at(16, 8) * CFrame.new(0, 5.5, 0), 9)
-	station(folder, squat, "Squats", "Squat rack")
+	station(folder, squat, "Squats", "Squat rack", "squat", "Recupero", at(16, 8) * CFrame.new(0, 1, 0), true)
 	-- palo con la corda da arrampicata (la stamina di chi scala!)
 	part(folder, "Palo", Vector3.new(1, 22, 1), at(-16, 10) * CFrame.new(0, 11, 0), WOOD, Enum.Material.Wood)
 	part(folder, "Braccio", Vector3.new(4, 0.6, 0.6), at(-15, 10) * CFrame.new(0, 21.5, 0), WOOD, Enum.Material.Wood)
 	local rope = part(folder, "Corda", Vector3.new(0.4, 20, 0.4), at(-13.4, 10) * CFrame.new(0, 11.4, 0), Color3.fromRGB(200, 180, 140), Enum.Material.Fabric)
-	station(folder, rope, "Rope climb", "Climbing rope")
+	station(folder, rope, "Rope climb", "Climbing rope", "rope", "Resistenza", at(-13.4, 10.9) * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, 6, 0), false)
 	-- sacco da boxe
 	part(folder, "Gancio", Vector3.new(4, 0.5, 0.5), at(0, -12) * CFrame.new(0, 9, 0), IRON, Enum.Material.Metal)
 	part(folder, "Palo", Vector3.new(0.5, 9, 0.5), at(-2, -12) * CFrame.new(0, 4.5, 0), IRON, Enum.Material.Metal)
 	local bag = part(folder, "Sacco", Vector3.new(4.5, 2.2, 2.2), at(1, -12) * CFrame.new(0, 5.6, 0) * CFrame.Angles(0, 0, math.pi / 2), RED, Enum.Material.Leather, Enum.PartType.Cylinder)
-	station(folder, bag, "Box", "Punching bag")
+	station(folder, bag, "Box", "Punching bag", "box", "Recupero", at(1, -9.2) * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, 0.6, 0), true)
 	-- insegna e palme
 	local sign = part(folder, "Insegna", Vector3.new(18, 4, 0.4), at(0, -22) * CFrame.new(0, 9, 0), Color3.fromRGB(30, 30, 36), Enum.Material.SmoothPlastic)
 	for _, x in { -8, 8 } do
@@ -223,41 +242,85 @@ function Gym.setup()
 		local center, facing = findSpot()
 		build(center, if facing.Magnitude > 0.1 then facing.Unit else Vector3.zAxis)
 		workspace:SetAttribute("GymCenter", center)
-		local last: { [Player]: number } = {}
+		local busy: { [Instance]: Player } = {}
+		local function notice(player: Player, text: string)
+			player:SetAttribute("Notice", text)
+			player:SetAttribute("NoticeTime", os.clock())
+		end
+		local function reward(player: Player, stat: string)
+			local info = Gym.STATS[stat]
+			local level = (player:GetAttribute(stat) or 0) :: number
+			if level >= Gym.MAX_LEVEL then
+				notice(player, info.name .. " is maxed out!")
+				return
+			end
+			local xp = ((player:GetAttribute(stat .. "XP") or 0) :: number) + 1
+			if xp >= Gym.XP_PER_LEVEL then
+				xp = 0
+				level += 1
+				player:SetAttribute(stat, level)
+				notice(player, string.format("%s %d! %s", info.name, level, string.format(info.bonus, level * info.per)))
+			else
+				notice(player, string.format("+1 set · %s (%d/%d)", info.name, xp, Gym.XP_PER_LEVEL))
+			end
+			player:SetAttribute(stat .. "XP", xp)
+		end
 		local function bind(anchor: Instance)
 			local prompt = anchor:FindFirstChildOfClass("ProximityPrompt")
 			if not prompt then
 				return
 			end
 			prompt.Triggered:Connect(function(player: Player)
-				if os.clock() - (last[player] or 0) < 2 then
+				local character = player.Character
+				local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+				if not root or not humanoid or player:GetAttribute("GymExercise") then
 					return
 				end
-				last[player] = os.clock()
-				local level = (player:GetAttribute("Fitness") or 0) :: number
-				if level >= Gym.MAX_LEVEL then
-					player:SetAttribute("Notice", "Max fitness! You're a climbing machine")
-					player:SetAttribute("NoticeTime", os.clock())
+				if busy[anchor] then
+					notice(player, "Someone is using it, try another one")
 					return
 				end
-				local xp = ((player:GetAttribute("FitnessXP") or 0) :: number) + 1
-				if xp >= Gym.XP_PER_LEVEL then
-					xp = 0
-					level += 1
-					player:SetAttribute("Fitness", level)
-					player:SetAttribute("Notice", string.format("Fitness %d! Climbing tires you %d%% less", level, level))
-				else
-					player:SetAttribute("Notice", string.format("+1 rep (%d/%d to the next Fitness level)", xp, Gym.XP_PER_LEVEL))
+				busy[anchor] = player
+				prompt.Enabled = false
+				-- il personaggio va sull'attrezzo, fermo, e il client fa l'esercizio
+				local back = (root :: BasePart).CFrame
+				local pose = anchor:GetAttribute("Pose") :: CFrame
+				if anchor:GetAttribute("Standing") then
+					pose += Vector3.new(0, (humanoid :: Humanoid).HipHeight + (root :: BasePart).Size.Y / 2, 0)
 				end
-				player:SetAttribute("NoticeTime", os.clock())
-				player:SetAttribute("FitnessXP", xp)
+				;(root :: BasePart).Anchored = true
+				character:PivotTo(pose)
+				player:SetAttribute("GymExercise", anchor:GetAttribute("Exercise"))
+				player:SetAttribute("GymSince", workspace:GetServerTimeNow())
+				task.delay(Gym.SET_TIME, function()
+					busy[anchor] = nil
+					prompt.Enabled = true
+					if not player.Parent then
+						return
+					end
+					player:SetAttribute("GymExercise", nil)
+					if character.Parent then
+						character:PivotTo(back)
+						;(root :: BasePart).Anchored = false
+					end
+					reward(player, anchor:GetAttribute("Stat") :: string)
+				end)
 			end)
 		end
 		for _, a in CollectionService:GetTagged("GymStation") do
 			bind(a)
 		end
 		Players.PlayerRemoving:Connect(function(p)
-			last[p] = nil
+			for a, who in busy do
+				if who == p then
+					busy[a] = nil
+					local pr = a:FindFirstChildOfClass("ProximityPrompt")
+					if pr then
+						pr.Enabled = true
+					end
+				end
+			end
 		end)
 	end)
 end

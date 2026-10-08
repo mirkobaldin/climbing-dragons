@@ -26,6 +26,7 @@ local TweenService = game:GetService("TweenService")
 
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
+local DragonVFX = require(script.Parent.DragonVFX)
 
 local player = Players.LocalPlayer
 
@@ -264,6 +265,16 @@ local function onHit(userId: number, target: Vector3, element: string, xp: numbe
 	end
 	local color = elementColor(element)
 	local from = mouthOf(pet)
+	if userId == player.UserId then
+		-- il colpo l'hai gia' visto partire al click (DragonVFX): qui solo il cristallo che va in
+		-- pezzi, il braciere e l'XP
+		shatter(target, color)
+		flare(element)
+		if xp and xp > 0 then
+			floatText(from + Vector3.new(0, 2, 0), "+" .. xp .. " XP", Color3.fromRGB(255, 230, 120), false)
+		end
+		return
+	end
 	-- il colpo: palla luminosa con scia
 	local ball = fxPart(Enum.PartType.Ball, Vector3.one * 1.3, color, CFrame.new(from))
 	local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
@@ -591,10 +602,26 @@ local function startAim(event: RemoteEvent)
 	local function myPet(): Model?
 		return petOf(player.UserId)
 	end
+	local lastShot = 0
 	local function shoot()
+		if os.clock() - lastShot < DragonConfig.TRAINING.SHOT_COOLDOWN then
+			return
+		end
+		lastShot = os.clock()
 		local camera = workspace.CurrentCamera
 		event:FireServer("shoot", camera.CFrame.Position, camera.CFrame.LookVector)
 		session.shots += 1
+		-- il colpo parte subito dalla bocca del drago verso dove miri (effetto del suo elemento)
+		local pet = myPet()
+		if pet then
+			local params = RaycastParams.new()
+			params.FilterType = Enum.RaycastFilterType.Exclude
+			params.FilterDescendantsInstances = { player.Character :: Instance, workspace:FindFirstChild("Pets") :: Instance }
+			local hit = workspace:Raycast(camera.CFrame.Position, camera.CFrame.LookVector * 300, params)
+			local to = if hit then hit.Position else camera.CFrame.Position + camera.CFrame.LookVector * 160
+			local element = pet:GetAttribute("Element") :: string?
+			DragonVFX.shot(element, mouthOf(pet), to, elementColor(element))
+		end
 	end
 	UserInputService.InputChanged:Connect(function(input)
 		if on and input.UserInputType == Enum.UserInputType.MouseMovement then
@@ -643,16 +670,27 @@ local function startAim(event: RemoteEvent)
 		elseif on and os.clock() % 2 < 0.02 then
 			hideOthers(true) -- chi arriva dopo
 		end
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		if want ~= on then
-			-- sulla pedana il tuo drago vola al centro dell'arena e tu lo guidi da li'
-			local c = workspace:GetAttribute("TrainingCenter")
-			ClientState.petAnchor = if want and typeof(c) == "Vector3" then c + Vector3.new(0, 18, 0) else nil
 			if want then
 				session.hits, session.shots = 0, 0
+			end
+			-- il personaggio resta fermo sulla pedana (prima muovendosi si usciva dall'arena per
+			-- sbaglio): si esce col tasto X o col pulsante Exit
+			if root then
+				root.Anchored = want
 			end
 		end
 		on = want
 		gui.Enabled = on
+		-- il drago vola in cerchio dentro l'arena (prima restava fermo a mezz'aria)
+		local c = workspace:GetAttribute("TrainingCenter")
+		if on and typeof(c) == "Vector3" then
+			local t = os.clock() * 0.3
+			ClientState.petAnchor = c + Vector3.new(math.cos(t) * 26, 20 + math.sin(t * 2.3) * 4, math.sin(t) * 26)
+		else
+			ClientState.petAnchor = nil
+		end
 		ClientState.petLook = if on then Vector3.new(camera.CFrame.LookVector.X, 0, camera.CFrame.LookVector.Z).Unit else nil
 		if on and pet then
 			local head = mouthOf(pet)
@@ -660,11 +698,48 @@ local function startAim(event: RemoteEvent)
 			camera.CameraType = Enum.CameraType.Scriptable
 			-- piu' indietro e piu' in alto, campo largo: prima si vedeva troppo poco
 			camera.FieldOfView = 88
-			camera.CFrame = CFrame.lookAt(head - look * 16 + Vector3.new(0, 6, 0), head + look * 60)
+			local cf = CFrame.lookAt(head - look * 16 + Vector3.new(0, 6, 0), head + look * 60)
+			if DragonVFX.shake > 0 then
+				local s = DragonVFX.shake
+				cf *= CFrame.Angles((math.random() - 0.5) * 0.04 * s, (math.random() - 0.5) * 0.04 * s, 0)
+				DragonVFX.shake = math.max(0, s - 0.06)
+			end
+			camera.CFrame = cf
 			UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
 			UserInputService.MouseIconEnabled = false
 		end
 	end)
+	-- uscita: tasto X o pulsante (anche sul telefono); ti sposta fuori dalla pedana
+	local function leave()
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local pad = workspace:GetAttribute("TrainingPad")
+		local c = workspace:GetAttribute("TrainingCenter")
+		if on and root and typeof(pad) == "Vector3" and typeof(c) == "Vector3" then
+			root.Anchored = false
+			local away = Vector3.new(pad.X - c.X, 0, pad.Z - c.Z).Unit
+			player.Character:PivotTo(CFrame.new(pad + away * 14 + Vector3.new(0, 4, 0)))
+		end
+	end
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if on and not processed and input.KeyCode == Enum.KeyCode.X then
+			leave()
+		end
+	end)
+	local exitBtn = Instance.new("TextButton")
+	exitBtn.Name = "Esci"
+	exitBtn.AnchorPoint = Vector2.new(0.5, 1)
+	exitBtn.Position = UDim2.new(0.5, 0, 1, -24)
+	exitBtn.Size = UDim2.fromOffset(150, 44)
+	exitBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 45)
+	exitBtn.Font = Enum.Font.GothamBold
+	exitBtn.TextSize = 18
+	exitBtn.TextColor3 = Color3.new(1, 1, 1)
+	exitBtn.Text = "Exit (X)"
+	exitBtn.Parent = gui
+	local ec = Instance.new("UICorner")
+	ec.CornerRadius = UDim.new(0, 10)
+	ec.Parent = exitBtn
+	exitBtn.Activated:Connect(leave)
 end
 
 function TrainingFX.start()

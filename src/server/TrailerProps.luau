@@ -67,6 +67,30 @@ function TrailerProps.prepare(): string
 		m:ScaleTo(m:GetScale() * 2.2) -- nello stormo si vedono da lontano
 		persistent(m, "Stormo" .. e, folder)
 	end
+	-- clip11 (giorno 1 / giorno 30): una tenda e uno chalet di scena sui terreni giusti (senza case)
+	local village = workspace:FindFirstChild("Village")
+	local plots = village and village:FindFirstChild("Plots")
+	local templates = game:GetService("ServerStorage"):FindFirstChild("PlotBuildings")
+	for name, level in { Tenda = 1, Chalet = 3 } do
+		local plot: Model? = nil
+		for _, p in (if plots then plots:GetChildren() else {}) :: { Instance } do
+			if p:IsA("Model") and p:GetAttribute("Level") == level and not p:FindFirstChild("House") then
+				plot = p
+				break
+			end
+		end
+		local tpl = templates and templates:FindFirstChild(name)
+		if plot and tpl and tpl:IsA("Model") then
+			local house = tpl:Clone()
+			for _, d in house:GetDescendants() do
+				if d:IsA("LuaSourceContainer") or d:IsA("ProximityPrompt") then
+					d:Destroy()
+				end
+			end
+			persistent(house, if level == 1 then "CasaTenda" else "CasaChalet", folder)
+			folder:SetAttribute(if level == 1 then "TentCF" else "ChaletCF", (plot :: Model):GetPivot())
+		end
+	end
 	-- la Grande Grotta (punti scritti dal generatore della mappa)
 	folder:SetAttribute("GrandCenter", workspace:GetAttribute("GrandCaveCenter"))
 	folder:SetAttribute("GrandOut", workspace:GetAttribute("GrandCaveOut"))

@@ -13,6 +13,85 @@ Le clip `clip4`, `clip5` e `clip6` sono girate **senza scritte**: i testi li met
 
 ---
 
+# NUOVE CLIP (clip7 – clip11)
+
+Anche queste sono girate senza scritte. Per ognuna trovi:
+- **Testo nel video:** da aggiungere nell'editor di TikTok, al secondo indicato;
+- **Description:** la didascalia del post, in inglese;
+- **Pinned comment:** il commento da fissare;
+- **Hashtag.**
+
+## clip7: GIRO DEL DRAGO ATTORNO ALLA MAPPA (circa 20 s)
+L'Eclissi adulto fa un giro largo e lento attorno a tutta la montagna, passando davanti alle isole volanti, alle grotte e alle valli. La camera lo segue morbida, senza scatti.
+
+| Tempo | Testo nel video |
+|---|---|
+| 0.0 s | **POV: your dragon gives you the tour** |
+| 7 s (isole volanti) | **wait... floating islands??** |
+| 15 s (vetta) | **all of this is ONE map** |
+
+- **Description:** `Took my Eclipse dragon for a lap around the whole mountain 🐉🏔️ floating islands, ice caves, toxic valleys... which zone would you explore first?`
+- **Pinned comment:** `Drop the zone you'd visit first 👇 🏝️ islands · 🧊 caves · ☣️ toxic · 🌌 cosmic`
+- **Hashtag:** #roblox #robloxgame #dragon #openworld #robloxdev #fyp
+
+## clip8: "QUESTA È UNA SOLA MAPPA" (circa 15 s)
+Un solo piano sequenza: si parte stretti sul personaggio appeso alla parete con la piccozza, poi la camera si allontana senza mai tagliare fino a mostrare tutta la montagna, le isole e il mare.
+
+| Tempo | Testo nel video |
+|---|---|
+| 0.0 s | **this is just ONE wall...** |
+| 6 s | **keep watching** |
+| 12 s (tutta la mappa) | **how long would YOU take to climb it?** |
+
+- **Description:** `No loading screens, no teleports. One mountain, one climb, zero checkpoints. 🧗‍♂️ how many minutes would it take you?`
+- **Pinned comment:** `Guess the climb time ⏱️ closest answer gets a shoutout in the next video`
+- **Hashtag:** #roblox #robloxgame #climbing #ragegame #obby #robloxdev
+
+## clip9: "0,3 SECONDI DALLA MORTE" (circa 12 s)
+Il personaggio scivola dalla parete e cade nel vuoto. All'ultimo istante spara il rampino, che si aggancia a un drago di passaggio e lo trascina su.
+
+| Tempo | Testo nel video |
+|---|---|
+| 0.0 s | **0.3 seconds from death** |
+| 3 s (rampino) | *nessun testo: lascia parlare il colpo* |
+| 7 s (risale col drago) | **clutch or luck?** |
+
+- **Description:** `The grappling hook saved me with 0.3 seconds left 😳 would you have made it?`
+- **Pinned comment:** `CLUTCH 🔥 or LUCK 🍀? vote below`
+- **Hashtag:** #roblox #robloxgame #clutch #grapplinghook #dragon #fyp
+- **Audio:** silenzio o suono che rallenta durante la caduta, poi il drop quando l'uncino si aggancia.
+
+## clip10: "SOLO 1 DRAGO SU 8 PUÒ RESPIRARE QUI" (circa 14 s)
+Un giocatore col drago Gelo entra nella valle tossica: nebbia viola, la vita che crolla. Stacco: stesso punto col drago Gas, cammina tranquillo nella nebbia.
+
+| Tempo | Testo nel video |
+|---|---|
+| 0.0 s | **only 1 of 8 dragons can survive here** |
+| 2 s | **guess which one before 0:05** |
+| 7 s (entra il drago Gas) | **the TOXIC one 💀** |
+
+- **Description:** `Toxic valleys melt your health in seconds... unless you bring the right dragon ☣️🐉 did you guess it?`
+- **Pinned comment:** `Did you guess it? YES ✅ / NO ❌`
+- **Hashtag:** #roblox #robloxgame #dragon #survival #robloxdev #fyp
+
+## clip11: "GIORNO 1 CONTRO GIORNO 30" (circa 13 s)
+Due momenti a confronto: la tenda ai piedi della montagna col cucciolo, poi lo chalet sul costone con il drago adulto. Finale col volo insieme.
+
+| Tempo | Testo nel video |
+|---|---|
+| 0.0 s | **Day 1** |
+| 4 s (lampo, chalet) | **Day 30** |
+| 9 s (volo) | **what day are YOU on?** |
+
+- **Description:** `From a tiny tent and a baby dragon to a cliff chalet and a full-grown Eclipse 🏕️➡️🏔️ what day are you on?`
+- **Pinned comment:** `Comment your day 👇 I'll pin the highest one`
+- **Hashtag:** #roblox #robloxgame #progression #dragon #glowup #fyp
+
+## clip5 (rifatta): TOUR DEI BIOMI
+Ogni bioma resta 3 secondi e tutti vengono caricati prima di iniziare: niente blur e niente terreno a metà. Per testi e descrizione restano validi quelli della clip5 più sotto.
+
+---
+
 ## clip4: BOSS FIGHT (circa 16 s)
 Cosa si vede: il trono di ghiaccio nel buio, il Re Yeti si alza, l'Eclissi adulto lo combatte con le palle di fuoco, il Re crolla all'indietro, la camera esce dalla grotta.
 

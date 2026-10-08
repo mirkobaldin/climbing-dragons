@@ -91,7 +91,11 @@ local function save(player: Player)
 		dragons = Dragons.serialize(player),
 		economy = Economy.serialize(player),
 		tutorial = player:GetAttribute("TutorialStep"),
-		fitness = { player:GetAttribute("Fitness") or 0, player:GetAttribute("FitnessXP") or 0 }, -- palestra
+		gym = { -- palestra
+			Forza = { player:GetAttribute("Forza") or 0, player:GetAttribute("ForzaXP") or 0 },
+			Resistenza = { player:GetAttribute("Resistenza") or 0, player:GetAttribute("ResistenzaXP") or 0 },
+			Recupero = { player:GetAttribute("Recupero") or 0, player:GetAttribute("RecuperoXP") or 0 },
+		},
 	}
 	for _, v in inventory(player):GetChildren() do
 		if v:IsA("IntValue") then
@@ -137,9 +141,16 @@ local function load(player: Player)
 			dragonData = data.dragons
 			economyData = data.economy
 			tutorial = data.tutorial
-			if type(data.fitness) == "table" then
-				player:SetAttribute("Fitness", tonumber(data.fitness[1]) or 0)
-				player:SetAttribute("FitnessXP", tonumber(data.fitness[2]) or 0)
+			if type(data.gym) == "table" then
+				for _, stat in { "Forza", "Resistenza", "Recupero" } do
+					local v = data.gym[stat]
+					if type(v) == "table" then
+						player:SetAttribute(stat, tonumber(v[1]) or 0)
+						player:SetAttribute(stat .. "XP", tonumber(v[2]) or 0)
+					end
+				end
+			elseif type(data.fitness) == "table" then
+				player:SetAttribute("Resistenza", tonumber(data.fitness[1]) or 0) -- vecchio "Fitness"
 			end
 		elseif not ok then
 			warn("[Progression] Caricamento non riuscito (in Studio attiva l'accesso alle API): " .. tostring(data))

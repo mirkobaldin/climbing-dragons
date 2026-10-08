@@ -622,6 +622,9 @@ function Enemies.setup()
 		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local tool = character and character:FindFirstChildWhichIsA("Tool")
 		local dmg = tool and EnemyConfig.PLAYER_DAMAGE[tool.Name]
+		if dmg then
+			dmg *= 1 + ((player:GetAttribute("Forza") or 0) :: number) * 0.02 -- palestra: Forza
+		end
 		if not root or not dmg then
 			return
 		end
