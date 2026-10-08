@@ -65,6 +65,26 @@ local function barbell(parent: Instance, cf: CFrame, len: number)
 end
 
 local function palm(parent: Instance, base: Vector3, rng: Random)
+	-- la palma vera (ServerStorage.Modelli.PalmaRealistica), se c'e'
+	local store = game:GetService("ServerStorage"):FindFirstChild("Modelli")
+	local tpl = store and store:FindFirstChild("PalmaRealistica")
+	if tpl and tpl:IsA("Model") then
+		local m = tpl:Clone()
+		for _, d in m:GetDescendants() do
+			if d:IsA("LuaSourceContainer") then
+				d:Destroy()
+			elseif d:IsA("BasePart") then
+				d.Anchored = true
+			end
+		end
+		local _, s0 = m:GetBoundingBox()
+		m:ScaleTo(m:GetScale() * rng:NextNumber(30, 44) / s0.Y)
+		m:PivotTo(CFrame.new(base) * CFrame.Angles(rng:NextNumber(-0.08, 0.08), rng:NextNumber(0, 6.28), rng:NextNumber(-0.08, 0.08)))
+		local box, s = m:GetBoundingBox()
+		m:PivotTo(m:GetPivot() + Vector3.new(0, base.Y - (box.Position.Y - s.Y / 2) - 0.5, 0))
+		m.Parent = parent
+		return
+	end
 	local h = rng:NextNumber(18, 28)
 	local lean = CFrame.Angles(rng:NextNumber(-0.15, 0.15), rng:NextNumber(0, 6.28), rng:NextNumber(-0.15, 0.15))
 	local cf = CFrame.new(base) * lean
@@ -105,20 +125,20 @@ local function build(center: Vector3, facing: Vector3): Folder
 	local rng = Random.new(77)
 	local T = workspace.Terrain
 	-- spiaggia piatta
-	T:FillCylinder(CFrame.new(center - Vector3.new(0, 5, 0)), 10, 70, Enum.Material.Sand)
-	T:FillCylinder(CFrame.new(center + Vector3.new(0, 30, 0)), 60, 70, Enum.Material.Air)
+	T:FillCylinder(CFrame.new(center - Vector3.new(0, 5, 0)), 10, 110, Enum.Material.Sand)
+	T:FillCylinder(CFrame.new(center + Vector3.new(0, 30, 0)), 60, 110, Enum.Material.Air)
 	local look = CFrame.lookAt(center, center + facing)
 	local function at(x: number, z: number): CFrame
 		return look * CFrame.new(x, 0, z)
 	end
 	-- pedana di gomma con il recinto basso (come la gabbia di Muscle Beach)
-	part(folder, "Pedana", Vector3.new(56, 0.6, 40), at(0, 0) * CFrame.new(0, 0.3, 0), Color3.fromRGB(60, 60, 66), Enum.Material.Rubber)
+	part(folder, "Pedana", Vector3.new(88, 0.6, 64), at(0, 0) * CFrame.new(0, 0.3, 0), Color3.fromRGB(60, 60, 66), Enum.Material.Rubber)
 	for _, side in { -1, 1 } do
-		part(folder, "Ringhiera", Vector3.new(56, 0.3, 0.3), at(0, side * 20) * CFrame.new(0, 3.2, 0), CHROME, Enum.Material.Metal)
-		part(folder, "Ringhiera", Vector3.new(0.3, 0.3, 40), at(side * 28, 0) * CFrame.new(0, 3.2, 0), CHROME, Enum.Material.Metal)
+		part(folder, "Ringhiera", Vector3.new(88, 0.3, 0.3), at(0, side * 32) * CFrame.new(0, 3.2, 0), CHROME, Enum.Material.Metal)
+		part(folder, "Ringhiera", Vector3.new(0.3, 0.3, 64), at(side * 44, 0) * CFrame.new(0, 3.2, 0), CHROME, Enum.Material.Metal)
 	end
-	for _, x in { -28, -14, 14, 28 } do
-		for _, z in { -20, 20 } do
+	for _, x in { -44, -22, 22, 44 } do
+		for _, z in { -32, 32 } do
 			part(folder, "Paletto", Vector3.new(0.4, 3.4, 0.4), at(x, z) * CFrame.new(0, 1.7, 0), CHROME, Enum.Material.Metal)
 		end
 	end
@@ -168,15 +188,66 @@ local function build(center: Vector3, facing: Vector3): Folder
 	part(folder, "Braccio", Vector3.new(4, 0.6, 0.6), at(-15, 10) * CFrame.new(0, 21.5, 0), WOOD, Enum.Material.Wood)
 	local rope = part(folder, "Corda", Vector3.new(0.4, 20, 0.4), at(-13.4, 10) * CFrame.new(0, 11.4, 0), Color3.fromRGB(200, 180, 140), Enum.Material.Fabric)
 	station(folder, rope, "Rope climb", "Climbing rope", "rope", "Resistenza", at(-13.4, 10.9) * CFrame.new(0, 6, 0), false)
+	-- sulla corda ci si puo' anche arrampicare davvero (una scala invisibile attorno)
+	local truss = Instance.new("TrussPart")
+	truss.Name = "CordaScalabile"
+	truss.Size = Vector3.new(2, 20, 2)
+	truss.CFrame = at(-13.4, 10) * CFrame.new(0, 11.4, 0)
+	truss.Transparency = 1
+	truss.Anchored = true
+	truss.Parent = folder
+	-- seconda zona attrezzi (la palestra e' piu' grande): panca, squat, manubri, sbarra doppia,
+	-- un altro sacco
+	local bench2 = part(folder, "Panca", Vector3.new(2.2, 1.6, 7), at(-32, -8) * CFrame.new(0, 1.4, 0), TEAL, Enum.Material.Fabric)
+	for _, x in { -2.4, 2.4 } do
+		part(folder, "Supporto", Vector3.new(0.4, 4.6, 0.4), at(-32 + x, -11) * CFrame.new(0, 2.3, 0), IRON, Enum.Material.Metal)
+	end
+	barbell(folder, at(-32, -11) * CFrame.new(0, 4.3, 0), 8)
+	local lie2 = at(-32, -9) * CFrame.new(0, 2.9, 0)
+	station(folder, bench2, "Bench press", "Bench", "bench", "Forza", CFrame.lookAt(lie2.Position, lie2.Position + Vector3.yAxis, look.LookVector), false)
+	for _, x in { -3, 3 } do
+		for _, z in { -1.5, 1.5 } do
+			part(folder, "Montante", Vector3.new(0.4, 8, 0.4), at(32 + x, 8 + z) * CFrame.new(0, 4, 0), RED, Enum.Material.Metal)
+		end
+	end
+	local squat2 = part(folder, "Base", Vector3.new(7, 0.4, 4), at(32, 8) * CFrame.new(0, 0.8, 0), IRON, Enum.Material.Metal)
+	barbell(folder, at(32, 8) * CFrame.new(0, 5.5, 0), 9)
+	station(folder, squat2, "Squats", "Squat rack", "squat", "Recupero", at(32, 8) * CFrame.new(0, 1, 0), true)
+	local rack2 = part(folder, "Rastrelliera", Vector3.new(9, 2.4, 2), at(32, -10) * CFrame.new(0, 1.2, 0), IRON, Enum.Material.Metal)
+	for k = 0, 4 do
+		local x = 32 - 3.6 + k * 1.8
+		part(folder, "Manubrio", Vector3.new(1.4, 0.3, 0.3), at(x, -10) * CFrame.new(0, 2.6, 0), CHROME, Enum.Material.Metal, Enum.PartType.Cylinder)
+		for _, sd in { -0.6, 0.6 } do
+			part(folder, "Peso", Vector3.new(0.35, 0.8 + k * 0.1, 0.8 + k * 0.1), at(x + sd, -10) * CFrame.new(0, 2.6, 0), IRON, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+		end
+	end
+	station(folder, rack2, "Dumbbell curls", "Dumbbells", "curl", "Forza", at(32, -6.5) * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, 0.6, 0), true)
+	for _, x in { -3.5, 3.5 } do
+		part(folder, "Montante", Vector3.new(0.5, 10, 0.5), at(16 + x, 22) * CFrame.new(0, 5, 0), IRON, Enum.Material.Metal)
+	end
+	local pull2 = part(folder, "Sbarra", Vector3.new(7.5, 0.4, 0.4), at(16, 22) * CFrame.new(0, 9.6, 0), CHROME, Enum.Material.Metal)
+	station(folder, pull2, "Pull-ups", "Pull-up bar", "pullup", "Resistenza", at(16, 22) * CFrame.new(0, 5.8, 0), false)
+	part(folder, "Gancio", Vector3.new(4, 0.5, 0.5), at(-16, 24) * CFrame.new(0, 9, 0), IRON, Enum.Material.Metal)
+	part(folder, "Palo", Vector3.new(0.5, 9, 0.5), at(-18, 24) * CFrame.new(0, 4.5, 0), IRON, Enum.Material.Metal)
+	local bag2 = part(folder, "Sacco", Vector3.new(4.5, 2.2, 2.2), at(-15, 24) * CFrame.new(0, 5.6, 0) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(40, 60, 160), Enum.Material.Leather, Enum.PartType.Cylinder)
+	station(folder, bag2, "Box", "Punching bag", "box", "Recupero", at(-15, 26.6) * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, 0.6, 0), true)
+	-- panchine e ombrelloni
+	for k, x in { -24, 0, 24 } do
+		local umb = at(x, 34)
+		part(folder, "PaloOmbrellone", Vector3.new(0.4, 9, 0.4), umb * CFrame.new(0, 4.5, 0), Color3.fromRGB(230, 230, 230), Enum.Material.SmoothPlastic)
+		local top = part(folder, "Ombrellone", Vector3.new(1, 10, 10), umb * CFrame.new(0, 9, 0) * CFrame.Angles(0, 0, math.pi / 2), if k % 2 == 0 then Color3.fromRGB(240, 120, 60) else Color3.fromRGB(60, 170, 200), Enum.Material.Fabric, Enum.PartType.Cylinder)
+		top.CanCollide = false
+		part(folder, "Panchina", Vector3.new(6, 0.6, 2), umb * CFrame.new(0, 1.4, 3), WOOD, Enum.Material.WoodPlanks)
+	end
 	-- sacco da boxe
 	part(folder, "Gancio", Vector3.new(4, 0.5, 0.5), at(0, -12) * CFrame.new(0, 9, 0), IRON, Enum.Material.Metal)
 	part(folder, "Palo", Vector3.new(0.5, 9, 0.5), at(-2, -12) * CFrame.new(0, 4.5, 0), IRON, Enum.Material.Metal)
 	local bag = part(folder, "Sacco", Vector3.new(4.5, 2.2, 2.2), at(1, -12) * CFrame.new(0, 5.6, 0) * CFrame.Angles(0, 0, math.pi / 2), RED, Enum.Material.Leather, Enum.PartType.Cylinder)
 	station(folder, bag, "Box", "Punching bag", "box", "Recupero", at(1, -9.4) * CFrame.new(0, 0.6, 0), true)
 	-- insegna e palme
-	local sign = part(folder, "Insegna", Vector3.new(18, 4, 0.4), at(0, -22) * CFrame.new(0, 9, 0), Color3.fromRGB(30, 30, 36), Enum.Material.SmoothPlastic)
+	local sign = part(folder, "Insegna", Vector3.new(18, 4, 0.4), at(0, -36) * CFrame.new(0, 9, 0), Color3.fromRGB(30, 30, 36), Enum.Material.SmoothPlastic)
 	for _, x in { -8, 8 } do
-		part(folder, "PaloInsegna", Vector3.new(0.5, 9, 0.5), at(x, -22) * CFrame.new(0, 4.5, 0), IRON, Enum.Material.Metal)
+		part(folder, "PaloInsegna", Vector3.new(0.5, 9, 0.5), at(x, -36) * CFrame.new(0, 4.5, 0), IRON, Enum.Material.Metal)
 	end
 	local gui = Instance.new("SurfaceGui")
 	gui.Face = Enum.NormalId.Back
@@ -192,9 +263,9 @@ local function build(center: Vector3, facing: Vector3): Folder
 	label.TextColor3 = Color3.fromRGB(255, 200, 80)
 	label.Text = "MUSCLE BEACH\n<font size=\"22\" color=\"#9fe8e8\">train here · climb longer</font>"
 	label.Parent = gui
-	for _ = 1, 9 do
+	for _ = 1, 16 do
 		local a = rng:NextNumber(0, 2 * math.pi)
-		local r = rng:NextNumber(36, 60)
+		local r = rng:NextNumber(62, 100)
 		palm(folder, groundAt(center + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r)), rng)
 	end
 	folder.Parent = workspace

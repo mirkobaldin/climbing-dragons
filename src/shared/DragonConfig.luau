@@ -139,9 +139,9 @@ DragonConfig.RARITIES = {
 -- Per evolvere il drago deve essere a livello MAX_LEVEL (si addestra nella zona di addestramento);
 -- dopo l'evoluzione riparte dal livello 1. Le pietre per ora sono 0: il boss non c'e' ancora.
 DragonConfig.STAGES = {
-	{ name = "Cucciolo", size = 5.5, stones = 0 },
-	{ name = "Giovane", size = 10, stones = 0 },
-	{ name = "Adulto", size = 18, stones = 0 },
+	{ name = "Cucciolo", size = 8.6, stones = 0 }, -- scala del modello ~0.6 (prima 5.5 = 0.383)
+	{ name = "Giovane", size = 14, stones = 0 },
+	{ name = "Adulto", size = 22, stones = 0 },
 }
 
 -- Livelli e addestramento (zona delle costole del drago, vedi server/Training)

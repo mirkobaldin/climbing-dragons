@@ -54,11 +54,26 @@ local function bar(parent: Instance, color: Color3, height: number): (Frame, Fra
 	return back, fill, text
 end
 
+-- scheda: vetro blu notte con sfumatura, bordo chiaro sottile e ombra morbida sotto
 local function card(parent: Instance): Frame
-	local f = Theme.frame(parent, Theme.BG, 0.3)
+	local f = Theme.frame(parent, Color3.new(1, 1, 1), 0.08)
 	f.AutomaticSize = Enum.AutomaticSize.Y
-	Theme.corner(f, 10)
-	Theme.stroke(f, Color3.new(1, 1, 1), 1, 0.88)
+	Theme.corner(f, 14)
+	Theme.gradient(f, Color3.fromRGB(34, 46, 78), Color3.fromRGB(14, 18, 32), 90)
+	Theme.stroke(f, Color3.fromRGB(150, 190, 255), 1.5, 0.6)
+	local shadow = Instance.new("ImageLabel")
+	shadow.Name = "Ombra"
+	shadow.BackgroundTransparency = 1
+	shadow.Image = "rbxassetid://1316045217" -- ombra sfumata di Roblox
+	shadow.ImageColor3 = Color3.new(0, 0, 0)
+	shadow.ImageTransparency = 0.55
+	shadow.ScaleType = Enum.ScaleType.Slice
+	shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+	shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	shadow.Position = UDim2.new(0.5, 0, 0.5, 4)
+	shadow.Size = UDim2.new(1, 18, 1, 18)
+	shadow.ZIndex = 0
+	shadow.Parent = f
 	return f
 end
 
@@ -77,6 +92,12 @@ function HUD.start()
 	coins.Position = UDim2.new(0.5, 0, 0, 6)
 	coins.Size = UDim2.new(0, 150, 0, 34)
 	coins.AutomaticSize = Enum.AutomaticSize.None
+	-- bordo d'oro: la valuta si riconosce al volo
+	local cs = coins:FindFirstChildOfClass("UIStroke")
+	if cs then
+		cs.Color = Theme.COIN
+		cs.Transparency = 0.25
+	end
 	local coinIcon = Theme.frame(coins, Theme.COIN)
 	coinIcon.AnchorPoint = Vector2.new(0, 0.5)
 	coinIcon.Position = UDim2.new(0, 8, 0.5, 0)
@@ -88,16 +109,29 @@ function HUD.start()
 	coinText.Size = UDim2.new(1, -42, 1, 0)
 	coinText.TextXAlignment = Enum.TextXAlignment.Left
 
-	-- Info (in alto a destra)
+	-- Meteo (in alto a destra): icona grande del tempo, ora, quota, temperatura. Il fondo cambia
+	-- colore col giorno, la notte e la tempesta
 	local info = card(gui)
 	info.AnchorPoint = Vector2.new(1, 0)
 	info.Position = UDim2.new(1, -10, 0, 6)
-	info.Size = UDim2.new(0, 200, 0, 0)
-	Theme.padding(info, 8)
-	Theme.list(info, 4)
-	local clock = Theme.label(info, "", 13, Theme.TEXT, true)
-	local altitude = Theme.label(info, "", 13, Theme.TEXT, true)
-	local warmthBack, warmthFill, warmthText = bar(info, Color3.fromRGB(255, 150, 70), 16)
+	info.Size = UDim2.new(0, 220, 0, 0)
+	Theme.padding(info, 10)
+	Theme.list(info, 6)
+	local sky = info:FindFirstChildOfClass("UIGradient") :: UIGradient
+	local headRow = Theme.frame(info, nil, 1)
+	headRow.Size = UDim2.new(1, 0, 0, 40)
+	local weatherIcon = Theme.label(headRow, "☀️", 32, Theme.TEXT, true)
+	weatherIcon.Size = UDim2.new(0, 42, 1, 0)
+	weatherIcon.TextXAlignment = Enum.TextXAlignment.Center
+	local timeBig = Theme.label(headRow, "12:00", 24, Theme.TEXT, true)
+	timeBig.Font = Enum.Font.GothamBlack
+	timeBig.Position = UDim2.new(0, 48, 0, -2)
+	timeBig.Size = UDim2.new(1, -48, 0, 26)
+	local clock = Theme.label(headRow, "", 12, Color3.fromRGB(190, 210, 240), true)
+	clock.Position = UDim2.new(0, 48, 0, 24)
+	clock.Size = UDim2.new(1, -48, 0, 16)
+	local altitude = Theme.label(info, "", 14, Theme.TEXT, true)
+	local warmthBack, warmthFill, warmthText = bar(info, Color3.fromRGB(255, 150, 70), 18)
 	local finder = Theme.label(info, "", 12, Theme.ACCENT, true)
 	local gearLabel = Theme.label(info, "", 11, Theme.MUTED)
 
@@ -106,7 +140,6 @@ function HUD.start()
 	me.Position = UDim2.new(0, 10, 0, 6)
 	me.Size = UDim2.new(0, 250, 0, 74)
 	me.AutomaticSize = Enum.AutomaticSize.None
-	Theme.gradient(me, Color3.fromRGB(255, 255, 255), Color3.fromRGB(205, 208, 220))
 
 	local avatar = Instance.new("ImageLabel")
 	avatar.AnchorPoint = Vector2.new(0, 0.5)
@@ -222,20 +255,24 @@ function HUD.start()
 
 		-- ora, meteo, quota, calore
 		local t = Lighting.ClockTime
-		clock.Text = string.format(
-			"%s %02d:%02d  ·  %s",
-			if t >= 6 and t < 19 then "Giorno" else "Notte",
-			math.floor(t),
-			math.floor((t % 1) * 60),
-			WEATHER_NAMES[workspace:GetAttribute("Weather") :: any] or "Sereno"
-		)
+		local day = t >= 6 and t < 19
+		local w = workspace:GetAttribute("Weather") :: any
+		local ICON = { Clear = if day then "☀️" else "🌙", Cloudy = "☁️", Rain = "🌧️", Thunderstorm = "⛈️", Storm = "🌪️", Snow = "❄️" }
+		weatherIcon.Text = ICON[w] or (if day then "☀️" else "🌙")
+		timeBig.Text = string.format("%02d:%02d", math.floor(t), math.floor((t % 1) * 60))
+		clock.Text = string.format("%s  ·  %s", if day then "Giorno" else "Notte", WEATHER_NAMES[w] or "Sereno")
+		-- fondo: azzurro di giorno, blu notte, grigio-viola in tempesta
+		if sky then
+			local top = if w == "Storm" or w == "Thunderstorm" then Color3.fromRGB(70, 60, 100) elseif day then Color3.fromRGB(46, 96, 160) else Color3.fromRGB(26, 30, 70)
+			sky.Color = ColorSequence.new(top, Color3.fromRGB(14, 18, 32))
+		end
 		local alt = if root then math.max(0, math.floor(root.Position.Y - 20)) else 0
-		altitude.Text = string.format("Altitudine  %d m", alt)
+		altitude.Text = string.format("⛰️  %d m", alt)
 		local warmth = (player:GetAttribute("Warmth") or 100) :: number
 		warmthBack.Visible = warmth < 99.5 or alt > Gear.COLD_ALTITUDE - 20
 		warmthFill.Size = UDim2.new(math.clamp(warmth / 100, 0, 1), 0, 1, 0)
 		warmthFill.BackgroundColor3 = if warmth > 40 then Color3.fromRGB(255, 150, 70) else Color3.fromRGB(110, 170, 255)
-		warmthText.Text = if warmth <= 0 then "Congelamento!" else string.format("Calore %d%%", math.floor(warmth))
+		warmthText.Text = if warmth <= 0 then "🥶 Congelamento!" else string.format("🌡️ Calore %d%%", math.floor(warmth))
 
 		local carrying = player:GetAttribute("CarryingEgg")
 		local finderText = ClientState.eggFinder

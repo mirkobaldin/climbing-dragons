@@ -18,6 +18,7 @@ local KeyframeSequenceProvider = game:GetService("KeyframeSequenceProvider")
 local EnemyConfig = require(ReplicatedStorage.Shared.EnemyConfig)
 local ClimbConfig = require(ReplicatedStorage.Shared.ClimbConfig)
 local Dragons = require(script.Parent.Dragons)
+local Drops = require(script.Parent.Drops)
 local Economy = require(script.Parent.Economy)
 local Survival = require(script.Parent.Survival)
 
@@ -277,6 +278,7 @@ end
 -- Combattimento
 
 local function giveRewards(enemy: Enemy)
+	Drops.drop(enemy.kind, enemy.root.Position, enemy.boss ~= nil) -- materiali a terra
 	local total = 0
 	for _, dmg in enemy.damagedBy do
 		total += dmg
@@ -639,7 +641,53 @@ function Enemies.setup()
 			end
 		end
 	end)
+	-- lancio della piccozza (tasto Q): colpisce il primo nemico vicino alla traiettoria (fino a
+	-- THROW_RANGE studs), danno x1.3; poi la piccozza torna in mano (solo effetto sul client)
+	local throwEvent = Instance.new("RemoteEvent")
+	throwEvent.Name = "PickaxeThrow"
+	throwEvent.Parent = ReplicatedStorage.Remotes
+	local lastThrow: { [Player]: number } = {}
+	throwEvent.OnServerEvent:Connect(function(player, dir)
+		if typeof(dir) ~= "Vector3" or dir.Magnitude < 0.5 then
+			return
+		end
+		local now = os.clock()
+		if now - (lastThrow[player] or 0) < 1.4 then
+			return
+		end
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local tool = character and character:FindFirstChildWhichIsA("Tool")
+		local dmg = tool and EnemyConfig.PLAYER_DAMAGE[tool.Name]
+		if not root or not dmg then
+			return
+		end
+		lastThrow[player] = now
+		dmg *= 1.3 * (1 + ((player:GetAttribute("Forza") or 0) :: number) * 0.02)
+		local from = (root :: BasePart).Position + Vector3.new(0, 1.5, 0)
+		local d = dir.Unit
+		local best, bestAlong = nil, math.huge
+		for _, enemy in enemies do
+			if not enemy.dead then
+				local v = enemy.root.Position - from
+				local along = v:Dot(d)
+				local off = (v - d * along).Magnitude
+				if along > 0 and along < 55 and off < 4 + enemy.root.Size.X * 0.5 and along < bestAlong then
+					best, bestAlong = enemy, along
+				end
+			end
+		end
+		if best then
+			-- il colpo arriva quando la piccozza e' li' (circa 90 studs al secondo)
+			task.delay(bestAlong / 90, function()
+				if not best.dead then
+					damageEnemy(best, player, dmg)
+				end
+			end)
+		end
+	end)
 	Players.PlayerRemoving:Connect(function(player)
+		lastThrow[player] = nil
 		lastHit[player] = nil
 		for _, enemy in enemies do
 			enemy.damagedBy[player] = nil

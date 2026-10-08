@@ -504,6 +504,12 @@ function PetAnimator.start()
 				target = CFrame.new((ClientState.petAnchor :: Vector3) + Vector3.new(0, bob, 0))
 			end
 			local current = pet.cf or target
+			-- se la posizione si e' guastata (NaN o lontanissima, es. dopo un esercizio in palestra
+			-- il drago finiva a -1000000) si riparte dal padrone
+			local cp = current.Position
+			if cp ~= cp or (cp - target.Position).Magnitude > 600 then
+				current = target
+			end
 			local alpha = 1 - math.exp(-dt * (if t >= pet.nextOrbit and t < pet.nextOrbit + 3 then 9 else 5))
 			local pos = current.Position:Lerp(target.Position, alpha)
 			-- guarda dove va il padrone (o dove guarda, se e' fermo)

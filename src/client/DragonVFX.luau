@@ -77,26 +77,43 @@ local function trail(p: BasePart, color: Color3, width: number, life: number)
 	t.Parent = p
 end
 
--- esplosione generica: scintille, fumo, luce, onda
+-- texture di esplosione incluse in Roblox
+local CORE = "rbxasset://textures/particles/explosion01_core_main.dds"
+local WAVE = "rbxasset://textures/particles/explosion01_shockwave_main.dds"
+local EXSMOKE = "rbxasset://textures/particles/explosion01_smoke_main.dds"
+local FSPARK = "rbxasset://textures/particles/fire_sparks_main.dds"
+local GLOW = "rbxasset://textures/particles/forcefield_glow_main.dds"
+
+-- esplosione a strati: lampo bianco al centro, nucleo colorato, onda d'urto piatta, scintille
+-- che cadono, fumo, luce che si spegne
 local function impact(at: Vector3, color: Color3, size: number, texture: string?, extra: ((Part) -> ())?)
 	local holder = fx(Enum.PartType.Block, Vector3.one * 0.2, color, CFrame.new(at))
 	holder.Transparency = 1
-	local sp = emitter(holder, texture or SPARK, ColorSequence.new(color, Color3.new(1, 1, 1)), NumberSequence.new(size, 0), 0.7, size * 12, 0)
-	sp.Drag = 4
-	sp:Emit(40)
-	local sm = emitter(holder, SMOKE, ColorSequence.new(color), NumberSequence.new(size * 1.5, size * 4), 1.1, size * 3, 0)
-	sm.LightEmission = 0.2
-	sm:Emit(12)
-	light(holder, color, 18 + size * 6, 6, 0.6)
-	local ring = fx(Enum.PartType.Cylinder, Vector3.new(0.2, 1, 1), color, CFrame.new(at) * CFrame.Angles(0, 0, math.pi / 2))
-	ring.Transparency = 0.1
-	TweenService:Create(ring, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = Vector3.new(0.05, size * 10, size * 10), Transparency = 1 }):Play()
+	local flashE = emitter(holder, GLOW, ColorSequence.new(Color3.new(1, 1, 1)), NumberSequence.new({ NumberSequenceKeypoint.new(0, size * 3), NumberSequenceKeypoint.new(1, size * 9) }), 0.18, 0, 0)
+	flashE.LightEmission = 1
+	flashE:Emit(2)
+	local core = emitter(holder, CORE, ColorSequence.new(Color3.new(1, 1, 1), color), NumberSequence.new({ NumberSequenceKeypoint.new(0, size * 2), NumberSequenceKeypoint.new(1, size * 7) }), 0.45, 1, 0)
+	core.LightEmission = 1
+	core:Emit(4)
+	local wave = emitter(holder, WAVE, ColorSequence.new(color), NumberSequence.new({ NumberSequenceKeypoint.new(0, size * 2), NumberSequenceKeypoint.new(1, size * 14) }), 0.4, 0, 0)
+	wave.Orientation = Enum.ParticleOrientation.VelocityPerpendicular
+	wave.EmissionDirection = Enum.NormalId.Top
+	wave.Speed = NumberRange.new(0.01)
+	wave.LightEmission = 1
+	wave:Emit(1)
+	local sp = emitter(holder, texture or FSPARK, ColorSequence.new(Color3.new(1, 1, 1), color), NumberSequence.new(size * 0.6, 0), 0.9, size * 22, 0)
+	sp.Drag = 3
+	sp.Acceleration = Vector3.new(0, -40, 0)
+	sp:Emit(45)
+	local sm = emitter(holder, EXSMOKE, ColorSequence.new(color:Lerp(Color3.new(0.2, 0.2, 0.2), 0.5)), NumberSequence.new(size * 2, size * 6), 1.4, size * 3, 0)
+	sm.LightEmission = 0.1
+	sm:Emit(8)
+	light(holder, color, 22 + size * 8, 8, 0.7)
 	if extra then
 		extra(holder)
 	end
-	Debris:AddItem(ring, 0.5)
 	Debris:AddItem(holder, 2.5)
-	DragonVFX.shake = math.max(DragonVFX.shake, 0.35)
+	DragonVFX.shake = math.max(DragonVFX.shake, 0.45)
 end
 
 -- un proiettile che vola da from a to (parte gia' costruita), poi l'impatto
@@ -135,11 +152,16 @@ local function bolt(from: Vector3, to: Vector3, color: Color3, width: number)
 end
 
 function DragonVFX.muzzle(at: Vector3, color: Color3)
-	local f = fx(Enum.PartType.Ball, Vector3.one * 2.5, color, CFrame.new(at))
-	f.Transparency = 0.2
-	TweenService:Create(f, TweenInfo.new(0.18), { Size = Vector3.one * 5, Transparency = 1 }):Play()
-	light(f, color, 16, 5, 0.18)
-	Debris:AddItem(f, 0.25)
+	-- bagliore alla bocca: alone che si allarga + scintille in avanti
+	local f = fx(Enum.PartType.Block, Vector3.one * 0.2, color, CFrame.new(at))
+	f.Transparency = 1
+	local g = emitter(f, GLOW, ColorSequence.new(Color3.new(1, 1, 1), color), NumberSequence.new({ NumberSequenceKeypoint.new(0, 3), NumberSequenceKeypoint.new(1, 8) }), 0.2, 0, 0)
+	g.LightEmission = 1
+	g:Emit(2)
+	local s = emitter(f, FSPARK, ColorSequence.new(color), NumberSequence.new(0.5, 0), 0.35, 25, 0)
+	s:Emit(14)
+	light(f, color, 18, 6, 0.2)
+	Debris:AddItem(f, 0.6)
 end
 
 function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Color3)
@@ -232,9 +254,12 @@ function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Col
 		return
 	end
 	-- fuoco (Brace, Eclissi, Sole e tutti gli altri)
-	local ball = fx(Enum.PartType.Ball, Vector3.one * 3, color, CFrame.new(from))
-	ball.Transparency = 0.1
-	trail(ball, color, 2.6, 0.35)
+	local ball = fx(Enum.PartType.Ball, Vector3.one * 2.4, Color3.fromRGB(255, 240, 200), CFrame.new(from))
+	ball.Transparency = 0
+	trail(ball, color, 3.2, 0.4)
+	local halo = emitter(ball, GLOW, ColorSequence.new(color), NumberSequence.new(5, 3), 0.15, 0, 60)
+	halo.LightEmission = 1
+	halo.LockedToPart = true
 	emitter(ball, FIRE, ColorSequence.new(Color3.fromRGB(255, 230, 140), color), NumberSequence.new(2.6, 0.6), 0.4, 2, 90)
 	light(ball, color, 14, 3)
 	fly(ball, from, to, 120, false, function()

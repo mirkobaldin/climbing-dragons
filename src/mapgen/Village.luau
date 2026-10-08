@@ -123,6 +123,32 @@ local function fromTemplate(name: string, parent: Instance, cf: CFrame): boolean
 	return true
 end
 
+-- Un modello di Mirko (ServerStorage.Modelli, anche nelle sottocartelle) alto "height", con la
+-- base appoggiata in cf; niente script, niente collisioni (le mesh hanno la collisione a scatola)
+local function userModel(name: string, parent: Instance, cf: CFrame, height: number): Model?
+	local store = ServerStorage:FindFirstChild("Modelli")
+	local t = store and store:FindFirstChild(name, true)
+	if not t or not t:IsA("Model") then
+		return nil
+	end
+	local m = t:Clone()
+	for _, d in m:GetDescendants() do
+		if d:IsA("LuaSourceContainer") then
+			d:Destroy()
+		elseif d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+		end
+	end
+	local _, s0 = m:GetBoundingBox()
+	m:ScaleTo(m:GetScale() * height / math.max(s0.Y, 0.05))
+	m:PivotTo(cf.Rotation + m:GetPivot().Position)
+	local box, s = m:GetBoundingBox()
+	m:PivotTo(m:GetPivot() + (cf.Position - (box.Position - Vector3.new(0, s.Y / 2, 0))))
+	m.Parent = parent
+	return m
+end
+
 -- Punto a terra orientato: "facing" = direzione verso cui guarda l'ingresso
 local function groundCFrame(x: number, z: number, facing: Vector3, lift: number?): CFrame
 	local y = groundY(x, z)
@@ -686,6 +712,20 @@ end
 local function workbench(parent: Instance, cf: CFrame)
 	local b = builder(parent, "Workbench")
 	local IRON = Color3.fromRGB(46, 46, 50)
+	-- il banco di Mirko (Modelli.Banco_Crafting); il piano invisibile tiene il prompt
+	if userModel("Banco_Crafting", b.model, cf, 7) then
+		local top = b.block(Vector3.new(10, 0.3, 4), cf * CFrame.new(0, 3.95, 0), WOOD, Enum.Material.WoodPlanks)
+		top.Name = "Bench"
+		top.Transparency = 1
+		CollectionService:AddTag(top, "Workbench")
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.ActionText = "Craft"
+		prompt.ObjectText = "Workbench"
+		prompt.MaxActivationDistance = 10
+		prompt.RequiresLineOfSight = false
+		prompt.Parent = top
+		return
+	end
 	b.block(Vector3.new(10, 0.8, 4), cf * CFrame.new(0, 3.4, 0), WOOD, Enum.Material.WoodPlanks)
 	for _, x in { -4.4, 4.4 } do
 		for _, z in { -1.5, 1.5 } do
@@ -727,18 +767,22 @@ end
 local function nest(parent: Instance, cf: CFrame)
 	local b = builder(parent, "Nido")
 	local STRAW = Color3.fromRGB(206, 176, 96)
-	for k = 0, 13 do
+	-- il nido di Mirko (Modelli.Nidi.Nido_Roccia) al posto di pietre, paglia e uova finte
+	local custom = userModel("Nido_Roccia", b.model, cf, 5)
+	for k = 0, if custom then -1 else 13 do
 		local a = k / 14 * 2 * math.pi
 		b.block(Vector3.new(2.6, 1.8, 2), cf * CFrame.Angles(0, a, 0) * CFrame.new(0, 0.7, -7) * CFrame.Angles(0.1, 0, 0.15), STONE, Enum.Material.Slate)
 	end
-	local bed = b.block(Vector3.new(1.2, 12, 12), cf * CFrame.new(0, 0.6, 0) * CFrame.Angles(0, 0, math.pi / 2), STRAW, Enum.Material.Fabric)
-	bed.Shape = Enum.PartType.Cylinder
-	for k = 0, 17 do
+	if not custom then
+		local bed = b.block(Vector3.new(1.2, 12, 12), cf * CFrame.new(0, 0.6, 0) * CFrame.Angles(0, 0, math.pi / 2), STRAW, Enum.Material.Fabric)
+		bed.Shape = Enum.PartType.Cylinder
+	end
+	for k = 0, if custom then -1 else 17 do
 		local a = k / 18 * 2 * math.pi
 		local twig = b.block(Vector3.new(3.2, 0.3, 0.3), cf * CFrame.Angles(0, a, 0) * CFrame.new(0, 1.4, -5) * CFrame.Angles(0, 0.6, 0.35), STRAW:Lerp(WOOD_DARK, 0.3), Enum.Material.Wood)
 		twig.CanCollide = false
 	end
-	for _, x in { -1.8, 1.6 } do
+	for _, x in if custom then {} else { -1.8, 1.6 } do
 		local egg = b.block(Vector3.new(2, 2.6, 2), cf * CFrame.new(x, 2.3, x * 0.4), Color3.fromRGB(230, 222, 200), Enum.Material.SmoothPlastic)
 		local m = Instance.new("SpecialMesh")
 		m.MeshType = Enum.MeshType.Sphere

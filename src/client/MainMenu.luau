@@ -432,12 +432,14 @@ function MainMenu.start()
 		local b = Instance.new("TextButton")
 		b.LayoutOrder = k
 		b.Size = UDim2.new(0, 70, 0, 70)
-		b.BackgroundColor3 = Theme.BG
-		b.BackgroundTransparency = 0.2
+		b.BackgroundColor3 = Color3.new(1, 1, 1)
+		b.BackgroundTransparency = 0.05
 		b.Text = ""
 		b.Parent = column
-		Theme.corner(b, 16)
-		Theme.stroke(b, Theme.ACCENT, 1.5, 0.55)
+		Theme.corner(b, 18)
+		-- stesso stile delle schede: vetro blu notte, bordo dorato
+		Theme.gradient(b, Color3.fromRGB(40, 54, 92), Color3.fromRGB(14, 18, 32), 90)
+		Theme.stroke(b, Theme.ACCENT, 2, 0.35)
 		local vf = Theme.viewport(b, nil, UDim2.new(1, -10, 1, -24))
 		vf.Position = UDim2.new(0, 5, 0, 2)
 		task.spawn(function()

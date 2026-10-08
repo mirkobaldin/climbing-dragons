@@ -1846,7 +1846,7 @@ function Trailer.play(kind: string, take: string?)
 					add({
 						dur = 4.2,
 						at = tentCf.Position,
-						preload = { chaletCf.Position, chaletCf.Position + chaletCf.LookVector * 300 },
+						preload = { chaletCf.Position, chaletCf.Position + chaletCf.LookVector * 300, if typeof(d.CabinCF) == "CFrame" then (d.CabinCF :: CFrame).Position else chaletCf.Position },
 						smooth = 3,
 						start = function()
 							if tent and tent:IsA("Model") then
@@ -1862,6 +1862,38 @@ function Trailer.play(kind: string, take: string?)
 						end,
 						cam = frontOrbit(tentCf, 36, 12, 5),
 					})
+					-- giorno 10: la baita sul pendio col drago cresciuto (il cucciolo piu' grande)
+					local cabinCf = d.CabinCF
+					local cabin = props and props:FindFirstChild("CasaBaita")
+					if typeof(cabinCf) == "CFrame" then
+						add({
+							dur = 4,
+							at = cabinCf.Position,
+							smooth = 3,
+							start = function()
+								flash(s)
+								if tent and tent:IsA("Model") then
+									tent:PivotTo(CFrame.new(0, -600, 0))
+								end
+								if cabin and cabin:IsA("Model") then
+									cabin:PivotTo(cabinCf)
+								end
+								placeBody(cabinCf, Vector3.new(6, 0, -22))
+								scaleActor(baby, 1.6)
+								standAt(baby, (cabinCf * CFrame.new(-8, 0, -20)).Position, cabinCf.LookVector)
+							end,
+							update = function(u)
+								walkPose(body, os.clock(), 0)
+								if u >= 0.999 then
+									scaleActor(baby, 1 / 1.6)
+									if cabin and cabin:IsA("Model") then
+										cabin:PivotTo(CFrame.new(0, -600, 0))
+									end
+								end
+							end,
+							cam = frontOrbit(cabinCf, 60, 20, 8),
+						})
+					end
 					-- il drago adulto sulla pedana, di lato allo chalet (non davanti, sul vuoto)
 					local perch = groundAll((chaletCf * CFrame.new(-24, 0, 6)).Position) + UP * 2
 					add({

@@ -134,10 +134,39 @@ local function sign(parent: Instance, at: Vector3, center: Vector3, title: strin
 end
 
 -- altare-nido: pietra rotonda con l'anello del colore del drago; il marcatore per le uova sopra
+-- modello di Mirko (ServerStorage.Modelli e sottocartelle) alto h, base in "at"
+local function userModel(name: string, parent: Instance, at: Vector3, h: number, yaw: number): Model?
+	local store = game:GetService("ServerStorage"):FindFirstChild("Modelli")
+	local t = store and store:FindFirstChild(name, true)
+	if not t or not t:IsA("Model") then
+		return nil
+	end
+	local m = t:Clone()
+	for _, d in m:GetDescendants() do
+		if d:IsA("LuaSourceContainer") then
+			d:Destroy()
+		elseif d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+		end
+	end
+	local _, s0 = m:GetBoundingBox()
+	m:ScaleTo(m:GetScale() * h / math.max(s0.Y, 0.05))
+	m:PivotTo(CFrame.new(at) * CFrame.Angles(0, yaw, 0))
+	local box, s = m:GetBoundingBox()
+	m:PivotTo(m:GetPivot() + Vector3.new(0, at.Y - (box.Position.Y - s.Y / 2) - 0.3, 0))
+	m.Parent = parent
+	return m
+end
+
 local function nest(parent: Instance, markers: Instance?, at: Vector3, element: string, color: Color3, stone: Color3)
-	part(parent, "Altare", Vector3.new(3, 12, 12), CFrame.new(at + Vector3.new(0, 1, 0)) * CFrame.Angles(0, 0, math.pi / 2), stone, M.Slate, Enum.PartType.Cylinder)
-	local ring = part(parent, "AnelloAltare", Vector3.new(0.4, 13, 13), CFrame.new(at + Vector3.new(0, 2.6, 0)) * CFrame.Angles(0, 0, math.pi / 2), color, M.Neon, Enum.PartType.Cylinder)
+	-- il nido di Mirko dell'elemento (Modelli.Nidi.Nido_<Elemento>), se no l'altare a blocchi
+	if not userModel("Nido_" .. element, parent, at, 7, 0) then
+		part(parent, "Altare", Vector3.new(3, 12, 12), CFrame.new(at + Vector3.new(0, 1, 0)) * CFrame.Angles(0, 0, math.pi / 2), stone, M.Slate, Enum.PartType.Cylinder)
+	end
+	local ring = part(parent, "AnelloAltare", Vector3.new(0.3, 15, 15), CFrame.new(at + Vector3.new(0, 0.4, 0)) * CFrame.Angles(0, 0, math.pi / 2), color, M.Neon, Enum.PartType.Cylinder)
 	ring.CanCollide = false
+	ring.Transparency = 0.3
 	glow(ring, color, 22, 1.5)
 	if markers then
 		local m = Instance.new("Part")
@@ -239,10 +268,11 @@ end
 BUILD.Ossa = function(z, t)
 	local BONE = Color3.fromRGB(226, 220, 200)
 	local GREEN = Color3.fromRGB(190, 255, 210)
-	-- uno scheletro: due file di costole che si guardano, la spina dorsale in mezzo
+	-- lo scheletro di drago gigante di Mirko; se manca, costole fatte a cilindri
 	local axis = Vector3.new(z.rng:NextNumber(-1, 1), 0, z.rng:NextNumber(-1, 1)).Unit
 	local side = Vector3.new(-axis.Z, 0, axis.X)
-	for k = -4, 4 do
+	local skel = userModel("Scheletro_Drago_Gigante", z.folder, z.center, 30, z.rng:NextNumber(0, 6.28))
+	for k = -4, if skel then -5 else 4 do
 		for _, s in { -1, 1 } do
 			local q = z.center + axis * k * 11 + side * s * 16
 			local hit = down(q.X, q.Z, q.Y + 120)

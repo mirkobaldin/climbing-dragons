@@ -472,6 +472,26 @@ local function hideOthers(hide: boolean)
 	end
 end
 
+-- auto-mira (come il server): il cristallo piu' vicino al centro del mirino entro 12 gradi
+local function lockedCrystal(): Vector3?
+	local c = workspace:GetAttribute("TrainingCenter")
+	if typeof(c) ~= "Vector3" then
+		return nil
+	end
+	local cam = workspace.CurrentCamera.CFrame
+	local t = workspace:GetServerTimeNow()
+	local best, bestAngle = nil, math.rad(12)
+	for k = 1, DragonConfig.TRAINING.TARGETS do
+		local p = DragonConfig.crystalAt(c, k, t)
+		local v = p - cam.Position
+		local angle = math.acos(math.clamp(v.Unit:Dot(cam.LookVector), -1, 1))
+		if v.Magnitude < 220 and angle < bestAngle then
+			best, bestAngle = p, angle
+		end
+	end
+	return best
+end
+
 local function startAim(event: RemoteEvent)
 	local on = false
 	local yaw, pitch = 0, -0.12
@@ -614,15 +634,55 @@ local function startAim(event: RemoteEvent)
 		-- il colpo parte subito dalla bocca del drago verso dove miri (effetto del suo elemento)
 		local pet = myPet()
 		if pet then
-			local params = RaycastParams.new()
-			params.FilterType = Enum.RaycastFilterType.Exclude
-			params.FilterDescendantsInstances = { player.Character :: Instance, workspace:FindFirstChild("Pets") :: Instance }
-			local hit = workspace:Raycast(camera.CFrame.Position, camera.CFrame.LookVector * 300, params)
-			local to = if hit then hit.Position else camera.CFrame.Position + camera.CFrame.LookVector * 160
+			-- auto-mira: se un cristallo e' agganciato il colpo va dritto su di lui
+			local locked = lockedCrystal()
+			local to: Vector3
+			if locked then
+				to = locked
+			else
+				local params = RaycastParams.new()
+				params.FilterType = Enum.RaycastFilterType.Exclude
+				params.FilterDescendantsInstances = { player.Character :: Instance, workspace:FindFirstChild("Pets") :: Instance }
+				local hit = workspace:Raycast(camera.CFrame.Position, camera.CFrame.LookVector * 300, params)
+				to = if hit then hit.Position else camera.CFrame.Position + camera.CFrame.LookVector * 160
+			end
 			local element = pet:GetAttribute("Element") :: string?
 			DragonVFX.shot(element, mouthOf(pet), to, elementColor(element))
 		end
 	end
+	-- anello che si stringe sul cristallo agganciato
+	local lockRing = Instance.new("ImageLabel")
+	lockRing.Name = "Aggancio"
+	lockRing.AnchorPoint = Vector2.new(0.5, 0.5)
+	lockRing.Size = UDim2.fromOffset(64, 64)
+	lockRing.BackgroundTransparency = 1
+	lockRing.Image = "rbxasset://textures/ui/Controls/DesignSystem/ButtonBase.png"
+	lockRing.ImageTransparency = 1
+	lockRing.Visible = false
+	lockRing.Parent = gui
+	local ringStroke = Instance.new("Frame")
+	ringStroke.AnchorPoint = Vector2.new(0.5, 0.5)
+	ringStroke.Position = UDim2.fromScale(0.5, 0.5)
+	ringStroke.Size = UDim2.fromScale(1, 1)
+	ringStroke.BackgroundTransparency = 1
+	ringStroke.Parent = lockRing
+	local rc = Instance.new("UICorner")
+	rc.CornerRadius = UDim.new(1, 0)
+	rc.Parent = ringStroke
+	local rs = Instance.new("UIStroke")
+	rs.Color = Color3.fromRGB(255, 210, 90)
+	rs.Thickness = 3
+	rs.Parent = ringStroke
+	RunService.RenderStepped:Connect(function()
+		local p = if on then lockedCrystal() else nil
+		lockRing.Visible = p ~= nil
+		if p then
+			local sp = workspace.CurrentCamera:WorldToViewportPoint(p)
+			lockRing.Position = UDim2.fromOffset(sp.X, sp.Y)
+			local s = 54 + 10 * math.sin(os.clock() * 8)
+			lockRing.Size = UDim2.fromOffset(s, s)
+		end
+	end)
 	UserInputService.InputChanged:Connect(function(input)
 		if on and input.UserInputType == Enum.UserInputType.MouseMovement then
 			yaw -= input.Delta.X * 0.0045

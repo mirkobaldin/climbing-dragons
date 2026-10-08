@@ -91,6 +91,16 @@ local function save(player: Player)
 		dragons = Dragons.serialize(player),
 		economy = Economy.serialize(player),
 		tutorial = player:GetAttribute("TutorialStep"),
+		materials = (function() -- materiali raccolti (drop dei nemici)
+			local t = {}
+			local f = player:FindFirstChild("Materiali")
+			for _, v in (if f then f:GetChildren() else {}) :: { Instance } do
+				if v:IsA("IntValue") then
+					t[v.Name] = v.Value
+				end
+			end
+			return t
+		end)(),
 		gym = { -- palestra
 			Forza = { player:GetAttribute("Forza") or 0, player:GetAttribute("ForzaXP") or 0 },
 			Resistenza = { player:GetAttribute("Resistenza") or 0, player:GetAttribute("ResistenzaXP") or 0 },
@@ -141,6 +151,17 @@ local function load(player: Player)
 			dragonData = data.dragons
 			economyData = data.economy
 			tutorial = data.tutorial
+			if type(data.materials) == "table" then
+				local f = Instance.new("Folder")
+				f.Name = "Materiali"
+				for name, n in data.materials do
+					local v = Instance.new("IntValue")
+					v.Name = tostring(name)
+					v.Value = tonumber(n) or 0
+					v.Parent = f
+				end
+				f.Parent = player
+			end
 			if type(data.gym) == "table" then
 				for _, stat in { "Forza", "Resistenza", "Recupero" } do
 					local v = data.gym[stat]

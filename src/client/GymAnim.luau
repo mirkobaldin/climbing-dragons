@@ -77,14 +77,16 @@ end
 
 -- il bilanciere fermo sull'attrezzo si nasconde (solo qui) mentre lo tieni in mano
 local hiddenBar: { [Model]: { BasePart } } = {}
-local function hideStationBar(character: Model, hide: boolean)
+local function hideStationBar(character: Model, hide: boolean, names: { [string]: boolean }?)
 	if hide then
 		local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local gym = workspace:FindFirstChild("Palestra")
 		local list = {}
+		local want = names or { Sbarra = true, Disco = true }
 		if root and gym then
 			for _, d in gym:GetChildren() do
-				if d:IsA("BasePart") and (d.Name == "Sbarra" or d.Name == "Disco") and (d.Position - (root :: BasePart).Position).Magnitude < 7 and d.Size.X > 1 then
+				-- (prima i dischi restavano: un controllo sulla grandezza li escludeva)
+				if d:IsA("BasePart") and want[d.Name] and (d.Position - (root :: BasePart).Position).Magnitude < 7.5 and not (d.Name == "Sbarra" and d.Position.Y - (root :: BasePart).Position.Y > 5) then
 					d.LocalTransparencyModifier = 1
 					table.insert(list, d)
 				end
@@ -237,6 +239,7 @@ function GymAnim.start()
 				if kind == "curl" then
 					if #r.props == 0 then
 						r.props = { dumbbell(), dumbbell() }
+						hideStationBar(character, true, { Manubrio = true, Peso = true })
 					end
 					for k, hand in { "RightHand", "LeftHand" } do
 						local h = character:FindFirstChild(hand)

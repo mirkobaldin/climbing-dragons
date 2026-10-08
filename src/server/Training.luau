@@ -649,15 +649,18 @@ function Training.setup()
 			end
 			lastHit[player] = now
 			dir = dir.Unit
-			local best, bestAlong, bestPos = nil, math.huge, nil
+			-- auto-mira: vale il cristallo piu' vicino al centro del mirino entro 12 gradi (prima
+			-- bisognava passare a 5 studs dal cristallo: quasi impossibile)
+			local best, bestAngle, bestPos = nil, math.rad(12), nil
 			local tNow = workspace:GetServerTimeNow()
 			for k = 1, #targets do
 				for _, lag in { 0, 0.12, 0.25 } do
 					local p = DragonConfig.crystalAt(center, k, tNow - lag)
 					local v = p - origin
-					local along = v:Dot(dir)
-					if along > 0 and along < 170 and (v - dir * along).Magnitude < 5.5 and along < bestAlong then
-						best, bestAlong, bestPos = k, along, p
+					local dist = v.Magnitude
+					local angle = math.acos(math.clamp(v.Unit:Dot(dir), -1, 1))
+					if dist < 220 and angle < bestAngle then
+						best, bestAngle, bestPos = k, angle, p
 					end
 				end
 			end

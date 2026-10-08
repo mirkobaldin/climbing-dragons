@@ -71,7 +71,8 @@ function TrailerProps.prepare(): string
 	local village = workspace:FindFirstChild("Village")
 	local plots = village and village:FindFirstChild("Plots")
 	local templates = game:GetService("ServerStorage"):FindFirstChild("PlotBuildings")
-	for name, level in { Tenda = 1, Chalet = 3 } do
+	local KEY = { [1] = "Tent", [2] = "Cabin", [3] = "Chalet" }
+	for name, level in { Tenda = 1, Baita = 2, Chalet = 3 } do
 		local plot: Model? = nil
 		for _, p in (if plots then plots:GetChildren() else {}) :: { Instance } do
 			if p:IsA("Model") and p:GetAttribute("Level") == level and not p:FindFirstChild("House") then
@@ -87,8 +88,8 @@ function TrailerProps.prepare(): string
 					d:Destroy()
 				end
 			end
-			persistent(house, if level == 1 then "CasaTenda" else "CasaChalet", folder)
-			folder:SetAttribute(if level == 1 then "TentCF" else "ChaletCF", (plot :: Model):GetPivot())
+			persistent(house, "Casa" .. name, folder)
+			folder:SetAttribute(KEY[level] .. "CF", (plot :: Model):GetPivot())
 		end
 	end
 	-- percorsi calcolati QUI sul server, che ha tutta la mappa (il client vede solo il terreno
