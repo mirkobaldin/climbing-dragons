@@ -235,6 +235,7 @@ local function run(shots: { Shot }, s: Screen)
 	end
 	hideAll(me)
 	hideAll(workspace:FindFirstChild("Pets"))
+	hideAll(workspace:FindFirstChild("GuideArrows")) -- le frecce del tutorial
 	if myRoot then
 		myRoot.Anchored = true
 	end
@@ -1424,6 +1425,10 @@ function Trailer.play(kind: string, take: string?)
 			-- si appende lo scalatore delle clip 8 e 9 (prima il punto della cinematica era finito
 			-- dentro una grotta dei draghi e lo scalatore era in mezzo al vuoto)
 			local function wallSpot(y: number): (Vector3?, Vector3)
+				-- prima quella trovata dal server (ha tutta la mappa)
+				if typeof(d.WallSpot) == "Vector3" and typeof(d.WallNormal) == "Vector3" then
+					return d.WallSpot, d.WallNormal
+				end
 				local bad: { Vector3 } = {}
 				for i = 1, (workspace:GetAttribute("ThemeZoneCount") or 0) :: number do
 					local c = workspace:GetAttribute("ThemeZone" .. i .. "Center")
@@ -1472,6 +1477,17 @@ function Trailer.play(kind: string, take: string?)
 				local BIG = 2.5
 				local function build()
 					pts = {}
+					-- i punti li calcola il server (ha tutta la montagna); qui solo se mancano
+					for k = 0, ((d.OrbitCount or 0) :: number) - 1 do
+						local p = d["Orbit" .. k]
+						if typeof(p) == "Vector3" then
+							table.insert(pts, p)
+						end
+					end
+					if #pts > 3 then
+						return
+					end
+					pts = {}
 					local a0 = if gc then math.atan2(gface.Z - mc.Z, gface.X - mc.X) else 0
 					local N = 22
 					for k = 0, N do
@@ -1499,7 +1515,7 @@ function Trailer.play(kind: string, take: string?)
 						wideDir = flat(pts[1] - mc)
 					end,
 					update = function(u)
-						flyAlong(adult, path, u * 0.06, 2.4)
+						flyAlong(adult, path, u * 0.02, 2.4)
 					end,
 					cam = function(u)
 						local p = pts[1] or Vector3.zero
@@ -1507,23 +1523,24 @@ function Trailer.play(kind: string, take: string?)
 						return CFrame.lookAt(camPos, (p + Vector3.new(mc.X, top * 0.45, mc.Z)) / 2)
 					end,
 				})
-				-- 2) il giro: camera dietro e di lato al drago, la montagna sempre nell'inquadratura
+				-- 2) il giro: un arco di ~120 gradi (un giro intero in 15 s voleva dire 1000 studs al
+				-- secondo: la camera restava indietro, dentro la roccia), camera dietro e di lato
 				add({
 					dur = 15,
 					at = Vector3.new(mc.X, top * 0.4, mc.Z),
-					smooth = 2.2,
+					smooth = 6,
 					follow = true,
 					update = function(u)
-						flyAlong(adult, path, 0.06 + u * 0.88, 2.4)
+						flyAlong(adult, path, 0.02 + u * 0.3, 2.4)
 					end,
 					cam = function(u)
-						local k = 0.06 + u * 0.88
+						local k = 0.02 + u * 0.3
 						local p = path(k)
 						local ahead = path(math.min(1, k + 0.012))
 						local out = flat(p - Vector3.new(mc.X, p.Y, mc.Z))
 						local back = (ahead - p).Unit
-						local mountain = Vector3.new(mc.X, p.Y * 0.85, mc.Z)
-						return CFrame.lookAt(p - back * 45 + out * 40 + UP * 14, p:Lerp(mountain, 0.18))
+						-- il drago al centro, la parete della montagna dietro di lui
+						return CFrame.lookAt(p - back * 50 + out * 32 + UP * 12, p + back * 18 - out * 6)
 					end,
 				})
 				-- 3) la camera si allontana: tutta la montagna con il drago davanti (4 s)
@@ -1532,13 +1549,13 @@ function Trailer.play(kind: string, take: string?)
 					at = Vector3.new(mc.X, top * 0.4, mc.Z),
 					smooth = 1.6,
 					update = function(u)
-						flyAlong(adult, path, 0.94 + u * 0.06, 2.4)
+						flyAlong(adult, path, 0.32 + u * 0.04, 2.4)
 						if u >= 0.999 then
 							scaleActor(adult, 1 / BIG)
 						end
 					end,
 					cam = function(u)
-						local p = path(0.94 + u * 0.06)
+						local p = path(0.32 + u * 0.04)
 						local out = flat(p - Vector3.new(mc.X, p.Y, mc.Z))
 						local d = 60 + (mR * 2.2) * smooth(u)
 						return CFrame.lookAt(p + out * d + UP * (20 + top * 0.25 * smooth(u)), p:Lerp(Vector3.new(mc.X, top * 0.42, mc.Z), smooth(u)))

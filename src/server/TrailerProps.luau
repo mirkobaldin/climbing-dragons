@@ -91,6 +91,73 @@ function TrailerProps.prepare(): string
 			folder:SetAttribute(if level == 1 then "TentCF" else "ChaletCF", (plot :: Model):GetPivot())
 		end
 	end
+	-- percorsi calcolati QUI sul server, che ha tutta la mappa (il client vede solo il terreno
+	-- vicino: i suoi raggi passavano attraverso la montagna non ancora caricata)
+	local mcv = workspace:GetAttribute("CineCenter")
+	local top = if summit and summit:IsA("BasePart") then summit.Position.Y else 4000
+	if typeof(mcv) == "Vector3" then
+		local mc = Vector3.new(mcv.X, 0, mcv.Z)
+		local solid = RaycastParams.new()
+		solid.FilterType = Enum.RaycastFilterType.Exclude
+		solid.FilterDescendantsInstances = { folder, workspace:FindFirstChild("Pets") :: Instance, workspace:FindFirstChild("Nemici") :: Instance }
+		local function surfaceR(a: number, y: number): number
+			local dir = Vector3.new(math.cos(a), 0, math.sin(a))
+			local hit = workspace:Raycast(Vector3.new(mc.X, y, mc.Z) + dir * 5000, -dir * 5000, solid)
+			return if hit then (Vector3.new(hit.Position.X, 0, hit.Position.Z) - mc).Magnitude else 0
+		end
+		-- giro della mappa (clip7): 23 punti attorno alla montagna, sale fino a meta' e riscende
+		local face = workspace:GetAttribute("GrandCaveFace")
+		local a0 = if typeof(face) == "Vector3" then math.atan2(face.Z - mc.Z, face.X - mc.X) else 0
+		local N = 22
+		for k = 0, N do
+			local f = k / N
+			local a = a0 + f * 2 * math.pi
+			local y = 520 + (top * 0.55 - 520) * (0.5 - 0.5 * math.cos(f * 2 * math.pi))
+			local r = math.max(surfaceR(a, y), surfaceR(a, y - 110), surfaceR(a, y + 110)) + 200
+			folder:SetAttribute("Orbit" .. k, Vector3.new(mc.X + math.cos(a) * r, y, mc.Z + math.sin(a) * r))
+		end
+		folder:SetAttribute("OrbitCount", N + 1)
+		-- parete di roccia vera per lo scalatore (clip 8 e 9): ripida, libera davanti, lontana dalle
+		-- zone dei draghi e dalle grotte
+		local bad: { Vector3 } = {}
+		for i = 1, (workspace:GetAttribute("ThemeZoneCount") or 0) :: number do
+			local c = workspace:GetAttribute("ThemeZone" .. i .. "Center")
+			if typeof(c) == "Vector3" then
+				table.insert(bad, c)
+			end
+		end
+		for _, key in { "GrandCaveCenter", "CraterCaveCenter" } do
+			local v = workspace:GetAttribute(key)
+			if typeof(v) == "Vector3" then
+				table.insert(bad, v)
+			end
+		end
+		local terrainOnly = RaycastParams.new()
+		terrainOnly.FilterType = Enum.RaycastFilterType.Include
+		terrainOnly.FilterDescendantsInstances = { workspace.Terrain }
+		local y = top * 0.21
+		for k = 0, 143 do
+			local a = k / 144 * 2 * math.pi + 0.11
+			local dir = Vector3.new(math.cos(a), 0, math.sin(a))
+			local hit = workspace:Raycast(Vector3.new(mc.X, y, mc.Z) + dir * 5000, -dir * 5000, terrainOnly)
+			if hit and math.abs(hit.Normal.Y) < 0.3 and hit.Material ~= Enum.Material.Ice and hit.Material ~= Enum.Material.Glacier then
+				local ok = not workspace:Raycast(hit.Position + hit.Normal * 2, hit.Normal * 80, solid)
+				for _, b in bad do
+					if (b - hit.Position).Magnitude < 320 then
+						ok = false
+					end
+				end
+				local n = hit.Normal
+				local above = workspace:Raycast(hit.Position + n * 3 + Vector3.new(0, 10, 0), -n * 8, terrainOnly)
+				local below = workspace:Raycast(hit.Position + n * 3 - Vector3.new(0, 10, 0), -n * 8, terrainOnly)
+				if ok and above and below then
+					folder:SetAttribute("WallSpot", hit.Position)
+					folder:SetAttribute("WallNormal", Vector3.new(n.X, 0, n.Z).Unit)
+					break
+				end
+			end
+		end
+	end
 	-- la Grande Grotta (punti scritti dal generatore della mappa)
 	folder:SetAttribute("GrandCenter", workspace:GetAttribute("GrandCaveCenter"))
 	folder:SetAttribute("GrandOut", workspace:GetAttribute("GrandCaveOut"))
