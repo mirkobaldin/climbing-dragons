@@ -188,6 +188,18 @@ local function pose(r: Rig, kind: string, p: number)
 	end
 end
 
+-- per le clip: mette un modello qualsiasi (il sosia) nella posa dell'esercizio, fase p (0-1)
+function GymAnim.poseModel(model: Model, kind: string, p: number)
+	local motors = {}
+	for _, d in model:GetDescendants() do
+		if d:IsA("Motor6D") or d:IsA("AnimationConstraint") then
+			motors[d.Name] = d
+		end
+	end
+	pose({ motors = motors, props = {} }, kind, p)
+end
+GymAnim.PERIOD = PERIOD
+
 function GymAnim.start()
 	-- mentre ti alleni i tasti dell'arrampicata (E, F, salto...) non fanno niente: prima E girava
 	-- il personaggio di 90 gradi

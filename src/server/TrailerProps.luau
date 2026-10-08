@@ -71,6 +71,24 @@ function TrailerProps.prepare(): string
 	local village = workspace:FindFirstChild("Village")
 	local plots = village and village:FindFirstChild("Plots")
 	local templates = game:GetService("ServerStorage"):FindFirstChild("PlotBuildings")
+	-- clip14: uno yeti di scena (senza intelligenza) e il campo base, dove c'e' spazio piano
+	local hub = markers and markers:FindFirstChild("HubSpawn")
+	if hub and hub:IsA("BasePart") then
+		folder:SetAttribute("Hub", hub.Position)
+	end
+	local nemici = game:GetService("ServerStorage"):FindFirstChild("Nemici")
+	local yetiT = nemici and nemici:FindFirstChild("Yeti")
+	if yetiT and yetiT:IsA("Model") then
+		local y = yetiT:Clone()
+		for _, dsc in y:GetDescendants() do
+			if dsc:IsA("LuaSourceContainer") or dsc:IsA("Humanoid") or dsc:IsA("AnimationController") then
+				dsc:Destroy()
+			end
+		end
+		local _, ys = y:GetBoundingBox()
+		y:ScaleTo(y:GetScale() * 12 / ys.Y)
+		persistent(y, "YetiScena", folder)
+	end
 	local KEY = { [1] = "Tent", [2] = "Cabin", [3] = "Chalet" }
 	for name, level in { Tenda = 1, Baita = 2, Chalet = 3 } do
 		local plot: Model? = nil

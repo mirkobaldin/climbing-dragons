@@ -20,6 +20,8 @@ local TweenService = game:GetService("TweenService")
 
 local PetAnimator = require(script.Parent.PetAnimator)
 local KfsPlayer = require(script.Parent.KfsPlayer)
+local DragonVFX = require(script.Parent.DragonVFX)
+local GymAnim = require(script.Parent.GymAnim)
 
 local player = Players.LocalPlayer
 
@@ -880,7 +882,10 @@ function Trailer.play(kind: string, take: string?)
 			say(s.big, "part 2 at 1000 likes", 3.6, GOLD)
 		end)
 	end
-	if kind == "clip4" or kind == "clip5" or kind == "clip6" or kind == "clip7" or kind == "clip8" or kind == "clip9" or kind == "clip10" or kind == "clip11" then
+	if kind == "clip16" then
+		kind = "clip4" -- 1 contro 3 draghi (stessa scena del boss)
+	end
+	if string.match(kind, "^clip%d+$") and (tonumber(string.sub(kind, 5)) or 0) >= 4 then
 		-- clip SENZA scritte (i testi si mettono nell'editor di TikTok: docs/TIKTOK_CLIPS.md)
 		local function sparkBurst(at: Vector3, color: Color3, size: number)
 			local p = Instance.new("Part")
@@ -940,10 +945,10 @@ function Trailer.play(kind: string, take: string?)
 			-- BOSS: nel cratere sopra i 2000 m il Titano di ghiaccio si risveglia, tre draghi (Eclissi,
 			-- Gelo, Fulmine Nero) gli girano attorno e lo colpiscono, il Titano crolla
 			local den = workspace:GetAttribute("CraterCaveDen")
-			local allies: { { a: Actor?, color: Color3, phase: number } } = {
-				{ a = adult, color = Color3.fromRGB(255, 160, 60), phase = 0 },
-				{ a = actor(props, "StormoGelo"), color = Color3.fromRGB(140, 220, 255), phase = 0.33 },
-				{ a = actor(props, "StormoFulmine"), color = Color3.fromRGB(180, 130, 255), phase = 0.66 },
+			local allies: { { a: Actor?, color: Color3, phase: number, element: string } } = {
+				{ a = adult, color = Color3.fromRGB(255, 160, 60), phase = 0, element = "Eclissi" },
+				{ a = actor(props, "StormoGelo"), color = Color3.fromRGB(140, 220, 255), phase = 0.33, element = "Gelo" },
+				{ a = actor(props, "StormoFulmine"), color = Color3.fromRGB(180, 130, 255), phase = 0.66, element = "Fulmine" },
 			}
 			if typeof(den) == "CFrame" then
 				local throne = den.Position
@@ -1078,7 +1083,7 @@ function Trailer.play(kind: string, take: string?)
 							turn = turn % #allies + 1
 							local al = allies[turn]
 							if al.a then
-								fireball(al.a.model:GetPivot().Position, throne + HIT + side * (math.random() - 0.5) * 8, al.color)
+								DragonVFX.shot(al.element, al.a.model:GetPivot().Position, throne + HIT + side * (math.random() - 0.5) * 8, al.color)
 								life = math.max(0.12, life - 0.035)
 								if hp then
 									TweenService:Create(hp, TweenInfo.new(0.3), { Size = UDim2.fromScale(life, 1) }):Play()
@@ -1109,7 +1114,7 @@ function Trailer.play(kind: string, take: string?)
 					start = function()
 						for _, al in allies do
 							if al.a then
-								fireball(al.a.model:GetPivot().Position, throne + HIT, al.color)
+								DragonVFX.shot(al.element, al.a.model:GetPivot().Position, throne + HIT, al.color)
 							end
 						end
 						task.delay(0.4, function()
@@ -1949,6 +1954,278 @@ function Trailer.play(kind: string, take: string?)
 							return CFrame.lookAt(camPos, p:Lerp(Vector3.new(mc.X, top * 0.42, mc.Z), k * 0.85))
 						end,
 					})
+				end
+			elseif kind == "clip12" then
+				-- GYM ARC: tagli veloci agli attrezzi (panca, trazioni, squat, sacco), poi lo stesso
+				-- scalatore sale veloce una parete enorme e la camera si allarga
+				local gymFolder = workspace:FindFirstChild("Palestra")
+				local stations: { BasePart } = {}
+				for _, want in { "bench", "pullup", "squat", "box" } do
+					for _, dsc in (if gymFolder then gymFolder:GetDescendants() else {}) :: { Instance } do
+						if dsc:IsA("BasePart") and dsc:GetAttribute("Exercise") == want then
+							table.insert(stations, dsc)
+							break
+						end
+					end
+				end
+				local body: Model? = nil
+				local gc0 = workspace:GetAttribute("GymCenter")
+				for k, st in stations do
+					local poseCf = st:GetAttribute("Pose") :: CFrame
+					if st:GetAttribute("Standing") then
+						poseCf += UP * 3
+					end
+					local kindEx = st:GetAttribute("Exercise") :: string
+					local per = GymAnim.PERIOD[kindEx] or 1.5
+					local side = poseCf.RightVector
+					add({
+						dur = 1.6,
+						at = if typeof(gc0) == "Vector3" then gc0 else poseCf.Position,
+						start = function()
+							if not body then
+								body = Cinematic.kit.cloneActor()
+							end
+							if k > 1 then
+								flash(s)
+							end
+						end,
+						update = function(u)
+							if body then
+								(body :: Model):PivotTo(poseCf)
+								GymAnim.poseModel(body :: Model, kindEx, (u * 1.6 / per) % 1)
+							end
+						end,
+						cam = function(u)
+							local p = poseCf.Position
+							return CFrame.lookAt(p + side * (7 + u) + UP * 2 + poseCf.LookVector * 5, p + UP * 0.5)
+						end,
+					})
+				end
+				local spot, n = wallSpot(top * 0.2)
+				if spot then
+					local at = spot
+					local climbH = 90
+					add({
+						dur = 7,
+						at = spot,
+						preload = around,
+						smooth = 3,
+						start = function()
+							flash(s)
+							shake = 0.5
+							if not body then
+								body = Cinematic.kit.cloneActor()
+							end
+							at = outOfRock(spot, n)
+						end,
+						update = function(u)
+							local p = at + UP * climbH * u
+							if body then
+								(body :: Model):PivotTo(CFrame.lookAt(p, p - n) * CFrame.Angles(deg(6), 0, 0))
+								climbPose(body, os.clock() * 3)
+							end
+							if u >= 0.999 and body then
+								(body :: Model):Destroy()
+								body = nil
+							end
+						end,
+						cam = function(u)
+							local p = at + UP * climbH * u
+							local d = 12 + 260 * smooth(u)
+							return CFrame.lookAt(p + n * d + UP * (4 + d * 0.25), p:Lerp(Vector3.new(mc.X, p.Y + 300, mc.Z), smooth(u) * 0.4))
+						end,
+					})
+				end
+			elseif kind == "clip13" then
+				-- DRAGON vs CRYSTAL: il cucciolo vola in cerchio nell'arena e spara ai cristalli (un
+				-- colpo ogni mezzo secondo, effetti del suo elemento), poi evolve
+				local DragonConfigC = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("DragonConfig"))
+				local c = train
+				local function circle(u: number): Vector3
+					local a = u * math.pi * 1.6
+					return c + Vector3.new(math.cos(a) * 30, 22 + math.sin(u * 9) * 2, math.sin(a) * 30)
+				end
+				local nextShot = 0
+				local k = 0
+				add({
+					dur = 8,
+					at = c,
+					smooth = 4,
+					start = function()
+						scaleActor(baby, 1.5)
+						pose(baby, "fly", 0.9)
+						hide(adult)
+					end,
+					update = function(u)
+						flyAlong(baby, circle, u, 1.4)
+						if baby and os.clock() > nextShot then
+							nextShot = os.clock() + 0.5
+							k = k % DragonConfigC.TRAINING.TARGETS + 1
+							local target = DragonConfigC.crystalAt(c, k, workspace:GetServerTimeNow())
+							DragonVFX.shot("Eclissi", baby.model:GetPivot().Position, target, Color3.fromRGB(255, 160, 60))
+						end
+						if u >= 0.999 then
+							scaleActor(baby, 1 / 1.5)
+						end
+					end,
+					cam = function(u)
+						local p = circle(u)
+						local dir = (circle(math.min(1, u + 0.01)) - p).Unit
+						return CFrame.lookAt(p - dir * 14 + UP * 5, p + dir * 30 - UP * 6)
+					end,
+				})
+				add(evolution(s, c + Vector3.new(0, 0, 8), baby, adult, 5, 0.5))
+			elseif kind == "clip14" then
+				-- PICKAXE BOOMERANG: lo scalatore lancia la piccozza contro uno yeti, la piccozza gli
+				-- rimbalza in testa, torna in mano; lo yeti barcolla e cade
+				local hubP = d.Hub
+				local yeti = props and props:FindFirstChild("YetiScena")
+				if typeof(hubP) == "Vector3" and yeti and yeti:IsA("Model") then
+					local dirW = Vector3.new(1, 0, 0.4).Unit
+					local sideW = Vector3.new(-dirW.Z, 0, dirW.X)
+					local me0 = groundAll(hubP + sideW * 40) + UP * 3
+					local yetiAt = groundAll(hubP + sideW * 40 + dirW * 26)
+					local body: Model? = nil
+					local axe = Instance.new("Model")
+					axe.Name = "PiccozzaScena"
+					local shaft = Instance.new("Part")
+					shaft.Size = Vector3.new(0.3, 3.4, 0.3)
+					shaft.Color = Color3.fromRGB(90, 60, 40)
+					shaft.Material = Enum.Material.Wood
+					shaft.Anchored, shaft.CanCollide = true, false
+					shaft.Parent = axe
+					local head = Instance.new("Part")
+					head.Size = Vector3.new(0.3, 0.4, 2.2)
+					head.Color = Color3.fromRGB(190, 195, 205)
+					head.Material = Enum.Material.Metal
+					head.Anchored, head.CanCollide = true, false
+					head.Parent = axe
+					axe.PrimaryPart = shaft
+					local function placeAxe(cf: CFrame)
+						shaft.CFrame = cf
+						head.CFrame = cf * CFrame.new(0, 1.6, 0.3)
+					end
+					local tracks: { [string]: any } = {}
+					local set = game:GetService("ReplicatedStorage"):FindFirstChild("EnemyAnimSaves")
+					set = set and set:FindFirstChild("Yeti")
+					local yCf: CFrame = CFrame.identity
+					local hitDone = false
+					add({
+						dur = 7,
+						at = me0,
+						smooth = 5,
+						start = function()
+							body = Cinematic.kit.cloneActor()
+							axe.Parent = workspace
+							local _, ys = yeti:GetBoundingBox()
+							yCf = CFrame.lookAt(yetiAt + UP * ys.Y / 2, me0)
+							yeti:PivotTo(yCf)
+							for name, key in { idle = "nemico-fermo", attack = "nemico-attacco" } do
+								local kf = set and set:FindFirstChild(key)
+								if kf and kf:IsA("KeyframeSequence") then
+									tracks[name] = KfsPlayer.load(yeti, kf)
+								end
+							end
+							if tracks.idle then
+								tracks.idle:Play(0, 1)
+							end
+						end,
+						update = function(u)
+							local t = u * 7
+							local hand = me0 + UP * 1.5 + sideW * 1.2
+							if body then
+								(body :: Model):PivotTo(CFrame.lookAt(me0, me0 + dirW))
+								-- carica (0-1 s), lancio (1-1.2), braccio giu', presa al ritorno (2.4)
+								local wind = math.clamp(t / 1, 0, 1)
+								local rel = math.clamp((t - 1) / 0.2, 0, 1)
+								local catch = math.clamp((t - 2.3) / 0.3, 0, 1)
+								limbs(body, {
+									RightShoulder = CFrame.Angles(deg(170 * wind - 230 * rel + 90 * catch), 0, 0),
+									RightElbow = CFrame.Angles(deg(60 * wind * (1 - rel)), 0, 0),
+									Waist = CFrame.Angles(0, deg(-25 * wind + 40 * rel), 0),
+								})
+							end
+							local yHead = yetiAt + UP * 9
+							if t < 1.2 then
+								placeAxe(CFrame.new(hand + UP * 1.5 * math.clamp(t, 0, 1)))
+							elseif t < 1.7 then
+								local f = (t - 1.2) / 0.5
+								placeAxe(CFrame.lookAt(hand:Lerp(yHead, f), yHead) * CFrame.Angles(t * 25, 0, 0))
+							else
+								if not hitDone then
+									hitDone = true
+									DragonVFX.shot("Gelo", yHead + dirW * 0.1, yHead, Color3.fromRGB(200, 230, 255))
+									shake = 1.2
+									if tracks.attack then
+										tracks.attack:Play(0.1, 1)
+									end
+								end
+								local f = math.clamp((t - 1.7) / 0.7, 0, 1)
+								local p = yHead:Lerp(hand, f * f * (3 - 2 * f)) + sideW * math.sin(f * math.pi) * 5 + UP * math.sin(f * math.pi) * 4
+								placeAxe(CFrame.lookAt(p, hand) * CFrame.Angles(t * 25 * (1 - f), 0, 0))
+							end
+							-- lo yeti barcolla e cade all'indietro (3 - 4.5 s)
+							local fall = math.clamp((t - 3) / 1.2, 0, 1)
+							if fall > 0 then
+								yeti:PivotTo(yCf * CFrame.new(0, -3 * fall, 4 * fall) * CFrame.Angles(-1.4 * fall * fall, 0, 0))
+							end
+							if u >= 0.999 then
+								for _, tr in tracks do
+									tr:Stop(0)
+								end
+								axe:Destroy()
+								yeti:PivotTo(CFrame.new(0, -500, 0))
+								if body then
+									(body :: Model):Destroy()
+									body = nil
+								end
+							end
+						end,
+						cam = function(u)
+							local mid = (me0 + yetiAt) / 2
+							return CFrame.lookAt(mid + sideW * (26 - 6 * u) + UP * 5 - dirW * 4, mid + UP * 4)
+						end,
+					})
+				end
+			elseif kind == "clip15" then
+				-- WHICH HOUSE ARE YOU: tenda, baita, chalet, 3 secondi ciascuna, ognuna col suo panorama
+				local list = {
+					{ cf = d.TentCF, m = props and props:FindFirstChild("CasaTenda"), r = 34, h = 12 },
+					{ cf = d.CabinCF, m = props and props:FindFirstChild("CasaBaita"), r = 60, h = 22 },
+					{ cf = d.ChaletCF, m = props and props:FindFirstChild("CasaChalet"), r = 95, h = 34 },
+				}
+				local pre = {}
+				for _, h in list do
+					if typeof(h.cf) == "CFrame" then
+						table.insert(pre, (h.cf :: CFrame).Position)
+					end
+				end
+				for k, h in list do
+					if typeof(h.cf) == "CFrame" then
+						local cf = h.cf :: CFrame
+						local out = flat(cf.LookVector)
+						local base = math.atan2(out.Z, out.X)
+						add({
+							dur = 3.2,
+							at = cf.Position,
+							preload = pre,
+							smooth = 3,
+							start = function()
+								if k > 1 then
+									flash(s)
+								end
+								for _, o in list do
+									if o.m and o.m:IsA("Model") then
+										o.m:PivotTo(if o == h then o.cf else CFrame.new(0, -600, 0))
+									end
+								end
+							end,
+							cam = function(u)
+								local a = base - 0.5 + u * 0.7
+								return CFrame.lookAt(cf.Position + Vector3.new(math.cos(a) * h.r, h.h, math.sin(a) * h.r), cf.Position + UP * 6)
+							end,
+						})
+					end
 				end
 			end
 		end
