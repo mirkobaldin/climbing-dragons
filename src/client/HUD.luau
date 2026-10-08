@@ -61,19 +61,6 @@ local function card(parent: Instance): Frame
 	Theme.corner(f, 14)
 	Theme.gradient(f, Color3.fromRGB(34, 46, 78), Color3.fromRGB(14, 18, 32), 90)
 	Theme.stroke(f, Color3.fromRGB(150, 190, 255), 1.5, 0.6)
-	local shadow = Instance.new("ImageLabel")
-	shadow.Name = "Ombra"
-	shadow.BackgroundTransparency = 1
-	shadow.Image = "rbxassetid://1316045217" -- ombra sfumata di Roblox
-	shadow.ImageColor3 = Color3.new(0, 0, 0)
-	shadow.ImageTransparency = 0.55
-	shadow.ScaleType = Enum.ScaleType.Slice
-	shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-	shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-	shadow.Position = UDim2.new(0.5, 0, 0.5, 4)
-	shadow.Size = UDim2.new(1, 18, 1, 18)
-	shadow.ZIndex = 0
-	shadow.Parent = f
 	return f
 end
 
@@ -192,7 +179,7 @@ function HUD.start()
 	skip.Font = Enum.Font.GothamBold
 	skip.TextSize = 14
 	skip.TextColor3 = Theme.BG
-	skip.Text = "Salta il tutorial  ✕"
+	skip.Text = "Salta il tutorial"
 	skip.Parent = quest
 	Theme.corner(skip, 10)
 	local armedAt = 0
@@ -203,14 +190,14 @@ function HUD.start()
 			skip.BackgroundColor3 = Theme.BAD
 			task.delay(4, function()
 				if os.clock() - armedAt >= 4 then
-					skip.Text = "Salta il tutorial  ✕"
+					skip.Text = "Salta il tutorial"
 					skip.BackgroundColor3 = Theme.ACCENT
 				end
 			end)
 			return
 		end
 		armedAt = 0
-		skip.Text = "Salta il tutorial  ✕"
+		skip.Text = "Salta il tutorial"
 		skip.BackgroundColor3 = Theme.ACCENT
 		local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("SkipTutorial")
 		if remote then
