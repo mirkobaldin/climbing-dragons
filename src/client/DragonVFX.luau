@@ -164,6 +164,37 @@ function DragonVFX.muzzle(at: Vector3, color: Color3)
 	Debris:AddItem(f, 0.6)
 end
 
+-- bocca del drago: l'osso della testa (attributo HeadBone del modello, o "head"), spostata un po'
+-- verso il bersaglio. Prima i colpi partivano dal centro del modello, in mezzo alla mesh
+function DragonVFX.mouth(model: Model, toward: Vector3?): Vector3
+	local _, size = model:GetBoundingBox()
+	local p: Vector3? = nil
+	local headName = model:GetAttribute("HeadBone")
+	local names = { "head", "spine.011", "Head" }
+	if type(headName) == "string" then
+		table.insert(names, 1, headName)
+	end
+	for _, n in names do
+		local d = model:FindFirstChild(n, true)
+		if d and d:IsA("Bone") then
+			p = d.WorldPosition
+			break
+		elseif d and d:IsA("BasePart") then
+			p = d.Position
+			break
+		end
+	end
+	if not p then
+		local cf = model:GetPivot()
+		p = cf.Position + cf.LookVector * size.Z * 0.4 + Vector3.new(0, size.Y * 0.25, 0)
+	end
+	local at = p :: Vector3
+	if toward and (toward - at).Magnitude > 1 then
+		at += (toward - at).Unit * math.max(size.X, size.Y, size.Z) * 0.06
+	end
+	return at
+end
+
 function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Color3)
 	DragonVFX.muzzle(from, color)
 	local e = element or ""

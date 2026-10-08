@@ -176,6 +176,79 @@ function TrailerProps.prepare(): string
 				end
 			end
 		end
+		-- parete della clip 12: in alto (si vede il paesaggio), di roccia, ripida per 90 studs di
+		-- fila e libera davanti. Per ogni quota il server calcola gia' dove sta il corpo fuori dalla
+		-- roccia (prima lo scalatore partiva dentro la parete: la parete non e' mai verticale)
+		local UP = Vector3.yAxis
+		local bestPts: { Vector3 }? = nil
+		local bestDir = Vector3.xAxis
+		local bestScore = -math.huge
+		for _, frac in { 0.42, 0.35, 0.28 } do
+			local y0 = top * frac
+			for k = 0, 95 do
+				local a = k / 96 * 2 * math.pi + 0.07
+				local dir = Vector3.new(math.cos(a), 0, math.sin(a))
+				local pts: { Vector3 } = {}
+				local rocky = 0
+				for i = 0, 9 do
+					local hit = workspace:Raycast(Vector3.new(mc.X, y0 + i * 10, mc.Z) + dir * 5000, -dir * 5000, terrainOnly)
+					if not hit or hit.Normal.Y > 0.55 or hit.Material == Enum.Material.Ice or hit.Material == Enum.Material.Glacier then
+						break
+					end
+					if hit.Material == Enum.Material.Rock or hit.Material == Enum.Material.Slate or hit.Material == Enum.Material.Basalt then
+						rocky += 1
+					end
+					table.insert(pts, hit.Position)
+				end
+				if #pts < 10 then
+					continue
+				end
+				local maxStep = 0
+				for i = 2, #pts do
+					local r1 = (Vector3.new(pts[i - 1].X, 0, pts[i - 1].Z) - mc).Magnitude
+					local r2 = (Vector3.new(pts[i].X, 0, pts[i].Z) - mc).Magnitude
+					maxStep = math.max(maxStep, math.abs(r1 - r2))
+				end
+				if maxStep > 9 then
+					continue
+				end
+				local nearBad = false
+				for _, b in bad do
+					if (b - pts[5]).Magnitude < 320 then
+						nearBad = true
+					end
+				end
+				if nearBad then
+					continue
+				end
+				local view = not workspace:Raycast(pts[5] + dir * 4 + UP * 3, dir * 400, solid)
+				local score = (if view then 100 else 0) + rocky * 4 - maxStep * 3
+				if score > bestScore then
+					bestScore, bestPts, bestDir = score, pts, dir
+				end
+			end
+			if bestScore >= 100 then
+				break
+			end
+		end
+		if bestPts then
+			local side = Vector3.new(-bestDir.Z, 0, bestDir.X)
+			for i, p in bestPts do
+				-- il corpo (testa, petto, anche, ginocchia e di lato) sta davanti alla roccia piu' sporgente
+				local most = 0
+				for _, dy in { 2.6, 1.2, 0, -1.4, -2.8 } do
+					for _, dx in { -1.2, 0, 1.2 } do
+						local hit = workspace:Raycast(p + bestDir * 30 + UP * dy + side * dx, -bestDir * 60, terrainOnly)
+						if hit then
+							most = math.max(most, (hit.Position - p):Dot(bestDir))
+						end
+					end
+				end
+				folder:SetAttribute("Climb" .. (i - 1), p + bestDir * (most + 2.2))
+			end
+			folder:SetAttribute("ClimbCount", #bestPts)
+			folder:SetAttribute("ClimbNormal", bestDir)
+		end
 	end
 	-- la Grande Grotta (punti scritti dal generatore della mappa)
 	folder:SetAttribute("GrandCenter", workspace:GetAttribute("GrandCaveCenter"))

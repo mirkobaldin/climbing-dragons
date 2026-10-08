@@ -17,6 +17,7 @@ local StarterGui = game:GetService("StarterGui")
 
 local ClimbConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ClimbConfig"))
 local Gear = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gear"))
+local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
 local Theme = require(script.Parent.Theme)
 
@@ -155,6 +156,52 @@ function HUD.start()
 	nameLabel.Size = UDim2.new(1, 0, 0, 16)
 	local _, healthFill, healthText = bar(stack, Color3.fromRGB(220, 60, 60), 16)
 	local staminaBack, staminaFill, staminaText = bar(stack, Color3.fromRGB(120, 200, 110), 14)
+
+	-- Statistiche del drago al seguito, sempre a schermo sotto la scheda del giocatore (spostata a
+	-- destra della colonna dei pulsanti, che sul telefono sale fin qui)
+	local pet = card(gui)
+	pet.Position = UDim2.new(0, 88, 0, 86)
+	pet.Size = UDim2.new(0, 172, 0, 0)
+	pet.Visible = false
+	Theme.padding(pet, 8)
+	Theme.list(pet, 3)
+	local petName = Theme.label(pet, "", 13, Theme.TEXT, true)
+	petName.RichText = true
+	petName.Size = UDim2.new(1, 0, 0, 16)
+	local petLevel = Theme.label(pet, "", 11, Theme.MUTED, true)
+	petLevel.Size = UDim2.new(1, 0, 0, 14)
+	local _, petXpFill, petXpText = bar(pet, Color3.fromRGB(110, 200, 255), 13)
+	local petStats = Theme.label(pet, "", 11, Theme.TEXT)
+	petStats.RichText = true
+	petStats.Size = UDim2.new(1, 0, 0, 14)
+	local function refreshPet()
+		local ok, data = pcall(function()
+			return game:GetService("HttpService"):JSONDecode(player:GetAttribute("DragonData") :: string)
+		end)
+		local d: any = nil
+		if ok and type(data) == "table" and data.equipped then
+			for _, x in data.dragons or {} do
+				if x.id == data.equipped[1] then
+					d = x
+				end
+			end
+		end
+		pet.Visible = d ~= nil
+		if not d then
+			return
+		end
+		local lv = d.level or 1
+		local need = DragonConfig.xpForLevel(lv)
+		local stage = DragonConfig.STAGES[math.clamp(d.stage or 1, 1, #DragonConfig.STAGES)]
+		local stageName = ({ Cucciolo = "Hatchling", Giovane = "Young", Adulto = "Adult" } :: any)[stage.name] or stage.name
+		petName.Text = string.format("%s <font color=\"#ffc86a\">%s</font>", tostring(d.element), ({ Comune = "Common", Raro = "Rare", Epico = "Epic", Leggendario = "Legendary" } :: any)[d.rarity] or tostring(d.rarity or ""))
+		petLevel.Text = string.format("Lv %d · %s", lv, stageName)
+		petXpFill.Size = UDim2.fromScale(math.clamp((d.xp or 0) / need, 0, 1), 1)
+		petXpText.Text = string.format("%d / %d XP", math.floor(d.xp or 0), need)
+		petStats.Text = string.format("ATK <b>%.1f</b> · Evo <b>%d%%</b>", 8 + 0.15 * lv, math.floor(math.clamp(lv / 100, 0, 1) * 100))
+	end
+	player:GetAttributeChangedSignal("DragonData"):Connect(refreshPet)
+	refreshPet()
 
 	-- Tutorial (sotto la scheda del giocatore)
 	local quest = card(gui)

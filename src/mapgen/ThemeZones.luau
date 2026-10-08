@@ -824,13 +824,20 @@ function ThemeZones.build(map: Heightmap.Map)
 		local den = workspace:GetAttribute(key .. "Den")
 		if typeof(den) == "CFrame" then
 			-- dentro la sala: i raggi partono poco sopra il pavimento (sopra c'e' il soffitto)
-			scatter("Gelo", den.Position, 110, 14, den.Position.Y + 25)
+			scatter("Gelo", den.Position, 150, 45, den.Position.Y + 25)
+		end
+	end
+	-- anche lungo le gallerie delle grotte di ghiaccio (le luci azzurre segnano il percorso)
+	local glacier = workspace:FindFirstChild("Glacier")
+	for _, l in (if glacier then glacier:GetDescendants() else {}) :: { Instance } do
+		if l:IsA("BasePart") and l.Parent and string.find(l.Parent.Name, "Luci", 1, true) then
+			scatter("Gelo", l.Position, 30, 5, l.Position.Y + 6)
 		end
 	end
 	for i = 1, (workspace:GetAttribute("GasCount") or 0) :: number do
 		local c, r = workspace:GetAttribute("GasCenter" .. i), workspace:GetAttribute("GasRadius" .. i)
 		if typeof(c) == "Vector3" and type(r) == "number" then
-			scatter("Gas", c, r * 0.8, 10, c.Y + 300)
+			scatter("Gas", c, r * 0.95, 35, c.Y + 300)
 		end
 	end
 	local removed = 0

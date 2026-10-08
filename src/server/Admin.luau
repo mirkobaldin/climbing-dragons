@@ -47,7 +47,8 @@ trailer                trailer di 19 s (montagna, draghi, grotte, gas, addestram
 clip1 / clip2 / clip3  clip per TikTok: evoluzione Eclissi, grotta di ghiaccio, valle dei gas
 clip4 / clip5 / clip6  clip senza scritte: boss Titano, giro delle zone dei draghi, volo del drago
 clip7 ... clip11       giro della mappa, una sola mappa, rampino, gas, giorno 1 / giorno 30
-clip12 ... clip16      palestra, drago contro cristalli, piccozza boomerang, case, 1 contro 3 draghi
+clip12 clip13 clip15   palestra, drago contro cristalli, case (clip14 tolta)
+clip16                 lancio della piccozza al Titano in terza persona coi 3 draghi
 help]]
 
 local function isAdmin(player: Player): boolean

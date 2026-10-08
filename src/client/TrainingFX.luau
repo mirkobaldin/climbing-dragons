@@ -57,21 +57,7 @@ end
 -- punto da cui parte il colpo: la testa (osso o parte), se no il centro un po' in alto
 local function mouthOf(pet: Model): Vector3
 	-- l'osso della testa lo segna il modello (attributo HeadBone, dall'analisi dello scheletro)
-	local headName = pet:GetAttribute("HeadBone")
-	local headBone = type(headName) == "string" and pet:FindFirstChild(headName, true)
-	if headBone and headBone:IsA("Bone") then
-		return headBone.WorldPosition
-	end
-	for _, n in { "head", "spine.011", "Head" } do
-		local d = pet:FindFirstChild(n, true)
-		if d and d:IsA("Bone") then
-			return d.WorldPosition
-		elseif d and d:IsA("BasePart") then
-			return d.Position
-		end
-	end
-	local cf, size = pet:GetBoundingBox()
-	return cf.Position + Vector3.new(0, size.Y * 0.3, 0)
+	return DragonVFX.mouth(pet)
 end
 
 local function fxPart(shape: Enum.PartType, size: Vector3, color: Color3, at: CFrame): Part
@@ -520,15 +506,15 @@ local function startAim(event: RemoteEvent)
 	tip.TextStrokeTransparency = 0.4
 	tip.Text = "Aim with the mouse · click to shoot"
 	tip.Parent = gui
-	-- scheda del drago (a destra): livello, XP al prossimo livello, strada fino all'evoluzione,
-	-- moltiplicatore, colpi e precisione della sessione
+	-- scheda piccola (in basso a destra, non copre la visuale): solo XP e precisione della sessione.
+	-- Le statistiche complete del drago stanno sempre nell'HUD, sotto la scheda del giocatore
 	local card = Instance.new("Frame")
 	card.Name = "SchedaDrago"
 	card.AnchorPoint = Vector2.new(1, 1)
 	card.Position = UDim2.new(1, -16, 1, -90) -- in basso a destra (sopra c'erano Admin e God)
-	card.Size = UDim2.fromOffset(250, 200)
+	card.Size = UDim2.fromOffset(210, 62)
 	card.BackgroundColor3 = Color3.fromRGB(18, 20, 30)
-	card.BackgroundTransparency = 0.15
+	card.BackgroundTransparency = 0.3
 	card.Parent = gui
 	local cc = Instance.new("UICorner")
 	cc.CornerRadius = UDim.new(0, 12)
@@ -569,15 +555,9 @@ local function startAim(event: RemoteEvent)
 		c:Clone().Parent = fill
 		return fill
 	end
-	local nameL = line(10, 22, 18, true)
-	local levelL = line(34, 18, 14, false)
-	local xpFill = bar(56, Color3.fromRGB(110, 200, 255))
-	local evoL = line(70, 18, 13, false)
-	local evoFill = bar(92, Color3.fromRGB(255, 170, 70))
-	local multL = line(108, 18, 13, false)
-	local hitsL = line(130, 18, 13, false)
-	local powerL = line(152, 36, 13, false)
-	powerL.TextWrapped = true
+	local levelL = line(6, 18, 13, true)
+	local xpFill = bar(26, Color3.fromRGB(110, 200, 255))
+	local hitsL = line(38, 18, 12, false)
 	local session = trainingSession
 	local function refreshCard()
 		local raw = player:GetAttribute("DragonData")
@@ -600,15 +580,10 @@ local function startAim(event: RemoteEvent)
 		local lv = d.level or 1
 		local need = DragonConfig.xpForLevel(lv)
 		local xp = d.xp or 0
-		nameL.Text = string.format("%s <font color=\"#ffc86a\">%s</font>", d.element, d.rarity)
 		levelL.Text = string.format("Lv %d · %d / %d XP", lv, math.floor(xp), need)
 		xpFill.Size = UDim2.fromScale(math.clamp(xp / need, 0, 1), 1)
-		evoL.Text = if lv >= 100 then "Evolved!" else string.format("Evolution: Lv %d / 100", lv)
-		evoFill.Size = UDim2.fromScale(math.clamp(lv / 100, 0, 1), 1)
-		multL.Text = string.format("XP boost: <b>x%.1f</b>", (player:GetAttribute("TrainingMult") or 1) :: number)
 		local acc = if session.shots > 0 then math.floor(session.hits / session.shots * 100) else 0
-		hitsL.Text = string.format("Hits: <b>%d</b> · Accuracy: <b>%d%%</b>", session.hits, acc)
-		powerL.Text = string.format("Attack: <b>%.1f</b> dmg · Stage %d", 8 + 0.15 * lv, d.stage or 1)
+		hitsL.Text = string.format("Accuracy <b>%d%%</b> · %d/%d hits", acc, session.hits, session.shots)
 	end
 	player:GetAttributeChangedSignal("DragonData"):Connect(refreshCard)
 	task.spawn(function()

@@ -230,7 +230,7 @@ local function build(center: Vector3, facing: Vector3): Folder
 	part(folder, "Gancio", Vector3.new(4, 0.5, 0.5), at(-16, 24) * CFrame.new(0, 9, 0), IRON, Enum.Material.Metal)
 	part(folder, "Palo", Vector3.new(0.5, 9, 0.5), at(-18, 24) * CFrame.new(0, 4.5, 0), IRON, Enum.Material.Metal)
 	local bag2 = part(folder, "Sacco", Vector3.new(4.5, 2.2, 2.2), at(-15, 24) * CFrame.new(0, 5.6, 0) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(40, 60, 160), Enum.Material.Leather, Enum.PartType.Cylinder)
-	station(folder, bag2, "Box", "Punching bag", "box", "Recupero", at(-15, 26.6) * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, 0.6, 0), true)
+	station(folder, bag2, "Box", "Punching bag", "box", "Recupero", at(-15, 26.6) * CFrame.new(0, 0.6, 0), true)
 	-- panchine e ombrelloni
 	for k, x in { -24, 0, 24 } do
 		local umb = at(x, 34)

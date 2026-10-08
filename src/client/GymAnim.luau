@@ -24,7 +24,7 @@ end
 
 -- articolazioni: Motor6D (personaggi vecchi) o AnimationConstraint (le nuove articolazioni di
 -- Roblox): entrambe hanno Transform
-type Rig = { motors: { [string]: any }, props: { BasePart } }
+type Rig = { motors: { [string]: any }, props: { BasePart }, kind: string? }
 local rigs: { [Model]: Rig } = {}
 
 local function rigOf(character: Model): Rig
@@ -113,7 +113,7 @@ local function clear(character: Model)
 	rigs[character] = nil
 end
 
-local function pose(r: Rig, kind: string, p: number)
+local function pose(r: Rig, kind: string, p: number, t: number?)
 	local m = r.motors
 	local function set(name: string, cf: CFrame)
 		local motor = m[name]
@@ -174,7 +174,12 @@ local function pose(r: Rig, kind: string, p: number)
 		set("LeftHip", A(math.rad(40 + 30 * a), 0, 0))
 		set("RightKnee", A(math.rad(-60), 0, 0))
 		set("LeftKnee", A(math.rad(-60), 0, 0))
-		set("Root", CFrame.new(0, 1.2 * math.sin(2 * math.pi * p), 0))
+		-- si sale davvero lungo la corda (3 s su, poi si scivola giu' prima della fine del set da 4 s)
+		local h = 0
+		if t then
+			h = if t < 3 then 11 * (1 - math.cos(math.pi * t / 3)) / 2 else 11 * math.max(0, 1 - (t - 3) / 0.9)
+		end
+		set("Root", CFrame.new(0, h + 0.5 * math.sin(2 * math.pi * p), 0))
 	elseif kind == "box" then
 		local right = p < 0.5
 		local k = math.sin((p % 0.5) * 2 * math.pi) -- 0 -> 1 -> 0 per pugno
@@ -188,15 +193,57 @@ local function pose(r: Rig, kind: string, p: number)
 	end
 end
 
--- per le clip: mette un modello qualsiasi (il sosia) nella posa dell'esercizio, fase p (0-1)
-function GymAnim.poseModel(model: Model, kind: string, p: number)
-	local motors = {}
-	for _, d in model:GetDescendants() do
-		if d:IsA("Motor6D") or d:IsA("AnimationConstraint") then
-			motors[d.Name] = d
+-- attrezzi in mano: bilanciere tra le mani (panca e squat), manubri (curl). Se cambia esercizio
+-- (nelle clip lo stesso sosia passa da un attrezzo all'altro) si rifanno
+local function holdProps(character: Model, r: Rig, kind: string)
+	if r.kind ~= kind then
+		for _, p in r.props do
+			p:Destroy()
+		end
+		r.props = {}
+		hideStationBar(character, false)
+		r.kind = kind
+	end
+	if kind == "bench" or kind == "squat" then
+		if #r.props == 0 then
+			r.props = heldBarbell()
+			hideStationBar(character, true)
+		end
+		local rh, lh = character:FindFirstChild("RightHand"), character:FindFirstChild("LeftHand")
+		if rh and lh and rh:IsA("BasePart") and lh:IsA("BasePart") then
+			local mid = (rh.Position + lh.Position) / 2
+			local axis = (rh.Position - lh.Position)
+			axis = if axis.Magnitude > 0.1 then axis.Unit else (character:GetPivot().RightVector)
+			-- cilindro lungo l'asse X: si allinea l'asse X tra le due mani
+			local cf = CFrame.fromMatrix(mid, axis, axis:Cross(Vector3.yAxis).Magnitude > 0.1 and axis:Cross(Vector3.yAxis):Cross(axis).Unit or Vector3.zAxis)
+			r.props[1].CFrame = cf
+			r.props[2].CFrame = cf * CFrame.new(3.4, 0, 0)
+			r.props[3].CFrame = cf * CFrame.new(-3.4, 0, 0)
+		end
+	elseif kind == "curl" then
+		if #r.props == 0 then
+			r.props = { dumbbell(), dumbbell() }
+			hideStationBar(character, true, { Manubrio = true, Peso = true })
+		end
+		for k, hand in { "RightHand", "LeftHand" } do
+			local h = character:FindFirstChild(hand)
+			if h and h:IsA("BasePart") then
+				r.props[k].CFrame = h.CFrame * CFrame.new(0, -0.4, 0) * CFrame.Angles(0, math.pi / 2, 0)
+			end
 		end
 	end
-	pose({ motors = motors, props = {} }, kind, p)
+end
+
+-- per le clip: mette un modello qualsiasi (il sosia) nella posa dell'esercizio, fase p (0-1)
+-- (con gli attrezzi in mano: le pose vanno chiamate dopo il PivotTo del modello)
+function GymAnim.poseModel(model: Model, kind: string, p: number)
+	local r = rigOf(model)
+	pose(r, kind, p)
+	holdProps(model, r, kind)
+end
+-- toglie gli attrezzi in mano al sosia e rimette quelli della palestra
+function GymAnim.clearModel(model: Model)
+	clear(model)
 end
 GymAnim.PERIOD = PERIOD
 
@@ -228,38 +275,18 @@ function GymAnim.start()
 				local r = rigOf(character)
 				local since = (plr:GetAttribute("GymSince") or now) :: number
 				local p = ((now - since) / (PERIOD[kind] or 1.5)) % 1
-				pose(r, kind, p)
-				-- bilanciere tra le mani (panca e squat)
-				if kind == "bench" or kind == "squat" then
-					if #r.props == 0 then
-						r.props = heldBarbell()
-						hideStationBar(character, true)
-					end
-					local rh, lh = character:FindFirstChild("RightHand"), character:FindFirstChild("LeftHand")
-					if rh and lh and rh:IsA("BasePart") and lh:IsA("BasePart") then
-						local mid = (rh.Position + lh.Position) / 2
-						local axis = (rh.Position - lh.Position)
-						axis = if axis.Magnitude > 0.1 then axis.Unit else (character:GetPivot().RightVector)
-						-- cilindro lungo l'asse X: si allinea l'asse X tra le due mani
-						local cf = CFrame.fromMatrix(mid, axis, axis:Cross(Vector3.yAxis).Magnitude > 0.1 and axis:Cross(Vector3.yAxis):Cross(axis).Unit or Vector3.zAxis)
-						r.props[1].CFrame = cf
-						r.props[2].CFrame = cf * CFrame.new(3.4, 0, 0)
-						r.props[3].CFrame = cf * CFrame.new(-3.4, 0, 0)
-					end
-				end
-				-- manubri nelle mani
-				if kind == "curl" then
-					if #r.props == 0 then
-						r.props = { dumbbell(), dumbbell() }
-						hideStationBar(character, true, { Manubrio = true, Peso = true })
-					end
-					for k, hand in { "RightHand", "LeftHand" } do
-						local h = character:FindFirstChild(hand)
-						if h and h:IsA("BasePart") then
-							r.props[k].CFrame = h.CFrame * CFrame.new(0, -0.4, 0) * CFrame.Angles(0, math.pi / 2, 0)
+				pose(r, kind, p, now - since)
+				-- le animazioni normali (corsa, sprint) non si mischiano all'esercizio
+				if plr == me then
+					local hum = character:FindFirstChildOfClass("Humanoid")
+					local animator = hum and hum:FindFirstChildOfClass("Animator")
+					if animator then
+						for _, track in animator:GetPlayingAnimationTracks() do
+							track:Stop(0)
 						end
 					end
 				end
+				holdProps(character, r, kind)
 			elseif rigs[character] then
 				clear(character)
 			end

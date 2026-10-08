@@ -1,13 +1,15 @@
 --!strict
 -- Lancio della piccozza (tasto Q o pulsante sul telefono, con la Piccozza in mano e a terra):
--- carica il braccio dietro la testa, lancia, la piccozza vola roteando verso dove guardi (55
+-- carica il braccio dietro la testa, lancia, la piccozza vola roteando verso il mirino (55
 -- studs, o fino alla roccia), poi torna indietro curvando e la riprendi al volo. Il danno lo
--- calcola il server (Remotes.PickaxeThrow).
+-- calcola il server (Remotes.PickaxeThrow). Il mirino compare con la piccozza in mano: segue il
+-- mouse sul computer, sta al centro dello schermo sul telefono.
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent.ClientState)
 
@@ -17,6 +19,40 @@ local player = Players.LocalPlayer
 local RANGE = 55
 local SPEED = 90 -- studs al secondo (uguale al server)
 local busy = false
+
+-- punto dello schermo da cui si mira: il mouse (computer) o il centro (telefono)
+local function aimScreenPoint(): Vector2
+	local cam = workspace.CurrentCamera
+	if UserInputService.MouseEnabled and not UserInputService.TouchEnabled then
+		return UserInputService:GetMouseLocation()
+	end
+	return cam.ViewportSize / 2
+end
+
+-- dove punta il mirino nel mondo (escluso il personaggio, i draghi e la piccozza in volo):
+-- prima il raggio partiva dalla mano lungo la camera, che guarda in giu', e colpiva il terreno a
+-- due passi: la piccozza girava attorno al braccio e tornava
+local function aimPoint(character: Model, extra: { Instance }): Vector3
+	local cam = workspace.CurrentCamera
+	local screen = aimScreenPoint()
+	local ray = cam:ViewportPointToRay(screen.X, screen.Y)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local ignore: { Instance } = { character }
+	for _, name in { "Pets", "PiccozzaLanciata" } do
+		local f = workspace:FindFirstChild(name)
+		if f then
+			table.insert(ignore, f)
+		end
+	end
+	for _, x in extra do
+		table.insert(ignore, x)
+	end
+	params.FilterDescendantsInstances = ignore
+	local reach = (cam.CFrame.Position - character:GetPivot().Position).Magnitude + RANGE
+	local hit = workspace:Raycast(ray.Origin, ray.Direction * reach, params)
+	return if hit then hit.Position else ray.Origin + ray.Direction * reach
+end
 
 local function joints(character: Model): { [string]: any }
 	local out = {}
@@ -41,8 +77,20 @@ local function throw()
 	end
 	busy = true
 	local remote = ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("PickaxeThrow") :: RemoteEvent?
-	local cam = workspace.CurrentCamera
-	local dir = Vector3.new(cam.CFrame.LookVector.X, math.clamp(cam.CFrame.LookVector.Y, -0.4, 0.4), cam.CFrame.LookVector.Z).Unit
+	local from0 = (root :: BasePart).Position + Vector3.new(0, 1.5, 0)
+	local aim = aimPoint(character :: Model, {})
+	local dir = aim - from0
+	if dir.Magnitude < 6 then
+		-- mirino sui piedi: si lancia dritto davanti
+		local look = workspace.CurrentCamera.CFrame.LookVector
+		dir = Vector3.new(look.X, 0, look.Z)
+	end
+	dir = dir.Unit
+	-- il personaggio si gira verso il bersaglio
+	local flat = Vector3.new(dir.X, 0, dir.Z)
+	if flat.Magnitude > 0.05 then
+		(root :: BasePart).CFrame = CFrame.lookAt((root :: BasePart).Position, (root :: BasePart).Position + flat)
+	end
 	local j = joints(character :: Model)
 	-- 1) carica: braccio destro dietro la testa (0.22 s), busto girato
 	local t0 = os.clock()
@@ -105,9 +153,13 @@ local function throw()
 	local from = (root :: BasePart).Position + Vector3.new(0, 1.5, 0)
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { character :: Instance, flying }
+	local ignore: { Instance } = { character :: Instance, flying }
+	if workspace:FindFirstChild("Pets") then
+		table.insert(ignore, workspace.Pets)
+	end
+	params.FilterDescendantsInstances = ignore
 	local hit = workspace:Raycast(from, dir * RANGE, params)
-	local far = if hit then hit.Position - dir * 1.5 else from + dir * RANGE
+	local far = if hit and hit.Distance > 4 then hit.Position - dir * 1.5 else from + dir * (if hit then 4 else RANGE)
 	local outTime = (far - from).Magnitude / SPEED
 	local side = dir:Cross(Vector3.yAxis)
 	side = if side.Magnitude > 0.01 then side.Unit else Vector3.xAxis
@@ -166,6 +218,53 @@ local function throw()
 end
 
 function PickaxeThrow.start()
+	-- mirino: solo con la piccozza in mano, a terra, fuori dall'arena dei draghi
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "MirinoPiccozza"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.DisplayOrder = 4
+	gui.Parent = player:WaitForChild("PlayerGui")
+	local cross = Instance.new("Frame")
+	cross.AnchorPoint = Vector2.new(0.5, 0.5)
+	cross.Size = UDim2.fromOffset(26, 26)
+	cross.BackgroundTransparency = 1
+	cross.Visible = false
+	cross.Parent = gui
+	local ring = Instance.new("UIStroke")
+	ring.Color = Color3.new(1, 1, 1)
+	ring.Thickness = 2
+	ring.Transparency = 0.2
+	local circle = Instance.new("Frame")
+	circle.Size = UDim2.fromScale(1, 1)
+	circle.BackgroundTransparency = 1
+	circle.Parent = cross
+	ring.Parent = circle
+	local cc = Instance.new("UICorner")
+	cc.CornerRadius = UDim.new(1, 0)
+	cc.Parent = circle
+	local dot = Instance.new("Frame")
+	dot.AnchorPoint = Vector2.new(0.5, 0.5)
+	dot.Position = UDim2.fromScale(0.5, 0.5)
+	dot.Size = UDim2.fromOffset(4, 4)
+	dot.BackgroundColor3 = Color3.fromRGB(255, 200, 90)
+	dot.BorderSizePixel = 0
+	dot.Parent = cross
+	cc:Clone().Parent = dot
+	RunService.RenderStepped:Connect(function()
+		local character = player.Character
+		local tool = character and character:FindFirstChildWhichIsA("Tool")
+		local show = tool ~= nil and tool.Name == "Piccozza" and not ClientState.climbing and not (ClientState :: any).dragonMode
+		cross.Visible = show
+		if show then
+			local p = aimScreenPoint()
+			cross.Position = UDim2.fromOffset(p.X, p.Y)
+			-- arancione se il punto mirato e' a tiro (entro la gittata)
+			local aim = aimPoint(character :: Model, {})
+			local inRange = ((character :: Model):GetPivot().Position - aim).Magnitude <= RANGE
+			ring.Color = if busy then Color3.fromRGB(120, 120, 120) elseif inRange then Color3.fromRGB(255, 120, 90) else Color3.new(1, 1, 1)
+		end
+	end)
 	ContextActionService:BindAction("LancioPiccozza", function(_, state)
 		if state == Enum.UserInputState.Begin then
 			task.spawn(throw)

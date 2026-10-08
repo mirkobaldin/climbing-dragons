@@ -125,7 +125,7 @@ end
 
 -- Un modello di Mirko (ServerStorage.Modelli, anche nelle sottocartelle) alto "height", con la
 -- base appoggiata in cf; niente script, niente collisioni (le mesh hanno la collisione a scatola)
-local function userModel(name: string, parent: Instance, cf: CFrame, height: number): Model?
+local function userModel(name: string, parent: Instance, cf: CFrame, height: number?, collide: boolean?): Model?
 	local store = ServerStorage:FindFirstChild("Modelli")
 	local t = store and store:FindFirstChild(name, true)
 	if not t or not t:IsA("Model") then
@@ -137,15 +137,35 @@ local function userModel(name: string, parent: Instance, cf: CFrame, height: num
 			d:Destroy()
 		elseif d:IsA("BasePart") then
 			d.Anchored = true
-			d.CanCollide = false
+			d.CanCollide = collide == true
 		end
 	end
 	local _, s0 = m:GetBoundingBox()
-	m:ScaleTo(m:GetScale() * height / math.max(s0.Y, 0.05))
+	if height then
+		m:ScaleTo(m:GetScale() * height / math.max(s0.Y, 0.05))
+	end
 	m:PivotTo(cf.Rotation + m:GetPivot().Position)
 	local box, s = m:GetBoundingBox()
-	m:PivotTo(m:GetPivot() + (cf.Position - (box.Position - Vector3.new(0, s.Y / 2, 0))))
+	-- base un poco sopra il terreno (le gambe del banco finivano sotto terra)
+	m:PivotTo(m:GetPivot() + (cf.Position - (box.Position - Vector3.new(0, s.Y / 2, 0))) + Vector3.new(0, 0.6, 0))
+	-- se sotto gli angoli il terreno (o un pavimento) e' piu' alto, si alza fino a li'
 	m.Parent = parent
+	box, s = m:GetBoundingBox()
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { m }
+	local bottom = box.Position.Y - s.Y / 2
+	local highest = -math.huge
+	for _, k in { Vector3.new(0.45, 0, 0.45), Vector3.new(-0.45, 0, 0.45), Vector3.new(0.45, 0, -0.45), Vector3.new(-0.45, 0, -0.45), Vector3.zero } do
+		local p = box:PointToWorldSpace(k * s)
+		local hit = workspace:Raycast(Vector3.new(p.X, bottom + s.Y * 0.6, p.Z), Vector3.new(0, -s.Y - 20, 0), params)
+		if hit then
+			highest = math.max(highest, hit.Position.Y)
+		end
+	end
+	if highest > bottom - 0.1 then
+		m:PivotTo(m:GetPivot() + Vector3.new(0, highest - bottom + 0.15, 0))
+	end
 	return m
 end
 
@@ -636,6 +656,28 @@ local function shop(parent: Instance, cf: CFrame)
 	if fromTemplate("Shop", parent, cf) then
 		return
 	end
+	-- lo shop di Mirko (Modelli.shop), grandezza originale, con collisioni; il bancone invisibile
+	-- tiene il prompt dell'emporio
+	local holder = Instance.new("Model")
+	holder.Name = "Shop"
+	holder.Parent = parent
+	if userModel("shop", holder, cf, nil, true) then
+		local counter = Instance.new("Part")
+		counter.Name = "Counter"
+		counter.Anchored, counter.CanCollide, counter.Transparency = true, false, 1
+		counter.Size = Vector3.new(14, 4, 3)
+		counter.CFrame = cf * CFrame.new(0, 3, -6)
+		counter.Parent = holder
+		CollectionService:AddTag(counter, "ShopCounter")
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.ActionText = "Shop"
+		prompt.ObjectText = "General store"
+		prompt.MaxActivationDistance = 14
+		prompt.RequiresLineOfSight = false
+		prompt.Parent = counter
+		return
+	end
+	holder:Destroy()
 	local b = builder(parent, "Shop")
 	local W, D, H = 22, 16, 11
 	b.block(Vector3.new(W + 2, 1, D + 6), cf * CFrame.new(0, 0.5, -2), LIGHT_WOOD, Enum.Material.WoodPlanks)

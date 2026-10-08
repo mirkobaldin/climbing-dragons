@@ -13,76 +13,64 @@ Le clip `clip4`, `clip5` e `clip6` sono girate **senza scritte**: i testi li met
 
 ---
 
-# CLIP 12 – 16 (testi in inglese)
+# CLIP 12, 13, 15, 16 (testi in inglese)
 
-Si girano senza scritte con F2 → `clip12` … `clip16`. Il testo nel video va messo nell'editor di TikTok al secondo indicato.
+Si girano senza scritte con F2 → `clip12`, `clip13`, `clip15`, `clip16` (la clip14 è stata tolta). Il testo nel video va messo nell'editor di TikTok al secondo indicato.
 
-## clip12: GYM ARC (circa 14 s)
-Tagli veloci alla palestra (panca, trazioni, squat, sacco), poi lo stesso personaggio sale una parete enorme e la camera si allarga.
+## clip12: GYM ARC (circa 13 s)
+Tagli veloci alla palestra (panca col bilanciere, manubri, squat, sacco), poi lo stesso personaggio sale una parete di roccia in alto sulla montagna e la camera si allarga sul paesaggio.
 
 | Tempo | Testo nel video |
 |---|---|
 | 0.0 s | **Day 1 at Muscle Beach** |
-| 3.0 s (squat) | **Day 30** |
-| 6.5 s (parete) | **Day 100: the mountain is the gym now** |
+| 3.2 s (squat) | **Day 30** |
+| 6.4 s (parete) | **Day 100: the mountain is the gym now** |
 
 - **Description:** `Trained at Muscle Beach every day so the mountain stops tiring me out 💪🏔️ Strength, Endurance and Recovery are real stats in my Roblox game. What would you max first?`
 - **Pinned comment:** `💪 STRENGTH or 🫁 ENDURANCE or ⚡ RECOVERY? vote below`
 - **Hashtag:** #roblox #robloxgame #gymtok #climbing #glowup #fyp
-- **Audio:** canzone motivazionale o phonk, drop al cambio di scena verso la parete (6.5 s).
+- **Audio:** canzone motivazionale o phonk, drop al cambio di scena verso la parete (6.4 s).
 
-## clip13: DRAGON vs CRYSTAL (circa 13 s)
-Il cucciolo vola in cerchio nell'arena e spara a raffica ai cristalli (esplosioni e scintille), poi evolve.
+## clip13: DRAGON vs CRYSTAL (circa 20 s)
+Il cucciolo vola in cerchio nell'arena e spara a raffica dalla bocca ai cristalli (esplosioni e scintille), poi evolve; la camera resta sull'adulto che ruggisce fuoco verso il cielo e poi sale all'indietro fino a mostrare la montagna.
 
 | Tempo | Testo nel video |
 |---|---|
 | 0.0 s | **POV: training your baby dragon** |
 | 4.0 s | **every hit = XP** |
-| 8.5 s (lampo dell'evoluzione) | **...and then THIS happened** |
+| 10.0 s (lampo dell'evoluzione) | **...and then THIS happened** |
+| 16.5 s (appare la montagna) | **next stop: the summit** |
 
 - **Description:** `I trained my baby dragon until it EVOLVED 🐉✨ how long would you grind for Lv 100?`
 - **Pinned comment:** `Guess how many hits to Lv 100 👇 closest number wins a shoutout`
 - **Hashtag:** #roblox #robloxgame #dragon #evolution #pokemonvibes #fyp
 
-## clip14: PICKAXE BOOMERANG (circa 7 s)
-Il personaggio lancia la piccozza contro uno yeti, la piccozza gli rimbalza in testa e torna in mano, lo yeti cade all'indietro.
-
-| Tempo | Testo nel video |
-|---|---|
-| 0.0 s | **wait for the return...** |
-| 2.5 s (la piccozza torna in mano) | *nessun testo* |
-| 4.5 s (lo yeti cade) | **he never saw it coming** |
-
-- **Description:** `My ice axe comes back like a boomerang 🪓🔁 the yeti did NOT expect that. Should I add a Thor version?`
-- **Pinned comment:** `Name this move 👇 best name becomes the ability name`
-- **Hashtag:** #roblox #robloxgame #boomerang #satisfying #funny #fyp
-- **Audio:** suono comico "bonk" o tendenza "oh no"; effetto rallentato al momento del colpo.
-
-## clip15: WHICH HOUSE ARE YOU? (circa 10 s)
-Tenda ai piedi della montagna, baita sul pendio e chalet sul costone, 3 secondi ciascuna, ognuna col suo panorama.
+## clip15: WHICH HOUSE ARE YOU? (circa 16 s)
+Tenda ai piedi della montagna, baita sul pendio e chalet sul costone, 3 secondi ciascuna; poi dallo chalet la camera sale a spirale e mostra il paesaggio e dove sta lo chalet sulla montagna.
 
 | Tempo | Testo nel video |
 |---|---|
 | 0.0 s | **TENT 🏕️** |
 | 3.2 s | **CABIN 🛖** |
 | 6.4 s | **CHALET 🏔️** |
+| 9.6 s (spirale) | **the view from the top 👀** |
 
 - **Description:** `Your house in my Roblox game moves higher up the mountain every upgrade 🏕️➡️🛖➡️🏔️ which one are you living in?`
 - **Pinned comment:** `Comment TENT, CABIN or CHALET 👇`
 - **Hashtag:** #roblox #robloxgame #housetour #cozy #mountain #fyp
 
-## clip16: 1 vs 3 DRAGONS (circa 16 s)
-Il Titano di ghiaccio nel cratere si risveglia: l'Eclissi (fuoco), il Gelo (ghiaccio) e il Fulmine Nero (fulmini) gli girano attorno e lo colpiscono, finché crolla.
+## clip16: PICKAXE + 3 DRAGONS vs TITAN (circa 18 s)
+Il Titano di ghiaccio nel cratere si risveglia. Vista in terza persona dalle spalle dello scalatore: lancia la piccozza al Titano, la piccozza torna in mano, mentre l'Eclissi (fuoco), il Gelo (ghiaccio) e il Fulmine Nero (fulmini) gli sparano dalla bocca. Colpo finale, il Titano si sbriciola in ghiaccio e lo scalatore alza la piccozza.
 
 | Tempo | Testo nel video |
 |---|---|
-| 0.0 s | **3 dragons vs 1 titan** |
-| 5.0 s (iniziano i colpi) | **🔥 vs ❄️ vs ⚡** |
-| 11.5 s (crolla) | **which element did the most damage?** |
+| 0.0 s | **me + 3 dragons vs 1 titan** |
+| 5.0 s (primo lancio) | **my ice axe comes back 🔁** |
+| 13.0 s (si sbriciola) | **which one did the most damage?** |
 
-- **Description:** `Three dragons, three elements, one ice titan 🐉🐉🐉 vs 🧊 which element would you pick?`
-- **Pinned comment:** `🔥 FIRE · ❄️ ICE · ⚡ LIGHTNING → vote with an emoji`
-- **Hashtag:** #roblox #robloxgame #bossfight #dragons #epic #fyp
+- **Description:** `Ice axe boomerang + three dragons vs an ice titan 🪓🐉🐉🐉🧊 which element would you pick?`
+- **Pinned comment:** `🪓 AXE · 🔥 FIRE · ❄️ ICE · ⚡ LIGHTNING → vote with an emoji`
+- **Hashtag:** #roblox #robloxgame #bossfight #dragons #boomerang #fyp
 
 ---
 
