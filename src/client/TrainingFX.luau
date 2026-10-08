@@ -647,10 +647,12 @@ local function startAim(event: RemoteEvent)
 		local pet = myPet()
 		local want = player:GetAttribute("Training") == true and pet ~= nil and not player.PlayerGui:FindFirstChild("Trailer")
 		if want and not on then
-			-- si parte guardando dove guardava la camera
-			local look = camera.CFrame.LookVector
+			-- si parte guardando il centro dell'arena (i cristalli), un po' in giu'
+			local c0 = workspace:GetAttribute("TrainingCenter")
+			local pad0 = workspace:GetAttribute("TrainingPad")
+			local look = if typeof(c0) == "Vector3" and typeof(pad0) == "Vector3" then (c0 - pad0) else camera.CFrame.LookVector
 			yaw = math.atan2(-look.X, -look.Z)
-			pitch = -0.12
+			pitch = -0.25
 		elseif on and not want then
 			camera.CameraType = Enum.CameraType.Custom
 			camera.FieldOfView = 70
@@ -679,6 +681,19 @@ local function startAim(event: RemoteEvent)
 			-- sbaglio): si esce col tasto X o col pulsante Exit
 			if root then
 				root.Anchored = want
+			end
+			-- vista pulita: via i menu (negozio, teletrasporto, admin) mentre miri
+			for _, name in { "MainMenu", "Teletrasporto", "AdminButtons" } do
+				local g = player.PlayerGui:FindFirstChild(name)
+				if g and g:IsA("ScreenGui") then
+					if want then
+						g:SetAttribute("WasEnabled", g.Enabled)
+						g.Enabled = false
+					elseif g:GetAttribute("WasEnabled") ~= nil then
+						g.Enabled = g:GetAttribute("WasEnabled") :: boolean
+						g:SetAttribute("WasEnabled", nil)
+					end
+				end
 			end
 		end
 		on = want

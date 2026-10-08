@@ -232,10 +232,10 @@ function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Col
 		return
 	end
 	-- fuoco (Brace, Eclissi, Sole e tutti gli altri)
-	local ball = fx(Enum.PartType.Ball, Vector3.one * 1.8, color, CFrame.new(from))
+	local ball = fx(Enum.PartType.Ball, Vector3.one * 3, color, CFrame.new(from))
 	ball.Transparency = 0.1
-	trail(ball, color, 1.6, 0.3)
-	emitter(ball, FIRE, ColorSequence.new(Color3.fromRGB(255, 230, 140), color), NumberSequence.new(1.6, 0.4), 0.35, 2, 80)
+	trail(ball, color, 2.6, 0.35)
+	emitter(ball, FIRE, ColorSequence.new(Color3.fromRGB(255, 230, 140), color), NumberSequence.new(2.6, 0.6), 0.4, 2, 90)
 	light(ball, color, 14, 3)
 	fly(ball, from, to, 120, false, function()
 		impact(to, color, 1.3, FIRE)

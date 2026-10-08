@@ -22,7 +22,9 @@ local function smoothWave(p: number): number
 	return (1 - math.cos(2 * math.pi * p)) / 2 -- 0 -> 1 -> 0
 end
 
-type Rig = { motors: { [string]: Motor6D }, props: { BasePart } }
+-- articolazioni: Motor6D (personaggi vecchi) o AnimationConstraint (le nuove articolazioni di
+-- Roblox): entrambe hanno Transform
+type Rig = { motors: { [string]: any }, props: { BasePart } }
 local rigs: { [Model]: Rig } = {}
 
 local function rigOf(character: Model): Rig
@@ -32,7 +34,7 @@ local function rigOf(character: Model): Rig
 	end
 	local motors = {}
 	for _, d in character:GetDescendants() do
-		if d:IsA("Motor6D") then
+		if d:IsA("Motor6D") or d:IsA("AnimationConstraint") then
 			motors[d.Name] = d
 		end
 	end

@@ -1330,7 +1330,7 @@ function Trailer.play(kind: string, take: string?)
 					return
 				end
 				for _, d in body:GetDescendants() do
-					if d:IsA("Motor6D") and list[d.Name] then
+					if (d:IsA("Motor6D") or d:IsA("AnimationConstraint")) and list[d.Name] then
 						d.Transform = list[d.Name]
 					end
 				end
