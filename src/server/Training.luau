@@ -293,13 +293,16 @@ local function buildTarget(parent: Instance, at: Vector3, index: number): BasePa
 	light.Range = 24
 	light.Brightness = 4
 	light.Parent = glass
-	-- si vedono sempre, anche dietro le ossa dell'arena (prima si perdevano)
-	local glow = Instance.new("Highlight")
-	glow.FillColor = Color3.fromRGB(150, 220, 255)
-	glow.FillTransparency = 0.55
-	glow.OutlineColor = Color3.fromRGB(200, 240, 255)
-	glow.DepthMode = Enum.HighlightDepthMode.Occluded -- prima si vedevano attraverso tutta la mappa
-	glow.Parent = model
+	-- texture originale del modello (niente Highlight che la copriva): solo luce che esce dalle facce
+	for _, face in { Enum.NormalId.Top, Enum.NormalId.Front, Enum.NormalId.Back } do
+		local sl = Instance.new("SurfaceLight")
+		sl.Face = face
+		sl.Color = RUNE
+		sl.Range = 14
+		sl.Brightness = 3
+		sl.Angle = 120
+		sl.Parent = glass
+	end
 	CollectionService:AddTag(model, "CristalloBersaglio")
 	return glass
 end
@@ -447,9 +450,14 @@ function Training.setup()
 			-- solo i draghi. Tu sali sulla pedana davanti alle scale e "diventi" il tuo drago, che
 			-- vola al centro (prima si camminava nella mesh e il drago aveva le zampe nel pavimento)
 			local _, asize = arena:GetBoundingBox()
-			local R = math.min(asize.X, asize.Z) * 0.47
-			local block = part(arena, "Recinto", Vector3.new(80, R * 2, R * 2), CFrame.new(center + Vector3.new(0, 30, 0)) * CFrame.Angles(0, 0, math.pi / 2), STONE, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+			local R = math.max(asize.X, asize.Z) * 0.49
+			local block = part(arena, "Recinto", Vector3.new(120, R * 2, R * 2), CFrame.new(center + Vector3.new(0, 45, 0)) * CFrame.Angles(0, 0, math.pi / 2), STONE, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
 			block.Transparency = 1
+			-- si sbatte contro, ma il rampino e l'arrampicata non lo vedono (prima ci si aggrappava al
+			-- muro invisibile); niente ombra
+			block.CanQuery = false
+			block.CanTouch = false
+			block.CastShadow = false
 			local padAt = groundAt(center + gateDir * (R + 7))
 			local pad = part(folder, "PedanaDrago", Vector3.new(1.2, 12, 12), CFrame.new(padAt + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(40, 40, 52), Enum.Material.Slate, Enum.PartType.Cylinder)
 			local ring = deco(part(folder, "AnelloPedana", Vector3.new(0.3, 12.6, 12.6), CFrame.new(padAt + Vector3.new(0, 1.15, 0)) * CFrame.Angles(0, 0, math.pi / 2), RUNE, Enum.Material.Neon, Enum.PartType.Cylinder))
@@ -626,7 +634,9 @@ function Training.setup()
 			end
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-			if not root or (origin - root.Position).Magnitude > 45 or not player:GetAttribute("Training") then
+			-- spara il drago, che vola dentro l'arena (lontano dal personaggio sulla pedana): l'origine
+			-- deve stare nell'arena
+			if not root or (origin - center).Magnitude > 170 or not player:GetAttribute("Training") then
 				return
 			end
 			local now = os.clock()

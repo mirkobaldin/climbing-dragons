@@ -11,9 +11,10 @@ local ClientState = {
 	speedOverride = nil :: number?, -- comando admin "speed"
 	eggFinder = nil :: string?, -- testo della bussola delle uova
 	fovOffset = 0, -- apertura extra del campo visivo (arrampicata)
-	gas = 0,
-	petLook = nil :: Vector3?,
-	petAnchor = nil :: Vector3?, -- addestramento: dove vola fermo il tuo drago (centro dell'arena) -- dove guarda il tuo drago (vista dal drago nell'arena: dove miri) -- quanto sei dentro la valle dei gas (0-1): il meteo infittisce la nebbia
+	gas = 0, -- quanto sei dentro la valle dei gas (0-1): il meteo infittisce la nebbia
+	petLook = nil :: Vector3?, -- dove guarda il tuo drago (vista dal drago nell'arena: dove miri)
+	dragonMode = false, -- nell'arena sei il drago (niente suggerimenti dell'arrampicata)
+	petAnchor = nil :: Vector3?, -- addestramento: dove vola il tuo drago (dentro l'arena)
 	noFallUntil = 0, -- niente danni da caduta fino a (os.clock), es. dopo il Rampino
 }
 

@@ -217,6 +217,7 @@ local function run(shots: { Shot }, s: Screen)
 	local myRoot = me and me:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local homeCf = me and me:GetPivot()
 	local hiddenParts: { BasePart } = {}
+	local hiddenBillboards: { BillboardGui } = {}
 	local function hideAll(m: Instance?)
 		if not m then
 			return
@@ -225,6 +226,10 @@ local function run(shots: { Shot }, s: Screen)
 			if d:IsA("BasePart") and d.LocalTransparencyModifier < 1 then
 				d.LocalTransparencyModifier = 1
 				table.insert(hiddenParts, d)
+			elseif d:IsA("BillboardGui") and d.Enabled then
+				-- l'etichetta "Lv" del drago si vedeva anche col drago nascosto
+				d.Enabled = false
+				table.insert(hiddenBillboards, d)
 			end
 		end
 	end
@@ -248,8 +253,16 @@ local function run(shots: { Shot }, s: Screen)
 			end
 		end
 	end
-	-- un attimo in piu': il terreno lontano (biomi, cristalli) finisce di comparire
+	-- un attimo in piu': il terreno lontano (biomi, cristalli) finisce di comparire; poi si torna
+	-- alla prima ripresa e si aspetta che anche li' sia tutto caricato
 	task.wait(2.5)
+	if shots[1] and shots[1].at then
+		focus(shots[1].at)
+		pcall(function()
+			player:RequestStreamAroundAsync(shots[1].at :: Vector3, 5)
+		end)
+		task.wait(1.5)
+	end
 	-- niente profondita' di campo e sfocature durante le riprese (il video usciva sfocato)
 	local Lighting = game:GetService("Lighting")
 	local blurred: { PostEffect } = {}
@@ -287,8 +300,18 @@ local function run(shots: { Shot }, s: Screen)
 		end
 	end)
 	fadeTo(s, 0, 0.3)
-	for _, shot in shots do
+	for i, shot in shots do
 		focus(shot.at)
+		-- la ripresa dopo si carica mentre gira questa (prima la camera arrivava su terreno ancora
+		-- sfocato, a bassa definizione)
+		local nextShot = shots[i + 1]
+		if nextShot and nextShot.at then
+			task.spawn(function()
+				pcall(function()
+					player:RequestStreamAroundAsync(nextShot.at :: Vector3, 5)
+				end)
+			end)
+		end
 		if shot.start then
 			shot.start()
 		end
@@ -305,6 +328,9 @@ local function run(shots: { Shot }, s: Screen)
 	camera.CameraType = Enum.CameraType.Custom
 	for _, d in hiddenParts do
 		d.LocalTransparencyModifier = 0
+	end
+	for _, b in hiddenBillboards do
+		b.Enabled = true
 	end
 	if me and myRoot and homeCf then
 		me:PivotTo(homeCf)
@@ -334,7 +360,7 @@ local function flyAlong(a: Actor?, path: (number) -> Vector3, u: number, beat: n
 		tracks.dive:AdjustWeight(if diving then 1 else 0.001, 0.3)
 		tracks.fly:AdjustWeight(if diving then 0.001 else 1, 0.3)
 	end
-	a.model:PivotTo(CFrame.lookAt(p + Vector3.new(0, bob, 0), p + dir) * CFrame.Angles(pitch, 0, math.clamp(-turn * 60, -0.7, 0.7)))
+	a.model:PivotTo(CFrame.lookAt(p + Vector3.new(0, bob, 0), p + dir) * CFrame.Angles(pitch, 0, math.clamp(-turn * 30, -0.35, 0.35)))
 end
 
 local function dolly(a: Vector3, b: Vector3, la: Vector3, lb: Vector3): (number) -> CFrame
@@ -1176,17 +1202,15 @@ function Trailer.play(kind: string, take: string?)
 			local function viewAngle(c: Vector3, r: number): number
 				local out = if typeof(mc) == "Vector3" then flat(c - Vector3.new(mc.X, c.Y, mc.Z)) else Vector3.xAxis
 				local base = math.atan2(out.Z, out.X)
-				for _, off in { 0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2 } do
+				-- 16 angoli attorno al lato della valle: il primo da cui la vista e' libera (niente
+				-- isole o rocce tra la camera e la zona)
+				for k = 0, 15 do
+					local off = (if k % 2 == 0 then 1 else -1) * math.ceil(k / 2) * 0.3
 					local a = base + off
-					local cam = c + Vector3.new(math.cos(a) * r, r * 0.55, math.sin(a) * r)
+					local cam = c + Vector3.new(math.cos(a) * r, r * 0.45, math.sin(a) * r)
 					local ok = not solidAt(cam)
-					for _, f in { 0.15, 0.4, 0.7 } do
-						if ok and workspace:Raycast(cam, (c + Vector3.new(0, 8, 0) - cam) * f, terrainOnly) then
-							ok = false
-						end
-					end
-					local hit = workspace:Raycast(cam, c + Vector3.new(0, 8, 0) - cam, terrainOnly)
-					if ok and (not hit or (hit.Position - c).Magnitude < r * 0.35) then
+					local hit = ok and workspace:Raycast(cam, c - cam, terrainOnly)
+					if ok and (not hit or (hit.Position - c).Magnitude < r * 0.25) then
 						return a
 					end
 				end
@@ -1307,6 +1331,7 @@ function Trailer.play(kind: string, take: string?)
 			local mcv = workspace:GetAttribute("CineCenter")
 			local mc = if typeof(mcv) == "Vector3" then Vector3.new(mcv.X, 0, mcv.Z) else Vector3.new(summit.X, 0, summit.Z)
 			local mR = (workspace:GetAttribute("CineRadius") or 2300) :: number
+			local top = summit.Y
 			-- curva morbida tra punti (Catmull-Rom)
 			local function catmull(pts: { Vector3 }, u: number): Vector3
 				u = math.clamp(u, 0, 1)
@@ -1318,22 +1343,68 @@ function Trailer.play(kind: string, take: string?)
 				local t2, t3 = t * t, t * t * t
 				return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
 			end
-			-- raggio della montagna a quell'angolo e quota (dove inizia la roccia)
+			-- raggi che vedono terreno E oggetti (colonne di ghiaccio, case, isole), non gli attori
+			local solidParams = RaycastParams.new()
+			solidParams.FilterType = Enum.RaycastFilterType.Exclude
+			solidParams.FilterDescendantsInstances = { player.Character :: Instance, workspace:FindFirstChild("Pets") :: Instance, props :: Instance }
 			local function surfaceR(a: number, y: number): number
 				local dir = Vector3.new(math.cos(a), 0, math.sin(a))
-				local hit = workspace:Raycast(Vector3.new(mc.X, y, mc.Z) + dir * 5000, -dir * 5000, terrainOnly)
+				local hit = workspace:Raycast(Vector3.new(mc.X, y, mc.Z) + dir * 5000, -dir * 5000, solidParams)
 				return if hit then (Vector3.new(hit.Position.X, 0, hit.Position.Z) - mc).Magnitude else 0
 			end
-			-- articolazioni del sosia (braccia, gambe) senza animazioni: Motor6D.Transform
+			local function groundAll(p: Vector3): Vector3
+				local hit = workspace:Raycast(p + UP * 60, -UP * 200, solidParams)
+				return if hit then hit.Position else groundAt(p)
+			end
+			-- articolazioni del sosia: vanno rimesse OGNI fotogramma (l'Animator le azzera)
 			local function limbs(body: Model?, list: { [string]: CFrame })
 				if not body then
 					return
 				end
 				for _, d in body:GetDescendants() do
 					if (d:IsA("Motor6D") or d:IsA("AnimationConstraint")) and list[d.Name] then
-						d.Transform = list[d.Name]
+						(d :: any).Transform = list[d.Name]
 					end
 				end
+			end
+			local function deg(x: number): number
+				return math.rad(x)
+			end
+			local function climbPose(body: Model?, t: number)
+				local s = math.sin(t * 2.2)
+				limbs(body, {
+					RightShoulder = CFrame.Angles(deg(160 + 10 * s), 0, deg(-8)),
+					LeftShoulder = CFrame.Angles(deg(140 - 10 * s), 0, deg(8)),
+					RightElbow = CFrame.Angles(deg(25), 0, 0),
+					LeftElbow = CFrame.Angles(deg(40), 0, 0),
+					RightHip = CFrame.Angles(deg(25 + 8 * s), 0, 0),
+					LeftHip = CFrame.Angles(deg(10 - 8 * s), 0, 0),
+					RightKnee = CFrame.Angles(deg(-45), 0, 0),
+					LeftKnee = CFrame.Angles(deg(-25), 0, 0),
+				})
+			end
+			local function hangPose(body: Model?, t: number)
+				limbs(body, {
+					RightShoulder = CFrame.Angles(deg(172), 0, deg(-6)),
+					LeftShoulder = CFrame.Angles(deg(168), 0, deg(6)),
+					RightElbow = CFrame.Angles(deg(15), 0, 0),
+					LeftElbow = CFrame.Angles(deg(15), 0, 0),
+					RightHip = CFrame.Angles(deg(15 + 8 * math.sin(t * 3)), 0, 0),
+					LeftHip = CFrame.Angles(deg(5 - 8 * math.sin(t * 3)), 0, 0),
+					RightKnee = CFrame.Angles(deg(-30), 0, 0),
+					LeftKnee = CFrame.Angles(deg(-20), 0, 0),
+				})
+			end
+			local function fallPose(body: Model?, t: number)
+				local s = math.sin(t * 9)
+				limbs(body, {
+					RightShoulder = CFrame.Angles(deg(130 + 30 * s), 0, deg(-40)),
+					LeftShoulder = CFrame.Angles(deg(130 - 30 * s), 0, deg(40)),
+					RightHip = CFrame.Angles(deg(30 * s), 0, 0),
+					LeftHip = CFrame.Angles(deg(-30 * s), 0, 0),
+					RightKnee = CFrame.Angles(deg(-40), 0, 0),
+					LeftKnee = CFrame.Angles(deg(-40), 0, 0),
+				})
 			end
 			local function walkPose(body: Model?, t: number, amp: number)
 				local s = math.sin(t * 8)
@@ -1347,167 +1418,257 @@ function Trailer.play(kind: string, take: string?)
 			local around: { Vector3 } = {}
 			for k = 0, 7 do
 				local a = k / 8 * 2 * math.pi
-				table.insert(around, Vector3.new(mc.X + math.cos(a) * mR * 1.1, summit.Y * 0.3, mc.Z + math.sin(a) * mR * 1.1))
+				table.insert(around, Vector3.new(mc.X + math.cos(a) * mR * 1.1, top * 0.3, mc.Z + math.sin(a) * mR * 1.1))
+			end
+			-- una parete di roccia ripida e libera davanti (lontana da zone, grotte e ghiaccio): li'
+			-- si appende lo scalatore delle clip 8 e 9 (prima il punto della cinematica era finito
+			-- dentro una grotta dei draghi e lo scalatore era in mezzo al vuoto)
+			local function wallSpot(y: number): (Vector3?, Vector3)
+				local bad: { Vector3 } = {}
+				for i = 1, (workspace:GetAttribute("ThemeZoneCount") or 0) :: number do
+					local c = workspace:GetAttribute("ThemeZone" .. i .. "Center")
+					if typeof(c) == "Vector3" then
+						table.insert(bad, c)
+					end
+				end
+				for _, key in { "GrandCaveCenter", "CraterCaveCenter" } do
+					local v = workspace:GetAttribute(key)
+					if typeof(v) == "Vector3" then
+						table.insert(bad, v)
+					end
+				end
+				for k = 0, 71 do
+					local a = k / 72 * 2 * math.pi + 0.11
+					local dir = Vector3.new(math.cos(a), 0, math.sin(a))
+					local hit = workspace:Raycast(Vector3.new(mc.X, y, mc.Z) + dir * 5000, -dir * 5000, terrainOnly)
+					if hit and math.abs(hit.Normal.Y) < 0.3 and hit.Material ~= Enum.Material.Ice and hit.Material ~= Enum.Material.Glacier then
+						local ok = not workspace:Raycast(hit.Position + hit.Normal * 2, hit.Normal * 60, solidParams)
+						for _, b in bad do
+							if (b - hit.Position).Magnitude < 320 then
+								ok = false
+							end
+						end
+						-- la parete continua sopra e sotto (non uno spigolo)
+						local above = workspace:Raycast(hit.Position + hit.Normal * 3 + UP * 10, -hit.Normal * 8, terrainOnly)
+						local below = workspace:Raycast(hit.Position + hit.Normal * 3 - UP * 10, -hit.Normal * 8, terrainOnly)
+						if ok and above and below then
+							return hit.Position, flat(hit.Normal)
+						end
+					end
+				end
+				return nil, Vector3.xAxis
+			end
+			local function scaleActor(a: Actor?, f: number)
+				if a then
+					a.model:ScaleTo(a.model:GetScale() * f)
+				end
 			end
 
 			if kind == "clip7" then
-				-- GIRO DELLA MAPPA: un unico giro largo attorno alla montagna, sale fino a meta'
-				-- altezza e riscende, la camera insegue morbida da fuori
+				-- GIRO DELLA MAPPA: inquadratura larga della montagna intera, poi la camera vola dietro
+				-- al drago (ingrandito: prima sembrava minuscolo) attorno alla montagna, infine si
+				-- allontana e la montagna si vede tutta
 				local pts: { Vector3 } = {}
+				local BIG = 2.5
 				local function build()
 					pts = {}
 					local a0 = if gc then math.atan2(gface.Z - mc.Z, gface.X - mc.X) else 0
-					local N = 18
+					local N = 22
 					for k = 0, N do
 						local f = k / N
 						local a = a0 + f * 2 * math.pi
-						local y = 450 + (summit.Y * 0.6 - 450) * (0.5 - 0.5 * math.cos(f * 2 * math.pi))
-						local r = math.max(surfaceR(a, y), surfaceR(a, y - 90), surfaceR(a, y + 90)) + 280
+						local y = 520 + (top * 0.55 - 520) * (0.5 - 0.5 * math.cos(f * 2 * math.pi))
+						local r = math.max(surfaceR(a, y), surfaceR(a, y - 110), surfaceR(a, y + 110)) + 190
 						table.insert(pts, Vector3.new(mc.X + math.cos(a) * r, y, mc.Z + math.sin(a) * r))
 					end
 				end
 				local function path(u: number): Vector3
 					return catmull(pts, u)
 				end
+				local wideDir = Vector3.zero
+				-- 1) la montagna intera, il drago passa davanti (3.5 s)
 				add({
-					dur = 20,
-					at = summit - Vector3.new(0, summit.Y * 0.6, 0),
+					dur = 3.5,
+					at = Vector3.new(mc.X, top * 0.3, mc.Z),
 					preload = around,
-					smooth = 1.6,
-					follow = true,
+					smooth = 2,
 					start = function()
 						build()
-						pose(adult, "fly", 0.55)
+						scaleActor(adult, BIG)
+						pose(adult, "fly", 0.5)
+						wideDir = flat(pts[1] - mc)
 					end,
 					update = function(u)
-						flyAlong(adult, path, u * 0.985, 2.2)
+						flyAlong(adult, path, u * 0.06, 2.4)
 					end,
 					cam = function(u)
-						local k = u * 0.985
+						local p = pts[1] or Vector3.zero
+						local camPos = p + wideDir * (420 - 300 * smooth(u)) + UP * (60 - 30 * u)
+						return CFrame.lookAt(camPos, (p + Vector3.new(mc.X, top * 0.45, mc.Z)) / 2)
+					end,
+				})
+				-- 2) il giro: camera dietro e di lato al drago, la montagna sempre nell'inquadratura
+				add({
+					dur = 15,
+					at = Vector3.new(mc.X, top * 0.4, mc.Z),
+					smooth = 2.2,
+					follow = true,
+					update = function(u)
+						flyAlong(adult, path, 0.06 + u * 0.88, 2.4)
+					end,
+					cam = function(u)
+						local k = 0.06 + u * 0.88
 						local p = path(k)
-						local ahead = path(math.min(1, k + 0.015))
+						local ahead = path(math.min(1, k + 0.012))
 						local out = flat(p - Vector3.new(mc.X, p.Y, mc.Z))
 						local back = (ahead - p).Unit
-						return CFrame.lookAt(p - back * 60 + out * 40 + UP * 20, p + back * 25 - out * 30)
+						local mountain = Vector3.new(mc.X, p.Y * 0.85, mc.Z)
+						return CFrame.lookAt(p - back * 45 + out * 40 + UP * 14, p:Lerp(mountain, 0.18))
+					end,
+				})
+				-- 3) la camera si allontana: tutta la montagna con il drago davanti (4 s)
+				add({
+					dur = 4,
+					at = Vector3.new(mc.X, top * 0.4, mc.Z),
+					smooth = 1.6,
+					update = function(u)
+						flyAlong(adult, path, 0.94 + u * 0.06, 2.4)
+						if u >= 0.999 then
+							scaleActor(adult, 1 / BIG)
+						end
+					end,
+					cam = function(u)
+						local p = path(0.94 + u * 0.06)
+						local out = flat(p - Vector3.new(mc.X, p.Y, mc.Z))
+						local d = 60 + (mR * 2.2) * smooth(u)
+						return CFrame.lookAt(p + out * d + UP * (20 + top * 0.25 * smooth(u)), p:Lerp(Vector3.new(mc.X, top * 0.42, mc.Z), smooth(u)))
 					end,
 				})
 			elseif kind == "clip8" then
-				-- UNA SOLA MAPPA: dal personaggio appeso alla parete la camera si allontana senza tagli
-				-- fino a mostrare tutta la montagna
-				local spot, nrm = workspace:GetAttribute("CineSpot"), workspace:GetAttribute("CineNormal")
-				if typeof(spot) == "Vector3" and typeof(nrm) == "Vector3" then
-					local n = flat(nrm)
+				-- UNA SOLA MAPPA: dallo scalatore appeso a una parete vera la camera si allontana senza
+				-- tagli fino a mostrare tutta la montagna
+				local spot, n = wallSpot(top * 0.22)
+				if spot then
 					local side = Vector3.new(-n.Z, 0, n.X)
-					local at = spot - Vector3.new(0, 26, 0) + n * 2
-					local hit = workspace:Raycast(at + n * 30, -n * 60, terrainOnly)
-					if hit then
-						at = hit.Position + n * 1.6
-					end
+					local at = spot + n * 1.3 - UP * 0.5
 					local body: Model? = nil
 					local dir = (n * 0.85 + side * 0.35 + UP * 0.3).Unit
-					local far = Vector3.new(mc.X, summit.Y * 0.42, mc.Z)
+					local far = Vector3.new(mc.X, top * 0.42, mc.Z)
 					add({
 						dur = 15,
 						at = at,
 						preload = around,
-						follow = true,
 						start = function()
 							body = Cinematic.kit.cloneActor()
-							if body then
-								(body :: Model):PivotTo(CFrame.lookAt(at, at - n))
-								limbs(body, {
-									RightShoulder = CFrame.Angles(math.rad(165), 0, 0),
-									LeftShoulder = CFrame.Angles(math.rad(150), 0, 0),
-									RightHip = CFrame.Angles(math.rad(20), 0, 0),
-									LeftKnee = CFrame.Angles(math.rad(-40), 0, 0),
-								})
-							end
 						end,
 						update = function(u)
+							if body then
+								(body :: Model):PivotTo(CFrame.lookAt(at, at - n) * CFrame.Angles(deg(-12), 0, 0))
+								climbPose(body, os.clock())
+							end
 							if u >= 0.999 and body then
 								(body :: Model):Destroy()
 								body = nil
 							end
 						end,
 						cam = function(u)
-							-- zoom indietro esponenziale: 8 studs -> ~4000 studs
-							local d = 8 * 500 ^ (u ^ 1.1)
-							local look = at:Lerp(far, smooth(math.clamp((u - 0.15) / 0.75, 0, 1)))
+							local d = 9 * 450 ^ (u ^ 1.1)
+							local look = (at - n * 1):Lerp(far, smooth(math.clamp((u - 0.15) / 0.75, 0, 1)))
 							return CFrame.lookAt(at + dir * d, look)
 						end,
 					})
 				end
 			elseif kind == "clip9" then
-				-- RAMPINO: scivola, cade, all'ultimo il rampino si aggancia a un drago che passa
-				local spot, nrm = workspace:GetAttribute("CineSpot"), workspace:GetAttribute("CineNormal")
-				if typeof(spot) == "Vector3" and typeof(nrm) == "Vector3" then
-					local n = flat(nrm)
+				-- RAMPINO: scivola dalla parete, cade, all'ultimo spara il rampino che si aggancia alla
+				-- coda di un drago che passa; resta appeso sotto e oscilla piano (pendolo)
+				local spot, n = wallSpot(top * 0.2)
+				if spot then
 					local side = Vector3.new(-n.Z, 0, n.X)
-					local at = spot - Vector3.new(0, 20, 0) + n * 2
-					local hitW = workspace:Raycast(at + n * 30, -n * 60, terrainOnly)
-					if hitW then
-						at = hitW.Position + n * 1.6
-					end
-					local fallEnd = at + n * 14 - UP * 55
+					local at = spot + n * 1.3
+					local fallEnd = at + n * 16 - UP * 48
 					local dpts = {
-						at - side * 220 + n * 70 - UP * 40,
-						fallEnd - side * 60 + n * 25 + UP * 10,
-						fallEnd + side * 10 + n * 30 + UP * 20,
-						at + side * 90 + n * 90 + UP * 70,
-						at + side * 160 + n * 120 + UP * 150,
+						at - side * 260 + n * 90 - UP * 60,
+						fallEnd - side * 70 + n * 30 + UP * 32,
+						fallEnd + side * 40 + n * 45 + UP * 60,
+						at + side * 150 + n * 110 + UP * 130,
+						at + side * 260 + n * 130 + UP * 220,
 					}
+					-- il drago arriva sopra lo scalatore proprio quando spara (u = 0.33)
 					local function dragonAt(u: number): Vector3
-						return catmull(dpts, u)
+						local uu = if u < 0.33 then u / 0.33 * 0.25 else 0.25 + (u - 0.33) / 0.67 * 0.75
+						return catmull(dpts, uu)
+					end
+					local function tail(): Vector3
+						if not adult then
+							return dragonAt(0.33)
+						end
+						local cf, size = adult.model:GetBoundingBox()
+						return cf.Position - cf.LookVector * size.Z * 0.32 - UP * size.Y * 0.15
 					end
 					local body: Model? = nil
 					local rope = Instance.new("Part")
 					rope.Anchored, rope.CanCollide, rope.CanQuery, rope.CanTouch = true, false, false, false
 					rope.Color = Color3.fromRGB(90, 70, 50)
 					rope.Material = Enum.Material.Fabric
+					local hook = Instance.new("Part")
+					hook.Anchored, hook.CanCollide, hook.CanQuery, hook.CanTouch = true, false, false, false
+					hook.Size = Vector3.new(0.8, 0.8, 1.4)
+					hook.Color = Color3.fromRGB(60, 60, 66)
+					hook.Material = Enum.Material.Metal
+					local pos = at
+					local last = 0
 					local hooked = false
-					local function bodyAt(u: number): Vector3
-						if u < 0.12 then
-							return at + n * (u / 0.12) * 1.5
-						elseif u < 0.32 then
-							local f = (u - 0.12) / 0.2
-							return at:Lerp(fallEnd, f * f * (1.6 - 0.6 * f)) -- rallenta alla fine (slow motion)
-						end
-						local d = dragonAt(u)
-						return d - UP * 24 + side * math.sin(u * 14) * 3
-					end
 					add({
 						dur = 11,
 						at = at,
-						preload = { fallEnd, dpts[4], dpts[5] },
+						preload = { fallEnd, dpts[3], dpts[4], dpts[5] },
 						smooth = 3,
 						start = function()
 							body = Cinematic.kit.cloneActor()
-							pose(adult, "fly", 0.6)
+							pose(adult, "fly", 0.55)
 							rope.Parent = workspace
+							pos = at
+							last = os.clock()
 						end,
 						update = function(u)
-							flyAlong(adult, dragonAt, u, 2)
-							local p = bodyAt(u)
+							local dt = math.min(0.05, os.clock() - last)
+							last = os.clock()
+							flyAlong(adult, dragonAt, u, 2.2)
+							local t = os.clock()
+							if u < 0.12 then
+								pos = at + n * (u / 0.12) * 1.2
+								climbPose(body, t)
+							elseif u < 0.35 then
+								local f = (u - 0.12) / 0.23
+								pos = at:Lerp(fallEnd, f * f * (1.6 - 0.6 * f))
+								fallPose(body, t)
+							else
+								-- appeso: segue la coda del drago con un po' di ritardo (pendolo)
+								local target = tail() - UP * 20
+								pos = pos:Lerp(target, 1 - math.exp(-dt * 3.2))
+								hangPose(body, t)
+							end
 							if body then
-								local spin = if u > 0.12 and u < 0.32 then CFrame.Angles((u - 0.12) * 6, 0, (u - 0.12) * 3) else CFrame.identity
-								;(body :: Model):PivotTo(CFrame.lookAt(p, p - n) * spin)
-								limbs(body, { RightShoulder = CFrame.Angles(math.rad(if u > 0.32 then 170 else 60), 0, 0), LeftShoulder = CFrame.Angles(math.rad(if u > 0.32 then 160 else 120), 0, 0) })
+								local spin = if u > 0.12 and u < 0.35 then CFrame.Angles((u - 0.12) * 4, 0, (u - 0.12) * 2) else CFrame.identity
+								;(body :: Model):PivotTo(CFrame.lookAt(pos, pos - n) * spin)
 							end
-							if u >= 0.3 and not hooked then
-								hooked = true
-								shake = 1.2
-								flash(s)
-							end
-							if hooked and adult then
-								local hand = p + UP * 2.5
-								local tail = adult.model:GetPivot().Position
-								local reach = math.clamp((u - 0.3) / 0.05, 0, 1)
-								local tip = hand:Lerp(tail, reach)
-								rope.Size = Vector3.new(0.25, 0.25, math.max(0.1, (tip - hand).Magnitude))
+							-- il rampino parte dalla mano e vola fino alla coda (0.31 - 0.35)
+							if u >= 0.31 then
+								if not hooked then
+									hooked = true
+									hook.Parent = workspace
+									shake = 1
+								end
+								local hand = pos + UP * 2.6
+								local reach = math.clamp((u - 0.31) / 0.04, 0, 1)
+								local tip = hand:Lerp(tail(), reach)
+								hook.CFrame = CFrame.lookAt(tip, tip + (tip - hand).Unit)
+								rope.Size = Vector3.new(0.22, 0.22, math.max(0.1, (tip - hand).Magnitude))
 								rope.CFrame = CFrame.lookAt((hand + tip) / 2, tip)
 							end
 							if u >= 0.999 then
 								rope:Destroy()
+								hook:Destroy()
 								if body then
 									(body :: Model):Destroy()
 									body = nil
@@ -1515,13 +1676,12 @@ function Trailer.play(kind: string, take: string?)
 							end
 						end,
 						cam = function(u)
-							local p = bodyAt(u)
-							if u < 0.32 then
-								return CFrame.lookAt(at + n * 26 + side * 14 - UP * 6, p)
+							if u < 0.35 then
+								return CFrame.lookAt(at + n * 30 + side * 16 - UP * 8, pos)
 							end
-							local d = dragonAt(u)
-							local mid = (p + d) / 2
-							return CFrame.lookAt(mid + n * 70 - side * 30 + UP * 6, mid)
+							local d = adult and adult.model:GetPivot().Position or pos
+							local mid = (pos + d) / 2
+							return CFrame.lookAt(mid + n * 75 - side * 30 + UP * 8, mid)
 						end,
 					})
 				end
@@ -1554,7 +1714,7 @@ function Trailer.play(kind: string, take: string?)
 					bb.Parent = m
 					return fill
 				end
-				local function walker(dragon: Actor?, dur: number, dies: boolean)
+				local function walker(dragon: Actor?, dur: number, dies: boolean): Shot
 					return {
 						dur = dur,
 						at = mid,
@@ -1570,11 +1730,7 @@ function Trailer.play(kind: string, take: string?)
 							hide(gelo)
 							hide(gas)
 							pose(dragon, "walk", 0.9)
-							if dies then
-								flash(s)
-							else
-								flash(s)
-							end
+							flash(s)
 						end,
 						update = function(u)
 							local p = groundAt(a:Lerp(b, u * 0.8)) + UP * 3
@@ -1619,8 +1775,8 @@ function Trailer.play(kind: string, take: string?)
 					end
 				end
 			elseif kind == "clip11" then
-				-- GIORNO 1 / GIORNO 30: tenda col cucciolo, stacco, chalet sul costone con l'adulto,
-				-- poi l'adulto vola via
+				-- GIORNO 1 / GIORNO 30: tenda col cucciolo, stacco, chalet sul costone con l'adulto, poi
+				-- l'adulto vola verso la valle e la camera si allontana fino a tutta la montagna
 				local tentCf, chaletCf = d.TentCF, d.ChaletCF
 				local tent = props and props:FindFirstChild("CasaTenda")
 				local chalet = props and props:FindFirstChild("CasaChalet")
@@ -1630,63 +1786,78 @@ function Trailer.play(kind: string, take: string?)
 						if not body then
 							body = Cinematic.kit.cloneActor()
 						end
-						local p = groundAt((cf * CFrame.new(offset)).Position) + UP * 3
+						local p = groundAll((cf * CFrame.new(offset)).Position) + UP * 3
 						if body then
-							(body :: Model):PivotTo(CFrame.lookAt(p, p - cf.LookVector))
+							(body :: Model):PivotTo(CFrame.lookAt(p, p + cf.LookVector))
 						end
 					end
-					local function orbitAt(cf: CFrame, r: number, h: number): (number) -> CFrame
+					-- la casa guarda la valle (LookVector): la camera sta dal lato della valle, in alto,
+					-- cosi' non entra mai nella montagna
+					local function frontOrbit(cf: CFrame, r: number, h: number, look: number): (number) -> CFrame
 						local c = cf.Position
+						local out = flat(cf.LookVector)
+						local base = math.atan2(out.Z, out.X)
 						return function(u)
-							local a = math.atan2(-cf.LookVector.Z, -cf.LookVector.X) + 0.4 + u * 0.6
-							return CFrame.lookAt(c + Vector3.new(math.cos(a) * r, h, math.sin(a) * r), c + UP * 6)
+							local a = base - 0.35 + u * 0.5
+							return CFrame.lookAt(c + Vector3.new(math.cos(a) * r, h, math.sin(a) * r), c + UP * look)
 						end
 					end
 					add({
 						dur = 4.2,
 						at = tentCf.Position,
-						preload = { chaletCf.Position },
+						preload = { chaletCf.Position, chaletCf.Position + chaletCf.LookVector * 300 },
+						smooth = 3,
 						start = function()
 							if tent and tent:IsA("Model") then
 								tent:PivotTo(tentCf)
 							end
 							placeBody(tentCf, Vector3.new(4, 0, -16))
-							standAt(baby, (tentCf * CFrame.new(-4, 0, -14)).Position, -tentCf.LookVector)
+							standAt(baby, (tentCf * CFrame.new(-4, 0, -14)).Position, tentCf.LookVector)
 							pose(baby, "idle")
 							hide(adult)
 						end,
-						cam = orbitAt(tentCf, 40, 14),
-					})
-					add({
-						dur = 4.5,
-						at = chaletCf.Position,
-						start = function()
-							flash(s)
-							shake = 0.8
-							hide(baby)
-							if chalet and chalet:IsA("Model") then
-								chalet:PivotTo(chaletCf)
-							end
-							placeBody(chaletCf, Vector3.new(6, 0, -30))
-							standAt(adult, (chaletCf * CFrame.new(-14, 0, -34)).Position, -chaletCf.LookVector)
-							pose(adult, "idle", 0.7)
+						update = function()
+							walkPose(body, os.clock(), 0)
 						end,
-						cam = orbitAt(chaletCf, 85, 30),
+						cam = frontOrbit(tentCf, 36, 12, 5),
 					})
-					local launch = chaletCf * CFrame.new(-14, 0, -34)
-					local function flight(u: number): Vector3
-						return launch.Position + UP * (8 + 160 * u * u) - chaletCf.LookVector * 240 * u
-					end
+					-- il drago adulto sulla pedana, di lato allo chalet (non davanti, sul vuoto)
+					local perch = groundAll((chaletCf * CFrame.new(-24, 0, 6)).Position) + UP * 2
 					add({
 						dur = 4.5,
 						at = chaletCf.Position,
 						smooth = 3,
 						start = function()
+							flash(s)
+							shake = 0.6
+							hide(baby)
+							if chalet and chalet:IsA("Model") then
+								chalet:PivotTo(chaletCf)
+							end
+							placeBody(chaletCf, Vector3.new(10, 0, -24))
+							standAt(adult, perch, chaletCf.LookVector)
+							pose(adult, "idle", 0.7)
+						end,
+						cam = frontOrbit(chaletCf, 95, 34, 10),
+					})
+					-- vola verso la valle e sale; la camera si allontana fino a tutta la montagna
+					local function flight(u: number): Vector3
+						return perch + UP * (10 + 160 * u * u) + chaletCf.LookVector * 300 * u
+					end
+					local out = flat(chaletCf.LookVector)
+					add({
+						dur = 5.5,
+						at = chaletCf.Position + chaletCf.LookVector * 200,
+						preload = around,
+						smooth = 1.8,
+						start = function()
+							scaleActor(adult, 1.6)
 							pose(adult, "fly", 0.6)
 						end,
 						update = function(u)
-							flyAlong(adult, flight, u * 0.98, 2)
+							flyAlong(adult, flight, u * 0.98, 2.2)
 							if u >= 0.999 then
+								scaleActor(adult, 1 / 1.6)
 								if body then
 									(body :: Model):Destroy()
 									body = nil
@@ -1700,7 +1871,9 @@ function Trailer.play(kind: string, take: string?)
 						end,
 						cam = function(u)
 							local p = flight(u * 0.98)
-							return CFrame.lookAt(p + chaletCf.LookVector * 70 + UP * 25 + chaletCf.RightVector * 30, p)
+							local k = smooth(u)
+							local camPos = (chaletCf.Position + out * 110 + UP * 40):Lerp(Vector3.new(mc.X, 0, mc.Z) + out * mR * 2.3 + UP * top * 0.5, k)
+							return CFrame.lookAt(camPos, p:Lerp(Vector3.new(mc.X, top * 0.42, mc.Z), k * 0.85))
 						end,
 					})
 				end

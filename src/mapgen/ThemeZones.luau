@@ -204,6 +204,8 @@ local function placeModel(parent: Instance, tpl: Model, base: Vector3, h: number
 	local axis = Vector3.yAxis:Cross(n)
 	local rot = if axis.Magnitude < 1e-3 then (if n.Y > 0 then CFrame.identity else CFrame.Angles(math.pi, 0, 0)) else CFrame.fromAxisAngle(axis.Unit, math.acos(math.clamp(n.Y, -1, 1)))
 	m:PivotTo(CFrame.new(base) * rot * CFrame.new(0, lift, 0) * tilt)
+	m:SetAttribute("Base", base) -- per il controllo finale: deve poggiare sulla roccia
+	m:SetAttribute("Normal", n)
 	m.Name = "Cristallo"
 	m.Parent = parent
 end
@@ -420,12 +422,12 @@ local function shapeZone(map: Heightmap.Map, kind: string, t: any, center: Vecto
 			return nil
 		end)
 		local spots = {}
-		for _ = 1, 50 do
+		for _ = 1, 110 do
 			local s = rng:NextNumber(-0.9, 0.9) * L
 			local q = center + side * s + Vector3.new(0, rng:NextNumber(-D + 4, 10), 0)
 			local dir = out * (if rng:NextNumber() < 0.5 then 1 else -1) + Vector3.new(0, rng:NextNumber(-0.8, 0.2), 0)
 			local hit = workspace:Raycast(q, dir.Unit * 60, terrainOnly)
-			if hit and #spots < 34 then
+			if hit and #spots < 70 then
 				table.insert(spots, { p = hit.Position, n = hit.Normal })
 			end
 		end
@@ -454,7 +456,7 @@ local function shapeZone(map: Heightmap.Map, kind: string, t: any, center: Vecto
 			return nil
 		end)
 		local stage = Vector3.new(c.X, floorY, c.Z)
-		return { stage = stage, nest = stage, castFrom = 120, spots = cavitySpots(c + Vector3.new(0, 4, 0), rx * 1.2, 30, rng, true) }
+		return { stage = stage, nest = stage, castFrom = 120, spots = cavitySpots(c + Vector3.new(0, 4, 0), rx * 1.2, 60, rng, true) }
 	elseif kind == "cave" then
 		-- grotta: ellissoide scavato dentro la montagna, l'apertura verso la valle
 		local rx, ry, rz = R * 0.6, R * 0.42, R * 0.6
@@ -485,7 +487,7 @@ local function shapeZone(map: Heightmap.Map, kind: string, t: any, center: Vecto
 		end)
 		local stage = Vector3.new(c.X, floorY, c.Z)
 		local ground = down(c.X, c.Z, c.Y + 4)
-		return { stage = stage, nest = if ground then ground.Position else stage, castFrom = ry * 0.4, spots = cavitySpots(c, math.max(rx, ry, rz) * 1.6, 46, rng) }
+		return { stage = stage, nest = if ground then ground.Position else stage, castFrom = ry * 0.4, spots = cavitySpots(c, math.max(rx, ry, rz) * 1.6, 90, rng) }
 	end
 	-- isole volanti: una grande al centro (col nido) e 5-6 attorno a quote diverse, sassi sospesi
 	-- a spirale dal suolo fino all'isola centrale
@@ -498,16 +500,16 @@ local function shapeZone(map: Heightmap.Map, kind: string, t: any, center: Vecto
 			T:FillBall(at - Vector3.new(rng:NextNumber(-2, 2), k * r * 0.3, rng:NextNumber(-2, 2)), rr, if k % 2 == 0 then g2 else g1)
 		end
 		T:FillCylinder(CFrame.new(at + Vector3.new(0, 12, 0)), 18, r + 2, M.Air) -- cima piatta
-		for _ = 1, 5 do
+		for _ = 1, 9 do
 			local a = rng:NextNumber(0, 2 * math.pi)
-			local q = at + Vector3.new(math.cos(a) * r * rng:NextNumber(0.1, 0.75), 30, math.sin(a) * r * rng:NextNumber(0.1, 0.75))
-			local hit = workspace:Raycast(q, Vector3.new(0, -60, 0), terrainOnly)
+			local q = at + Vector3.new(math.cos(a) * r * rng:NextNumber(0.1, 0.8), 8, math.sin(a) * r * rng:NextNumber(0.1, 0.8))
+			local hit = workspace:Raycast(q, Vector3.new(0, -20, 0), terrainOnly)
 			if hit then
 				table.insert(spots, { p = hit.Position, n = hit.Normal })
 			end
 		end
 		-- cristalli appesi sotto (a testa in giu')
-		for _ = 1, 2 do
+		for _ = 1, 4 do
 			local q = at - Vector3.new(rng:NextNumber(-r, r) * 0.3, r * 2.2, rng:NextNumber(-r, r) * 0.3)
 			local hit = workspace:Raycast(q, Vector3.new(0, r * 2.5, 0), terrainOnly)
 			if hit and hit.Normal.Y < -0.3 then
@@ -566,6 +568,23 @@ function ThemeZones.build(map: Heightmap.Map)
 	end
 	local made = {}
 	local centers: { Vector3 } = {} -- le zone non si sovrappongono
+	-- da evitare: Grande Grotta, cratere, grotte dei ghiacciai, il punto della cinematica
+	local avoid: { Vector3 } = {}
+	for _, key in { "GrandCaveCenter", "CraterCaveCenter", "CineSpot" } do
+		local v = workspace:GetAttribute(key)
+		if typeof(v) == "Vector3" then
+			table.insert(avoid, v)
+		end
+	end
+	for _, gc in map.features.glacierCaves or {} do
+		local e = gc.entrance
+		if e then
+			table.insert(avoid, Vector3.new(e.x, e.y, e.z))
+		end
+	end
+	for _, ic in map.features.iceCaves or {} do
+		table.insert(avoid, Vector3.new(ic.x, ic.y, ic.z))
+	end
 	for i, t0 in list do
 		local t = table.clone(t0)
 		t.RADIUS *= 1.4 -- zone piu' grandi
@@ -584,6 +603,16 @@ function ThemeZones.build(map: Heightmap.Map)
 						if (o - hit.Position).Magnitude < 340 then
 							clash = true
 						end
+					end
+					for _, o in avoid do
+						if (o - hit.Position).Magnitude < 280 then
+							clash = true
+						end
+					end
+					-- cielo libero sopra (prima una zona e' finita dentro una grotta di ghiaccio) e
+					-- niente ghiaccio sotto
+					if hit.Material == M.Ice or hit.Material == M.Glacier or workspace:Raycast(hit.Position + Vector3.new(0, 4, 0), Vector3.new(0, 400, 0), terrainOnly) then
+						clash = true
 					end
 				end
 				if hit and not clash and hit.Material ~= M.Water and math.abs(hit.Position.Y - t.Y) < 160 then
@@ -688,7 +717,7 @@ function ThemeZones.build(map: Heightmap.Map)
 		for _, sp in st.spots do
 			crystal(zf, sp.p, rng:NextNumber(6, 18), Vector3.zero, t.COLOR, rng, sp.n)
 		end
-		for _, p in stagePoints(9) do
+		for _, p in stagePoints(16) do
 			for _ = 1, rng:NextInteger(2, 4) do
 				local q = p + Vector3.new(rng:NextNumber(-6, 6), 0, rng:NextNumber(-6, 6))
 				local hit = down(q.X, q.Z, q.Y + 20)
@@ -774,7 +803,23 @@ function ThemeZones.build(map: Heightmap.Map)
 			scatter("Gas", c, r * 0.8, 10, c.Y + 300)
 		end
 	end
-	print("[MapGen] Zone a tema: " .. table.concat(made, ", "))
+	local removed = 0
+	for k, m in folder:GetDescendants() do
+		if m:IsA("Model") and m.Name == "Cristallo" then
+			local b, n = m:GetAttribute("Base"), m:GetAttribute("Normal")
+			if typeof(b) == "Vector3" and typeof(n) == "Vector3" then
+				local hit = workspace:Raycast(b + n * 3, -n * 9, terrainOnly)
+				if not hit then
+					m:Destroy()
+					removed += 1
+				end
+			end
+		end
+		if k % 300 == 0 then
+			task.wait()
+		end
+	end
+	print(string.format("[MapGen] Zone a tema: %s (cristalli sospesi tolti: %d)", table.concat(made, ", "), removed))
 end
 
 return ThemeZones

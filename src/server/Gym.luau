@@ -167,12 +167,12 @@ local function build(center: Vector3, facing: Vector3): Folder
 	part(folder, "Palo", Vector3.new(1, 22, 1), at(-16, 10) * CFrame.new(0, 11, 0), WOOD, Enum.Material.Wood)
 	part(folder, "Braccio", Vector3.new(4, 0.6, 0.6), at(-15, 10) * CFrame.new(0, 21.5, 0), WOOD, Enum.Material.Wood)
 	local rope = part(folder, "Corda", Vector3.new(0.4, 20, 0.4), at(-13.4, 10) * CFrame.new(0, 11.4, 0), Color3.fromRGB(200, 180, 140), Enum.Material.Fabric)
-	station(folder, rope, "Rope climb", "Climbing rope", "rope", "Resistenza", at(-13.4, 10.9) * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, 6, 0), false)
+	station(folder, rope, "Rope climb", "Climbing rope", "rope", "Resistenza", at(-13.4, 10.9) * CFrame.new(0, 6, 0), false)
 	-- sacco da boxe
 	part(folder, "Gancio", Vector3.new(4, 0.5, 0.5), at(0, -12) * CFrame.new(0, 9, 0), IRON, Enum.Material.Metal)
 	part(folder, "Palo", Vector3.new(0.5, 9, 0.5), at(-2, -12) * CFrame.new(0, 4.5, 0), IRON, Enum.Material.Metal)
 	local bag = part(folder, "Sacco", Vector3.new(4.5, 2.2, 2.2), at(1, -12) * CFrame.new(0, 5.6, 0) * CFrame.Angles(0, 0, math.pi / 2), RED, Enum.Material.Leather, Enum.PartType.Cylinder)
-	station(folder, bag, "Box", "Punching bag", "box", "Recupero", at(1, -9.2) * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, 0.6, 0), true)
+	station(folder, bag, "Box", "Punching bag", "box", "Recupero", at(1, -9.4) * CFrame.new(0, 0.6, 0), true)
 	-- insegna e palme
 	local sign = part(folder, "Insegna", Vector3.new(18, 4, 0.4), at(0, -22) * CFrame.new(0, 9, 0), Color3.fromRGB(30, 30, 36), Enum.Material.SmoothPlastic)
 	for _, x in { -8, 8 } do

@@ -52,8 +52,14 @@ local function destinations(): { [string]: (Player) -> Vector3? }
 			return if typeof(c) == "Vector3" then c + Vector3.new(0, 0, 30) else nil
 		end,
 		["Dragon training"] = function()
+			-- davanti alla pedana, fuori dall'arena (prima finiva sotto la piattaforma dell'arena)
 			local c = workspace:GetAttribute("TrainingCenter")
-			return if typeof(c) == "Vector3" then c + Vector3.new(0, 0, 70) else nil
+			local pad = workspace:GetAttribute("TrainingPad")
+			if typeof(c) == "Vector3" and typeof(pad) == "Vector3" then
+				local away = Vector3.new(pad.X - c.X, 0, pad.Z - c.Z).Unit
+				return pad + away * 14
+			end
+			return nil
 		end,
 	}
 end

@@ -265,6 +265,10 @@ function HUD.start()
 			lastNotice = noticeTime
 			ClientState.hint = notice
 		end
+		-- nell'arena sei il drago: niente suggerimenti dell'arrampicata ("nessuna parete" ecc.)
+		if (ClientState :: any).dragonMode and type(ClientState.hint) == "string" and not string.find(ClientState.hint :: string, "XP", 1, true) then
+			ClientState.hint = ""
+		end
 		if ClientState.hint ~= lastHint then
 			lastHint = ClientState.hint
 			hintTime = os.clock()

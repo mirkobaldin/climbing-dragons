@@ -55,6 +55,50 @@ local function dumbbell(): BasePart
 	return p
 end
 
+-- bilanciere in mano: sbarra cromata e dischi rossi, tenuto tra le due mani
+local function heldBarbell(): { BasePart }
+	local function make(size: Vector3, color: Color3, mat: Enum.Material): BasePart
+		local p = Instance.new("Part")
+		p.Name = "BilanciereInMano"
+		p.Shape = Enum.PartType.Cylinder
+		p.Size = size
+		p.Color = color
+		p.Material = mat
+		p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch = true, false, false, false
+		p.Parent = workspace
+		return p
+	end
+	return {
+		make(Vector3.new(8, 0.35, 0.35), Color3.fromRGB(190, 192, 198), Enum.Material.Metal),
+		make(Vector3.new(0.5, 2.6, 2.6), Color3.fromRGB(200, 50, 45), Enum.Material.SmoothPlastic),
+		make(Vector3.new(0.5, 2.6, 2.6), Color3.fromRGB(200, 50, 45), Enum.Material.SmoothPlastic),
+	}
+end
+
+-- il bilanciere fermo sull'attrezzo si nasconde (solo qui) mentre lo tieni in mano
+local hiddenBar: { [Model]: { BasePart } } = {}
+local function hideStationBar(character: Model, hide: boolean)
+	if hide then
+		local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local gym = workspace:FindFirstChild("Palestra")
+		local list = {}
+		if root and gym then
+			for _, d in gym:GetChildren() do
+				if d:IsA("BasePart") and (d.Name == "Sbarra" or d.Name == "Disco") and (d.Position - (root :: BasePart).Position).Magnitude < 7 and d.Size.X > 1 then
+					d.LocalTransparencyModifier = 1
+					table.insert(list, d)
+				end
+			end
+		end
+		hiddenBar[character] = list
+	else
+		for _, d in hiddenBar[character] or {} do
+			d.LocalTransparencyModifier = 0
+		end
+		hiddenBar[character] = nil
+	end
+end
+
 local function clear(character: Model)
 	local r = rigs[character]
 	if not r then
@@ -63,6 +107,7 @@ local function clear(character: Model)
 	for _, p in r.props do
 		p:Destroy()
 	end
+	hideStationBar(character, false)
 	rigs[character] = nil
 end
 
@@ -142,6 +187,20 @@ local function pose(r: Rig, kind: string, p: number)
 end
 
 function GymAnim.start()
+	-- mentre ti alleni i tasti dell'arrampicata (E, F, salto...) non fanno niente: prima E girava
+	-- il personaggio di 90 gradi
+	local ContextActionService = game:GetService("ContextActionService")
+	local me = Players.LocalPlayer
+	local function lock()
+		if me:GetAttribute("GymExercise") then
+			ContextActionService:BindActionAtPriority("BloccoPalestra", function()
+				return Enum.ContextActionResult.Sink
+			end, false, 3000, Enum.KeyCode.E, Enum.KeyCode.F, Enum.KeyCode.Space, Enum.KeyCode.R, Enum.KeyCode.Q, Enum.KeyCode.G, Enum.UserInputType.MouseButton1)
+		else
+			ContextActionService:UnbindAction("BloccoPalestra")
+		end
+	end
+	me:GetAttributeChangedSignal("GymExercise"):Connect(lock)
 	-- dopo le animazioni normali di Roblox (Stepped): le nostre pose vincono
 	RunService.Stepped:Connect(function()
 		local now = workspace:GetServerTimeNow()
@@ -156,6 +215,24 @@ function GymAnim.start()
 				local since = (plr:GetAttribute("GymSince") or now) :: number
 				local p = ((now - since) / (PERIOD[kind] or 1.5)) % 1
 				pose(r, kind, p)
+				-- bilanciere tra le mani (panca e squat)
+				if kind == "bench" or kind == "squat" then
+					if #r.props == 0 then
+						r.props = heldBarbell()
+						hideStationBar(character, true)
+					end
+					local rh, lh = character:FindFirstChild("RightHand"), character:FindFirstChild("LeftHand")
+					if rh and lh and rh:IsA("BasePart") and lh:IsA("BasePart") then
+						local mid = (rh.Position + lh.Position) / 2
+						local axis = (rh.Position - lh.Position)
+						axis = if axis.Magnitude > 0.1 then axis.Unit else (character:GetPivot().RightVector)
+						-- cilindro lungo l'asse X: si allinea l'asse X tra le due mani
+						local cf = CFrame.fromMatrix(mid, axis, axis:Cross(Vector3.yAxis).Magnitude > 0.1 and axis:Cross(Vector3.yAxis):Cross(axis).Unit or Vector3.zAxis)
+						r.props[1].CFrame = cf
+						r.props[2].CFrame = cf * CFrame.new(3.4, 0, 0)
+						r.props[3].CFrame = cf * CFrame.new(-3.4, 0, 0)
+					end
+				end
 				-- manubri nelle mani
 				if kind == "curl" then
 					if #r.props == 0 then

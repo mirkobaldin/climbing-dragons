@@ -682,6 +682,16 @@ local function startAim(event: RemoteEvent)
 			if root then
 				root.Anchored = want
 			end
+			-- sei il drago: piccozze riposte e barra degli attrezzi nascosta (prima il click usava
+			-- anche la piccozza e uscivano i messaggi "nessuna parete")
+			local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+			if want and humanoid then
+				humanoid:UnequipTools()
+			end
+			pcall(function()
+				game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, not want)
+			end)
+			ClientState.dragonMode = want
 			-- vista pulita: via i menu (negozio, teletrasporto, admin) mentre miri
 			for _, name in { "MainMenu", "Teletrasporto", "AdminButtons" } do
 				local g = player.PlayerGui:FindFirstChild(name)
@@ -736,7 +746,8 @@ local function startAim(event: RemoteEvent)
 		end
 	end
 	UserInputService.InputBegan:Connect(function(input, processed)
-		if on and not processed and input.KeyCode == Enum.KeyCode.X then
+		-- Q (la X accende e spegne il mirino)
+		if on and not processed and input.KeyCode == Enum.KeyCode.Q then
 			leave()
 		end
 	end)
@@ -749,7 +760,7 @@ local function startAim(event: RemoteEvent)
 	exitBtn.Font = Enum.Font.GothamBold
 	exitBtn.TextSize = 18
 	exitBtn.TextColor3 = Color3.new(1, 1, 1)
-	exitBtn.Text = "Exit (X)"
+	exitBtn.Text = "Exit (Q)"
 	exitBtn.Parent = gui
 	local ec = Instance.new("UICorner")
 	ec.CornerRadius = UDim.new(0, 10)
