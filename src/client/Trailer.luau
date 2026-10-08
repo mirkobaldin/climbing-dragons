@@ -1463,6 +1463,28 @@ function Trailer.play(kind: string, take: string?)
 				end
 				return nil, Vector3.xAxis
 			end
+			-- punto davanti alla parete dove il corpo intero (testa, petto, anche) e' fuori dalla
+			-- roccia: i voxel del terreno sono a blocchi di 4 e la superficie trovata dal raggio non
+			-- basta (prima lo scalatore era mezzo dentro la parete)
+			local function outOfRock(p: Vector3, n: Vector3): Vector3
+				-- raggi verso la parete all'altezza di testa, petto, anche, ginocchia e di lato: il
+				-- corpo sta 1.4 studs davanti al punto di roccia piu' sporgente
+				local side = Vector3.new(-n.Z, 0, n.X)
+				local most = -math.huge
+				for _, dy in { 2.6, 1.2, 0, -1.4, -2.8 } do
+					for _, dx in { -1, 0, 1 } do
+						local from = p + n * 30 + UP * dy + side * dx
+						local hit = workspace:Raycast(from, -n * 60, terrainOnly)
+						if hit then
+							most = math.max(most, (hit.Position - p):Dot(n))
+						end
+					end
+				end
+				if most == -math.huge then
+					most = 0
+				end
+				return p + n * (most + 2.4)
+			end
 			local function scaleActor(a: Actor?, f: number)
 				if a then
 					a.model:ScaleTo(a.model:GetScale() * f)
@@ -1567,7 +1589,7 @@ function Trailer.play(kind: string, take: string?)
 				local spot, n = wallSpot(top * 0.22)
 				if spot then
 					local side = Vector3.new(-n.Z, 0, n.X)
-					local at = spot + n * 1.3 - UP * 0.5
+					local at = spot + n * 1.3
 					local body: Model? = nil
 					local dir = (n * 0.85 + side * 0.35 + UP * 0.3).Unit
 					local far = Vector3.new(mc.X, top * 0.42, mc.Z)
@@ -1577,10 +1599,11 @@ function Trailer.play(kind: string, take: string?)
 						preload = around,
 						start = function()
 							body = Cinematic.kit.cloneActor()
+							at = outOfRock(spot, n) -- qui il terreno e' caricato
 						end,
 						update = function(u)
 							if body then
-								(body :: Model):PivotTo(CFrame.lookAt(at, at - n) * CFrame.Angles(deg(-12), 0, 0))
+								(body :: Model):PivotTo(CFrame.lookAt(at, at - n) * CFrame.Angles(deg(6), 0, 0))
 								climbPose(body, os.clock())
 							end
 							if u >= 0.999 and body then
@@ -1644,6 +1667,7 @@ function Trailer.play(kind: string, take: string?)
 							body = Cinematic.kit.cloneActor()
 							pose(adult, "fly", 0.55)
 							rope.Parent = workspace
+							at = outOfRock(spot, n)
 							pos = at
 							last = os.clock()
 						end,
