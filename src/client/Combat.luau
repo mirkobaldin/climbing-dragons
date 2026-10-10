@@ -19,7 +19,8 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
-local UpgradeConfig = require(Shared:WaitForChild("UpgradeConfig"))
+local FlyerPath = require(Shared:WaitForChild("FlyerPath"))
+local KfsPlayer = require(script.Parent.KfsPlayer)
 local DragonVFX = require(script.Parent.DragonVFX)
 local ClientState = require(script.Parent.ClientState)
 local Sfx = require(script.Parent.Sfx)
@@ -182,6 +183,114 @@ local function flash(model: Instance)
 	Debris:AddItem(h, 0.12)
 end
 
+-- animazioni del drago volante (quelle del suo rig, generate da MapGen.AnimDraghi): un ciclo
+-- per il pezzo di volo (attributo "Anim") e un gesto quando cambia "ActT" (attributo "Act")
+local LOOPS = { "Fly", "Glide", "Hover", "Dive", "Idle", "Walk" }
+local ACTS = { "Roar", "Breath", "Bite", "Hit" }
+local FALLBACK = { Glide = "Fly", Hover = "Fly", Dive = "Fly", Idle = "Fly", Walk = "Idle" }
+type FlyAnim = { tracks: { [string]: any }, actT: number?, actTrack: any?, actUntil: number }
+local flyAnims: { [Model]: FlyAnim } = {}
+
+local function flyAnim(m: Model): FlyAnim?
+	local a = flyAnims[m]
+	if a then
+		return a
+	end
+	local key = m:GetAttribute("AnimKey")
+	local saves = ReplicatedStorage:FindFirstChild("DragonAnimSaves")
+	local set = saves and type(key) == "string" and saves:FindFirstChild(key)
+	if not set then
+		return nil
+	end
+	local tracks = {}
+	for _, name in LOOPS do
+		local k = set:FindFirstChild("Dragon_" .. name)
+		if k and k:IsA("KeyframeSequence") then
+			local tr = KfsPlayer.load(m, k)
+			tr:Play(0, 0.001)
+			tracks[name] = tr
+		end
+	end
+	for _, name in ACTS do
+		local k = set:FindFirstChild("Dragon_" .. name)
+		if k and k:IsA("KeyframeSequence") then
+			local tr = KfsPlayer.load(m, k)
+			tr.Looped = false
+			tracks[name] = tr
+		end
+	end
+	local made: FlyAnim = { tracks = tracks, actT = m:GetAttribute("ActT") :: number?, actTrack = nil, actUntil = 0 }
+	flyAnims[m] = made
+	return made
+end
+
+local function animateFlyer(m: Model)
+	local a = flyAnim(m)
+	if not a then
+		return
+	end
+	local base = (m:GetAttribute("Anim") or "Fly") :: string
+	while not a.tracks[base] and FALLBACK[base] do
+		base = FALLBACK[base]
+	end
+	-- gesto (ruggito, soffio...): parte da capo quando il server cambia ActT
+	local actT = m:GetAttribute("ActT")
+	if type(actT) == "number" and actT ~= a.actT then
+		a.actT = actT
+		local tr = a.tracks[(m:GetAttribute("Act") or "") :: string]
+		if tr then
+			if a.actTrack and a.actTrack ~= tr then
+				a.actTrack:Stop(0.15)
+			end
+			tr.time = 0
+			tr:Play(0.12, 1)
+			a.actTrack = tr
+			a.actUntil = os.clock() + tr.clip.length - 0.2
+			if m:GetAttribute("Act") == "Roar" then
+				Sfx.play("Ruggito", m:GetPivot().Position, 2)
+			end
+		end
+	end
+	local acting = a.actTrack ~= nil and os.clock() < a.actUntil
+	if a.actTrack and not acting then
+		a.actTrack:Stop(0.3)
+		a.actTrack = nil
+	end
+	for _, name in LOOPS do
+		local tr = a.tracks[name]
+		if tr then
+			tr:AdjustWeight(if name == base then (if acting then 0.25 else 1) else 0.001, 0.35)
+		end
+	end
+end
+
+-- gesto una tantum sul drago al seguito di un giocatore (es. soffio dell'attacco speciale)
+local petActs: { [Model]: { [string]: any } } = {}
+local function petGesture(userId: number, name: string)
+	local folder = workspace:FindFirstChild("Pets")
+	local mine = folder and folder:FindFirstChild(tostring(userId))
+	for _, m in (if mine then mine:GetChildren() else {}) :: { Instance } do
+		local key = m:GetAttribute("AnimKey")
+		local saves = ReplicatedStorage:FindFirstChild("DragonAnimSaves")
+		local set = saves and type(key) == "string" and saves:FindFirstChild(key)
+		local k = set and set:FindFirstChild("Dragon_" .. name)
+		if m:IsA("Model") and k and k:IsA("KeyframeSequence") then
+			petActs[m] = petActs[m] or {}
+			local tr = petActs[m][name]
+			if not tr then
+				tr = KfsPlayer.load(m, k)
+				tr.Looped = false
+				petActs[m][name] = tr
+			end
+			tr.time = 0
+			tr:Play(0.1, 1.5)
+			task.delay(tr.clip.length - 0.15, function()
+				tr:Stop(0.25)
+			end)
+		end
+	end
+end
+
 local function moveFlyers()
 	local camPos = workspace.CurrentCamera.CFrame.Position
 	local now = workspace:GetServerTimeNow()
@@ -201,11 +310,23 @@ local function moveFlyers()
 			end
 			continue
 		end
-		local center = m:GetAttribute("Center")
-		if typeof(center) == "Vector3" and (center - camPos).Magnitude < 1500 then
-			local cf = UpgradeConfig.flyerCFrame(center, m:GetAttribute("Radius") :: number, m:GetAttribute("Height") :: number, m:GetAttribute("Speed") :: number, now)
-			-- battito d'ali: sobbalzo leggero
-			m:PivotTo(cf * CFrame.new(0, math.sin(os.clock() * 5) * 1.2, 0))
+		if m:GetAttribute("SegKind") == nil then
+			continue
+		end
+		local cf = FlyerPath.fromModel(m, now)
+		if (cf.Position - camPos).Magnitude < 2500 then
+			m:PivotTo(cf)
+			animateFlyer(m)
+		end
+	end
+	for m in flyAnims do
+		if not m.Parent then
+			flyAnims[m] = nil
+		end
+	end
+	for m in petActs do
+		if not m.Parent then
+			petActs[m] = nil
 		end
 	end
 end
@@ -274,6 +395,7 @@ function Combat.start()
 				shockwave(a, b, color, 0.6)
 				task.delay(0.12, shockwave, a, b * 0.7, Color3.new(1, 1, 1), 0.4)
 				Sfx.play("Ruggito", a)
+				petGesture(d, "Breath")
 				if d == player.UserId then
 					shake(1)
 				end

@@ -137,7 +137,7 @@ local function step(dt: number)
 			rigs[model] = nil
 			continue
 		end
-		if (model:GetPivot().Position - camPos).Magnitude > MAX_DIST then
+		if (model:GetPivot().Position - camPos).Magnitude > ((model:GetAttribute("AnimRange") or MAX_DIST) :: number) then
 			continue
 		end
 		-- tempi e pesi

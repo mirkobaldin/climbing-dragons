@@ -46,9 +46,9 @@ UpgradeConfig.UPGRADES = {
 	{
 		id = "Uncino",
 		name = "Grapple Strike",
-		description = "Hook an enemy: you fly at it, hit it and stun it.",
+		description = "Grapple an enemy: you fly at it, hit it and stun it. Upgrades make it hit harder.",
 		max = 5,
-		values = { damage = { 0, 25, 40, 60, 85, 120 }, stun = { 0, 1, 1.3, 1.6, 2, 2.5 } },
+		values = { damage = { 12, 25, 40, 60, 85, 120 }, stun = { 0.6, 1, 1.3, 1.6, 2, 2.5 } },
 		costs = {
 			{ coins = 300, items = { Pelliccia_Yeti = 3 } },
 			{ coins = 600, items = { Pelliccia_Yeti = 5, Ferro = 6 } },
@@ -58,9 +58,6 @@ UpgradeConfig.UPGRADES = {
 		},
 		text = function(l)
 			local v = UpgradeConfig.UPGRADES[2].values
-			if l == 0 then
-				return "Can't hook enemies yet"
-			end
 			return string.format("%d damage, stun %.1f s", v.damage[l + 1], v.stun[l + 1])
 		end,
 	},
@@ -274,7 +271,7 @@ UpgradeConfig.EVENTS = {
 -- Draghi volanti (drago selvatico e guardiano della vetta)
 export type Flyer = { name: string, element: string, health: number, damage: number, radius: number, height: number, speed: number, coins: number, xp: number, scale: number }
 UpgradeConfig.WILD_DRAGON = {
-	name = "Wild Dragon", element = "Brace", health = 900, damage = 22, radius = 60, height = 45, speed = 0.35,
+	name = "Wild Dragon", element = "Gelo", health = 900, damage = 22, radius = 60, height = 45, speed = 0.35,
 	coins = 500, xp = 400, scale = 1.6,
 } :: Flyer
 UpgradeConfig.GUARDIAN = {
@@ -283,15 +280,5 @@ UpgradeConfig.GUARDIAN = {
 } :: Flyer
 UpgradeConfig.GUARDIAN_RESPAWN = 900
 
--- Dove si trova un drago volante all'istante t (secondi del server): gira in tondo attorno a
--- "center" e ondeggia. Lo calcolano sia il server (colpi) sia i client (che lo muovono): cosi'
--- la posizione non viaggia in rete a ogni frame.
-function UpgradeConfig.flyerCFrame(center: Vector3, radius: number, height: number, speed: number, t: number): CFrame
-	local a = t * speed
-	local r = radius + math.sin(t * 0.37) * radius * 0.25
-	local p = center + Vector3.new(math.cos(a) * r, height + math.sin(t * 0.9) * 8, math.sin(a) * r)
-	local tangent = Vector3.new(-math.sin(a), 0, math.cos(a))
-	return CFrame.lookAt(p, p + tangent) * CFrame.Angles(0, 0, math.rad(18)) -- inclinato nella curva
-end
 
 return UpgradeConfig

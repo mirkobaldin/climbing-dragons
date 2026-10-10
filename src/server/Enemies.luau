@@ -686,7 +686,23 @@ function Enemies.setup()
 	-- colpi dei giocatori: il server controlla attrezzo, distanza e ritmo
 	local lastHit: { [Player]: number } = {}
 	hitEvent.OnServerEvent:Connect(function(player, model)
-		if typeof(model) ~= "Instance" or not model:IsDescendantOf(folder) then
+		if typeof(model) ~= "Instance" then
+			return
+		end
+		-- drago volante (posato o basso): si colpisce sulla sua hitbox
+		local flyer = Flyers.fromModel(model)
+		if flyer then
+			local now = os.clock()
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			local tool = player.Character and player.Character:FindFirstChildWhichIsA("Tool")
+			local dmg = tool and EnemyConfig.PLAYER_DAMAGE[tool.Name]
+			if root and dmg and now - (lastHit[player] or 0) >= EnemyConfig.PLAYER_COOLDOWN and (Flyers.position(flyer) - (root :: BasePart).Position).Magnitude <= EnemyConfig.PLAYER_REACH + flyer.hitRadius + 4 then
+				lastHit[player] = now
+				Flyers.damage(flyer, player, dmg * (1 + ((player:GetAttribute("Forza") or 0) :: number) * 0.02))
+			end
+			return
+		end
+		if not model:IsDescendantOf(folder) then
 			return
 		end
 		local now = os.clock()
@@ -757,7 +773,7 @@ function Enemies.setup()
 		for _, f in Flyers.near(from + d * range * 0.5, range * 0.6) do
 			local v = Flyers.position(f) - from
 			local along = v:Dot(d)
-			if along > 0 and along < range + 20 and (v - d * along).Magnitude < 7 * f.def.scale then
+			if along > 0 and along < range + 20 and (v - d * along).Magnitude < f.hitRadius + 4 then
 				task.delay(along / 90, Flyers.damage, f, player, dmg)
 			end
 		end
@@ -820,7 +836,7 @@ function Enemies.setup()
 	strikeEvent.Parent = ReplicatedStorage.Remotes
 	local lastStrike: { [Player]: number } = {}
 	strikeEvent.OnServerEvent:Connect(function(player, model)
-		if typeof(model) ~= "Instance" or UpgradeConfig.level(player, "Uncino") < 1 then
+		if typeof(model) ~= "Instance" then
 			return
 		end
 		local now = os.clock()
@@ -852,7 +868,7 @@ function Enemies.setup()
 			end
 		end
 		local f = Flyers.fromModel(model)
-		if f and (Flyers.position(f) - (root :: BasePart).Position).Magnitude <= range + 20 then
+		if f and (Flyers.position(f) - (root :: BasePart).Position).Magnitude <= range + f.hitRadius then
 			lastStrike[player] = now
 			task.delay(0.6, function()
 				Flyers.damage(f, player, damage)
@@ -969,6 +985,22 @@ function Enemies.setup()
 								trainingFx:FireAllClients("hit", player.UserId, enemy.root.Position, d.element, 0)
 							end
 							damageEnemy(enemy, player, EnemyConfig.DRAGON_DAMAGE + 0.15 * (d.level or 1))
+						end
+					end
+				end
+			end
+			-- e i draghi volanti vicini al padrone (prima il tuo drago li ignorava)
+			for _, player in Players:GetPlayers() do
+				local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+				if root then
+					local targets = Flyers.near((root :: BasePart).Position, 110)
+					if #targets > 0 then
+						local f = targets[1]
+						for _, d in Dragons.equippedDragons(player) do
+							if trainingFx then
+								trainingFx:FireAllClients("hit", player.UserId, Flyers.position(f), d.element, 0)
+							end
+							Flyers.damage(f, player, (EnemyConfig.DRAGON_DAMAGE + 0.15 * (d.level or 1)) * 1.5)
 						end
 					end
 				end

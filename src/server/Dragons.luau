@@ -348,7 +348,8 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 			(Dragons.onHatch :: any)(player, egg)
 		end
 		-- ogni tanto nasce un drago Shiny (dorato): piu' esperienza e vale di piu'
-		local shiny = math.random() < UpgradeConfig.SHINY_CHANCE
+		local shiny = math.random() < UpgradeConfig.SHINY_CHANCE or player:GetAttribute("ForceShiny") == true
+		player:SetAttribute("ForceShiny", nil) -- (comando admin "shiny")
 		Dragons.give(player, egg.element, egg.rarity, 1, shiny)
 		return true, string.format("A %s%s %s hatched!", if shiny then "SHINY " else "", Names.t(egg.rarity), Names.dragon(egg.element))
 	elseif kind == "release" or kind == "sell" then

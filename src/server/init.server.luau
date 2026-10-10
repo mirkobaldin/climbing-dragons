@@ -71,7 +71,7 @@ do
 				dragonwalk = "Dragon_Walk",
 				dragonidle = "Dragon_Idle",
 			}
-			local ONCE = { Climb_Jump = true } -- si suonano una volta sola, niente loop
+			local ONCE = { Climb_Jump = true, Dragon_Roar = true, Dragon_Breath = true, Dragon_Bite = true, Dragon_Hit = true } -- si suonano una volta sola, niente loop
 		local function keyframesOf(k: KeyframeSequence): { Keyframe }
 			local list = k:GetKeyframes() :: { any }
 			table.sort(list, function(a, b)
@@ -123,7 +123,12 @@ do
 		-- cosi' ogni drago usa le sue. "Drago_Ombra_Rig" vale per il modello "Drago_Ombra".
 		local dragonOut = Instance.new("Folder")
 		dragonOut.Name = "DragonAnimSaves"
-		local DRAGON = { dragovolo = "Dragon_Fly", dragocammina = "Dragon_Walk", dragofermo = "Dragon_Idle", dragopicchiata = "Dragon_Dive", dragonfly = "Dragon_Fly", dragonwalk = "Dragon_Walk", dragonidle = "Dragon_Idle" }
+		local DRAGON = {
+			dragovolo = "Dragon_Fly", dragocammina = "Dragon_Walk", dragofermo = "Dragon_Idle", dragopicchiata = "Dragon_Dive",
+			dragolibrato = "Dragon_Hover", dragoplanata = "Dragon_Glide", dragoruggito = "Dragon_Roar", dragosoffio = "Dragon_Breath",
+			dragomorso = "Dragon_Bite", dragocolpito = "Dragon_Hit",
+			dragonfly = "Dragon_Fly", dragonwalk = "Dragon_Walk", dragonidle = "Dragon_Idle",
+		}
 		-- cartelle con lo stesso nome (es. vecchi salvataggi automatici) si uniscono; quelle del
 		-- rig ("..._Rig") hanno la precedenza
 		local picked: { [string]: { [string]: { kfs: KeyframeSequence, rig: boolean } } } = {}

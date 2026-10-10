@@ -336,18 +336,32 @@ end
 
 -- Le case del kit erano piccolissime rispetto al personaggio (una machiya larga 12 studs):
 -- si ingrandiscono qui, e i lotti (kitSpec, tryKit, minka) usano le misure gia' scalate
+-- (2026-10-10, Mirko: "ancora piccole, falle in scala 4"): tutti gli edifici in scala S, i
+-- piccoli oggetti (bancarelle, pozzi, lanterne) in scala S/2; le distanze della disposizione dei
+-- borghi (tempio, ingressi, piazze, via del mercato) si moltiplicano per S
+local S = 4
 local HOUSE_SCALE: { [string]: number } = {
-	Machiya = 1.6,
-	Kura = 1.6,
-	Chashitsu = 1.6,
-	Granaio = 1.5,
-	Minka = 1.5,
-	Ryokan = 1.4,
-	CasaFenghuang = 1.35,
-	TorreFenghuang = 1.35,
-	CasaTe = 1.35,
-	CasaHuizhou = 1.35,
-	Pescatore = 1.3,
+	Machiya = S,
+	Kura = S,
+	Chashitsu = S,
+	Granaio = S,
+	Minka = S,
+	Ryokan = S,
+	CasaFenghuang = S,
+	TorreFenghuang = S,
+	CasaTe = S,
+	CasaHuizhou = S,
+	Pescatore = S,
+	Pagoda = S,
+	Tempio = S,
+	Torii = S,
+	Portale = S,
+	Padiglione = S,
+	TorreTamburo = S,
+	Emporio = S,
+	Bancarella = S / 2,
+	Pozzo = S / 2,
+	LanternaPietra = S / 2,
 }
 local function houseScale(name: string): number
 	return HOUSE_SCALE[name] or 1
@@ -1102,18 +1116,18 @@ local function entrance(ctx: Ctx, center: Vector3, radius: number, name: string,
 	local toward = if hub then (hub.Position - center) else Vector3.xAxis
 	toward = Vector3.new(toward.X, 0, toward.Z).Unit
 	for k = 0, 8 do
-		local d = radius + 6 + k * 6
+		local d = radius + 6 * S + k * 6 * S
 		local p = center + toward * d
 		local cf = ground(p.X, p.Z, toward)
-		if cf and not blocked(ctx, p, 13) then
+		if cf and not blocked(ctx, p, 13 * S) then
 			if japanese then
 				torii(ctx.folder, cf, 12, 14)
-				sign(ctx.folder, cf * CFrame.new(9, 4.5, -1), 7, 1.8, name, TIMBER_DARK, Color3.fromRGB(245, 235, 210))
-				part(ctx.folder, Vector3.new(0.5, 4.5, 0.5), cf * CFrame.new(9, 2.2, -0.8), TIMBER_DARK, M.Wood, true)
+				sign(ctx.folder, cf * CFrame.new(9 * S, 2.25 * S, -1), 4.2 * S, 1.1 * S, name, TIMBER_DARK, Color3.fromRGB(245, 235, 210))
+				part(ctx.folder, Vector3.new(0.3 * S, 2.25 * S, 0.3 * S), cf * CFrame.new(9 * S, 1.1 * S, -0.8), TIMBER_DARK, M.Wood, true)
 			else
 				paifang(ctx.folder, cf, 22, name)
 			end
-			table.insert(ctx.placed, { p = p, r = 13 })
+			table.insert(ctx.placed, { p = p, r = 13 * S })
 			table.insert(ctx.paths, { p, center })
 			return
 		end
@@ -1144,26 +1158,26 @@ local function clusterVillage(ctx: Ctx, center: Vector3, radius: number, count: 
 	-- borgo cinese grande: la torre del tamburo in piazza; piccolo: il pozzo
 	if square ~= false and cf and not japanese and kitModel("TorreTamburo") and radius >= 110 and tryKit(ctx, "TorreTamburo", center.X, center.Z, Vector3.zAxis) then
 		square = false
-	elseif square ~= false and cf and kitModel("Pozzo") and not blocked(ctx, center, 9) then
+	elseif square ~= false and cf and kitModel("Pozzo") and not blocked(ctx, center, 9 * S / 2) then
 		fromKit("Pozzo", ctx.folder, cf)
-		table.insert(ctx.placed, { p = center, r = 6 })
+		table.insert(ctx.placed, { p = center, r = 6 * S / 2 })
 		if japanese then
 			for k = 0, 3 do
-				stoneLantern(ctx.folder, cf * CFrame.Angles(0, k * math.pi / 2 + math.pi / 4, 0) * CFrame.new(0, 0, -7))
+				stoneLantern(ctx.folder, cf * CFrame.Angles(0, k * math.pi / 2 + math.pi / 4, 0) * CFrame.new(0, 0, -7 * S / 2))
 			end
 		end
 		square = false
 	end
-	if square ~= false and cf and not blocked(ctx, center, 9) then
+	if square ~= false and cf and not blocked(ctx, center, 9 * S) then
 		if japanese then
 			for k = 0, 3 do
-				local p = cf * CFrame.Angles(0, k * math.pi / 2, 0) * CFrame.new(0, 0, -5)
+				local p = cf * CFrame.Angles(0, k * math.pi / 2, 0) * CFrame.new(0, 0, -5 * S / 2)
 				stoneLantern(ctx.folder, p)
 			end
 		else
 			pavilion(ctx.folder, cf, 10)
 		end
-		table.insert(ctx.placed, { p = center, r = 9 })
+		table.insert(ctx.placed, { p = center, r = 9 * S })
 	end
 	for _, f in ctx.fronts do
 		table.insert(ctx.paths, { f, center })
@@ -1180,7 +1194,7 @@ local function streetVillage(ctx: Ctx, a: Vector3, b: Vector3, name: string)
 	local len = dir.Magnitude
 	dir = dir.Unit
 	local side = dir:Cross(Vector3.yAxis)
-	local half = 9 -- mezza larghezza della via
+	local half = 9 * S * 0.6 -- mezza larghezza della via
 	local rows: { [number]: { Vector3 } } = { [-1] = {}, [1] = {} }
 	local shopIndex = 0
 	for _, s in { -1, 1 } do
@@ -1203,7 +1217,7 @@ local function streetVillage(ctx: Ctx, a: Vector3, b: Vector3, name: string)
 				table.insert(rows[s], (lot.cf * CFrame.new(0, 0, -(o.d / 2 + 1.5))).Position)
 				-- davanti alle botteghe una bancarella sul bordo della via
 				if o.shopSign and kitModel("Bancarella") then
-					local q = lot.cf * CFrame.new(rng:NextNumber(-3, 3), 0, -(hz + 1.5))
+					local q = lot.cf * CFrame.new(rng:NextNumber(-3, 3) * S, 0, -(hz + 1.5 * S))
 					local g = ground(q.X, q.Z, -side * s)
 					if g then
 						local stall = fromKit("Bancarella", ctx.folder, g)
@@ -1229,19 +1243,19 @@ local function streetVillage(ctx: Ctx, a: Vector3, b: Vector3, name: string)
 					best, bestD = r, d
 				end
 			end
-			if best and bestD < 45 then
-				lanternString(ctx.folder, l + Vector3.new(0, 10, 0), best + Vector3.new(0, 10, 0), 5)
+			if best and bestD < 45 * S then
+				lanternString(ctx.folder, l + Vector3.new(0, 10 * S, 0), best + Vector3.new(0, 10 * S, 0), 5)
 			end
 		end
 	end
-	for _, e in { { a - dir * 4, -dir }, { b + dir * 4, dir } } do
+	for _, e in { { a - dir * 4 * S, -dir }, { b + dir * 4 * S, dir } } do
 		local cf = ground(e[1].X, e[1].Z, e[2])
 		if cf then
 			paifang(ctx.folder, cf, 22, name)
-			table.insert(ctx.placed, { p = e[1], r = 13 })
+			table.insert(ctx.placed, { p = e[1], r = 13 * S })
 		end
 	end
-	paint(a - dir * 8, b + dir * 8, half * 2 - 2, M.Pavement)
+	paint(a - dir * 8 * S, b + dir * 8 * S, half * 2 - 2, M.Pavement)
 end
 
 -- case sulla riva, come a Fenghuang: si segue la linea dell'acqua e le case si mettono una
@@ -1322,25 +1336,25 @@ local function shoreVillage(ctx: Ctx, center: Vector3, radius: number, count: nu
 				nextAt = walked + o.w + rng:NextNumber(2, 5)
 				-- ogni tanto la capanna del pescatore sull'acqua davanti, col pontile verso riva
 				if made % 4 == 0 and kitModel("Pescatore") then
-					local q = e.p + e.n * 26
+					local q = e.p + e.n * 26 * S
 					local w = probe(q.X, q.Z)
-					if w and w.water and not blocked(ctx, q, 12) then
+					if w and w.water and not blocked(ctx, q, 12 * S) then
 						local base = Vector3.new(q.X, w.y, q.Z)
 						if fromKit("Pescatore", ctx.folder, CFrame.lookAt(base, base - e.n)) then
-							table.insert(ctx.placed, { p = q, r = 12 })
+							table.insert(ctx.placed, { p = q, r = 12 * S })
 						end
 					end
 				end
 				-- seconda fila, piu' in alto dietro
 				local o2 = kitSpec("TorreFenghuang") or chineseSpec(rng, true)
 				o2.floors = 3
-				local back = e.p - e.n * (o.d / 2 + o2.d / 2 + 11)
+				local back = e.p - e.n * (o.d / 2 + o2.d / 2 + 11 * S)
 				if tryChinese(ctx, back.X, back.Z, e.n, o2, true) then
 					made += 1
 				end
 				task.wait()
 			else
-				nextAt = walked + 4
+				nextAt = walked + 4 * S
 			end
 		end
 	end
@@ -1352,42 +1366,42 @@ end
 local function templeComplex(ctx: Ctx, center: Vector3, toward: Vector3)
 	local axis = Vector3.new(toward.X, 0, toward.Z).Unit
 	local side = axis:Cross(Vector3.yAxis)
-	local lot = fitLot(ctx, center.X, center.Z, axis, 19, 14, false)
+	local lot = fitLot(ctx, center.X, center.Z, axis, 19 * S, 14 * S, false)
 	if not lot then
 		return false
 	end
 	local hall = templeHall(ctx.folder, lot.cf, 26, 16)
-	foundation(hall, lot, 18, 13, lot.cf.Y - 1)
-	table.insert(ctx.placed, { p = center, r = 19 })
+	foundation(hall, lot, 18 * S, 13 * S, lot.cf.Y - 1)
+	table.insert(ctx.placed, { p = center, r = 19 * S })
 	local function pagodaAt(p: Vector3): boolean
-		local l = fitLot(ctx, p.X, p.Z, axis, 15, 15, false)
+		local l = fitLot(ctx, p.X, p.Z, axis, 15 * S, 15 * S, false)
 		if l then
 			local pg = pagoda(ctx.folder, l.cf, 13, 5)
-			foundation(pg, l, 11.5, 11.5, l.cf.Y - 1)
-			table.insert(ctx.placed, { p = p, r = 15 })
+			foundation(pg, l, 11.5 * S, 11.5 * S, l.cf.Y - 1)
+			table.insert(ctx.placed, { p = p, r = 15 * S })
 			return true
 		end
 		return false
 	end
-	local p1 = center + axis * 40 + side * 30
+	local p1 = center + axis * 40 * S + side * 30 * S
 	if not pagodaAt(p1) then
-		pagodaAt(center + axis * 40 - side * 30)
+		pagodaAt(center + axis * 40 * S - side * 30 * S)
 	end
-	local pv = center + axis * 40 - side * 28
-	local pl = fitLot(ctx, pv.X, pv.Z, axis, 8, 8, false)
+	local pv = center + axis * 40 * S - side * 28 * S
+	local pl = fitLot(ctx, pv.X, pv.Z, axis, 8 * S, 8 * S, false)
 	if pl then
 		local m = Instance.new("Model")
 		m.Name = "PadiglioneTempio"
 		m.Parent = ctx.folder
 		pavilion(m, pl.cf - Vector3.new(0, 0.6, 0), 10)
-		foundation(m, pl, 6.5, 6.5, pl.cf.Y - 1)
-		table.insert(ctx.placed, { p = pv, r = 8 })
+		foundation(m, pl, 6.5 * S, 6.5 * S, pl.cf.Y - 1)
+		table.insert(ctx.placed, { p = pv, r = 8 * S })
 	end
 	-- viale: lanterne di pietra a coppie fino al torii
-	local gate = center + axis * 95
+	local gate = center + axis * 95 * S
 	for k = 1, 6 do
 		for _, s in { -1, 1 } do
-			local q = center + axis * (16 + k * 12) + side * s * 6.5
+			local q = center + axis * (16 + k * 12) * S + side * s * 6.5 * S
 			local cf = ground(q.X, q.Z, axis)
 			if cf then
 				stoneLantern(ctx.folder, cf)
@@ -1398,7 +1412,7 @@ local function templeComplex(ctx: Ctx, center: Vector3, toward: Vector3)
 	if gcf then
 		torii(ctx.folder, gcf, 12, 15)
 	end
-	paint(center + axis * 12, gate + axis * 6, 8, M.Pavement)
+	paint(center + axis * 12 * S, gate + axis * 6 * S, 8 * S * 0.6, M.Pavement)
 	return true
 end
 
@@ -2257,6 +2271,8 @@ end
 ------------------------------------------------------------------------------------------
 
 -- i borghi (centri scelti dove la pianura e' piana e libera; il resto lo decide il terreno)
+-- i borghi si allargano con gli edifici (scala S): stessi centri, raggio piu' grande
+local SPREAD = 2.4
 local VILLAGES = {
 	{ kind = "shore", name = "LANTERN BAY", at = Vector3.new(-2350, 0, 540), radius = 230, count = 36 },
 	{ kind = "street", name = "JADE MARKET", a = Vector3.new(-2470, 0, -1150), b = Vector3.new(-2140, 0, -1150) },
@@ -2318,9 +2334,9 @@ function Borghi.build(map: any?): Folder
 		local before = #ctx.placed
 		local ok, err = pcall(function()
 			if v.kind == "shore" then
-				shoreVillage(ctx, v.at, v.radius, v.count)
+				shoreVillage(ctx, v.at, v.radius * SPREAD, v.count)
 				stringLanterns(ctx, 12, 40, 8)
-				entrance(ctx, v.at, v.radius * 0.6, v.name, false)
+				entrance(ctx, v.at, v.radius * SPREAD * 0.6, v.name, false)
 			elseif v.kind == "street" then
 				streetVillage(ctx, v.a, v.b, v.name)
 			elseif v.kind == "temple" then
@@ -2335,11 +2351,11 @@ function Borghi.build(map: any?): Folder
 					end
 				end
 			else
-				clusterVillage(ctx, v.at, v.radius, v.count, v.japanese == true)
+				clusterVillage(ctx, v.at, v.radius * SPREAD, v.count, v.japanese == true)
 				if not v.japanese then
 					stringLanterns(ctx, 12, 38, 6)
 				end
-				entrance(ctx, v.at, v.radius, v.name, v.japanese == true)
+				entrance(ctx, v.at, v.radius * SPREAD, v.name, v.japanese == true)
 			end
 			for _, path in ctx.paths do
 				paint(path[1], path[2], if v.japanese then 4 else 5, if v.japanese then M.Ground else M.Pavement)

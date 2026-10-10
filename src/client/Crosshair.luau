@@ -1,7 +1,8 @@
 --!strict
 -- Mirino sullo schermo (come su Blox Fruits), solo quando hai in mano il Rampino: prende il posto
 -- della freccia del mouse e la segue (al centro se il mouse e' bloccato o sul telefono).
--- Verde se il punto mirato e' a portata (Gear.GRAPPLE_RANGE), rosso se no; sotto la distanza.
+-- Verde se il punto mirato e' a portata (potenziamento "Rampino"), rosso se no, arancione su un
+-- nemico agganciabile (potenziamento "Uncino"); sotto la distanza.
 -- Tasto X: acceso / spento.
 
 local Players = game:GetService("Players")
@@ -10,8 +11,8 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Gear = require(Shared:WaitForChild("Gear"))
 local ClimbConfig = require(Shared:WaitForChild("ClimbConfig"))
+local UpgradeConfig = require(Shared:WaitForChild("UpgradeConfig"))
 local ClientState = require(script.Parent.ClientState)
 
 local player = Players.LocalPlayer
@@ -21,6 +22,18 @@ local Crosshair = {}
 local WHITE = Color3.fromRGB(245, 245, 245)
 local GREEN = Color3.fromRGB(110, 235, 130)
 local RED = Color3.fromRGB(240, 90, 80)
+local ORANGE = Color3.fromRGB(255, 160, 40)
+
+-- il punto colpito e' un nemico (o un drago volante)?
+local function isFoe(inst: Instance): boolean
+	for _, name in { "Nemici", "Volanti" } do
+		local f = workspace:FindFirstChild(name)
+		if f and inst:IsDescendantOf(f) then
+			return true
+		end
+	end
+	return false
+end
 
 local enabled = true
 
@@ -119,13 +132,15 @@ function Crosshair.start()
 		do
 			local ray = camera:ViewportPointToRay(at.X, at.Y)
 			params.FilterDescendantsInstances = { character :: Instance, camera }
-			local reach = Gear.GRAPPLE_RANGE + (camera.CFrame.Position - root.Position).Magnitude
+			local range = UpgradeConfig.value(player, "Rampino", "range")
+			local reach = range + (camera.CFrame.Position - root.Position).Magnitude
 			local hit = workspace:Raycast(ray.Origin, ray.Direction * (reach + 400), params)
 			if hit then
 				local dist = (hit.Position - root.Position).Magnitude
-				local ok = dist <= Gear.GRAPPLE_RANGE
-				setColor(if ok then GREEN else RED)
-				label.Text = string.format("%d m", math.floor(dist))
+				local ok = dist <= range
+				local foe = ok and isFoe(hit.Instance)
+				setColor(if foe then ORANGE elseif ok then GREEN else RED)
+				label.Text = string.format("%d / %d m%s", math.floor(dist), range, if foe then "  STRIKE" else "")
 			else
 				setColor(RED)
 			end

@@ -126,7 +126,7 @@ local function fire()
 
 	local target = hit.Position + hit.Normal * 2.5
 	-- colpo d'uncino: agganciato a un nemico (o a un drago volante) ti tira addosso a lui
-	local foe = if UpgradeConfig.level(player, "Uncino") >= 1 then enemyOf(hit.Instance) else nil
+	local foe = enemyOf(hit.Instance)
 	if foe then
 		local strike = ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("GrappleStrike") :: RemoteEvent?
 		if strike then

@@ -51,6 +51,9 @@ god / ungod   heal   warm   pitons
 tutorial <reset|skip>
 missions <reset|skip>  le missioni dopo il tutorial
 evento [meteore|drago|valanga]   evento della mappa vicino a te (senza nome: a caso)
+regista                modalita' regista per le clip (J/L inquadratura, Y righe 9:16, H HUD)
+sfilata                gli 8 draghi adulti in fila che ruggiscono (clip "vota ogni drago")
+shiny                  la prossima schiusa e' SHINY (clip della schiusa)
 upmax / upreset        tutti i potenziamenti al massimo / a zero
 materiali <n>          n di ogni drop dei nemici (pelliccia, cristallo di ghiaccio, nucleo)
 admin <nome> / unadmin <nome>   dai o togli la modalita' admin a un giocatore (resta salvata)
@@ -356,6 +359,58 @@ local function exec(player: Player, args: { string }): (boolean, string, string?
 			Tutorial.reset(player)
 		end
 		return true, "Tutorial " .. (args[2] or "reset"), nil
+	elseif cmd == "regista" then
+		return true, "Regista: J/L inquadratura, Y righe 9:16, H HUD (regista di nuovo per uscire)", "regista"
+	elseif cmd == "shiny" then
+		player:SetAttribute("ForceShiny", true)
+		return true, "La prossima schiusa sara' SHINY", nil
+	elseif cmd == "sfilata" then
+		-- gli 8 draghi adulti in fila davanti a te (per 70 s), la camera li passa uno a uno
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local store = game:GetService("ServerStorage"):FindFirstChild("Draghi")
+		if not root or not store then
+			return false, "Serve il personaggio e ServerStorage.Draghi", nil
+		end
+		local old = workspace:FindFirstChild("Sfilata")
+		if old then
+			old:Destroy()
+		end
+		local folder = Instance.new("Folder")
+		folder.Name = "Sfilata"
+		local look = Vector3.new(root.CFrame.LookVector.X, 0, root.CFrame.LookVector.Z).Unit
+		local side = look:Cross(Vector3.yAxis)
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Include
+		params.FilterDescendantsInstances = { workspace.Terrain }
+		local order = { "Gelo", "Roccia", "Ossa", "Gas", "Tempesta", "Cosmico", "FulmineNero", "Eclissi" }
+		for k, el in order do
+			local t = store:FindFirstChild("Drago_" .. el .. "_Adulto")
+			if t and t:IsA("Model") then
+				local m = t:Clone()
+				for _, d in m:GetDescendants() do
+					if d:IsA("BasePart") then
+						d.Anchored = true
+						d.CanCollide = false
+					elseif d:IsA("LuaSourceContainer") then
+						d:Destroy()
+					end
+				end
+				local at = root.Position + look * 80 + side * ((k - 4.5) * 75)
+				local hit = workspace:Raycast(at + Vector3.new(0, 300, 0), Vector3.new(0, -800, 0), params)
+				local _, size = m:GetBoundingBox()
+				local base = (if hit then hit.Position else at) + Vector3.new(0, size.Y / 2, 0)
+				m:PivotTo(CFrame.lookAt(base, base - look))
+				m:SetAttribute("AnimKey", m.Name)
+				m:SetAttribute("Order", k)
+				m.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+				m.Parent = folder
+			end
+		end
+		folder.Parent = workspace
+		task.delay(70, function()
+			folder:Destroy()
+		end)
+		return true, "Sfilata dei draghi adulti", "sfilata"
 	elseif cmd == "evento" then
 		return true, WorldEvents.run(args[2], player), nil
 	elseif cmd == "upmax" or cmd == "upreset" then

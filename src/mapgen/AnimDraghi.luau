@@ -6,7 +6,9 @@
 -- Per ogni rig in Workspace.RigDraghi (scheletri di Meshy: Bone_000, Bone_001...) riconosce dalla
 -- forma dello scheletro anca, colonna, petto, coda, zampe, ali e collo, e crea in
 -- ServerStorage.RBX_ANIMSAVES.<rig> tre animazioni che si aprono nell'Animation Editor:
---   drago-volo (1.2 s)   drago-cammina (1.0 s)   drago-fermo (2.4 s)
+--   drago-volo (1.2 s)   drago-cammina (1.0 s)   drago-fermo (2.4 s)   drago-picchiata (0.8 s)
+--   drago-librato (0.9 s, fermo in aria)   drago-planata (3 s)
+--   una volta sola: drago-ruggito (2.2 s)   drago-soffio (2.0 s)   drago-morso (1.0 s)   drago-colpito (0.6 s)
 -- Le curve vengono dal mocap (dataset MoCapAnything, animali "zoo"): battito d'ali del tucano,
 -- passo, bacino e coda del giaguaro, respiro del leopardo; i ritardi lungo l'ala dalla viverna.
 -- Il verso di ogni rotazione si decide provandola sul rig (es. quale verso alza la punta dell'ala).
@@ -378,6 +380,8 @@ local function computeSigns(sk: Skel): Signs
 		s.tailYaw = signFor(sk, sk.tail[1], UP, tip, function(m) return m:Dot(sk.right) end)
 		s.tailPitch = signFor(sk, sk.tail[1], sk.right, tip, function(m) return m.Y end)
 	end
+	-- impennata: verso della rotazione dell'anca che alza il petto
+	s.bodyPitch = signFor(sk, sk.hips, sk.right, sk.chest, function(m) return m.Y end)
 	if #sk.neck > 0 then
 		local head = sk.neck[#sk.neck]
 		s.neckPitch = signFor(sk, sk.neck[1], sk.right, head, function(m) return m.Y end) -- + = testa su
@@ -700,6 +704,200 @@ local function buildIdle(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 end
 
 ------------------------------------------------------------------------------------------
+-- Animazioni d'azione (boss, attacco speciale, eventi). Quelle "una volta" partono e finiscono
+-- nella posa di riposo (ali piegate), cosi' si attaccano a volo/fermo senza scatti.
+
+local ROAR_T, BREATH_T, BITE_T, HOVER_T, GLIDE_T, HIT_T = 2.2, 2.0, 1.0, 0.9, 3.0, 0.6
+
+local function smooth(x: number): number
+	x = math.clamp(x, 0, 1)
+	return x * x * (3 - 2 * x)
+end
+-- 0 prima di a, sale fino a b, resta a 1 fino a c, scende fino a d
+local function bell(p: number, a: number, b: number, c: number, d: number): number
+	if p <= a or p >= d then
+		return 0
+	elseif p < b then
+		return smooth((p - a) / (b - a))
+	elseif p <= c then
+		return 1
+	end
+	return 1 - smooth((p - c) / (d - c))
+end
+
+-- ali tra piegate (k = 0) e aperte come in volo (k = 1); "raise" le alza sopra la schiena
+local function wingsOpen(poses: Poses, sk: Skel, s: Signs, folds: { Fold }, k: number, raise: number)
+	for i, w in sk.wings do
+		local f = folds[i]
+		foldPoses(poses, sk, s, i, w, { sweep = f.sweep * (1 - k), down = f.down * (1 - k), elbow = f.elbow * (1 - k), finger = f.finger * (1 - k) }, 0)
+		local sp = spreads[i]
+		if sp and k > 0 then
+			add(poses, sk, w.arm[1], sk.fwd, sp.elev * k + s["flap" .. i] * raise)
+			add(poses, sk, w.arm[1], UP, sp.sweep * k)
+			if w.arm[2] then
+				add(poses, sk, w.arm[2], UP, sp.elbow * k)
+			end
+		end
+	end
+end
+
+-- il corpo si impenna sull'anca (petto su di "deg" gradi); le zampe dietro e la coda
+-- compensano, cosi' i piedi restano a terra
+local function rear(poses: Poses, sk: Skel, s: Signs, deg: number)
+	add(poses, sk, sk.hips, sk.right, (s.bodyPitch or 1) * deg)
+	for _, leg in sk.legs do
+		if not leg.front then
+			add(poses, sk, leg.bones[1], sk.right, -(s.bodyPitch or 1) * deg)
+		end
+	end
+	if sk.tail[1] then
+		add(poses, sk, sk.tail[1], sk.right, -(s.bodyPitch or 1) * deg * 0.7)
+	end
+end
+
+local function neckTurn(poses: Poses, sk: Skel, s: Signs, pitch: number, yaw: number)
+	for k, b in sk.neck do
+		-- piu' piega verso la testa: il collo fa una curva, non un bastone
+		local share = (k / #sk.neck) / ((#sk.neck + 1) / 2)
+		add(poses, sk, b, sk.right, (s.neckPitch or 1) * pitch * share)
+		add(poses, sk, b, UP, (s.neckYaw or 1) * yaw * share)
+	end
+end
+
+local function tailLash(poses: Poses, sk: Skel, s: Signs, amp: number, p: number, cycles: number)
+	for k, b in sk.tail do
+		local f = (k - 1) / math.max(#sk.tail - 1, 1)
+		add(poses, sk, b, UP, (s.tailYaw or 1) * amp * (0.3 + f) * math.sin(2 * math.pi * (cycles * p - 0.08 * k)))
+	end
+end
+
+-- ruggito: si impenna, ali aperte e alzate, collo prima indietro poi avanti con la testa che
+-- trema, zampe davanti che artigliano l'aria, coda che frusta
+local function buildRoar(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / ROAR_T
+	local up = bell(p, 0.04, 0.3, 0.72, 0.96)
+	rear(poses, sk, s, 20 * up)
+	for _, b in sk.spine do
+		add(poses, sk, b, sk.right, (s.bodyPitch or 1) * 3 * up)
+	end
+	local back = bell(p, 0.05, 0.25, 0.3, 0.42) -- prende fiato
+	local shout = bell(p, 0.32, 0.42, 0.72, 0.92) -- ruggisce
+	local shake = shout * math.sin(2 * math.pi * 9 * p)
+	neckTurn(poses, sk, s, 28 * back - 14 * shout + 3 * shake, 5 * shake)
+	wingsOpen(poses, sk, s, folds, up, 22 * shout + 6 * math.sin(2 * math.pi * 3 * p) * up)
+	for i, leg in sk.legs do
+		if leg.front then
+			local claw = up * (0.7 + 0.3 * math.sin(2 * math.pi * (2 * p + (if leg.side > 0 then 0 else 0.5))))
+			add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * 34 * claw)
+			if leg.bones[2] then
+				add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * 30 * claw)
+			end
+		end
+	end
+	tailLash(poses, sk, s, 14 * up, p, 3)
+	return poses
+end
+
+-- soffio (fuoco, gelo, gas...): inspira con la testa alta e il petto gonfio, poi allunga il
+-- collo in avanti e un po' giu' e spazza da un lato all'altro
+local function buildBreath(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / BREATH_T
+	local inhale = bell(p, 0.02, 0.22, 0.3, 0.4)
+	local blow = bell(p, 0.34, 0.44, 0.84, 0.97)
+	local sweep = blow * math.sin(2 * math.pi * (p - 0.4) * 1.1)
+	rear(poses, sk, s, 8 * inhale - 4 * blow)
+	for _, b in sk.spine do
+		add(poses, sk, b, sk.right, (s.bodyPitch or 1) * (4 * inhale - 2 * blow))
+	end
+	neckTurn(poses, sk, s, 24 * inhale - 16 * blow, 18 * sweep)
+	wingsOpen(poses, sk, s, folds, 0.55 * math.max(inhale, blow), 8 * blow)
+	for i, leg in sk.legs do
+		if leg.front then
+			-- si pianta sulle zampe davanti
+			add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * 8 * blow)
+		end
+	end
+	tailLash(poses, sk, s, 6 * blow, p, 2)
+	return poses
+end
+
+-- morso con artigliata: carica all'indietro, scatta in avanti col collo e una zampa davanti
+local function buildBite(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / BITE_T
+	local load = bell(p, 0.02, 0.28, 0.32, 0.42)
+	local strike = bell(p, 0.34, 0.46, 0.56, 0.9)
+	rear(poses, sk, s, 7 * load - 6 * strike)
+	neckTurn(poses, sk, s, 20 * load - 26 * strike, -6 * strike)
+	wingsOpen(poses, sk, s, folds, 0.35 * load + 0.25 * strike, 10 * load)
+	local swiped = false
+	for i, leg in sk.legs do
+		if leg.front and not swiped and leg.side > 0 then
+			swiped = true
+			add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * (30 * load - 22 * strike))
+			if leg.bones[2] then
+				add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * 36 * load)
+			end
+		end
+	end
+	tailLash(poses, sk, s, 8 * (load + strike), p, 1.5)
+	return poses
+end
+
+-- volo librato (fermo in aria): battito piu' ampio e veloce, corpo dritto, zampe che pendono
+local function buildHover(sk: Skel, s: Signs, t: number): Poses
+	local poses = buildFly(sk, s, t / HOVER_T * FLY_T)
+	rear(poses, sk, s, 26)
+	for i, leg in sk.legs do
+		-- le zampe del volo sono raccolte: qui pendono
+		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * (if leg.front then 14 else 26))
+	end
+	neckTurn(poses, sk, s, -18, 0) -- testa giu': guarda i giocatori sotto
+	return poses
+end
+
+-- planata: ali aperte e quasi ferme, solo le punte che ondeggiano nel vento
+local function buildGlide(sk: Skel, s: Signs, t: number): Poses
+	local poses: Poses = {}
+	local p = t / GLIDE_T
+	for i, w in sk.wings do
+		local sp = spreads[i]
+		if sp then
+			add(poses, sk, w.arm[1], sk.fwd, sp.elev + s["flap" .. i] * 5 * math.sin(2 * math.pi * p))
+			add(poses, sk, w.arm[1], UP, sp.sweep)
+			if w.arm[2] then
+				add(poses, sk, w.arm[2], UP, sp.elbow)
+			end
+		end
+		for _, finger in w.fingers do
+			if finger[2] then
+				add(poses, sk, finger[2], sk.fwd, s["flap" .. i] * 4 * math.sin(2 * math.pi * (2 * p - 0.2)))
+			end
+		end
+	end
+	for i, leg in sk.legs do
+		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * (if leg.front then -30 else -40))
+	end
+	neckTurn(poses, sk, s, 3 * math.sin(2 * math.pi * p), 6 * math.sin(2 * math.pi * p + 1))
+	tailLash(poses, sk, s, 3, p, 1)
+	return poses
+end
+
+-- colpito: sobbalzo all'indietro, testa che scatta di lato, ali che si aprono di riflesso
+local function buildHit(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / HIT_T
+	local jolt = bell(p, 0, 0.12, 0.2, 0.85)
+	rear(poses, sk, s, 9 * jolt)
+	neckTurn(poses, sk, s, 10 * jolt, 22 * jolt)
+	wingsOpen(poses, sk, s, folds, 0.3 * jolt, 14 * jolt)
+	tailLash(poses, sk, s, 10 * jolt, p, 2)
+	return poses
+end
+
+------------------------------------------------------------------------------------------
 -- KeyframeSequence: posa radice col nome della mesh, poi le ossa annidate come lo scheletro
 
 local function writeSequence(sk: Skel, name: string, length: number, build: (number) -> Poses): KeyframeSequence
@@ -868,6 +1066,13 @@ function AnimDraghi.genera(soloNome: string?): string
 				["drago-cammina"] = { WALK_T, function(t) return buildWalk(sk, s, t, folds) end },
 				["drago-fermo"] = { IDLE_T, function(t) return buildIdle(sk, s, t, folds) end },
 				["drago-picchiata"] = { DIVE_T, function(t) return buildDive(sk, s, t, foldsDive) end },
+				["drago-librato"] = { HOVER_T, function(t) return buildHover(sk, s, t) end },
+				["drago-planata"] = { GLIDE_T, function(t) return buildGlide(sk, s, t) end },
+				-- una volta sola (il terzo valore): partono e finiscono a riposo
+				["drago-ruggito"] = { ROAR_T, function(t) return buildRoar(sk, s, t, folds) end, true },
+				["drago-soffio"] = { BREATH_T, function(t) return buildBreath(sk, s, t, folds) end, true },
+				["drago-morso"] = { BITE_T, function(t) return buildBite(sk, s, t, folds) end, true },
+				["drago-colpito"] = { HIT_T, function(t) return buildHit(sk, s, t, folds) end, true },
 			} do
 				local old = store:FindFirstChild(name)
 				if old then
@@ -876,6 +1081,9 @@ function AnimDraghi.genera(soloNome: string?): string
 				end
 				local kfs = writeSequence(sk, name, info[1], info[2])
 				easeSequence(kfs)
+				if info[3] then
+					kfs.Loop = false
+				end
 				kfs.Parent = store
 			end
 			for _, d in rig:GetDescendants() do

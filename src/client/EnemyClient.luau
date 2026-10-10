@@ -183,6 +183,17 @@ local function enemyInReach(root: BasePart): Model?
 			end
 		end
 	end
+	-- draghi volanti (a portata quando sono posati o bassi): conta la loro hitbox
+	local flyers = workspace:FindFirstChild("Volanti")
+	for _, m in (if flyers then flyers:GetChildren() else {}) :: { Instance } do
+		local hb = m:FindFirstChild("Hitbox")
+		if hb and hb:IsA("BasePart") then
+			local d = (hb.Position - root.Position).Magnitude - hb.Size.X * 0.5
+			if d <= EnemyConfig.PLAYER_REACH and d < bestScore then
+				best, bestScore = m :: Model, d
+			end
+		end
+	end
 	return best
 end
 
