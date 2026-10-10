@@ -1,0 +1,262 @@
+﻿[
+    {
+        "name":  "bg_loading",
+        "width":  1024,
+        "height":  576,
+        "transparent":  0,
+        "partial":  0,
+        "opaque":  589824,
+        "edge":  3196,
+        "ok":  true
+    },
+    {
+        "name":  "bg_menu",
+        "width":  1024,
+        "height":  576,
+        "transparent":  0,
+        "partial":  0,
+        "opaque":  589824,
+        "edge":  3196,
+        "ok":  true
+    },
+    {
+        "name":  "bg_death",
+        "width":  1024,
+        "height":  576,
+        "transparent":  0,
+        "partial":  0,
+        "opaque":  589824,
+        "edge":  3196,
+        "ok":  true
+    },
+    {
+        "name":  "logo",
+        "width":  1024,
+        "height":  512,
+        "transparent":  213428,
+        "partial":  308966,
+        "opaque":  1894,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "panel_main",
+        "width":  512,
+        "height":  512,
+        "transparent":  66787,
+        "partial":  194069,
+        "opaque":  1288,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "panel_card",
+        "width":  256,
+        "height":  256,
+        "transparent":  21910,
+        "partial":  42830,
+        "opaque":  796,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "panel_header",
+        "width":  512,
+        "height":  128,
+        "transparent":  52768,
+        "partial":  12121,
+        "opaque":  647,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "panel_toast",
+        "width":  512,
+        "height":  128,
+        "transparent":  42193,
+        "partial":  22591,
+        "opaque":  752,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "panel_quest",
+        "width":  512,
+        "height":  192,
+        "transparent":  39375,
+        "partial":  57800,
+        "opaque":  1129,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "rarity_common",
+        "width":  256,
+        "height":  256,
+        "transparent":  23762,
+        "partial":  40913,
+        "opaque":  861,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "rarity_rare",
+        "width":  256,
+        "height":  256,
+        "transparent":  20885,
+        "partial":  43801,
+        "opaque":  850,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "rarity_epic",
+        "width":  256,
+        "height":  256,
+        "transparent":  22153,
+        "partial":  42524,
+        "opaque":  859,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "rarity_legendary",
+        "width":  256,
+        "height":  256,
+        "transparent":  22989,
+        "partial":  41768,
+        "opaque":  779,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_primary_normal",
+        "width":  384,
+        "height":  128,
+        "transparent":  21830,
+        "partial":  26525,
+        "opaque":  797,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_primary_hover",
+        "width":  384,
+        "height":  128,
+        "transparent":  21795,
+        "partial":  26536,
+        "opaque":  821,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_primary_pressed",
+        "width":  384,
+        "height":  128,
+        "transparent":  21606,
+        "partial":  26757,
+        "opaque":  789,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_secondary_normal",
+        "width":  384,
+        "height":  128,
+        "transparent":  21553,
+        "partial":  26855,
+        "opaque":  744,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_secondary_hover",
+        "width":  384,
+        "height":  128,
+        "transparent":  21313,
+        "partial":  26984,
+        "opaque":  855,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_secondary_pressed",
+        "width":  384,
+        "height":  128,
+        "transparent":  21148,
+        "partial":  27204,
+        "opaque":  800,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_danger_normal",
+        "width":  384,
+        "height":  128,
+        "transparent":  21856,
+        "partial":  26517,
+        "opaque":  779,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_danger_hover",
+        "width":  384,
+        "height":  128,
+        "transparent":  21160,
+        "partial":  27122,
+        "opaque":  870,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_danger_pressed",
+        "width":  384,
+        "height":  128,
+        "transparent":  21113,
+        "partial":  27243,
+        "opaque":  796,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_round_normal",
+        "width":  256,
+        "height":  256,
+        "transparent":  27127,
+        "partial":  37773,
+        "opaque":  636,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_round_hover",
+        "width":  256,
+        "height":  256,
+        "transparent":  27001,
+        "partial":  37884,
+        "opaque":  651,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_round_pressed",
+        "width":  256,
+        "height":  256,
+        "transparent":  26942,
+        "partial":  37945,
+        "opaque":  649,
+        "edge":  0,
+        "ok":  true
+    },
+    {
+        "name":  "btn_close",
+        "width":  128,
+        "height":  128,
+        "transparent":  9952,
+        "partial":  6171,
+        "opaque":  261,
+        "edge":  0,
+        "ok":  true
+    }
+]
