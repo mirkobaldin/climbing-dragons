@@ -1,4 +1,4 @@
-param([switch]$Validate)
+param([switch]$Validate, [string[]]$Refresh = @())
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $root = $PSScriptRoot
@@ -9,7 +9,7 @@ foreach ($job in $jobs) {
     if ($sources.($job.name)) { $job.source = $sources.($job.name) }
     if (-not $job.source) { continue }
     $dest = Join-Path $root ($job.name + '.png')
-    if (-not (Test-Path -LiteralPath $dest)) {
+    if (-not (Test-Path -LiteralPath $dest) -or $Refresh -contains $job.name) {
         $src = [System.Drawing.Bitmap]::FromFile($job.source)
         $dst = New-Object System.Drawing.Bitmap([int]$job.w, [int]$job.h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
         $g = [System.Drawing.Graphics]::FromImage($dst)
@@ -52,4 +52,5 @@ if ($Validate) {
     $report | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath (Join-Path $root 'validation.json') -Encoding UTF8
     $report | Format-Table -AutoSize
     if ($report.Where({-not $_.ok}).Count) { throw 'Verifica PNG fallita: vedere validation.json' }
+    if ($report.Count -ne $jobs.Count) { throw "Set incompleto: $($report.Count) PNG su $($jobs.Count) richiesti" }
 }
