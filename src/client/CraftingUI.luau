@@ -1,11 +1,11 @@
-﻿--!strict
+--!strict
 -- Ricette e costi aggiornano i modelli di StarterGui; il server controlla gli acquisti.
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local Shared = RS:WaitForChild("Shared")
-local Gear = require(Shared.Gear)
-local Names = require(Shared.Names)
-local Ui = require(Shared.UiView)
+local Gear = require(Shared:WaitForChild("Gear"))
+local Names = require(Shared:WaitForChild("Names"))
+local Ui = require(Shared:WaitForChild("UiView"))
 local Theme = require(script.Parent.Theme)
 local player = Players.LocalPlayer
 local CraftingUI = {}
@@ -16,16 +16,24 @@ local function count(ore: string): number
 end
 function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): () -> ()
 	local list = Ui.node(container, "List")
-	local refreshers: {() -> ()} = {}
+	local refreshers: { () -> () } = {}
 	for k, recipe in Gear.RECIPES do
 		local card = Ui.template("RecipeCard", list)
 		card.LayoutOrder = k
-		Theme.viewport(card.Preview, Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT), UDim2.fromScale(1, 1), false)
+		Theme.viewport(
+			card.Preview,
+			Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT),
+			UDim2.fromScale(1, 1),
+			false
+		)
 		card.Title.Text = recipe.name
-		card.Description.Text = recipe.description .. (if recipe.station == "Ovunque" then " · Craft anywhere" else " · At a workbench")
+		card.Description.Text = recipe.description
+			.. (if recipe.station == "Ovunque" then " · Craft anywhere" else " · At a workbench")
 		local materialRows = {}
 		local ores = {}
-		for ore in recipe.cost do table.insert(ores, ore) end
+		for ore in recipe.cost do
+			table.insert(ores, ore)
+		end
 		table.sort(ores)
 		for i, ore in ores do
 			local row = Ui.template("Material", card.Materials)
@@ -50,13 +58,20 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 		end
 		table.insert(refreshers, refresh)
 		card.Craft.Activated:Connect(function()
-			if not recipe.consumable and Gear.has(player, recipe.id) then return end
+			if not recipe.consumable and Gear.has(player, recipe.id) then
+				return
+			end
 			local ok, message = (RS.Remotes:WaitForChild("Craft") :: RemoteFunction):InvokeServer(recipe.id)
 			status(message or "", ok)
-			for _, r in refreshers do r() end
+			for _, r in refreshers do
+				r()
+			end
 		end)
 	end
-	return function() for _, r in refreshers do r() end end
+	return function()
+		for _, r in refreshers do
+			r()
+		end
+	end
 end
 return CraftingUI
-
