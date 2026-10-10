@@ -4,6 +4,9 @@
 -- Pulsanti grandi abbastanza per il dito (min 44 px) perche' si gioca anche da telefono.
 
 local Theme = {}
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local UiView = require(Shared:WaitForChild("UiView"))
+local UiAssets = require(Shared:WaitForChild("UiAssets"))
 
 Theme.BG = Color3.fromRGB(16, 18, 24)
 Theme.PANEL = Color3.fromRGB(28, 31, 39)
@@ -77,6 +80,7 @@ function Theme.label(parent: Instance, text: string, size: number, color: Color3
 	l.TextXAlignment = Enum.TextXAlignment.Left
 	l.TextWrapped = true
 	l.RichText = true
+	l.TextStrokeTransparency = 0.6
 	l.Size = UDim2.new(1, 0, 0, size + 6)
 	l.Parent = parent
 	return l
@@ -93,6 +97,10 @@ function Theme.button(parent: Instance, text: string, color: Color3?, size: UDim
 	b.AutoButtonColor = true
 	b.Parent = parent
 	Theme.corner(b, 10)
+	local minimum = Instance.new("UISizeConstraint")
+	minimum.MinSize = Vector2.new(44, 44)
+	minimum.Parent = b
+	b.TextStrokeTransparency = 0.6
 	return b
 end
 
@@ -284,6 +292,14 @@ function Theme.itemModel(id: string, color: Color3): Model
 		part(Vector3.new(2, 2, 2), CFrame.new(), color, Enum.PartType.Ball)
 	end
 	return m
+end
+
+-- L'immagine sostituisce l'anteprima 3D solo dopo l'inserimento del suo ID.
+function Theme.assetPreview(image: ImageLabel, asset: string, object: Instance?)
+	UiView.asset(image, asset)
+	if UiAssets.get(asset) then return end
+	image.Visible = true
+	Theme.viewport(image, object, UDim2.fromScale(1, 1), false)
 end
 
 return Theme
