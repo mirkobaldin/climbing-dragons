@@ -451,8 +451,10 @@ function Combat.start()
 		local portrait = vp.X < vp.Y
 		spBtn.Position = UDim2.fromScale(if portrait then .31 else .66, if portrait then .64 else .42)
 		spBtn.Size = UDim2.fromScale(50 / vp.X, 50 / vp.Y)
-		timer.Position = UDim2.fromScale(if portrait then .25 else .4, if portrait then .68 else .46)
-		eventLabel.Position = UDim2.fromScale(if portrait then .25 else .4, if portrait then .73 else .53)
+		timer.Position = UDim2.fromScale(if portrait then .15 else .4, if portrait then .565 else .57)
+		timer.Size = UDim2.fromScale(if portrait then .7 else .38, if portrait then .035 else .055)
+		eventLabel.Position = UDim2.fromScale(if portrait then .15 else .4, if portrait then .607 else .64)
+		eventLabel.Size = UDim2.fromScale(if portrait then .7 else .38, if portrait then .026 else .05)
 	end)
 
 	local accum = 0
