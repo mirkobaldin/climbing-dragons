@@ -1,8 +1,8 @@
 # Climbing & Dragons — asset UI, 10 ottobre 2026
 
-Set in lavorazione sul branch `codex/ui-immagini-20261010`. Generazione con lo strumento integrato image_gen; ridimensionamento proporzionale con `prepare.ps1`. Il titolo corretto indicato da Mirko e' **Climbing & Dragons**.
+Set completo: **87 PNG**, sul branch `codex/ui-immagini-20261010`. Generazione con lo strumento integrato image_gen; ridimensionamento proporzionale con `prepare.ps1`. Il titolo corretto indicato da Mirko e' **Climbing & Dragons**.
 
-I PNG da importare sono solo quelli direttamente in questa cartella; `review/` contiene tavole di controllo, non asset di gioco. `manifest.json` contiene i prompt base e le dimensioni; `sources.json` collega gli originali generati. Nessun caricamento Roblox e' stato eseguito.
+I PNG da importare sono solo quelli direttamente in questa cartella; `review/` contiene tavole di controllo, non asset di gioco. `manifest.json` contiene i prompt base e le dimensioni; `prompt-variants.json` conserva le istruzioni delle varianti e delle correzioni; `sources.json` collega gli originali generati. Nessun caricamento Roblox e' stato eseguito.
 
 ## Uso in Studio
 
@@ -106,9 +106,12 @@ Testi in TextLabel/TextButton separati, mai incorporati nelle immagini tranne il
 
 ## Consegna e verifiche
 
-`prepare.ps1 -Validate` controlla dimensioni, pixel trasparenti e bordi; `preview.ps1` produce tavole con campioni anche a 32 px. La verifica 9-slice in Studio resta necessaria dopo il caricamento.
+`prepare.ps1 -Validate` controlla dimensioni, pixel trasparenti e bordi: 87/87 immagini conformi, misure pari e lato massimo 1024. `validation.json` riporta i risultati per file. I ritagli hanno alpha reale e bordo esterno trasparente; sfondi, carte negozio e immagini pagina gioco sono opachi.
+
+`preview.ps1` produce cinque tavole con campioni anche a 32 px. `preview-slices.ps1` produce cinque tavole con pannelli e pulsanti allungati a 360x180 e 560x130, SliceScale 0.5. Controllati visivamente testo, bordi, simboli e decorazioni: rimossi gli ornamenti al centro dei bordi del pannello missioni e uniformate le quattro cornici delle rarita'. Le simulazioni locali non sostituiscono la verifica 9-slice in Studio dopo il caricamento.
+
+Anteprime: [sfondi, logo e pannelli](review/contact-1.png), [pulsanti e HUD](review/contact-2.png), [meteo e comandi touch](review/contact-3.png), [elementi, minerali e negozio](review/contact-4.png), [prodotti e pagina gioco](review/contact-5.png). Le immagini sono illustrazioni promozionali, non screenshot del place. I colori degli elementi seguono DragonConfig; i modelli nel place non sono accessibili da questa copia.
 
 Claude o Mirko: importare i PNG con Asset Manager > Bulk Import, conservando questi nomi, e assegnare gli ID. Sono tutti ancora senza ID Roblox. Non importare gli script PowerShell, i JSON o le tavole di controllo.
 
 Il compito StarterGui resta separato: prima di toccare i client servono conferma che main contenga le ultime modifiche e rilascio dei file UI registrati a nome di Claude in LAVORI.md. Verifiche Play e Device Emulator non eseguibili da questa copia Codex.
-
