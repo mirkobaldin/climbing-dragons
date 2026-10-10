@@ -59,7 +59,7 @@ end
 
 -- Colpo: danno + spinta (la spinta la applica il client, che simula il suo personaggio)
 local function hitPlayer(humanoid: Humanoid, push: Vector3, damage: number, cause: string?)
-	Survival.damage(humanoid, damage, cause or "Colpito da un masso")
+	Survival.damage(humanoid, damage, cause or "Hit by a boulder")
 	local player = Players:GetPlayerFromCharacter(humanoid.Parent)
 	if player and knockback then
 		(knockback :: RemoteEvent):FireClient(player, push)
@@ -151,7 +151,7 @@ local function rollingBall(position: Vector3, size: number, velocity: Vector3, s
 		local humanoid = other.Parent and other.Parent:FindFirstChildOfClass("Humanoid")
 		if humanoid and not hit[humanoid] and ball.AssemblyLinearVelocity.Magnitude > 12 then
 			hit[humanoid] = true
-			hitPlayer(humanoid, ball.AssemblyLinearVelocity * 0.7 + Vector3.new(0, 20, 0), damage, if snow then "Travolto da una valanga" else "Travolto da una frana")
+			hitPlayer(humanoid, ball.AssemblyLinearVelocity * 0.7 + Vector3.new(0, 20, 0), damage, if snow then "Swept away by an avalanche" else "Crushed by a rockslide")
 		end
 	end)
 	Debris:AddItem(ball, 14)
@@ -192,7 +192,7 @@ local function mountainEvent()
 		return
 	end
 	local snow = target.Y > SNOW_ALTITUDE and math.random() < 0.55
-	warnNear(target, 160, if snow then "VALANGA! Spostati di lato o pianta un chiodo!" else "FRANA! Massi in arrivo dall'alto!")
+	warnNear(target, 160, if snow then "AVALANCHE! Move aside or place a piton!" else "ROCKSLIDE! Boulders coming from above!")
 	task.wait(2)
 	local across = Vector3.new(-downhill.Z, 0, downhill.X)
 	local count = if snow then 16 else 7

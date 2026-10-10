@@ -14,6 +14,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Gear = require(ReplicatedStorage.Shared.Gear)
+local Names = require(ReplicatedStorage.Shared.Names)
 local ClimbConfig = require(ReplicatedStorage.Shared.ClimbConfig)
 local Tools = require(script.Parent.Tools)
 local Dragons = require(script.Parent.Dragons)
@@ -26,10 +27,10 @@ local store: DataStore? = nil
 local loaded: { [Player]: boolean } = {}
 
 local function inventory(player: Player): Folder
-	local folder = player:FindFirstChild("Minerali")
+	local folder = player:FindFirstChild("Ores")
 	if not folder then
 		folder = Instance.new("Folder")
-		folder.Name = "Minerali"
+		folder.Name = "Ores"
 		folder.Parent = player
 	end
 	return folder :: Folder
@@ -49,7 +50,7 @@ end
 
 local function updateTotal(player: Player)
 	local stats = player:FindFirstChild("leaderstats")
-	local total = stats and stats:FindFirstChild("Minerali") :: IntValue?
+	local total = stats and stats:FindFirstChild("Ores") :: IntValue?
 	if total then
 		local sum = 0
 		for _, v in inventory(player):GetChildren() do
@@ -91,6 +92,7 @@ local function save(player: Player)
 		dragons = Dragons.serialize(player),
 		economy = Economy.serialize(player),
 		tutorial = player:GetAttribute("TutorialStep"),
+		missions = player:GetAttribute("MissionStep"),
 		materials = (function() -- materiali raccolti (drop dei nemici)
 			local t = {}
 			local f = player:FindFirstChild("Materiali")
@@ -131,6 +133,7 @@ local function load(player: Player)
 	local dragonData: any = nil
 	local economyData: any = nil
 	local tutorial: any = nil
+	local missions: any = nil
 	if store then
 		local ok, data = pcall(function()
 			return (store :: DataStore):GetAsync("player_" .. player.UserId)
@@ -151,6 +154,7 @@ local function load(player: Player)
 			dragonData = data.dragons
 			economyData = data.economy
 			tutorial = data.tutorial
+			missions = data.missions
 			if type(data.materials) == "table" then
 				local f = Instance.new("Folder")
 				f.Name = "Materiali"
@@ -179,6 +183,7 @@ local function load(player: Player)
 	end
 	loaded[player] = true
 	player:SetAttribute("TutorialStep", if type(tutorial) == "number" then tutorial else 1)
+	player:SetAttribute("MissionStep", if type(missions) == "number" then missions else 1)
 	Dragons.load(player, dragonData)
 	Economy.load(player, economyData)
 	updateTotal(player)
@@ -188,14 +193,14 @@ end
 -- Costruzione: controlla e scala i minerali, poi assegna l'attrezzo
 local function craft(player: Player, id: any): (boolean, string)
 	if type(id) ~= "string" then
-		return false, "Richiesta non valida"
+		return false, "Invalid request"
 	end
 	local recipe = Gear.find(id)
 	if not recipe then
-		return false, "Attrezzo sconosciuto"
+		return false, "Unknown item"
 	end
 	if not recipe.consumable and Gear.has(player, id) then
-		return false, "Ce l'hai gia'"
+		return false, "You already have it"
 	end
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -223,20 +228,20 @@ local function craft(player: Player, id: any): (boolean, string)
 			end
 		end
 		if not near then
-			return false, "Questo si costruisce al Banco da lavoro (al campo o in casa tua)"
+			return false, "This is crafted at a Workbench (at camp or your house)"
 		end
 	end
 	-- i consumabili non devono andare sprecati
 	if id == "Chiodi" and (player:GetAttribute("Pitons") or 0) >= ClimbConfig.PITONS_MAX then
-		return false, "Hai gia' tutti i chiodi che puoi portare"
-	elseif id == "Torcia" and ((character and character:FindFirstChild("Torcia")) or player.Backpack:FindFirstChild("Torcia")) then
-		return false, "Hai gia' una torcia"
+		return false, "You already carry as many pitons as you can"
+	elseif id == "Torcia" and ((character and character:FindFirstChild(ClimbConfig.TORCH_NAME)) or player.Backpack:FindFirstChild(ClimbConfig.TORCH_NAME)) then
+		return false, "You already have a torch"
 	elseif id == "Bende" and (not humanoid or humanoid.Health >= humanoid.MaxHealth) then
-		return false, "Non sei ferito"
+		return false, "You're not hurt"
 	end
 	for ore, amount in recipe.cost do
 		if oreValue(player, ore).Value < amount then
-			return false, "Ti manca " .. ore
+			return false, "You're missing " .. Names.t(ore)
 		end
 	end
 	for ore, amount in recipe.cost do
@@ -257,7 +262,7 @@ local function craft(player: Player, id: any): (boolean, string)
 		giveTools(player)
 	end
 	task.spawn(save, player)
-	return true, recipe.name .. " costruito!"
+	return true, recipe.name .. " crafted!"
 end
 
 -- Freddo in quota
@@ -323,7 +328,7 @@ local function coldLoop()
 			end
 			player:SetAttribute("Warmth", warmth)
 			if warmth <= 0 then
-				Survival.damage(humanoid, Gear.FREEZE_DAMAGE * dt, "Congelamento")
+				Survival.damage(humanoid, Gear.FREEZE_DAMAGE * dt, "Froze to death")
 			end
 		end
 	end
@@ -363,9 +368,9 @@ function Progression.setup(remotes: { [string]: RemoteEvent })
 		local stats = player:FindFirstChild("leaderstats") or Instance.new("Folder")
 		stats.Name = "leaderstats"
 		stats.Parent = player
-		if not stats:FindFirstChild("Minerali") then
+		if not stats:FindFirstChild("Ores") then
 			local total = Instance.new("IntValue")
-			total.Name = "Minerali"
+			total.Name = "Ores"
 			total.Parent = stats
 		end
 		player:SetAttribute("Warmth", 100)

@@ -14,6 +14,7 @@
 --            1000 likes"
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
@@ -22,6 +23,7 @@ local PetAnimator = require(script.Parent.PetAnimator)
 local KfsPlayer = require(script.Parent.KfsPlayer)
 local DragonVFX = require(script.Parent.DragonVFX)
 local GymAnim = require(script.Parent.GymAnim)
+local ClimbConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ClimbConfig"))
 
 local player = Players.LocalPlayer
 
@@ -206,7 +208,7 @@ local function sceneAxe(): Model
 	m.Name = "PiccozzaScena"
 	local character = player.Character
 	local backpack = player:FindFirstChildOfClass("Backpack")
-	local tool = (character and character:FindFirstChild("Piccozza")) or (backpack and backpack:FindFirstChild("Piccozza"))
+	local tool = (character and character:FindFirstChild(ClimbConfig.TOOL_NAME)) or (backpack and backpack:FindFirstChild(ClimbConfig.TOOL_NAME))
 	for _, p in (if tool then tool:GetDescendants() else {}) :: { Instance } do
 		if p:IsA("BasePart") and p.Name ~= "FakeHandle" then
 			local c = p:Clone()
@@ -238,6 +240,18 @@ local function sceneAxe(): Model
 	end
 	m.PrimaryPart = (m:FindFirstChild("Handle") or m:FindFirstChildWhichIsA("BasePart")) :: BasePart?
 	return m
+end
+
+-- le due piccozze nelle mani del sosia (si chiama dopo aver messo le braccia in posa)
+local function holdAxes(body: Model, axes: { Model })
+	for i, a in axes do
+		local hand = body:FindFirstChild(if i == 1 then "RightHand" else "LeftHand", true)
+			or body:FindFirstChild(if i == 1 then "Right Arm" else "Left Arm", true)
+		if hand and hand:IsA("BasePart") then
+			local grip = hand.CFrame * CFrame.new(0, -hand.Size.Y * 0.45, 0)
+			a:PivotTo(grip * CFrame.Angles(-math.pi / 2, 0, 0))
+		end
+	end
 end
 
 -- la camera non entra mai nel terreno: se finisce dentro (voxel pieno) sale finche' e' fuori
@@ -2194,6 +2208,12 @@ function Trailer.play(kind: string, take: string?)
 								(body :: Model):PivotTo(poseCf)
 								GymAnim.poseModel(body :: Model, kindEx, (u * 1.6 / per) % 1)
 							end
+							-- il draghetto svolazza accanto e guarda l'allenamento
+							if baby then
+								pose(baby, "fly", 1)
+								local bp = poseCf.Position + side * 5.5 + UP * (4.5 + math.sin(os.clock() * 2.4) * 0.6) - poseCf.LookVector * 1.5
+								baby.model:PivotTo(CFrame.lookAt(bp, poseCf.Position + UP * 2))
+							end
 						end,
 						cam = function(u)
 							local p = poseCf.Position
@@ -2220,6 +2240,7 @@ function Trailer.play(kind: string, take: string?)
 				end
 				if #pts >= 2 then
 					local wallSide = Vector3.new(-n.Z, 0, n.X)
+					local climbAxes: { Model } = {}
 					add({
 						dur = 7,
 						at = pts[1],
@@ -2233,16 +2254,36 @@ function Trailer.play(kind: string, take: string?)
 							else
 								body = cloneBody()
 							end
+							-- due piccozze in mano (prima il sosia arrampicava a mani vuote)
+							for _ = 1, 2 do
+								local a = sceneAxe()
+								a.Parent = workspace
+								table.insert(climbAxes, a)
+							end
 						end,
 						update = function(u)
 							local p = catmull(pts, u)
 							if body then
 								(body :: Model):PivotTo(CFrame.lookAt(p, p - n) * CFrame.Angles(deg(6), 0, 0))
 								climbPose(body, os.clock() * 3)
+								holdAxes(body :: Model, climbAxes)
 							end
-							if u >= 0.999 and body then
-								(body :: Model):Destroy()
-								body = nil
+							-- il draghetto sale accanto allo scalatore
+							if baby then
+								pose(baby, "fly", 1.2)
+								local bp = p + n * 6 + wallSide * 6 + UP * (1.5 + math.sin(os.clock() * 2.2) * 0.8)
+								baby.model:PivotTo(CFrame.lookAt(bp, bp + UP * 3 - n * 2))
+							end
+							if u >= 0.999 then
+								if body then
+									(body :: Model):Destroy()
+									body = nil
+								end
+								for _, a in climbAxes do
+									a:Destroy()
+								end
+								table.clear(climbAxes)
+								hide(baby)
 							end
 						end,
 						cam = function(u)
@@ -2298,6 +2339,33 @@ function Trailer.play(kind: string, take: string?)
 				-- arretra e sale dal lato opposto alla montagna, che appare dietro al drago
 				local toMtn = flat(Vector3.new(mc.X, 0, mc.Z) - Vector3.new(center.X, 0, center.Z))
 				local mountainLook = Vector3.new(mc.X, top * 0.55, mc.Z)
+				-- da dove arretrare: la prima direzione da cui ne' il drago ne' la montagna sono coperti
+				-- dallo scheletro dell'arena (o da una collina); prima era sempre quella opposta alla
+				-- montagna e lo scheletro gigante riempiva l'inquadratura
+				local backDir = -toMtn
+				do
+					local arena = workspace:FindFirstChild("ZonaAddestramento")
+					local params = RaycastParams.new()
+					params.FilterType = Enum.RaycastFilterType.Include
+					params.FilterDescendantsInstances = if arena then { arena, workspace.Terrain } else { workspace.Terrain }
+					for _, off in { 0, 0.45, -0.45, 0.9, -0.9, 1.35, -1.35, 1.8, -1.8, 2.4, -2.4 } do
+						local dir = CFrame.Angles(0, off, 0):VectorToWorldSpace(-toMtn)
+						local ok = true
+						for _, dist in { 120, 264 } do
+							local eye = center + dir * dist + UP * (9 + 120 * (dist - 34) / 230)
+							local toDragon = workspace:Raycast(eye, (center + UP * 12) - eye, params)
+							local toMountain = workspace:Raycast(eye, (mountainLook - eye) * 0.6, params)
+							if toDragon or toMountain then
+								ok = false
+								break
+							end
+						end
+						if ok then
+							backDir = dir
+							break
+						end
+					end
+				end
 				local roared = 0
 				add({
 					dur = 8,
@@ -2320,12 +2388,504 @@ function Trailer.play(kind: string, take: string?)
 					cam = function(u)
 						local turn = (1 - smooth(u / 0.4)) * 1.3
 						local k2 = smooth((u - 0.4) / 0.6)
-						local dirC = CFrame.Angles(0, turn, 0):VectorToWorldSpace(-toMtn)
+						local dirC = CFrame.Angles(0, turn, 0):VectorToWorldSpace(backDir)
 						local dist = 34 + 230 * k2
 						local look = (center + UP * 12):Lerp(mountainLook, k2 * 0.8)
 						return CFrame.lookAt(center + dirC * dist + UP * (9 + 120 * k2), look)
 					end,
 				})
+			elseif kind == "clip17" then
+				-- SOPRA LE NUVOLE: si sale dalle nuvole e si scopre un'isola volante sopra la montagna,
+				-- lo scalatore passa col rampino da un'isola all'altra, il drago plana tra le isole
+				local isl: { { p: Vector3, r: number } } = {}
+				for k = 1, (d.IslandCount or 0) :: number do
+					local p, r = d["Island" .. k], d["IslandR" .. k]
+					if typeof(p) == "Vector3" then
+						table.insert(isl, { p = p, r = if type(r) == "number" then r else 20 })
+					end
+				end
+				if #isl >= 2 then
+					-- le due isole piu' vicine tra loro: il salto col rampino
+					local A, B, bd = isl[1], isl[2], math.huge
+					for i = 1, #isl do
+						for j = i + 1, #isl do
+							local dd = (isl[i].p - isl[j].p).Magnitude
+							if dd < bd then
+								A, B, bd = isl[i], isl[j], dd
+							end
+						end
+					end
+					local ab = flat(B.p - A.p)
+					local side = Vector3.new(-ab.Z, 0, ab.X)
+					local all = {}
+					for _, i in isl do
+						table.insert(all, i.p)
+					end
+					-- 1. dalle nuvole: la camera sale da sotto il bordo dell'isola e la scopre
+					add({
+						dur = 4,
+						at = A.p,
+						preload = all,
+						start = function()
+							pose(adult, "fly", 0.5)
+						end,
+						update = function(u)
+							flyAlong(adult, function(x: number): Vector3
+								return A.p + side * (-170 + 340 * x) + UP * (-25 + 45 * x) - ab * (A.r + 30)
+							end, u, 2.2)
+						end,
+						cam = function(u)
+							local k = smooth(u)
+							local from = A.p - ab * (A.r * 3.2) + side * 30 - UP * (A.r * 1.6)
+							local to = A.p - ab * (A.r * 2.1) + side * 18 + UP * (A.r * 0.35)
+							return CFrame.lookAt(from:Lerp(to, k), A.p + UP * (6 * k - A.r * 0.5 * (1 - k)))
+						end,
+					})
+					-- 2. il rampino: la corda si aggancia al bordo dell'altra isola e lo scalatore vola
+					-- sotto, in un arco, fino a terra dall'altra parte
+					local startP = A.p + ab * (A.r * 0.8) + UP * 3.2
+					local endP = B.p - ab * (B.r * 0.8) + UP * 3.2
+					local span = (endP - startP).Magnitude
+					local sag = math.min(45, span * 0.35)
+					local function swing(w: number): Vector3
+						local k = smooth(w)
+						return startP:Lerp(endP, k) - UP * (math.sin(k * math.pi) * sag)
+					end
+					local body: Model? = nil
+					local rope = Instance.new("Part")
+					rope.Anchored, rope.CanCollide, rope.CanQuery, rope.CanTouch = true, false, false, false
+					rope.Color = Color3.fromRGB(90, 70, 50)
+					rope.Material = Enum.Material.Fabric
+					local hook = Instance.new("Part")
+					hook.Anchored, hook.CanCollide, hook.CanQuery, hook.CanTouch = true, false, false, false
+					hook.Size = Vector3.new(1, 1, 1.6)
+					hook.Color = Color3.fromRGB(60, 60, 66)
+					hook.Material = Enum.Material.Metal
+					local function where(u: number): (Vector3, number)
+						local w = math.clamp((u - 0.18) / 0.72, 0, 1)
+						return (if u < 0.18 then startP else swing(w)), w
+					end
+					add({
+						dur = 5,
+						at = startP,
+						start = function()
+							body = cloneBody()
+							rope.Parent = workspace
+							hook.Parent = workspace
+						end,
+						update = function(u)
+							local p, w = where(u)
+							local anchor = endP + UP * 0.6
+							local ahead = swing(math.min(1, w + 0.03)) - swing(math.max(0, w - 0.03))
+							local look = if u < 0.18 or ahead.Magnitude < 0.01 then ab else flat(ahead)
+							if body then
+								(body :: Model):PivotTo(CFrame.lookAt(p, p + look) * CFrame.Angles(math.rad(-25 * math.sin(w * math.pi)), 0, 0))
+								limbs(body, {
+									RightShoulder = CFrame.Angles(deg(165), 0, deg(-5)),
+									LeftShoulder = CFrame.Angles(deg(if u < 0.18 then 20 else 150), 0, deg(5)),
+									RightHip = CFrame.Angles(deg(30 * math.sin(w * math.pi)), 0, 0),
+									LeftHip = CFrame.Angles(deg(-20 * math.sin(w * math.pi)), 0, 0),
+									RightKnee = CFrame.Angles(deg(-40), 0, 0),
+									LeftKnee = CFrame.Angles(deg(-25), 0, 0),
+								})
+							end
+							local hand = p + UP * 2.8 + look * 0.6
+							-- il gancio vola fino all'altra isola, poi la corda tira
+							local hk = if u < 0.18 then hand:Lerp(anchor, smooth(u / 0.18)) else anchor
+							hook.CFrame = CFrame.lookAt(hk, hk + ab)
+							if u < 0.93 then
+								rope.Size = Vector3.new(0.22, 0.22, math.max(0.1, (hk - hand).Magnitude))
+								rope.CFrame = CFrame.lookAt((hk + hand) / 2, hk)
+								rope.Parent = workspace
+							else
+								rope.Parent = nil
+								hook.Parent = nil
+							end
+							if u >= 0.999 then
+								rope.Parent, hook.Parent = nil, nil
+								if body then
+									(body :: Model):Destroy()
+									body = nil
+								end
+							end
+						end,
+						cam = function(u)
+							local mid = (startP + endP) / 2
+							local p = where(u)
+							return CFrame.lookAt(mid + side * (span * 0.85 + 25) - UP * 6, p:Lerp(mid, 0.45))
+						end,
+					})
+					-- 3. largo: il drago plana nell'anello di isole, sotto la vetta e il mare di nuvole
+					local center = Vector3.new(summit.X, 0, summit.Z)
+					local avgY, ringR = 0, 60
+					for _, i in isl do
+						avgY += i.p.Y / #isl
+						ringR = math.max(ringR, (Vector3.new(i.p.X, 0, i.p.Z) - center).Magnitude)
+					end
+					local mid = Vector3.new(center.X, avgY, center.Z)
+					add({
+						dur = 6,
+						at = mid,
+						preload = all,
+						smooth = 2,
+						start = function()
+							pose(adult, "fly", 0.45)
+						end,
+						update = function(u)
+							flyAlong(adult, function(x: number): Vector3
+								local a = 0.4 + x * 2.2
+								return mid + Vector3.new(math.cos(a) * ringR * 0.85, -12 + math.sin(x * 6) * 8, math.sin(a) * ringR * 0.85)
+							end, u, 2.6)
+						end,
+						cam = function(u)
+							local a = 0.1 + u * 1.1
+							local r = ringR + 150 + 90 * u
+							return CFrame.lookAt(mid + Vector3.new(math.cos(a) * r, 55 + 70 * u, math.sin(a) * r), mid - UP * 25)
+						end,
+					})
+				end
+			elseif kind == "clip18" then
+				-- OGNI CRISTALLO, OGNI BIOMA: stacchi rapidi sui cristalli di Mirko, uno per elemento,
+				-- dal basso verso la vetta; la camera gira attorno e scoppia una scintilla del colore del
+				-- cristallo. Alla fine la montagna intera
+				local Sfx = require(script.Parent.Sfx)
+				local COLORS: { [string]: Color3 } = {
+					Roccia = Color3.fromRGB(255, 140, 60),
+					Ossa = Color3.fromRGB(240, 235, 210),
+					Tempesta = Color3.fromRGB(150, 205, 255),
+					Fulmine = Color3.fromRGB(165, 120, 255),
+					Cosmico = Color3.fromRGB(205, 120, 255),
+					Eclissi = Color3.fromRGB(255, 170, 70),
+					Gelo = Color3.fromRGB(140, 220, 255),
+					Gas = Color3.fromRGB(90, 220, 255),
+				}
+				local list: { { p: Vector3, h: number, el: string } } = {}
+				for k = 1, (d.CrysCount or 0) :: number do
+					local p, h, el = d["Crys" .. k], d["CrysH" .. k], d["CrysEl" .. k]
+					if typeof(p) == "Vector3" then
+						table.insert(list, { p = p, h = math.max(if type(h) == "number" then h else 10, 4), el = tostring(el) })
+					end
+				end
+				table.sort(list, function(a, b)
+					return a.p.Y < b.p.Y
+				end)
+				for i, c in list do
+					local col = COLORS[c.el] or Color3.new(1, 1, 1)
+					-- abbastanza lontano e in alto da stare sopra gli altri cristalli della zona
+					local r = c.h * 1.6 + 14
+					local base = i * 1.7
+					local look = c.p + UP * c.h * 0.1
+					-- la camera non entra nella roccia (cristalli nelle grotte): si ferma prima della parete
+					local function camPos(u: number): Vector3
+						local a = base + u * 0.9
+						local dist = r * (1.25 - 0.35 * smooth(u))
+						local dir = Vector3.new(math.cos(a), 0.55 + 0.1 * smooth(u), math.sin(a)).Unit
+						local hit = workspace:Raycast(look, dir * dist, terrainOnly)
+						if hit then
+							dist = math.max(3, (hit.Position - look).Magnitude - 2)
+						end
+						return look + dir * dist
+					end
+					add({
+						dur = 2,
+						at = c.p,
+						start = function()
+							task.delay(0.45, function()
+								sparkBurst(c.p + UP * c.h * 0.3, col, math.clamp(c.h * 0.12, 1, 4))
+								pcall(Sfx.play, if c.el == "Gelo" or c.el == "Tempesta" then "Ghiaccio" else "Vetro", c.p, 1)
+							end)
+						end,
+						cam = function(u)
+							return CFrame.lookAt(camPos(u), look)
+						end,
+					})
+				end
+				local o = Vector3.new(-1, 0, -0.25).Unit
+				add({
+					dur = 3.5,
+					at = Vector3.new(mc.X, top * 0.5, mc.Z) + o * mR,
+					cam = dolly(
+						Vector3.new(mc.X, top * 0.35, mc.Z) + o * mR * 1.05,
+						Vector3.new(mc.X, top * 0.75, mc.Z) + o * mR * 1.7,
+						Vector3.new(mc.X, top * 0.45, mc.Z),
+						Vector3.new(mc.X, top * 0.55, mc.Z)
+					),
+				})
+			elseif kind == "clip19" then
+				-- PICCOZZE: tre piccozze di Mirko una dopo l'altra, sospese e girate piano davanti a un
+				-- cristallo (ASMR: il suono del ghiaccio a ogni cambio); l'ultima colpisce il cristallo, che
+				-- va in pezzi
+				local Sfx = require(script.Parent.Sfx)
+				local axes: { Model } = {}
+				for k = 1, 3 do
+					local m = props and props:FindFirstChild("Ascia" .. k)
+					if m and m:IsA("Model") then
+						table.insert(axes, m)
+					end
+				end
+				local crystal = props and props:FindFirstChild("CristalloScena")
+				-- dove: davanti al cristallo di ghiaccio piu' grande (o in vetta), dal lato libero
+				local spot: Vector3 = summit + UP * 4
+				local rank = 0
+				for k = 1, (d.CrysCount or 0) :: number do
+					local r = if d["CrysEl" .. k] == "Gelo" then 3 elseif d["CrysEl" .. k] == "Tempesta" then 2 else 1
+					if r > rank and typeof(d["Crys" .. k]) == "Vector3" then
+						spot, rank = d["Crys" .. k] :: Vector3, r
+					end
+				end
+				local open = Vector3.xAxis
+				for a = 0, 7 do
+					local dir = Vector3.new(math.cos(a * math.pi / 4), 0, math.sin(a * math.pi / 4))
+					if not workspace:Raycast(spot + UP * 4, dir * 45, terrainOnly) then
+						open = dir
+						break
+					end
+				end
+				local floor = groundAt(spot + open * 14)
+				local stage = floor + UP * 5.5 -- dove gira la piccozza
+				local crysAt = floor + open * -4
+				if crystal and crystal:IsA("Model") then
+					local _, size = crystal:GetBoundingBox()
+					crystal:ScaleTo(crystal:GetScale() * 9 / math.max(size.Y, 0.1))
+					local cf, s2 = crystal:GetBoundingBox()
+					crystal:PivotTo(crystal:GetPivot() + (crysAt - Vector3.new(cf.X, cf.Y - s2.Y / 2, cf.Z)))
+				end
+				local function axeAt(m: Model, cf: CFrame)
+					local box = m:GetBoundingBox()
+					m:PivotTo(cf * box:ToObjectSpace(m:GetPivot()))
+				end
+				local camFrom = stage + open * 7.5 + UP * 1.2
+				for k, m in axes do
+					local _, size = m:GetBoundingBox()
+					m:ScaleTo(m:GetScale() * 6 / math.max(size.X, size.Y, size.Z, 0.1))
+					add({
+						dur = 2.6,
+						at = stage,
+						start = function()
+							for _, other in axes do
+								other:PivotTo(CFrame.new(0, -500, 0))
+							end
+							flash(s)
+							sparkBurst(stage, if k == 3 then GOLD else ICE, 1.6)
+							pcall(Sfx.play, "Ghiaccio", stage, 0.8)
+						end,
+						update = function(u)
+							axeAt(m, CFrame.new(stage + UP * math.sin(u * math.pi * 2) * 0.25) * CFrame.Angles(0, u * math.pi * 1.6 + k, math.rad(-12)))
+						end,
+						cam = function(u)
+							return CFrame.lookAt(camFrom:Lerp(stage + open * 5.2 + UP * 0.6, smooth(u)), stage)
+						end,
+					})
+				end
+				-- il colpo: l'ultima piccozza cala sul cristallo, scintille e il cristallo esplode
+				local hitDone = false
+				local shards: { BasePart } = {}
+				add({
+					dur = 3.2,
+					at = crysAt,
+					start = function()
+						hitDone = false
+					end,
+					update = function(u)
+						local m = axes[#axes]
+						if m then
+							local k = smooth(math.clamp(u / 0.45, 0, 1))
+							local swing = math.rad(-120 + 150 * k)
+							local pivot = crysAt + open * 4.5 + UP * 6
+							axeAt(m, CFrame.lookAt(pivot, pivot - open) * CFrame.Angles(swing, 0, 0) * CFrame.new(0, 2.5, 0))
+						end
+						if u >= 0.45 and not hitDone then
+							hitDone = true
+							shake = 1.6
+							flash(s)
+							sparkBurst(crysAt + UP * 4, ICE, 3.5)
+							pcall(Sfx.play, "Vetro", crysAt, 1)
+							pcall(Sfx.play, "Ghiaccio", crysAt, 1)
+							if crystal and crystal:IsA("Model") then
+								for _, p in crystal:GetDescendants() do
+									if p:IsA("BasePart") then
+										p.LocalTransparencyModifier = 1
+									end
+								end
+							end
+							for i = 1, 16 do
+								local sh = Instance.new("WedgePart")
+								sh.Anchored, sh.CanCollide, sh.CanQuery, sh.CanTouch = true, false, false, false
+								sh.Material = Enum.Material.Glass
+								sh.Color = ICE
+								sh.Transparency = 0.25
+								sh.Size = Vector3.new(0.6, math.random() * 1.6 + 0.8, math.random() * 1.2 + 0.6)
+								sh.CFrame = CFrame.new(crysAt + UP * (2 + math.random() * 5)) * CFrame.Angles(math.random() * 6, math.random() * 6, 0)
+								sh.Parent = workspace
+								table.insert(shards, sh)
+								local dir = (Vector3.new(math.random() - 0.5, math.random() * 0.8, math.random() - 0.5) + open * 0.6).Unit
+								TweenService:Create(sh, TweenInfo.new(1.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+									CFrame = sh.CFrame + dir * (8 + i % 5 * 3) - UP * 3,
+									Transparency = 1,
+								}):Play()
+							end
+						end
+						if u >= 0.999 then
+							for _, sh in shards do
+								sh:Destroy()
+							end
+							table.clear(shards)
+						end
+					end,
+					cam = function(u)
+						local k = smooth(u)
+						return CFrame.lookAt(crysAt + open * (14 + 6 * k) + UP * (4 + 2 * k) + Vector3.new(open.Z, 0, -open.X) * 5, crysAt + UP * 4)
+					end,
+				})
+			elseif kind == "clip20" then
+				-- DALL'UOVO AL DRAGO: l'uovo nel giardino interno della machiya, di notte sull'altare del
+				-- tempio, si schiude (il cucciolo), all'alba il drago adulto vola via sopra i borghi
+				local Lighting = game:GetService("Lighting")
+				local Sfx = require(script.Parent.Sfx)
+				local clock0 = Lighting.ClockTime
+				local egg = props and props:FindFirstChild("UovoScena")
+				-- l'uovo resta dritto come nel modello di Mirko; poggia con il fondo su p
+				local eggRot = if egg and egg:IsA("Model") then egg:GetPivot().Rotation else CFrame.identity
+				local function eggTo(p: Vector3, tilt: CFrame?)
+					if egg and egg:IsA("Model") then
+						egg:PivotTo(CFrame.new(p) * (tilt or CFrame.identity) * eggRot)
+						local cf, size = egg:GetBoundingBox()
+						egg:PivotTo(egg:GetPivot() + Vector3.new(p.X - cf.X, p.Y - (cf.Y - size.Y / 2), p.Z - cf.Z))
+					end
+				end
+				if egg and egg:IsA("Model") then
+					local _, size = egg:GetBoundingBox()
+					egg:ScaleTo(egg:GetScale() * 2.6 / math.max(size.Y, 0.1))
+				end
+				local mcf = d.MachiyaCF
+				local tcf, ts = d.TempioCF, (d.TempioScale or 1) :: number
+				-- 1. il giardino interno della machiya, di giorno: la camera scende dal cielo
+				if typeof(mcf) == "CFrame" then
+					local m = mcf :: CFrame
+					local eggP = m:PointToWorldSpace(Vector3.new(0.6, 0.6, 3.0))
+					add({
+						dur = 4,
+						at = eggP,
+						start = function()
+							eggTo(eggP)
+						end,
+						update = function()
+							Lighting.ClockTime = 15.5
+						end,
+						cam = function(u)
+							local k = smooth(u)
+							local from = m:PointToWorldSpace(Vector3.new(-1, 34, 3))
+							local to = m:PointToWorldSpace(Vector3.new(-3.6, 4.2, 5.4))
+							return CFrame.lookAt(from:Lerp(to, k), eggP + UP * 0.8)
+						end,
+					})
+				end
+				if typeof(tcf) == "CFrame" then
+					local t = tcf :: CFrame
+					local eggP = t:PointToWorldSpace(Vector3.new(0, 5.35 * ts, 1.0 * ts))
+					local glow = Instance.new("PointLight")
+					glow.Color = ORANGE
+					glow.Range = 14
+					glow.Brightness = 0
+					-- 2. di notte sull'altare del tempio: la luce dentro l'uovo pulsa
+					add({
+						dur = 3.5,
+						at = eggP,
+						start = function()
+							eggTo(eggP)
+							if egg and egg:IsA("Model") then
+								glow.Parent = egg:FindFirstChildWhichIsA("BasePart", true)
+							end
+						end,
+						update = function(u)
+							Lighting.ClockTime = 0.5
+							glow.Brightness = 1.5 + math.sin(u * 18) * 1.2
+						end,
+						cam = function(u)
+							local k = smooth(u)
+							local from = t:PointToWorldSpace(Vector3.new(0, 7 * ts, -9.5 * ts))
+							local to = t:PointToWorldSpace(Vector3.new(2.4 * ts, 6.4 * ts, -3.2 * ts))
+							return CFrame.lookAt(from:Lerp(to, k), eggP + UP * 1.2)
+						end,
+					})
+					-- 3. si schiude: l'uovo trema sempre di piu', crepe di luce, lampo, il cucciolo
+					local hatched = false
+					local nextCrack = 0
+					add({
+						dur = 4.5,
+						at = eggP,
+						start = function()
+							hatched = false
+							nextCrack = 0.15
+							hide(baby)
+							pose(baby, "idle")
+						end,
+						update = function(u)
+							Lighting.ClockTime = 0.5
+							if not hatched then
+								local a = math.rad(2 + 14 * u * u)
+								eggTo(eggP, CFrame.Angles(math.sin(os.clock() * 31) * a, 0, math.cos(os.clock() * 27) * a))
+								glow.Brightness = 2 + u * 4
+								if u >= nextCrack then
+									nextCrack += 0.16
+									sparkBurst(eggP + UP * 1.3, ORANGE, 0.8)
+									pcall(Sfx.play, "Roccia", eggP, 0.5)
+								end
+							end
+							if u >= 0.68 and not hatched then
+								hatched = true
+								flash(s)
+								shake = 1.2
+								sparkBurst(eggP + UP * 1.5, GOLD, 2.5)
+								pcall(Sfx.play, "Ruggito", eggP, 1)
+								glow.Parent = nil
+								if egg and egg:IsA("Model") then
+									egg:PivotTo(CFrame.new(0, -500, 0))
+								end
+								if baby then
+									local _, size = baby.model:GetBoundingBox()
+									baby.model:ScaleTo(baby.model:GetScale() * 4.2 / math.max(size.Y, 0.1))
+									local _, s2 = baby.model:GetBoundingBox()
+									local p = eggP + UP * (s2.Y / 2)
+									local front = t:VectorToWorldSpace(Vector3.new(0, 0, -1))
+									baby.model:PivotTo(CFrame.lookAt(p, p + front))
+								end
+							end
+						end,
+						cam = function(u)
+							local a = 0.5 - u * 0.9
+							local r = (5.5 + 1.5 * u) * math.max(ts, 0.8)
+							local front = t:VectorToWorldSpace(Vector3.new(0, 0, -1))
+							local right = t:VectorToWorldSpace(Vector3.new(1, 0, 0))
+							return CFrame.lookAt(eggP + front * math.cos(a) * r + right * math.sin(a) * r + UP * 2.2, eggP + UP * 1.4)
+						end,
+					})
+					-- 4. all'alba il drago adulto esce dal cortile del tempio e vola sopra i borghi
+					local front = t:VectorToWorldSpace(Vector3.new(0, 0, -1))
+					local yard = t.Position + front * 30 * ts
+					add({
+						dur = 5,
+						at = yard,
+						start = function()
+							hide(baby)
+							pose(adult, "fly", 0.6)
+						end,
+						update = function(u)
+							Lighting.ClockTime = 6.1 + u * 0.4
+							flyAlong(adult, function(x: number): Vector3
+								return yard + front * (20 + 220 * x) + UP * (12 + 130 * x * x)
+							end, u, 1.7)
+							if u >= 0.999 then
+								Lighting.ClockTime = clock0
+							end
+						end,
+						cam = function(u)
+							local k = smooth(u)
+							local p = yard + front * (20 + 220 * k) + UP * (12 + 130 * k * k)
+							return CFrame.lookAt(yard - front * 6 + UP * 5 + t:VectorToWorldSpace(Vector3.new(9, 0, 0)), p)
+						end,
+					})
+				end
 			elseif kind == "clip15" then
 				-- WHICH HOUSE ARE YOU: tenda, baita, chalet, 3 secondi ciascuna. La camera sta sempre dal
 				-- lato della valle (verso fuori dalla montagna) e controlla che tra lei e la casa non ci

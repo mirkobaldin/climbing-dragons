@@ -8,6 +8,7 @@
 --   * anfratto segreto nella parete piu' ripida
 --   * blocchi di roccia fluttuanti nei buchi "floating" del sentiero
 --   * camera del tesoro al centro della montagna, con l'altare dell'uovo del drago Ombra
+--   * stanze lungo la galleria a spirale (una ogni TUNNEL_ROOM_EVERY punti), coi giacimenti
 --
 -- La montagna e' vuota dentro (vedi Voxelizer): gli scavi vengono prima registrati, poi le
 -- gallerie che passano nella cavita' ricevono un rivestimento di roccia (HOLLOW.WALL) e solo
@@ -249,6 +250,47 @@ local function carveMineChambers(map: Heightmap.Map, terrain: Terrain, helix: { 
 		end
 	end
 	map.features.mineChambers = chambers
+end
+
+-- Stanze lungo la galleria principale: prima si camminava per minuti nella spirale senza trovare
+-- niente. Ogni TUNNEL_ROOM_EVERY punti (3 stud l'uno) una sala di lato al tunnel, a destra e a
+-- sinistra alternate, con il pavimento piatto: ci vanno i giacimenti e una luce (vedi Ores).
+local function carveTunnelRooms(map: Heightmap.Map, terrain: Terrain, helix: { Vector3 }, rng: Random, yield: () -> ())
+	local CV = map.cfg.CAVES
+	local every = CV.TUNNEL_ROOM_EVERY or 0
+	local rooms = {}
+	if every <= 0 then
+		map.features.tunnelRooms = rooms
+		return
+	end
+	local side = 1
+	for k = math.floor(every * 0.6), #helix - 4, every do
+		local p, q = helix[k], helix[k + 3]
+		local along = Vector3.new(q.X - p.X, 0, q.Z - p.Z)
+		if along.Magnitude < 0.01 then
+			continue
+		end
+		local across = along.Unit:Cross(Vector3.yAxis) * side
+		side = -side
+		local R = rng:NextNumber(16, 24)
+		local c = p + across * (CV.TUNNEL_RADIUS + R * 0.55) + Vector3.new(0, R * 0.15, 0)
+		-- deve restare roccia sopra (se no il soffitto e' sottile e ci si cade dentro)
+		if sampleH(map, c.X, c.Z) - c.Y < R + CV.COVER + 6 then
+			continue
+		end
+		terrain:FillBall(c + Vector3.new(0, R * 0.2, 0), R, AIR)
+		for _ = 1, 3 do
+			local o = Vector3.new(rng:NextNumber(-R, R) * 0.5, rng:NextNumber(0, R * 0.3), rng:NextNumber(-R, R) * 0.5)
+			terrain:FillBall(c + o, R * rng:NextNumber(0.45, 0.65), AIR)
+		end
+		local floorY = math.max(c.Y - R * 0.45, p.Y - CV.TUNNEL_RADIUS + 1)
+		terrain:FillBlock(CFrame.new(c.X, floorY - 3, c.Z), Vector3.new(R * 2.2, 6, R * 2.2), Enum.Material.Slate)
+		-- passaggio largo dal tunnel alla stanza
+		carvePath(terrain, { p, Vector3.new(c.X, floorY + 7, c.Z) }, CV.TUNNEL_RADIUS - 2, yield)
+		table.insert(rooms, { x = c.X, y = floorY, z = c.Z, radius = R })
+		yield()
+	end
+	map.features.tunnelRooms = rooms
 end
 
 -- Collegamenti tra stanze, cunicoli e galleria: la rete diventa un labirinto con piu' strade
@@ -787,6 +829,7 @@ function Caves.carve(map: Heightmap.Map, yield: () -> (), progress: (string, num
 	progress("Ingressi e collegamenti", 0.5)
 	carveEntrances(map, terrain, helix, rng, yield)
 	carveMineChambers(map, terrain, helix, rng, yield)
+	carveTunnelRooms(map, terrain, helix, rng, yield)
 	carveLoops(map, terrain, helix, rng, yield)
 	progress("Catacomba segreta", 0.6)
 	carveCatacomb(map, terrain, helix[1], yield)

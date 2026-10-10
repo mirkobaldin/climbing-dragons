@@ -464,6 +464,11 @@ function PetAnimator.start()
 				continue
 			end
 			local r = root :: BasePart
+			-- drago di un giocatore lontano: non si vede, niente calcoli (quando ti avvicini riparte
+			-- dal padrone, vedi il controllo dei 600 studs qui sotto)
+			if camera and (camera.CFrame.Position - r.Position).Magnitude > 500 then
+				continue
+			end
 			local s = math.max(pet.size / 4, 1)
 			local side = if pet.slot % 2 == 1 then 1 else -1
 			-- battito d'ali: piccoli sobbalzi verso l'alto (anche per le mesh senza ossa)

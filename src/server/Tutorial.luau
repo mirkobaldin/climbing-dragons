@@ -59,36 +59,36 @@ end
 
 local STEPS: { Step } = {
 	{
-		text = "Vai alla parete di allenamento: segui le frecce",
+		text = "Go to the practice wall: follow the arrows",
 		check = function(player, memo)
 			return near(player, memo.wallBase, 30)
 		end,
 		target = fixed("wallBase"),
 	},
 	{
-		text = "Prendi la Piccozza (tasto 1), fai click vicino alla roccia e sali con W fino in cima",
+		text = "Take the Ice Axe (key 1), click near the rock and climb with W to the top",
 		check = function(player, memo)
 			return near(player, memo.wallTop, 16)
 		end,
 		target = fixed("wallTop"),
 	},
 	{
-		text = "Chiodi: aggrappati alla parete e premi F per piantare un chiodo (la corda ti ferma se cadi)",
+		text = "Pitons: grab the wall and press F to place a piton (the rope catches you if you fall)",
 		check = attributeAtLeast("PitonsPlaced", "pitons0"),
 		target = fixed("wallBase"),
 	},
 	{
-		text = "Miniera: prendi il Piccone (tasto 2) e fai click sui minerali ai piedi della parete",
+		text = "Mining: take the Pickaxe (key 2) and click the ores at the foot of the wall",
 		check = attributeAtLeast("OresMined", "ores0"),
 		target = fixed("ore"),
 	},
 	{
-		text = "Soldi: all'emporio apri il negozio e vendi i minerali (scheda Vendi)",
+		text = "Money: open the store and sell your ores (Sell tab)",
 		check = attributeAtLeast("OresSold", "sold0"),
 		target = fixed("shop"),
 	},
 	{
-		text = "Casa: questo e' il tuo accampamento ai piedi della montagna. Compra la Tenda (sblocca il nido)",
+		text = "Home: this is your camp at the foot of the mountain. Buy the Tent (unlocks the nest)",
 		arrive = "camp",
 		check = function(player)
 			return ((player:GetAttribute("HouseLevel") or 0) :: number) >= 1
@@ -96,7 +96,7 @@ local STEPS: { Step } = {
 		target = playerAttr("PlotPosition"),
 	},
 	{
-		text = "Crafting: apri il Banco da lavoro accanto all'emporio (Ramponi, Rampino, Tuta...)",
+		text = "Crafting: open the Workbench next to the store (Crampons, Grappling Hook, Suit...)",
 		arrive = "hub",
 		check = function(player)
 			return player:GetAttribute("BenchOpened") == true
@@ -104,18 +104,18 @@ local STEPS: { Step } = {
 		target = fixed("bench"),
 	},
 	{
-		text = "Uova di drago: raccogli l'uovo vicino alla parete e portalo al nido della tua tenda (T > My camp)",
+		text = "Dragon eggs: pick up the egg near the wall and bring it to your tent's nest (T > My camp)",
 		check = attributeAtLeast("EggsIncubated", "incubated0"),
 		target = eggTarget,
 	},
 	{
-		text = "Aspetta che si schiuda: premi G (menu Draghi) e poi 'Schiudi'",
+		text = "Wait for it to hatch: press G (Dragons menu), then 'Hatch'",
 		check = attributeAtLeast("EggsHatched", "hatched0"),
 		target = playerAttr("NestPosition"),
 	},
 }
 
-local DONE_TEXT = "Pronto! Usa il cartello 'Montagna' al campo o segui la strada. Buona scalata!"
+local DONE_TEXT = "Ready! Use the 'Mountain' sign at camp or follow the road. Happy climbing!"
 
 -- porta il giocatore al suo accampamento (terreno ai piedi della montagna) o al campo base
 local function bring(player: Player, where: string)

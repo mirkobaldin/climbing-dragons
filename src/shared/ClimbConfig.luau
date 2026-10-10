@@ -2,8 +2,12 @@
 -- Parametri di gioco condivisi tra server e client (arrampicata, corde, meteo).
 
 local ClimbConfig = {
-	TOOL_NAME = "Piccozza",
-	PICKAXE_NAME = "Piccone",
+	-- nomi dei Tool (si leggono nello zaino): i modelli in ServerStorage possono chiamarsi ancora
+	-- "Piccozza", "Piccone", "Rampino", "Torcia" (vedi server/Tools)
+	TOOL_NAME = "Ice Axe",
+	PICKAXE_NAME = "Pickaxe",
+	GRAPPLE_NAME = "Grappling Hook",
+	TORCH_NAME = "Torch",
 
 	-- Arrampicata
 	WALL_MAX_NORMAL_Y = 0.55, -- una superficie e' "parete" se la sua normale ha Y sotto questo (> ~57 gradi)

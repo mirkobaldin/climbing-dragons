@@ -1,17 +1,22 @@
 --!strict
--- Effetti degli attacchi dei draghi, diversi per ogni elemento (tutto locale, con gli strumenti di
--- Roblox: ParticleEmitter, Trail, Beam, PointLight, TweenService):
---   Brace, Eclissi, Sole  palla di fuoco con fiamme e scia, esplosione di fiamme
---   Gelo                  scheggia di ghiaccio che gira, scoppio di cristalli e brina
---   Tempesta, Fulmine     fulmine istantaneo a zig-zag, scintille e lampo
---   Gas                   sfera tossica con fumo, nube che resta qualche secondo
---   Roccia                masso con polvere, detriti che rimbalzano
---   Ossa                  lancia d'osso con scia verde spettrale, fuochi fatui
---   Cosmico, Ombra        stella con scia di scintille, esplosione stellare
+-- Effetti degli attacchi dei draghi, diversi per ogni elemento (tutto locale). Base fatta con
+-- gli strumenti di Roblox (ParticleEmitter, Trail, PointLight, TweenService) piu' gli effetti
+-- flipbook e le mesh della libreria VFXLib (VFXKit) e un suono per la partenza e per l'impatto:
+--   Brace, Eclissi, Sole  palla di fuoco (mesh) con fiamme, esplosione di fuoco, crepa a terra
+--   Gelo                  scheggia di ghiaccio, scoppio di ghiaccio magico, spuntoni di ghiaccio
+--   Tempesta, Fulmine     fulmine a zig-zag, saetta dal cielo sul bersaglio, scariche
+--   Gas                   sfera tossica, nube e bolle che restano, vortice a terra
+--   Roccia                masso con polvere, crepa, spuntoni di pietra
+--   Ossa                  lancia d'osso con scia verde, fendente spettrale
+--   Cosmico, Ombra        stella (sfera glitch) con scintille, vortice ed esplosione stellare
 -- DragonVFX.shot(elemento, da, a, colore) disegna il colpo e l'impatto; la camera trema un poco.
+-- DragonVFX.mouth(modello, verso) trova la punta del muso dallo scheletro.
 
 local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
+
+local Sfx = require(script.Parent.Sfx)
+local VFXKit = require(script.Parent.VFXKit)
 
 local DragonVFX = {}
 
@@ -84,6 +89,14 @@ local EXSMOKE = "rbxasset://textures/particles/explosion01_smoke_main.dds"
 local FSPARK = "rbxasset://textures/particles/fire_sparks_main.dds"
 local GLOW = "rbxasset://textures/particles/forcefield_glow_main.dds"
 
+-- anello d'urto: a terra se il bersaglio e' vicino al terreno, se no di fronte al colpo
+local function ring(at: Vector3, dir: Vector3, color: Color3, size: number)
+	local ground = VFXKit.ground(at, 6)
+	local cf = ground or (CFrame.lookAt(at, at + dir) * CFrame.Angles(math.pi / 2, 0, 0))
+	VFXKit.mesh("Shock", cf, { color = color, from = size * 1.5, to = size * 11, time = 0.5, spin = 0.25, flat = true, transparency = 0.15 })
+	return ground
+end
+
 -- esplosione a strati: lampo bianco al centro, nucleo colorato, onda d'urto piatta, scintille
 -- che cadono, fumo, luce che si spegne
 local function impact(at: Vector3, color: Color3, size: number, texture: string?, extra: ((Part) -> ())?)
@@ -131,6 +144,27 @@ local function fly(p: BasePart, from: Vector3, to: Vector3, speed: number, spin:
 	Debris:AddItem(p, time + 1)
 end
 
+-- mesh della libreria che segue un proiettile (palla di fuoco, sfera glitch): gira su se stessa
+local function rider(name: string, p: BasePart, color: Color3, size: number)
+	local m = VFXKit.part(name, size)
+	if not m then
+		return
+	end
+	m.Color = color
+	m.CFrame = p.CFrame
+	m.Parent = workspace
+	Debris:AddItem(m, 2)
+	-- il proiettile si muove a tween: la mesh lo segue ogni frame girando su se stessa
+	local spinAt = os.clock()
+	task.spawn(function()
+		while m.Parent and p.Parent do
+			m.CFrame = p.CFrame * CFrame.Angles(0, 0, (os.clock() - spinAt) * 9)
+			task.wait()
+		end
+		m:Destroy()
+	end)
+end
+
 -- fulmine a zig-zag tra due punti (segmenti al neon che spariscono subito)
 local function bolt(from: Vector3, to: Vector3, color: Color3, width: number)
 	local n = 8
@@ -162,26 +196,87 @@ function DragonVFX.muzzle(at: Vector3, color: Color3)
 	s:Emit(14)
 	light(f, color, 18, 6, 0.2)
 	Debris:AddItem(f, 0.6)
+	VFXKit.burst("Scintille", at, { color = color, count = 6, scale = 0.6 })
 end
 
--- bocca del drago: l'osso della testa (attributo HeadBone del modello, o "head"), spostata un po'
--- verso il bersaglio. Prima i colpi partivano dal centro del modello, in mezzo alla mesh
+------------------------------------------------------------------------------------------
+-- la bocca: la punta del muso trovata dallo scheletro. L'attributo HeadBone dei modelli in
+-- alcuni draghi (Gas, Eclissi adulto) e' un osso della cresta o del corno, dietro e sopra il
+-- muso: si cerca invece l'osso piu' avanti sulla linea di mezzo del corpo e si allunga fino alla
+-- fine della mesh. Il punto e' salvato rispetto all'osso, cosi' segue il collo che si muove.
+
+type Mouth = { bone: Bone, offset: Vector3 }
+local mouths: { [Model]: Mouth } = setmetatable({}, { __mode = "k" }) :: any
+
+local function findMouth(model: Model): Mouth?
+	local piv = model:GetPivot()
+	-- ingombro della mesh nello spazio del pivot (gli angoli di ogni parte)
+	local lo, hi = Vector3.one * math.huge, -Vector3.one * math.huge
+	for _, p in model:GetDescendants() do
+		if p:IsA("BasePart") and p.Transparency < 1 then
+			local h = p.Size / 2
+			for _, c in { Vector3.new(1, 1, 1), Vector3.new(1, 1, -1), Vector3.new(1, -1, 1), Vector3.new(1, -1, -1), Vector3.new(-1, 1, 1), Vector3.new(-1, 1, -1), Vector3.new(-1, -1, 1), Vector3.new(-1, -1, -1) } do
+				local q = piv:PointToObjectSpace(p.CFrame:PointToWorldSpace(h * c))
+				lo, hi = lo:Min(q), hi:Max(q)
+			end
+		end
+	end
+	if lo.X == math.huge then
+		return nil
+	end
+	local width, depth = hi.X - lo.X, hi.Z - lo.Z
+	-- da che parte guarda: di norma -Z; se l'osso HeadBone sta dietro, +Z
+	local sign = -1
+	local hb = model:GetAttribute("HeadBone")
+	local hbone = if type(hb) == "string" then model:FindFirstChild(hb, true) else nil
+	if hbone and hbone:IsA("Bone") and piv:PointToObjectSpace(hbone.WorldPosition).Z > depth * 0.15 then
+		sign = 1
+	end
+	local best: Bone? = nil
+	local bestZ = -math.huge
+	local bestLocal = Vector3.zero
+	for _, b in model:GetDescendants() do
+		if b:IsA("Bone") then
+			local q = piv:PointToObjectSpace(b.WorldPosition)
+			-- sulla linea di mezzo (fuori restano zampe e ali) e la piu' avanti
+			if math.abs(q.X - (lo.X + hi.X) / 2) < width * 0.12 and q.Z * sign > bestZ then
+				best, bestZ, bestLocal = b, q.Z * sign, q
+			end
+		end
+	end
+	if not best then
+		return nil
+	end
+	local front = if sign < 0 then lo.Z else hi.Z
+	local gap = math.clamp((front - bestLocal.Z) * sign, 0, depth * 0.12)
+	local tip = piv:PointToWorldSpace(bestLocal + Vector3.new(0, -depth * 0.01, gap * sign))
+	return { bone = best, offset = best.TransformedWorldCFrame:PointToObjectSpace(tip) }
+end
+
+-- bocca del drago (punta del muso), spostata un po' verso il bersaglio
 function DragonVFX.mouth(model: Model, toward: Vector3?): Vector3
 	local _, size = model:GetBoundingBox()
 	local p: Vector3? = nil
-	local headName = model:GetAttribute("HeadBone")
-	local names = { "head", "spine.011", "Head" }
-	if type(headName) == "string" then
-		table.insert(names, 1, headName)
+	local m = mouths[model]
+	if not m or not m.bone:IsDescendantOf(model) then
+		m = findMouth(model) :: any
+		if m then
+			mouths[model] = m
+		end
 	end
-	for _, n in names do
-		local d = model:FindFirstChild(n, true)
-		if d and d:IsA("Bone") then
-			p = d.WorldPosition
-			break
-		elseif d and d:IsA("BasePart") then
-			p = d.Position
-			break
+	if m then
+		p = m.bone.TransformedWorldCFrame:PointToWorldSpace(m.offset)
+	else
+		-- modelli a parti: la parte o l'osso chiamato "head"
+		for _, n in { "head", "Head" } do
+			local d = model:FindFirstChild(n, true)
+			if d and d:IsA("Bone") then
+				p = d.TransformedWorldCFrame.Position
+				break
+			elseif d and d:IsA("BasePart") then
+				p = d.Position
+				break
+			end
 		end
 	end
 	if not p then
@@ -190,18 +285,42 @@ function DragonVFX.mouth(model: Model, toward: Vector3?): Vector3
 	end
 	local at = p :: Vector3
 	if toward and (toward - at).Magnitude > 1 then
-		at += (toward - at).Unit * math.max(size.X, size.Y, size.Z) * 0.06
+		at += (toward - at).Unit * math.max(size.X, size.Y, size.Z) * 0.02
 	end
 	return at
 end
 
+------------------------------------------------------------------------------------------
+
+local FIRE_LIKE = { Brace = true, Sole = true, Eclissi = true }
+
+local CAST: { [string]: string } = {
+	Gelo = "SoffioGelo",
+	Gas = "SoffioGas",
+	Roccia = "SoffioVento",
+	Ossa = "SoffioVento",
+	Cosmico = "SoffioVento",
+	Ombra = "SoffioOmbra",
+}
+
 function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Color3)
 	DragonVFX.muzzle(from, color)
 	local e = element or ""
+	local dir = if (to - from).Magnitude > 0.01 then (to - from).Unit else Vector3.zAxis
+	if e ~= "Tempesta" and e ~= "Fulmine" then
+		Sfx.play(CAST[e] or "SoffioFuoco", from)
+	end
 	if e == "Tempesta" or e == "Fulmine" then
-		-- fulmine istantaneo: due rami e un lampo
+		-- fulmine istantaneo: due rami, una saetta dal cielo sul bersaglio e un lampo
+		local dark = e == "Fulmine"
 		bolt(from, to, color, 0.7)
-		bolt(from, to, Color3.new(1, 1, 1), 0.25)
+		bolt(from, to, if dark then Color3.fromRGB(40, 20, 70) else Color3.new(1, 1, 1), 0.25)
+		bolt(to + Vector3.new((math.random() - 0.5) * 6, 40, (math.random() - 0.5) * 6), to, Color3.new(1, 1, 1), 0.45)
+		Sfx.play("Fulmine", to)
+		VFXKit.mesh("Thunder", CFrame.new(to + Vector3.new(0, 9, 0)) * CFrame.Angles(0, math.random() * 6, 0), { color = color, from = 22, to = 26, time = 0.35, transparency = 0 })
+		VFXKit.mesh("ThunderSpark", CFrame.new(to) * CFrame.Angles(0, math.random() * 6, 0), { color = color, from = 3, to = 9, time = 0.3 })
+		VFXKit.burst("Fulmine", to, { color = color, scale = 0.9 })
+		ring(to, dir, color, 1)
 		impact(to, color, 1.1, SPARK)
 		return
 	end
@@ -210,8 +329,15 @@ function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Col
 		shard.Transparency = 0.15
 		trail(shard, color, 1, 0.25)
 		emitter(shard, SPARK, ColorSequence.new(Color3.new(1, 1, 1)), NumberSequence.new(0.4, 0), 0.4, 2, 40)
+		VFXKit.attach("Scintille", shard, { color = color, rate = 40, scale = 0.7 })
 		light(shard, color, 10, 2)
 		fly(shard, from, to, 160, true, function()
+			Sfx.play("Ghiaccio", to)
+			VFXKit.burst("Ghiaccio", to, { count = 3, scale = 1.3 })
+			-- spuntoni di ghiaccio che spuntano da terra (o dal punto colpito)
+			local ground = ring(to, dir, color, 1)
+			local base = ground or CFrame.new(to)
+			VFXKit.mesh("GroundSpikes", base * CFrame.new(0, 0.5, 0) * CFrame.Angles(0, math.random() * 6, 0), { color = Color3.fromRGB(190, 235, 255), from = 1, to = 7, time = 0.9, material = Enum.Material.Glass, transparency = 0.25 })
 			impact(to, color, 1, SPARK, function(h)
 				for _ = 1, 8 do
 					local c = fx(Enum.PartType.Block, Vector3.new(0.5, math.random() * 2 + 1, 0.5), color, CFrame.new(to) * CFrame.Angles(math.random() * 6, math.random() * 6, 0), Enum.Material.Glass)
@@ -226,17 +352,28 @@ function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Col
 		return
 	end
 	if e == "Gas" then
+		local magenta = Color3.fromRGB(240, 80, 220)
 		local orb = fx(Enum.PartType.Ball, Vector3.one * 2.2, color, CFrame.new(from))
 		orb.Transparency = 0.25
-		emitter(orb, SMOKE, ColorSequence.new(color, Color3.fromRGB(240, 80, 220)), NumberSequence.new(1, 3), 0.8, 1, 40)
+		emitter(orb, SMOKE, ColorSequence.new(color, magenta), NumberSequence.new(1, 3), 0.8, 1, 40)
+		VFXKit.attach("Nebbia", orb, { color = magenta, rate = 12, scale = 0.35 })
 		light(orb, color, 12, 2)
 		fly(orb, from, to, 90, false, function()
+			Sfx.play("ScoppioFuoco", to, 0.7)
+			VFXKit.burst("Fumo", to, { color = color, scale = 1.2 })
+			VFXKit.burst("Bolle", to + Vector3.new(0, 1, 0), { color = magenta, count = 4, scale = 1.5 })
+			local ground = VFXKit.ground(to, 6)
+			VFXKit.mesh("Swirl", (ground or CFrame.new(to)) * CFrame.new(0, 0.3, 0), { color = magenta, from = 3, to = 12, time = 1.2, spin = 1, transparency = 0.3 })
 			impact(to, color, 1.3, SMOKE, function(h)
-				-- nube che resta
-				local cloud = emitter(h, SMOKE, ColorSequence.new(color, Color3.fromRGB(240, 80, 220)), NumberSequence.new(3, 6), 2, 1.5, 25)
+				-- nube che resta, con qualche bolla che scoppia
+				local cloud = emitter(h, SMOKE, ColorSequence.new(color, magenta), NumberSequence.new(3, 6), 2, 1.5, 25)
 				cloud.LightEmission = 0.4
+				local bubbles = VFXKit.attach("Bolle", h, { color = color, rate = 5, scale = 1.2 })
 				task.delay(1.2, function()
 					cloud.Enabled = false
+					if bubbles then
+						bubbles:Destroy()
+					end
 				end)
 			end)
 		end)
@@ -246,6 +383,14 @@ function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Col
 		local rock = fx(Enum.PartType.Ball, Vector3.new(2.2, 1.8, 2), Color3.fromRGB(130, 110, 90), CFrame.new(from), Enum.Material.Slate)
 		emitter(rock, SMOKE, ColorSequence.new(Color3.fromRGB(200, 170, 120)), NumberSequence.new(0.8, 2), 0.6, 1, 30)
 		fly(rock, from, to, 110, true, function()
+			Sfx.play("Roccia", to)
+			Sfx.play("Esplosione", to, 0.6)
+			local ground = ring(to, dir, color, 1.1)
+			if ground then
+				VFXKit.burst("Crepa", ground, { color = color, scale = 1 })
+				VFXKit.mesh("Spike", ground * CFrame.Angles(0, math.random() * 6, 0), { color = Color3.fromRGB(150, 125, 95), from = 1, to = 6, time = 0.9, material = Enum.Material.Slate, transparency = 0 })
+			end
+			VFXKit.burst("Fumo", to, { color = Color3.fromRGB(210, 180, 130), scale = 1.1 })
 			impact(to, color, 1.2, SMOKE, function()
 				for _ = 1, 7 do
 					local c = fx(Enum.PartType.Block, Vector3.one * (0.5 + math.random()), Color3.fromRGB(120, 100, 82), CFrame.new(to) * CFrame.Angles(math.random() * 6, math.random() * 6, 0), Enum.Material.Slate)
@@ -263,28 +408,43 @@ function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Col
 		emitter(spear, SMOKE, ColorSequence.new(color), NumberSequence.new(0.6, 1.6), 0.5, 1, 30)
 		light(spear, color, 10, 2)
 		-- il cilindro e' lungo sull'asse X: si gira di 90 gradi rispetto alla direzione
-		local dir = (to - from).Unit
 		spear.CFrame = CFrame.lookAt(from, from + dir) * CFrame.Angles(0, math.pi / 2, 0)
 		local time = math.clamp((to - from).Magnitude / 140, 0.1, 0.6)
 		local tw = TweenService:Create(spear, TweenInfo.new(time), { CFrame = CFrame.lookAt(to, to + dir) * CFrame.Angles(0, math.pi / 2, 0) })
 		tw:Play()
 		tw.Completed:Connect(function()
 			spear:Destroy()
+			Sfx.play("Ossa", to)
+			VFXKit.burst("Taglio", to, { color = color, scale = 0.9 })
+			VFXKit.burst("Fumo", to, { color = color, scale = 0.8 })
+			ring(to, dir, color, 0.9)
 			impact(to, color, 1, SMOKE)
 		end)
 		return
 	end
 	if e == "Cosmico" or e == "Ombra" then
-		local star = fx(Enum.PartType.Ball, Vector3.one * 1.6, Color3.new(1, 1, 1), CFrame.new(from))
+		local shadow = e == "Ombra"
+		local star = fx(Enum.PartType.Ball, Vector3.one * 1.6, if shadow then Color3.fromRGB(30, 10, 50) else Color3.new(1, 1, 1), CFrame.new(from))
 		trail(star, color, 1.4, 0.4)
 		emitter(star, SPARK, ColorSequence.new(color, Color3.new(1, 1, 1)), NumberSequence.new(0.6, 0), 0.6, 3, 60)
+		rider("GlitchBall", star, color, 3)
 		light(star, color, 12, 3)
 		fly(star, from, to, 120, false, function()
+			Sfx.play(if shadow then "Esplosione" else "Stelle", to)
+			VFXKit.burst("Vortice", to, { color = color, scale = 1.1 })
+			VFXKit.burst("Scintille", to, { color = color, count = 25 })
+			if shadow then
+				VFXKit.burst("Taglio", to, { color = color, scale = 1 })
+			else
+				VFXKit.burst("Scoppio", to, { color = color, scale = 0.9 })
+			end
+			ring(to, dir, color, 1.1)
 			impact(to, color, 1.4, SPARK)
 		end)
 		return
 	end
 	-- fuoco (Brace, Eclissi, Sole e tutti gli altri)
+	local flame = if e == "Sole" then Color3.fromRGB(255, 230, 140) elseif e == "Eclissi" then color else Color3.fromRGB(255, 150, 60)
 	local ball = fx(Enum.PartType.Ball, Vector3.one * 2.4, Color3.fromRGB(255, 240, 200), CFrame.new(from))
 	ball.Transparency = 0
 	trail(ball, color, 3.2, 0.4)
@@ -292,8 +452,18 @@ function DragonVFX.shot(element: string?, from: Vector3, to: Vector3, color: Col
 	halo.LightEmission = 1
 	halo.LockedToPart = true
 	emitter(ball, FIRE, ColorSequence.new(Color3.fromRGB(255, 230, 140), color), NumberSequence.new(2.6, 0.6), 0.4, 2, 90)
+	VFXKit.attach("FuocoLoop", ball, { rate = 30, scale = 0.8 })
+	rider("FireBall", ball, flame, 3.2)
 	light(ball, color, 14, 3)
 	fly(ball, from, to, 120, false, function()
+		Sfx.play("Esplosione", to)
+		Sfx.play("ScoppioFuoco", to)
+		VFXKit.burst("FuocoBurst", to + Vector3.new(0, 1, 0), { color = if FIRE_LIKE[e] and e ~= "Brace" then flame else nil, scale = 1.1 })
+		VFXKit.burst("Scoppio", to, { color = flame, scale = 0.8 })
+		local ground = ring(to, dir, color, 1.2)
+		if ground then
+			VFXKit.burst("Crepa", ground, { scale = 0.9 })
+		end
 		impact(to, color, 1.3, FIRE)
 	end)
 end

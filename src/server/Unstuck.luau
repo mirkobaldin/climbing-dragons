@@ -88,7 +88,7 @@ local function check(player: Player)
 			root.AssemblyLinearVelocity = Vector3.zero
 			character:PivotTo(CFrame.new(top.Position + Vector3.new(0, 4, 0)))
 			player:SetAttribute("Rescued", ((player:GetAttribute("Rescued") or 0) :: number) + 1)
-			player:SetAttribute("Notice", "Eri caduto dentro la montagna: ti abbiamo tirato fuori")
+			player:SetAttribute("Notice", "You fell inside the mountain: we pulled you out")
 			player:SetAttribute("NoticeTime", os.clock())
 			return
 		end
@@ -119,7 +119,7 @@ local function check(player: Player)
 	end
 	-- il client azzera la misura della caduta: quella dentro la roccia non deve far danno
 	player:SetAttribute("Rescued", ((player:GetAttribute("Rescued") or 0) :: number) + 1)
-	player:SetAttribute("Notice", "Eri finito dentro la roccia: ti abbiamo tirato fuori")
+	player:SetAttribute("Notice", "You got stuck inside the rock: we pulled you out")
 	player:SetAttribute("NoticeTime", os.clock())
 end
 

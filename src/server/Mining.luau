@@ -1,7 +1,7 @@
 --!strict
 -- Miniere: con il Piccone in mano, click vicino a un giacimento (tag "OreNode") per estrarre.
 -- Ogni colpo stacca un pezzo; quando il giacimento e' esaurito sparisce e ricresce dopo
--- ORE_RESPAWN_SECONDS. I minerali raccolti finiscono nella cartella "Minerali" del giocatore
+-- ORE_RESPAWN_SECONDS. I minerali raccolti finiscono nella cartella "Ores" del giocatore
 -- (e il totale nella classifica in alto a destra). Rubino e Cosmico richiedono il Piccone
 -- rinforzato (vedi shared/Gear).
 -- Tutto lato server: il client non puo' barare su distanza o velocita'.
@@ -132,7 +132,7 @@ local function mine(player: Player, tool: Tool)
 	end
 	local oreType = node:GetAttribute("OreType") or "Pietra"
 	if Gear.HARD_ORES[oreType] and not Gear.has(player, "PiccoRinforzato") then
-		warnPlayer(player, "Troppo duro! Serve il Piccone rinforzato (Banco da lavoro)")
+		warnPlayer(player, "Too hard! You need the Reinforced Pickaxe (Workbench)")
 		return
 	end
 	local amount = (node:GetAttribute("Amount") or 1) - 1
@@ -172,9 +172,9 @@ function Mining.setup()
 		local stats = player:FindFirstChild("leaderstats") or Instance.new("Folder")
 		stats.Name = "leaderstats"
 		stats.Parent = player
-		if not stats:FindFirstChild("Minerali") then
+		if not stats:FindFirstChild("Ores") then
 			local total = Instance.new("IntValue")
-			total.Name = "Minerali"
+			total.Name = "Ores"
 			total.Parent = stats
 		end
 		local function onCharacter(character: Model)

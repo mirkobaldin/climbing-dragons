@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
+local Names = require(ReplicatedStorage.Shared.Names)
 local EconomyConfig = require(ReplicatedStorage.Shared.EconomyConfig)
 local ShopConfig = require(ReplicatedStorage.Shared.ShopConfig)
 local Dragons = require(script.Parent.Dragons)
@@ -43,10 +44,10 @@ end
 local function buy(player: Player, id: string): (boolean, string)
 	local item = ShopConfig.item(id)
 	if not item then
-		return false, "Oggetto sconosciuto"
+		return false, "Unknown item"
 	end
 	if Economy.coins(player) < item.price then
-		return false, string.format("Servono %d monete", item.price)
+		return false, string.format("You need %d coins", item.price)
 	end
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -54,7 +55,7 @@ local function buy(player: Player, id: string): (boolean, string)
 		Ropes.refill(player)
 	elseif id == "Medkit" then
 		if not humanoid then
-			return false, "Nessun personaggio"
+			return false, "No character"
 		end
 		humanoid.Health = humanoid.MaxHealth
 	elseif id == "Thermos" then
@@ -63,32 +64,32 @@ local function buy(player: Player, id: string): (boolean, string)
 		local rarity = roll(ShopConfig.EGG_ODDS[id])
 		local element = randomElement()
 		if not Dragons.incubate(player, element, rarity) then
-			return false, if Dragons.nestSlots(player) == 0 then "Ti serve un nido: compra la Tenda sul tuo terreno" else "Il nido e' pieno"
+			return false, if Dragons.nestSlots(player) == 0 then "You need a nest: buy the Tent on your plot" else "The nest is full"
 		end
 		Economy.addCoins(player, -item.price)
-		return true, string.format("Uovo %s %s nel tuo nido!", element, rarity)
+		return true, string.format("%s %s Egg in your nest!", Names.t(rarity), Names.t(element))
 	end
 	Economy.addCoins(player, -item.price)
-	return true, item.name .. " comprato"
+	return true, item.name .. " bought"
 end
 
 local function sellOre(player: Player, ore: string, amount: any): (boolean, string)
-	local folder = player:FindFirstChild("Minerali")
+	local folder = player:FindFirstChild("Ores")
 	local v = folder and folder:FindFirstChild(ore) :: IntValue?
 	local price = EconomyConfig.ORE_PRICES[ore]
 	if not v or not price or v.Value <= 0 then
-		return false, "Non ne hai"
+		return false, "You don't have any"
 	end
 	local n = if amount == "all" then v.Value else math.clamp(math.floor(tonumber(amount) or 1), 1, v.Value)
 	v.Value -= n
 	local stats = player:FindFirstChild("leaderstats")
-	local total = stats and stats:FindFirstChild("Minerali") :: IntValue?
+	local total = stats and stats:FindFirstChild("Ores") :: IntValue?
 	if total then
 		total.Value = math.max(0, total.Value - n)
 	end
 	Economy.addCoins(player, n * price)
 	player:SetAttribute("OresSold", (player:GetAttribute("OresSold") or 0) + 1)
-	return true, string.format("Venduti %d %s per %d monete", n, ore, n * price)
+	return true, string.format("Sold %d %s for %d coins", n, Names.t(ore), n * price)
 end
 
 local function handle(player: Player, action: any, id: any, amount: any): (boolean, string)
@@ -99,11 +100,11 @@ local function handle(player: Player, action: any, id: any, amount: any): (boole
 	elseif action == "sellEgg" then
 		local _, rarity = Eggs.takeCarried(player)
 		if not rarity then
-			return false, "Non stai portando un uovo"
+			return false, "You're not carrying an egg"
 		end
 		local value = EconomyConfig.EGG_PRICES[rarity] or 10
 		Economy.addCoins(player, value)
-		return true, string.format("Uovo venduto per %d monete", value)
+		return true, string.format("Egg sold for %d coins", value)
 	elseif action == "robux" and type(id) == "string" then
 		local passId = DragonConfig.GAMEPASSES[id]
 		local productId = ShopConfig.DEV_PRODUCTS[id]
@@ -114,9 +115,9 @@ local function handle(player: Player, action: any, id: any, amount: any): (boole
 			MarketplaceService:PromptProductPurchase(player, productId)
 			return true, ""
 		end
-		return false, "Non ancora disponibile"
+		return false, "Not available yet"
 	end
-	return false, "Richiesta non valida"
+	return false, "Invalid request"
 end
 
 -- Acquisti a Robux completati
@@ -159,8 +160,8 @@ function Shop.setup(remotes: { [string]: RemoteEvent })
 			end
 		end
 		local prompt = Instance.new("ProximityPrompt")
-		prompt.ActionText = "Apri il negozio"
-		prompt.ObjectText = "Emporio"
+		prompt.ActionText = "Open store"
+		prompt.ObjectText = "Store"
 		prompt.MaxActivationDistance = 12
 		prompt.RequiresLineOfSight = false
 		prompt.Parent = counter

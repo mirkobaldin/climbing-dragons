@@ -256,6 +256,7 @@ local Config = {
 		ENTRANCES = 7, -- ingressi extra sparsi sulla montagna, collegati alla galleria
 		LOOPS = 14, -- gallerie che collegano tra loro stanze e cunicoli (rete intrecciata)
 		MINE_CHAMBERS = 8, -- grandi caverne con pavimento piatto per i giacimenti
+		TUNNEL_ROOM_EVERY = 90, -- una stanza coi giacimenti ogni 90 punti della spirale (~270 studs)
 		ICE_CAVES = { 0.62, 0.68, 0.74 }, -- quote (frazioni) delle grotte di ghiaccio (sale da 46 studs)
 		-- Grotta di ghiaccio azzurro (come quelle dell'Islanda) nel fronte del ghiacciaio GLACIER
 		-- (indice in GLACIERS): FRONT = altezza del fronte di ghiaccio, LENGTH = lunghezza della

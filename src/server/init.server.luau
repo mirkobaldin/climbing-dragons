@@ -19,12 +19,14 @@ local Mining = require(script.Mining)
 local Eggs = require(script.Eggs)
 local Economy = require(script.Economy)
 local Tutorial = require(script.Tutorial)
+local Missions = require(script.Missions)
 local Admin = require(script.Admin)
 local Shop = require(script.Shop)
 local Survival = require(script.Survival)
 local Unstuck = require(script.Unstuck)
 local CinematicSpots = require(script.CinematicSpots)
 local Ocean = require(script.Ocean)
+local Preflight = require(script.Preflight)
 
 local remotes = Remotes.setup()
 Unstuck.setup() -- per primo: non deve dipendere da quello che viene dopo
@@ -176,9 +178,11 @@ do
 		out.Parent = game:GetService("ReplicatedStorage")
 	end
 	-- il manichino e i rig per l'Animation Editor non devono comparire in partita
-	local dummy = workspace:FindFirstChild("ManichinoArrampicata")
-	if dummy then
-		dummy:Destroy()
+	for _, name in { "ManichinoArrampicata", "ParetePerAnimare" } do
+		local dummy = workspace:FindFirstChild(name)
+		if dummy then
+			dummy:Destroy()
+		end
 	end
 	for _, child in workspace:GetChildren() do
 		local isRigFolder = child:IsA("Folder") and (child.Name == "RigDraghi" or child.Name == "RigNemici")
@@ -214,5 +218,7 @@ BaseCamps.setup()
 Mining.setup()
 Eggs.setup(remotes)
 task.spawn(Tutorial.setup) -- aspetta la cartella Tutorial senza bloccare il resto
+Missions.setup() -- dopo il tutorial: uovo, nido, arena, palestra, grotte, vetta
 -- (Admin.setup e' all'inizio)
 Shop.setup(remotes)
+Preflight.setup()

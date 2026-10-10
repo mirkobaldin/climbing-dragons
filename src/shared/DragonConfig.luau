@@ -32,7 +32,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(128, 118, 104),
 		accent = Color3.fromRGB(70, 64, 58),
 		glow = Color3.fromRGB(230, 200, 140),
-		ability = "Ti mostra le rocce friabili e i giacimenti vicini",
+		ability = "Reveals crumbly rock and nearby ore veins",
 		words = { "rock", "roccia", "stone", "pietra", "earth", "terra", "ground" },
 	},
 	{
@@ -41,7 +41,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(200, 70, 40),
 		accent = Color3.fromRGB(40, 30, 28),
 		glow = Color3.fromRGB(255, 140, 50),
-		ability = "Ti scalda (niente freddo in quota) e fa luce di notte",
+		ability = "Keeps you warm (no cold up high) and lights the night",
 		words = { "fire", "fuoco", "brace", "lava", "flame", "fiamma", "ember", "magma" },
 	},
 	{
@@ -50,7 +50,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(190, 230, 250),
 		accent = Color3.fromRGB(90, 150, 200),
 		glow = Color3.fromRGB(160, 230, 255),
-		ability = "Presa sul ghiaccio anche senza Ramponi",
+		ability = "Grip on ice even without Crampons",
 		words = { "ice", "ghiaccio", "gelo", "frost", "snow", "neve", "cryo", "frozen" },
 	},
 	{
@@ -59,7 +59,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(110, 60, 200),
 		accent = Color3.fromRGB(255, 0, 191),
 		glow = Color3.fromRGB(220, 90, 255),
-		ability = "Doppio salto (Spazio a mezz'aria)",
+		ability = "Double jump (Space in mid-air)",
 		words = { "cosmic", "cosmico", "space", "spazio", "void", "star", "stella", "galaxy", "black hole" },
 	},
 	{
@@ -68,7 +68,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(80, 100, 150),
 		accent = Color3.fromRGB(230, 240, 255),
 		glow = Color3.fromRGB(150, 200, 255),
-		ability = "Il vento non ti spinge e non ti stanca",
+		ability = "Wind no longer pushes or tires you",
 		words = { "tempesta", "storm", "thunder", "tuono" }, -- "fulmine" e' del drago Fulmine Nero
 	},
 	{
@@ -77,7 +77,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(250, 190, 70),
 		accent = Color3.fromRGB(255, 245, 200),
 		glow = Color3.fromRGB(255, 225, 120),
-		ability = "Sali il 20% piu' veloce",
+		ability = "Climb 20% faster",
 		words = { "sole", "sun", "solar", "solare", "light", "luce" },
 	},
 	{
@@ -86,7 +86,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(45, 35, 60),
 		accent = Color3.fromRGB(150, 80, 220),
 		glow = Color3.fromRGB(170, 100, 255),
-		ability = "Le cadute fanno meta' danno",
+		ability = "Falls deal half damage",
 		words = { "ombra", "shadow", "dark", "buio", "oscur" },
 	},
 	{
@@ -95,7 +95,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(30, 28, 34),
 		accent = Color3.fromRGB(240, 236, 230),
 		glow = Color3.fromRGB(255, 150, 50),
-		ability = "Vede al buio: di notte e nelle grotte ti fa luce",
+		ability = "Sees in the dark: lights your way at night and in caves",
 		words = { "eclissi", "eclipse" },
 	},
 	{
@@ -104,7 +104,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(35, 30, 50),
 		accent = Color3.fromRGB(150, 110, 255),
 		glow = Color3.fromRGB(170, 140, 255),
-		ability = "Il Rampino si ricarica in meta' tempo e corri piu' veloce",
+		ability = "Grappling Hook recharges twice as fast and you run faster",
 		words = { "fulmine", "lightning", "thunderbolt" },
 	},
 	{
@@ -113,7 +113,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(225, 220, 205),
 		accent = Color3.fromRGB(90, 80, 70),
 		glow = Color3.fromRGB(200, 255, 220),
-		ability = "Sente le uova: ti indica la piu' vicina",
+		ability = "Senses eggs: points you to the nearest one",
 		words = { "ossa", "bone", "skeleton", "scheletro" },
 	},
 	{
@@ -122,7 +122,7 @@ DragonConfig.ELEMENTS = {
 		color = Color3.fromRGB(50, 80, 210),
 		accent = Color3.fromRGB(240, 80, 220),
 		glow = Color3.fromRGB(90, 220, 255),
-		ability = "Immune ai gas tossici",
+		ability = "Immune to toxic gas",
 		words = { "gas", "toxic", "tossico", "poison", "veleno" },
 	},
 } :: { Element }

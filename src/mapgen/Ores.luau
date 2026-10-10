@@ -212,6 +212,23 @@ function Ores.place(map: Heightmap.Map)
 	for _, r in map.features.oreRooms or {} do
 		around(r.x, r.y + 5, r.z, 12, 2)
 	end
+	-- stanze lungo la galleria: giacimenti e una luce calda, cosi' si vedono dal tunnel
+	for _, r in map.features.tunnelRooms or {} do
+		around(r.x, r.y + 4, r.z, r.radius, 4)
+		local lamp = Instance.new("Part")
+		lamp.Name = "LuceStanza"
+		lamp.Anchored, lamp.CanCollide, lamp.CanQuery, lamp.CanTouch = true, false, false, false
+		lamp.Transparency = 1
+		lamp.Size = Vector3.one
+		lamp.Position = Vector3.new(r.x, r.y + 8, r.z)
+		local light = Instance.new("PointLight")
+		light.Color = Color3.fromRGB(255, 190, 120)
+		light.Range = math.min(r.radius * 1.6, 40)
+		light.Brightness = 1.4
+		light.Shadows = false
+		light.Parent = lamp
+		lamp.Parent = folder
+	end
 end
 
 return Ores

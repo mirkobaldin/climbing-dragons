@@ -27,6 +27,8 @@ local TweenService = game:GetService("TweenService")
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
 local DragonVFX = require(script.Parent.DragonVFX)
+local Sfx = require(script.Parent.Sfx)
+local VFXKit = require(script.Parent.VFXKit)
 
 local player = Players.LocalPlayer
 
@@ -148,6 +150,8 @@ local hiddenUntil: { [Model]: number } = {}
 local function shatter(at: Vector3, color: Color3)
 	for _, m in CollectionService:GetTagged("CristalloBersaglio") do
 		if m:IsA("Model") and (m:GetPivot().Position - at).Magnitude < 6 then
+			Sfx.play("Vetro", at)
+			VFXKit.burst("Ghiaccio", at, { count = 2, color = color })
 			for _ = 1, 12 do
 				local shard = fxPart(Enum.PartType.Block, Vector3.new(0.3, 0.8, 0.3) * (0.6 + math.random()), Color3.fromRGB(190, 235, 255), CFrame.new(at) * CFrame.Angles(math.random() * 6, math.random() * 6, 0))
 				shard.Material = Enum.Material.Glass
@@ -241,7 +245,11 @@ end
 -- colpi e tiri della sessione di addestramento (scheda del drago)
 local trainingSession = { hits = 0, shots = 0 }
 
-local function onHit(userId: number, target: Vector3, element: string, xp: number)
+-- alreadyShot: il colpo l'ha gia' disegnato il click (addestramento, colpi a vuoto). Se no (gli
+-- altri giocatori, il tuo drago che ti aiuta contro un nemico) il colpo parte qui dalla bocca
+-- del drago, con lo stesso effetto del suo elemento; prima il drago che aiutava non sparava
+-- niente e si vedeva solo l'impatto
+local function onHit(userId: number, target: Vector3, element: string, xp: number, alreadyShot: boolean?)
 	if userId == Players.LocalPlayer.UserId and xp > 0 then
 		trainingSession.hits += 1
 	end
@@ -250,49 +258,46 @@ local function onHit(userId: number, target: Vector3, element: string, xp: numbe
 		return
 	end
 	local color = elementColor(element)
-	local from = mouthOf(pet)
-	if userId == player.UserId then
-		-- il colpo l'hai gia' visto partire al click (DragonVFX): qui solo il cristallo che va in
-		-- pezzi, il braciere e l'XP
+	local mine = userId == player.UserId
+	local function land()
 		shatter(target, color)
-		flare(element)
 		if xp and xp > 0 then
-			floatText(from + Vector3.new(0, 2, 0), "+" .. xp .. " XP", Color3.fromRGB(255, 230, 120), false)
+			flare(element)
+			if mine then
+				floatText(mouthOf(pet) + Vector3.new(0, 2, 0), "+" .. xp .. " XP", Color3.fromRGB(255, 230, 120), false)
+			end
 		end
+	end
+	if alreadyShot or (mine and xp > 0) then
+		land()
 		return
 	end
-	-- il colpo: palla luminosa con scia
-	local ball = fxPart(Enum.PartType.Ball, Vector3.one * 1.3, color, CFrame.new(from))
-	local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
-	a0.Position, a1.Position = Vector3.new(0, 0.5, 0), Vector3.new(0, -0.5, 0)
-	a0.Parent, a1.Parent = ball, ball
-	local trail = Instance.new("Trail")
-	trail.Attachment0, trail.Attachment1 = a0, a1
-	trail.Lifetime = 0.25
-	trail.Color = ColorSequence.new(color)
-	trail.Transparency = NumberSequence.new(0, 1)
-	trail.LightEmission = 1
-	trail.WidthScale = NumberSequence.new(1, 0)
-	trail.Parent = ball
-	local light = Instance.new("PointLight")
-	light.Color = color
-	light.Range = 10
-	light.Brightness = 3
-	light.Parent = ball
-	local time = math.clamp((target - from).Magnitude / 110, 0.12, 0.45)
-	local tween = TweenService:Create(ball, TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { CFrame = CFrame.new(target) })
-	tween:Play()
-	tween.Completed:Connect(function()
-		ball:Destroy()
-		burst(target, color, 28, 18, 0.8)
-		shockwave(target, color, 6, 0.4)
-		shatter(target, color)
-		flare(element)
-		if userId == player.UserId and xp and xp > 0 then
-			floatText(mouthOf(pet) + Vector3.new(0, 2, 0), "+" .. xp .. " XP", Color3.fromRGB(255, 230, 120), false)
+	local function fire()
+		if not pet.Parent then
+			return
 		end
-	end)
-	Debris:AddItem(ball, time + 0.5)
+		local from = DragonVFX.mouth(pet, target)
+		DragonVFX.shot(element, from, target, color)
+		-- il cristallo si rompe quando arriva il colpo (i fulmini arrivano subito)
+		task.delay(if element == "Tempesta" or element == "Fulmine" then 0 else math.clamp((target - from).Magnitude / 120, 0.1, 0.7), land)
+	end
+	if mine and not ClientState.dragonMode then
+		-- il tuo drago prima si gira verso il nemico, poi spara (se no il colpo gli usciva dalla
+		-- testa all'indietro)
+		local flat = Vector3.new(target.X, 0, target.Z) - Vector3.new(pet:GetPivot().X, 0, pet:GetPivot().Z)
+		if flat.Magnitude > 1 then
+			local look = flat.Unit
+			ClientState.petLook = look
+			task.delay(1.2, function()
+				if ClientState.petLook == look then
+					ClientState.petLook = nil
+				end
+			end)
+		end
+		task.delay(0.3, fire)
+	else
+		fire()
+	end
 end
 
 local function onLevel(userId: number, dragonId: number, level: number)
@@ -313,6 +318,8 @@ local function onLevel(userId: number, dragonId: number, level: number)
 		TweenService:Create(pillar, TweenInfo.new(1.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = Vector3.new(80, 0.2, 0.2), Transparency = 1 }):Play()
 		Debris:AddItem(pillar, 1.7)
 	end
+	Sfx.play("Ruggito", cf.Position, if big then 1 else 0.6)
+	VFXKit.burst("Vortice", cf.Position, { color = color, scale = math.max(size.X, size.Z) * 0.25 })
 	local text = if level >= DragonConfig.MAX_LEVEL then "MAX LEVEL · READY TO EVOLVE!" else "LEVEL " .. level .. "!"
 	floatText(cf.Position + Vector3.new(0, size.Y * 0.6 + 2, 0), text, color, true)
 	if userId == player.UserId then
@@ -361,6 +368,10 @@ local function onEvolve(userId: number, dragonId: number)
 	end)
 	task.delay(1.45, function()
 		burst(cf.Position, color, 140, 30, 1.4)
+		Sfx.play("Ruggito", cf.Position, 1.3)
+		Sfx.play("Esplosione", cf.Position)
+		VFXKit.burst("Scoppio", cf.Position, { color = color, scale = radius * 0.3 })
+		VFXKit.mesh("Shock", CFrame.new(cf.Position - Vector3.new(0, size.Y / 2 - 0.3, 0)), { color = color, from = radius, to = radius * 6, time = 0.9, spin = 0.3, flat = true })
 		shockwave(cf.Position - Vector3.new(0, size.Y / 2, 0), color, radius * 4, 1)
 		floatText(cf.Position + Vector3.new(0, size.Y + 3, 0), "EVOLVED!", color, true)
 	end)
@@ -817,7 +828,7 @@ function TrainingFX.start()
 			elseif kind == "hint" then
 				ClientState.hint = a
 			elseif kind == "miss" then
-				onHit(player.UserId, a, b, 0)
+				onHit(player.UserId, a, b, 0, true)
 			elseif kind == "rush" then
 				setLit(a)
 				rushEnds = os.clock() + b
@@ -835,30 +846,64 @@ function TrainingFX.start()
 			end
 		end)
 	end
-	-- cristalli che fluttuano e girano, contatore della sfida
+	-- qualcuno si sta addestrando? (controllato 2 volte al secondo, non a ogni frame)
+	local someoneTraining = false
+	task.spawn(function()
+		while true do
+			local any = false
+			for _, plr in Players:GetPlayers() do
+				if plr:GetAttribute("Training") == true then
+					any = true
+					break
+				end
+			end
+			someoneTraining = any
+			task.wait(0.5)
+		end
+	end)
+	local NEAR = 350 -- oltre questa distanza dalla camera non si muove niente
+	local function close(p: Vector3, camPos: Vector3): boolean
+		return (p - camPos).Magnitude < NEAR
+	end
+	-- cristalli che fluttuano e girano (solo mentre qualcuno si addestra e se sei vicino),
+	-- bottini che girano, contatore della sfida
 	RunService.RenderStepped:Connect(function()
 		local t = os.clock()
 		local center = workspace:GetAttribute("TrainingCenter")
 		local serverT = workspace:GetServerTimeNow()
-		for _, m in CollectionService:GetTagged("CristalloBersaglio") do
-			if m:IsA("Model") and typeof(center) == "Vector3" then
-				local i = (m:GetAttribute("Index") or 1) :: number
-				m:PivotTo(CFrame.new(DragonConfig.crystalAt(center, i, serverT)) * CFrame.Angles(0, t * 0.9 + i, 0))
-				local hide = hiddenUntil[m]
-				if hide and t >= hide then
-					hiddenUntil[m] = nil
-					for _, d in m:GetDescendants() do
-						if d:IsA("BasePart") then
-							d.LocalTransparencyModifier = 0
-						end
+		local camPos = workspace.CurrentCamera.CFrame.Position
+		local arenaActive = someoneTraining and typeof(center) == "Vector3" and close(center, camPos)
+		if arenaActive then
+			for _, m in CollectionService:GetTagged("CristalloBersaglio") do
+				if m:IsA("Model") then
+					local i = (m:GetAttribute("Index") or 1) :: number
+					m:PivotTo(CFrame.new(DragonConfig.crystalAt(center, i, serverT)) * CFrame.Angles(0, t * 0.9 + i, 0))
+				end
+			end
+		end
+		-- cristalli colpiti: ricompaiono (anche se l'addestramento e' finito nel frattempo)
+		for m, hide in hiddenUntil do
+			if t >= hide then
+				hiddenUntil[m] = nil
+				for _, d in m:GetDescendants() do
+					if d:IsA("BasePart") then
+						d.LocalTransparencyModifier = 0
 					end
 				end
 			end
 		end
-		for _, m in CollectionService:GetTagged("CristalloPotere") do
+		if arenaActive then
+			for _, m in CollectionService:GetTagged("CristalloPotere") do
+				local base = m:GetAttribute("Base")
+				if m:IsA("Model") and typeof(base) == "Vector3" then
+					m:PivotTo(CFrame.new(base + Vector3.new(0, math.sin(t * 0.8) * 1.2, 0)) * CFrame.Angles(0, t * 0.5, 0))
+				end
+			end
+		end
+		for _, m in CollectionService:GetTagged("Drop") do
 			local base = m:GetAttribute("Base")
-			if m:IsA("Model") and typeof(base) == "Vector3" then
-				m:PivotTo(CFrame.new(base + Vector3.new(0, math.sin(t * 0.8) * 1.2, 0)) * CFrame.Angles(0, t * 0.5, 0))
+			if m:IsA("Model") and typeof(base) == "Vector3" and close(base, camPos) then
+				m:PivotTo(CFrame.new(base + Vector3.new(0, math.sin(t * 2) * 0.5, 0)) * CFrame.Angles(0, t * 1.5, 0))
 			end
 		end
 		if rushEnds > 0 then

@@ -24,6 +24,8 @@ local Scatter = require(script.Scatter)
 local Toxic = require(script.Toxic)
 local Tutorial = require(script.Tutorial)
 local ThemeZones = require(script.ThemeZones)
+local Borghi = require(script.Borghi)
+local Isole = require(script.Isole)
 local Village = require(script.Village)
 local Voxelizer = require(script.Voxelizer)
 
@@ -88,8 +90,10 @@ function MapGen.Generate(overrides: { [string]: any }?): Heightmap.Map
 	stage("Zone a tema", function() ThemeZones.build(map) end)
 	stage("Lakeside", function() Lakeside.build(map) end)
 	stage("Ores", function() Ores.place(map) end)
+	stage("Borghi", function() Borghi.build(map) end) -- prima del bosco: le case diventano radure
 	stage("Prati", function() Scatter.place(map) end)
 	stage("Forest", function() Forest.plant(map, yield, progress) end)
+	stage("Isole volanti", function() Isole.build() end) -- servono le zone a tema e ServerStorage.BorghiKit
 
 	if #failed > 0 then
 		warn("[MapGen] Parti non riuscite: " .. table.concat(failed, ", ") .. " (manda l'errore qui sopra)")

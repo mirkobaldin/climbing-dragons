@@ -211,6 +211,10 @@ function Forest.plant(map: Heightmap.Map, yield: () -> (), progress: (string, nu
 			if cleared then
 				continue -- terreni delle case (vedi Village)
 			end
+			local roads = map.features.roadCells
+			if roads and roads[floor(px / 16) .. "," .. floor(pz / 16)] then
+				continue -- strade dei borghi (vedi Borghi)
+			end
 			local tut = map.features.tutorial
 			if tut and (px - tut.x) ^ 2 + (pz - tut.z) ^ 2 < (tut.radius + 30) ^ 2 then
 				continue

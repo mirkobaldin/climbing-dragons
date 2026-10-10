@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local EconomyConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("EconomyConfig"))
+local Names = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Names"))
 local Theme = require(script.Parent.Theme)
 
 local player = Players.LocalPlayer
@@ -48,7 +49,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 
 	local nestCol = Theme.frame(body, nil, 1)
 	nestCol.Size = UDim2.new(0.36, -6, 1, 0)
-	local nestTitle = Theme.label(nestCol, "Nido di cova", 15, Theme.TEXT, true)
+	local nestTitle = Theme.label(nestCol, "Hatching nest", 15, Theme.TEXT, true)
 	nestTitle.Size = UDim2.new(1, 0, 0, 22)
 	local nestList = Theme.scroll(nestCol)
 	nestList.Position = UDim2.new(0, 0, 0, 26)
@@ -58,7 +59,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	local dragonCol = Theme.frame(body, nil, 1)
 	dragonCol.Position = UDim2.new(0.36, 6, 0, 0)
 	dragonCol.Size = UDim2.new(0.64, -6, 1, 0)
-	local dragonTitle = Theme.label(dragonCol, "I tuoi draghi", 15, Theme.TEXT, true)
+	local dragonTitle = Theme.label(dragonCol, "Your dragons", 15, Theme.TEXT, true)
 	dragonTitle.Size = UDim2.new(1, 0, 0, 22)
 	local dragonList = Theme.scroll(dragonCol)
 	dragonList.Position = UDim2.new(0, 0, 0, 26)
@@ -86,7 +87,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			return
 		end
 		header.Text = string.format(
-			"Pietre dell'evoluzione: <b>%d</b>   ·   Ti seguono: <b>%d/%d</b>   ·   In casa: <b>%d</b> (%d monete/min)",
+			"Evolution stones: <b>%d</b>   ·   Following: <b>%d/%d</b>   ·   At home: <b>%d</b> (%d coins/min)",
 			data.stones or 0,
 			#data.equipped,
 			data.maxEquipped or 1,
@@ -102,18 +103,18 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			Theme.viewport(card, preview("Eggs", egg.element), UDim2.new(0, 64, 0, 64), false).Position = UDim2.new(0, 6, 0, 6)
 			local e = DragonConfig.element(egg.element)
 			local r = DragonConfig.rarity(egg.rarity)
-			local t = Theme.label(card, string.format('Uovo %s\n<font color="%s">%s</font>', egg.element, hex(r.color), egg.rarity), 13, if e then e.glow else Theme.TEXT, true)
+			local t = Theme.label(card, string.format('%s Egg\n<font color="%s">%s</font>', Names.t(egg.element), hex(r.color), Names.t(egg.rarity)), 13, if e then e.glow else Theme.TEXT, true)
 			t.Position = UDim2.new(0, 76, 0, 6)
 			t.Size = UDim2.new(1, -82, 0, 34)
 			local left = math.max(0, egg.readyAt - now)
 			if left <= 0 then
-				local b = Theme.button(card, "Schiudi!", Theme.GOOD, UDim2.new(1, -84, 0, 28))
+				local b = Theme.button(card, "Hatch!", Theme.GOOD, UDim2.new(1, -84, 0, 28))
 				b.Position = UDim2.new(0, 76, 0, 42)
 				b.Activated:Connect(function()
 					act("hatch", index)
 				end)
 			else
-				local l = Theme.label(card, string.format("Pronto tra %d:%02d", left // 60, left % 60), 13, Theme.MUTED)
+				local l = Theme.label(card, string.format("Ready in %d:%02d", left // 60, left % 60), 13, Theme.MUTED)
 				l.Position = UDim2.new(0, 76, 0, 46)
 				l.Size = UDim2.new(1, -82, 0, 20)
 			end
@@ -122,8 +123,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			local card = Theme.frame(nestList, nil, 1)
 			card.Size = UDim2.new(1, -6, 0, 80)
 			Theme.label(card, if (data.nestSlots or 0) > 0
-				then "Nessun uovo. Trovale tra tunnel, fiumi e pareti e portale al nido di casa tua."
-				else "Il nido si sblocca comprando la Tenda sul tuo terreno (cartello col tuo nome).", 13, Theme.MUTED).Size =
+				then "No eggs. Find them in tunnels, rivers and on walls, and bring them to your home nest."
+				else "Buy the Tent on your plot (the sign with your name) to unlock the nest.", 13, Theme.MUTED).Size =
 				UDim2.fromScale(1, 1)
 		end
 
@@ -142,7 +143,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			Theme.viewport(card, preview("Dragons", d.element), UDim2.new(0, 84, 0, 84), false).Position = UDim2.new(0, 6, 0, 6)
 			local t = Theme.label(
 				card,
-				string.format('%s  <font color="%s">%s</font>  <font color="#A5AAB6">%s</font>', if e then e.name else d.element, hex(r.color), d.rarity, stage.name),
+				string.format('%s  <font color="%s">%s</font>  <font color="#A5AAB6">%s</font>', Names.dragon(d.element), hex(r.color), Names.t(d.rarity), Names.t(stage.name)),
 				14,
 				Theme.TEXT,
 				true
@@ -170,19 +171,19 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			row.Position = UDim2.new(0, 96, 1, -38)
 			row.Size = UDim2.new(1, -100, 0, 32)
 			Theme.list(row, 6, true)
-			local follow = Theme.button(row, if following then "Riposa" else "Segui", if following then Theme.MUTED else Theme.GOOD, UDim2.new(0, 76, 0, 30))
+			local follow = Theme.button(row, if following then "Rest" else "Follow", if following then Theme.MUTED else Theme.GOOD, UDim2.new(0, 76, 0, 30))
 			follow.Activated:Connect(function()
 				act(if following then "unequip" else "equip", d.id)
 			end)
 			if nextStage then
 				local ready = (d.level or 1) >= DragonConfig.MAX_LEVEL
-				local evo = Theme.button(row, if ready then "Evolvi!" else string.format("Evolvi (Lv %d)", DragonConfig.MAX_LEVEL), if ready then Theme.ACCENT else Theme.MUTED, UDim2.new(0, 104, 0, 30))
+				local evo = Theme.button(row, if ready then "Evolve!" else string.format("Evolve (Lv %d)", DragonConfig.MAX_LEVEL), if ready then Theme.ACCENT else Theme.MUTED, UDim2.new(0, 104, 0, 30))
 				evo.Activated:Connect(function()
 					act("evolve", d.id)
 				end)
 			end
 			local price = (EconomyConfig.DRAGON_PRICES[d.rarity] or 20) * d.stage
-			local sell = Theme.button(row, if confirmSell == d.id then "Sicuro?" else "Vendi " .. price, Theme.BAD, UDim2.new(0, 84, 0, 30))
+			local sell = Theme.button(row, if confirmSell == d.id then "Sure?" else "Sell " .. price, Theme.BAD, UDim2.new(0, 84, 0, 30))
 			sell.Activated:Connect(function()
 				if confirmSell == d.id then
 					confirmSell = nil

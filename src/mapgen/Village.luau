@@ -652,8 +652,65 @@ end
 
 -- Emporio: bancone con tenda a strisce, insegna, scaffali con merce, casse e barili.
 -- Il bancone ha un prompt "Compra" (gestito dal server tramite il tag ShopCounter).
+-- l'Emporio del kit al posto del negozio: un bancone invisibile (tag "ShopCounter") sul
+-- bancone vero tiene il prompt che apre il negozio (server/Shop lo collega)
+function Village.placeEmporio(parent: Instance, template: Model, cf: CFrame): Model
+	local m = template:Clone()
+	m.Name = "Shop"
+	m:PivotTo(cf)
+	local counter = Instance.new("Part")
+	counter.Name = "Counter"
+	counter.Anchored, counter.CanCollide, counter.CanQuery, counter.Transparency = true, false, false, 1
+	counter.Size = Vector3.new(14, 4, 3)
+	counter.CFrame = cf * CFrame.new(0, 2.8, -2.0)
+	counter.Parent = m
+	CollectionService:AddTag(counter, "ShopCounter")
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = "Shop"
+	prompt.ObjectText = "General store"
+	prompt.MaxActivationDistance = 14
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = counter
+	-- l'insegna grande sulla facciata
+	for _, p in m:GetChildren() do
+		if p:IsA("BasePart") and p.Name == "SIGN" then
+			local gui = Instance.new("SurfaceGui")
+			-- la faccia della tavola che guarda come la facciata
+			local look = cf.LookVector
+			local best, bestDot = Enum.NormalId.Front, -2
+			for _, n in Enum.NormalId:GetEnumItems() do
+				local d = p.CFrame:VectorToWorldSpace(Vector3.FromNormalId(n)):Dot(look)
+				if d > bestDot then
+					best, bestDot = n, d
+				end
+			end
+			gui.Face = best
+			gui.PixelsPerStud = 25
+			gui.LightInfluence = 0.3
+			local label = Instance.new("TextLabel")
+			label.BackgroundTransparency = 1
+			label.Size = UDim2.fromScale(1, 1)
+			label.Font = Enum.Font.Fantasy
+			label.TextScaled = true
+			label.TextColor3 = Color3.fromRGB(240, 200, 100)
+			label.Text = "GENERAL STORE"
+			label.Parent = gui
+			gui.Parent = p
+		end
+	end
+	m.Parent = parent
+	return m
+end
+
 local function shop(parent: Instance, cf: CFrame)
 	if fromTemplate("Shop", parent, cf) then
+		return
+	end
+	-- l'Emporio fatto in Blender (ServerStorage.BorghiKit), col bancone che apre il negozio
+	local kitFolder = ServerStorage:FindFirstChild("BorghiKit")
+	local emporio = kitFolder and kitFolder:FindFirstChild("Emporio")
+	if emporio and emporio:IsA("Model") then
+		Village.placeEmporio(parent, emporio, cf)
 		return
 	end
 	-- lo shop di Mirko (Modelli.shop), grandezza originale, con collisioni; il bancone invisibile
@@ -708,7 +765,7 @@ local function shop(parent: Instance, cf: CFrame)
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Text = "EMPORIO"
+	label.Text = "GENERAL STORE"
 	label.Font = Enum.Font.GothamBlack
 	label.TextScaled = true
 	label.TextColor3 = Color3.fromRGB(255, 214, 140)
@@ -719,8 +776,8 @@ local function shop(parent: Instance, cf: CFrame)
 	counter.Name = "Counter"
 	CollectionService:AddTag(counter, "ShopCounter")
 	local prompt = Instance.new("ProximityPrompt")
-	prompt.ActionText = "Compra"
-	prompt.ObjectText = "Emporio: rifornisci i chiodi"
+	prompt.ActionText = "Buy"
+	prompt.ObjectText = "Store: restock pitons"
 	prompt.MaxActivationDistance = 10
 	prompt.Parent = counter
 
@@ -794,8 +851,8 @@ local function workbench(parent: Instance, cf: CFrame)
 	top.Name = "Bench"
 	CollectionService:AddTag(top, "Workbench")
 	local prompt = Instance.new("ProximityPrompt")
-	prompt.ActionText = "Costruisci attrezzi"
-	prompt.ObjectText = "Banco da lavoro"
+	prompt.ActionText = "Craft gear"
+	prompt.ObjectText = "Workbench"
 	prompt.MaxActivationDistance = 10
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = top
@@ -851,8 +908,8 @@ local function nest(parent: Instance, cf: CFrame)
 	core.CanCollide = false
 	CollectionService:AddTag(core, "Incubator")
 	local prompt = Instance.new("ProximityPrompt")
-	prompt.ActionText = "Usa il nido"
-	prompt.ObjectText = "Nido di cova"
+	prompt.ActionText = "Use nest"
+	prompt.ObjectText = "Hatching nest"
 	prompt.MaxActivationDistance = 14
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = core
@@ -874,7 +931,7 @@ local function travelPost(parent: Instance, cf: CFrame, label: string, target: V
 		text.Font = Enum.Font.GothamBold
 		text.TextScaled = true
 		text.TextColor3 = Color3.fromRGB(50, 34, 20)
-		text.Text = if k == 1 then label else (if lastCamp then "Campi base" else "Campo")
+		text.Text = if k == 1 then label else (if lastCamp then "Base camps" else "Camp")
 		text.Parent = gui
 	end
 	local lamp = b.block(Vector3.new(0.7, 0.9, 0.7), cf * CFrame.new(0, 9.4, 0), WARM, Enum.Material.Neon)
@@ -1002,7 +1059,7 @@ local function plot(parent: Instance, cf: CFrame, S: number, level: number, zone
 	text.Font = Enum.Font.GothamBold
 	text.TextScaled = true
 	text.TextColor3 = Color3.fromRGB(50, 34, 20)
-	text.Text = "Terreno libero"
+	text.Text = "Free plot"
 	text.Parent = gui
 	post.Name = "PlotPost"
 	local anchor = b.block(Vector3.new(1, 1, 1), cf, WOOD, Enum.Material.Wood)
@@ -1104,11 +1161,11 @@ function Village.build(map: Heightmap.Map)
 		local ta = math.rad(-20)
 		local tx, tz = cx + cos(ta) * (HUB.CAMP.RADIUS + 14), cz + sin(ta) * (HUB.CAMP.RADIUS + 14)
 		local foot = Vector3.new(trail.x, trail.y, trail.z)
-		travelPost(folder, groundCFrame(tx, tz, Vector3.new(cx - tx, 0, cz - tz).Unit), "Montagna", foot, true)
+		travelPost(folder, groundCFrame(tx, tz, Vector3.new(cx - tx, 0, cz - tz).Unit), "Mountain", foot, true)
 		local M = cfg.MOUNTAIN
 		local out = Vector3.new(trail.x - M.X, 0, trail.z - M.Z).Unit
 		local px, pz = trail.x + out.X * 14, trail.z + out.Z * 14
-		travelPost(folder, groundCFrame(px, pz, -out), "Torna al campo", Vector3.new(cx - 16, campCenter.Y, cz), false)
+		travelPost(folder, groundCFrame(px, pz, -out), "Back to camp", Vector3.new(cx - 16, campCenter.Y, cz), false)
 	end
 
 	-- Terreni dei giocatori in tre zone, una per livello di casa (la casa trasloca quando la

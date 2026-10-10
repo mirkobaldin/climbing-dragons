@@ -3,7 +3,7 @@
 --   * il client segnala l'atterraggio (velocita' e metri di caduta): il server toglie salute
 --     (niente danni se atterri in acqua o se la corda ti ha fermato)
 --   * ogni danno registra la causa (attributo "DamageCause"): la schermata di morte la mostra
---   * "Rinasci" dalla schermata di morte; "Soccorso alpino" (Robux) ti fa rinascere dove sei caduto
+--   * "Respawn" dalla schermata di morte; "Soccorso alpino" (Robux) ti fa rinascere dove sei caduto
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -44,7 +44,7 @@ local function onFall(player: Player, speed: any, meters: any)
 		dmg *= 0.5 -- il drago Ombra attutisce le cadute
 	end
 	if dmg > 0 then
-		Survival.damage(humanoid, dmg, string.format("Caduta da %d metri", math.floor(math.clamp(meters, 0, 5000))))
+		Survival.damage(humanoid, dmg, string.format("Fell %d meters", math.floor(math.clamp(meters, 0, 5000))))
 	end
 end
 
@@ -72,7 +72,7 @@ function Survival.setup()
 		humanoid.Died:Connect(function()
 			local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 			local recent = os.clock() - ((player:GetAttribute("DamageCauseTime") or 0) :: number) < 8
-			player:SetAttribute("DeathCause", if recent then player:GetAttribute("DamageCause") else "Sfinimento")
+			player:SetAttribute("DeathCause", if recent then player:GetAttribute("DamageCause") else "Exhaustion")
 			player:SetAttribute("DeathStats", string.format("%d|%d", math.floor(maxY), math.floor(os.clock() - born)))
 			if root then
 				player:SetAttribute("DeathPosition", root.Position)

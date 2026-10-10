@@ -155,10 +155,10 @@ function Tutorial.build(map: Heightmap.Map)
 
 	-- cartelli con i comandi
 	local signs = {
-		{ -W / 2 - 2, "ARRAMPICATA", "Piccozza (1): click vicino alla roccia\nW/S su e giu', A/D di lato\nSpazio: salti via" },
-		{ -W / 6, "CHIODI E CORDA", "Sulla parete premi F: chiodo\nSe cadi la corda ti ferma\nR: sganci la corda" },
-		{ W / 6, "MINIERA E CRAFT", "Piccone (2): click sui minerali\nBanco da lavoro all'emporio:\nRamponi, Tuta, Rampino..." },
-		{ W / 2 + 2, "UOVA DI DRAGO", "Raccogli le uova e portale\nal Nido del campo\nG: menu Draghi" },
+		{ -W / 2 - 2, "CLIMBING", "Ice Axe (1): click near the rock\nW/S up and down, A/D sideways\nSpace: jump off" },
+		{ -W / 6, "PITONS AND ROPE", "On the wall press F: piton\nIf you fall the rope catches you\nR: unclip the rope" },
+		{ W / 6, "MINING AND CRAFTING", "Pickaxe (2): click the ores\nWorkbench by the store:\nCrampons, Suit, Grappling Hook..." },
+		{ W / 2 + 2, "DRAGON EGGS", "Pick up eggs and bring them\nto your camp's Nest\nG: Dragons menu" },
 	}
 	for _, s in signs do
 		sign(folder, base * CFrame.new(s[1] :: number, 0, -20), s[2] :: string, s[3] :: string)

@@ -82,12 +82,12 @@ local function bindTravelPost(post: Instance)
 		end)
 	end
 	if post:GetAttribute("LastCamp") then
-		travelPrompt(post, "All'ultimo campo base", "Cartello", function(player)
+		travelPrompt(post, "To the last base camp", "Sign", function(player)
 			local cp = player:GetAttribute("Checkpoint")
 			if typeof(cp) == "Vector3" then
 				travelTo(player, cp)
 			else
-				player:SetAttribute("Notice", "Non hai ancora raggiunto un campo base")
+				player:SetAttribute("Notice", "You haven't reached a base camp yet")
 				player:SetAttribute("NoticeTime", os.clock())
 			end
 		end)
@@ -101,8 +101,8 @@ function BaseCamps.setup()
 		for index, marker in camps:GetChildren() do
 			if marker:IsA("BasePart") then
 				local prompt = Instance.new("ProximityPrompt")
-				prompt.ActionText = "Accampati"
-				prompt.ObjectText = "Campo base " .. index
+				prompt.ActionText = "Camp here"
+				prompt.ObjectText = "Base Camp " .. index
 				prompt.HoldDuration = 1
 				prompt.MaxActivationDistance = 14
 				prompt.RequiresLineOfSight = false
@@ -117,7 +117,7 @@ function BaseCamps.setup()
 					player:SetAttribute("Warmth", 100)
 				end)
 				-- discesa rapida: dal campo base si torna alla valle
-				travelPrompt(marker, "Torna al campo", "Campo base " .. index, function(player)
+				travelPrompt(marker, "Back to camp", "Base Camp " .. index, function(player)
 					local markersFolder = workspace:FindFirstChild("MapMarkers")
 					local spawn = markersFolder and markersFolder:FindFirstChild("HubSpawn") :: BasePart?
 					travelTo(player, spawn and spawn.Position)

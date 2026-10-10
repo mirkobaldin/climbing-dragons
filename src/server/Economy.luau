@@ -15,6 +15,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
+local Names = require(ReplicatedStorage.Shared.Names)
 local EconomyConfig = require(ReplicatedStorage.Shared.EconomyConfig)
 local DragonModels = require(script.Parent.DragonModels)
 local Dragons = require(script.Parent.Dragons)
@@ -42,10 +43,10 @@ end
 
 local function coinValue(player: Player): IntValue?
 	local stats = player:FindFirstChild("leaderstats")
-	local v = stats and stats:FindFirstChild("Monete")
+	local v = stats and stats:FindFirstChild("Coins")
 	if not v and stats then
 		local nv = Instance.new("IntValue")
-		nv.Name = "Monete"
+		nv.Name = "Coins"
 		nv.Parent = stats
 		v = nv
 	end
@@ -237,7 +238,7 @@ local function buildHouse(player: Player)
 	local sign = plotSign(plot)
 	if sign then
 		local nextHouse = EconomyConfig.HOUSES[s.house + 1]
-		sign.Text = player.DisplayName .. (if nextHouse then string.format("\n%s: %d monete", nextHouse.name, nextHouse.cost) else "")
+		sign.Text = player.DisplayName .. (if nextHouse then string.format("\n%s: %d coins", Names.t(nextHouse.name), nextHouse.cost) else "")
 	end
 	player:SetAttribute("NestPosition", nil)
 	if not house then
@@ -258,7 +259,7 @@ local function buildHouse(player: Player)
 			player:SetAttribute("NestPosition", d.Position)
 			local prompt = d:FindFirstChildOfClass("ProximityPrompt")
 			if prompt then
-				prompt.ObjectText = "Nido di " .. player.DisplayName
+				prompt.ObjectText = player.DisplayName .. "'s Nest"
 			end
 		end
 	end
@@ -317,7 +318,7 @@ releasePlot = function(player: Player)
 		end
 		local sign = plotSign(plot)
 		if sign then
-			sign.Text = "Terreno libero"
+			sign.Text = "Free plot"
 		end
 	end
 end
@@ -326,11 +327,11 @@ local function upgradeHouse(player: Player)
 	local s = state(player)
 	local nextHouse = EconomyConfig.HOUSES[s.house + 1]
 	if not nextHouse then
-		notice(player, "Hai gia' la casa migliore!")
+		notice(player, "You already have the best house!")
 		return
 	end
 	if s.coins < nextHouse.cost then
-		notice(player, string.format("%s costa %d monete: ne hai %d. Vendi minerali e uova all'emporio!", nextHouse.name, nextHouse.cost, math.floor(s.coins)))
+		notice(player, string.format("The %s costs %d coins: you have %d. Sell ores and eggs at the store!", Names.t(nextHouse.name), nextHouse.cost, math.floor(s.coins)))
 		return
 	end
 	s.coins -= nextHouse.cost
@@ -353,7 +354,7 @@ local function upgradeHouse(player: Player)
 	end
 	refreshRoost(player)
 	Dragons.refresh(player)
-	notice(player, string.format("Hai una %s! %s", nextHouse.name, if s.house == 1 then "Il nido e' sbloccato: ci puoi covare le uova" else "Piu' posti nel nido e per i draghi"))
+	notice(player, string.format("You got a %s! %s", Names.t(nextHouse.name), if s.house == 1 then "The nest is unlocked: you can hatch eggs in it" else "More room for eggs and dragons"))
 end
 
 ------------------------------------------------------------------------------------------
@@ -379,7 +380,7 @@ function Economy.load(player: Player, data: any)
 		local earned = math.floor(ratePerMinute(player) * minutes * EconomyConfig.OFFLINE_FACTOR)
 		if earned > 0 then
 			Economy.addCoins(player, earned)
-			notice(player, string.format("Mentre eri via i tuoi draghi hanno guadagnato %d monete!", earned))
+			notice(player, string.format("While you were away your dragons earned %d coins!", earned))
 		end
 	end
 end
@@ -394,15 +395,15 @@ function Economy.setup()
 			return
 		end
 		local prompt = Instance.new("ProximityPrompt")
-		prompt.ActionText = "Compra / migliora casa"
-		prompt.ObjectText = "Terreno"
+		prompt.ActionText = "Buy / upgrade house"
+		prompt.ObjectText = "Plot"
 		prompt.HoldDuration = 0.5
 		prompt.MaxActivationDistance = 12
 		prompt.RequiresLineOfSight = false
 		prompt.Parent = post
 		prompt.Triggered:Connect(function(player)
 			if plotOwner[plot :: Model] ~= player then
-				notice(player, "Questo terreno e' di un altro giocatore: il tuo ha il tuo nome sul cartello")
+				notice(player, "This plot belongs to another player: yours has your name on the sign")
 				return
 			end
 			upgradeHouse(player)

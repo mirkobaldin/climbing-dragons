@@ -18,11 +18,85 @@ local function persistent(model: Model, name: string, parent: Instance)
 		end
 	end
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
-	model:PivotTo(CFrame.new(0, -500, 0)) -- nascosti finche' il client non li usa
+	-- nascosti finche' il client non li usa (la rotazione resta: l'uovo stava sdraiato)
+	model:PivotTo(CFrame.new(0, -500, 0) * model:GetPivot().Rotation)
 	model.Parent = parent
 end
 
 local takes = 0
+
+-- copia di un modello di Mirko (ServerStorage) per la scena, senza script
+local function prop(source: Instance?, name: string, folder: Instance): Model?
+	if not source or not source:IsA("Model") then
+		return nil
+	end
+	local m = source:Clone()
+	for _, d in m:GetDescendants() do
+		if d:IsA("LuaSourceContainer") then
+			d:Destroy()
+		end
+	end
+	persistent(m, name, folder)
+	return m
+end
+
+-- clip17 sopra le nuvole, clip18 cristalli dei biomi, clip19 piccozze, clip20 dall'uovo al drago
+local function clips17to20(folder: Folder)
+	local ServerStorage = game:GetService("ServerStorage")
+	local modelli = ServerStorage:FindFirstChild("Modelli")
+	local axes = modelli and modelli:FindFirstChild("Piccozze")
+	-- tre piccozze di Mirko, dalla piu' semplice alla piu' ricca
+	for k, n in { "Piccozza_Spedizione", "Piccozza_Glaciale", "Piccozza_Eclissi" } do
+		prop(axes and axes:FindFirstChild(n), "Ascia" .. k, folder)
+	end
+	prop(modelli and modelli:FindFirstChild("Cristallo_gelo"), "CristalloScena", folder)
+	local uova = ServerStorage:FindFirstChild("Uova")
+	prop(uova and (uova:FindFirstChild("Uovo_Sole") or uova:FindFirstChildWhichIsA("Model")), "UovoScena", folder)
+	-- isole volanti sopra la montagna (centro della cima e raggio)
+	local isole = workspace:FindFirstChild("IsoleVolanti")
+	local sopra = isole and isole:FindFirstChild("SopraLaMontagna")
+	local n = 0
+	for _, m in (if sopra then sopra:GetChildren() else {}) :: { Instance } do
+		if m:IsA("Model") and string.find(m.Name, "^Isola") then
+			n += 1
+			local _, size = m:GetBoundingBox()
+			folder:SetAttribute("Island" .. n, m:GetPivot().Position)
+			folder:SetAttribute("IslandR" .. n, math.min(size.X, size.Z) * 0.4)
+		end
+	end
+	folder:SetAttribute("IslandCount", n)
+	-- un cristallo per elemento (il piu' grande) nelle zone dei draghi e nelle grotte
+	local best: { [string]: { p: Vector3, h: number } } = {}
+	for _, root in { workspace:FindFirstChild("ZoneATema"), workspace:FindFirstChild("ValleGas"), workspace:FindFirstChild("Glacier") } do
+		for _, m in (if root then root:GetDescendants() else {}) :: { Instance } do
+			local el = m:GetAttribute("Element")
+			if m:IsA("Model") and m.Name == "Cristallo" and type(el) == "string" then
+				local cf, size = m:GetBoundingBox()
+				if not best[el] or size.Y > best[el].h then
+					best[el] = { p = cf.Position, h = size.Y }
+				end
+			end
+		end
+	end
+	local k = 0
+	for el, b in best do
+		k += 1
+		folder:SetAttribute("Crys" .. k, b.p)
+		folder:SetAttribute("CrysH" .. k, b.h)
+		folder:SetAttribute("CrysEl" .. k, el)
+	end
+	folder:SetAttribute("CrysCount", k)
+	-- una machiya (giardino interno) e il tempio dei borghi
+	local borghi = workspace:FindFirstChild("Borghi")
+	for _, m in (if borghi then borghi:GetDescendants() else {}) :: { Instance } do
+		if m:IsA("Model") and m.Name == "Machiya" and folder:GetAttribute("MachiyaCF") == nil then
+			folder:SetAttribute("MachiyaCF", m:GetPivot())
+		elseif m:IsA("Model") and m.Name == "Tempio" and folder:GetAttribute("TempioCF") == nil then
+			folder:SetAttribute("TempioCF", m:GetPivot())
+			folder:SetAttribute("TempioScale", m:GetScale())
+		end
+	end
+end
 
 -- prepara la scena e restituisce il numero della ripresa (il client aspetta proprio quella)
 function TrailerProps.prepare(): string
@@ -183,7 +257,10 @@ function TrailerProps.prepare(): string
 		local bestPts: { Vector3 }? = nil
 		local bestDir = Vector3.xAxis
 		local bestScore = -math.huge
-		for _, frac in { 0.42, 0.35, 0.28 } do
+		-- verso la pianura dei borghi (arretrando la camera si vedono laguna e villaggi)
+		local hubM = workspace:FindFirstChild("MapMarkers") and (workspace :: any).MapMarkers:FindFirstChild("HubSpawn")
+		local toLow = if hubM then Vector3.new(hubM.Position.X - mc.X, 0, hubM.Position.Z - mc.Z).Unit else -Vector3.xAxis
+		for _, frac in { 0.2, 0.26, 0.33 } do
 			local y0 = top * frac
 			for k = 0, 95 do
 				local a = k / 96 * 2 * math.pi + 0.07
@@ -222,12 +299,12 @@ function TrailerProps.prepare(): string
 					continue
 				end
 				local view = not workspace:Raycast(pts[5] + dir * 4 + UP * 3, dir * 400, solid)
-				local score = (if view then 100 else 0) + rocky * 4 - maxStep * 3
+				local score = (if view then 100 else 0) + rocky * 4 - maxStep * 3 + dir:Dot(toLow) * 70
 				if score > bestScore then
 					bestScore, bestPts, bestDir = score, pts, dir
 				end
 			end
-			if bestScore >= 100 then
+			if bestScore >= 150 then
 				break
 			end
 		end
@@ -254,6 +331,7 @@ function TrailerProps.prepare(): string
 	folder:SetAttribute("GrandCenter", workspace:GetAttribute("GrandCaveCenter"))
 	folder:SetAttribute("GrandOut", workspace:GetAttribute("GrandCaveOut"))
 	folder:SetAttribute("GrandFace", workspace:GetAttribute("GrandCaveFace"))
+	clips17to20(folder)
 	takes += 1
 	local take = tostring(takes)
 	folder:SetAttribute("Take", take)

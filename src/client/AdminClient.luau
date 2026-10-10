@@ -269,6 +269,19 @@ function AdminClient.start()
 		noclip = false
 	end)
 
+	-- comandi che un admin ha fatto per te ("to <nome> fly"): li esegue questo client
+	local actionEvent = remotes:WaitForChild("AdminAction", 30)
+	if actionEvent and actionEvent:IsA("RemoteEvent") then
+		actionEvent.OnClientEvent:Connect(function(action: any, from: any)
+			if type(action) == "string" then
+				applyAction(action)
+				output.Visible = true
+				output.Text = tostring(from or "")
+				output.TextColor3 = Color3.fromRGB(200, 230, 200)
+			end
+		end)
+	end
+
 	-- volo: WASD relativo alla camera, Spazio su, Ctrl/C giu', Shift veloce
 	RunService.RenderStepped:Connect(function()
 		if flying and flyVelocity and flyGyro then

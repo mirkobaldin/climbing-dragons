@@ -11,6 +11,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Gear = require(Shared:WaitForChild("Gear"))
+local ClimbConfig = require(Shared:WaitForChild("ClimbConfig"))
 local ClientState = require(script.Parent.ClientState)
 
 local player = Players.LocalPlayer
@@ -96,7 +97,7 @@ function Crosshair.start()
 			return
 		end
 		enabled = not enabled
-		ClientState.hint = if enabled then "Mirino acceso (X per spegnerlo)" else "Mirino spento (X per riaccenderlo)"
+		ClientState.hint = if enabled then "Crosshair on (X to turn off)" else "Crosshair off (X to turn on)"
 	end)
 
 	local params = RaycastParams.new()
@@ -107,7 +108,7 @@ function Crosshair.start()
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local tool = character and character:FindFirstChildWhichIsA("Tool")
-		show(enabled and tool ~= nil and tool.Name == "Rampino" and root ~= nil)
+		show(enabled and tool ~= nil and tool.Name == ClimbConfig.GRAPPLE_NAME and root ~= nil)
 		if not shown or not root then
 			return
 		end

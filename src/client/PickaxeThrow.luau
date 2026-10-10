@@ -11,7 +11,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local ClimbConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ClimbConfig"))
 local ClientState = require(script.Parent.ClientState)
+local Sfx = require(script.Parent.Sfx)
 
 local PickaxeThrow = {}
 
@@ -68,7 +70,7 @@ local function throw()
 	local character = player.Character
 	local tool = character and character:FindFirstChildWhichIsA("Tool")
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	if busy or not tool or tool.Name ~= "Piccozza" or not root or ClientState.climbing or (ClientState :: any).dragonMode then
+	if busy or not tool or tool.Name ~= ClimbConfig.TOOL_NAME or not root or ClientState.climbing or (ClientState :: any).dragonMode then
 		return
 	end
 	local handle = tool:FindFirstChild("Handle") :: BasePart?
@@ -117,6 +119,7 @@ local function throw()
 	if remote then
 		remote:FireServer(dir)
 	end
+	Sfx.play("Lancio", (root :: BasePart).Position)
 	-- 2) la piccozza vola: copia del manico, l'originale si nasconde
 	local flying = Instance.new("Model")
 	flying.Name = "PiccozzaLanciata"
@@ -254,7 +257,7 @@ function PickaxeThrow.start()
 	RunService.RenderStepped:Connect(function()
 		local character = player.Character
 		local tool = character and character:FindFirstChildWhichIsA("Tool")
-		local show = tool ~= nil and tool.Name == "Piccozza" and not ClientState.climbing and not (ClientState :: any).dragonMode
+		local show = tool ~= nil and tool.Name == ClimbConfig.TOOL_NAME and not ClientState.climbing and not (ClientState :: any).dragonMode
 		cross.Visible = show
 		if show then
 			local p = aimScreenPoint()

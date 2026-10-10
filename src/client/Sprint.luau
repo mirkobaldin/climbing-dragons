@@ -44,7 +44,7 @@ function Sprint.start()
 		end
 		if ClientState.stamina <= 0 then
 			exhausted = true
-			ClientState.hint = "Senza fiato!"
+			ClientState.hint = "Out of breath!"
 		elseif ClientState.stamina > 25 then
 			exhausted = false
 		end

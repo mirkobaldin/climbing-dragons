@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
+local Names = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Names"))
 local ClientState = require(script.Parent.ClientState)
 
 local player = Players.LocalPlayer
@@ -74,7 +75,7 @@ local function eggFinder()
 		end
 	end
 	if not best then
-		ClientState.eggFinder = "Nessun uovo in giro"
+		ClientState.eggFinder = "No eggs nearby"
 		return
 	end
 	local camera = workspace.CurrentCamera
@@ -83,8 +84,8 @@ local function eggFinder()
 	local angle = math.deg(math.atan2(rel.X, -rel.Z))
 	local arrows = { "↑", "↗", "→", "↘", "↓", "↙", "←", "↖" }
 	local arrow = arrows[(math.floor((angle + 22.5) / 45) % 8) + 1]
-	local vertical = if offset.Y > 30 then " (sopra)" elseif offset.Y < -30 then " (sotto)" else ""
-	ClientState.eggFinder = string.format("%s Uovo %s a %d m%s", arrow, bestEl :: string, math.floor(bestDist), vertical)
+	local vertical = if offset.Y > 30 then " (above)" elseif offset.Y < -30 then " (below)" else ""
+	ClientState.eggFinder = string.format("%s %s egg %d m away%s", arrow, Names.t(bestEl), math.floor(bestDist), vertical)
 end
 
 -- Drago Eclissi: di notte e nelle grotte (roccia sopra la testa) una luce attorno al giocatore

@@ -16,6 +16,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
+local Names = require(ReplicatedStorage.Shared.Names)
 local DragonModels = require(script.Parent.DragonModels)
 
 local Dragons = {}
@@ -277,17 +278,17 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 	if kind == "equip" then
 		local d = findDragon(s, tonumber(arg) or -1)
 		if not d then
-			return false, "Drago non trovato"
+			return false, "Dragon not found"
 		end
 		if table.find(s.equipped, d.id) then
-			return false, "Ti segue gia'"
+			return false, "Already following you"
 		end
 		if #s.equipped >= Dragons.maxEquipped(player) then
 			table.remove(s.equipped, 1) -- sostituisce il primo
 		end
 		table.insert(s.equipped, d.id)
 		changed(player, true)
-		return true, "Ora ti segue!"
+		return true, "Now following you!"
 	elseif kind == "unequip" then
 		local idx = table.find(s.equipped, tonumber(arg) or -1)
 		if idx then
@@ -298,17 +299,17 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 	elseif kind == "evolve" then
 		local d = findDragon(s, tonumber(arg) or -1)
 		if not d then
-			return false, "Drago non trovato"
+			return false, "Dragon not found"
 		end
 		local nextStage = DragonConfig.STAGES[d.stage + 1]
 		if not nextStage then
-			return false, "E' gia' adulto"
+			return false, "Already an adult"
 		end
 		if (d.level or 1) < DragonConfig.MAX_LEVEL then
-			return false, string.format("Deve arrivare a livello %d: addestralo nella zona delle costole del drago", DragonConfig.MAX_LEVEL)
+			return false, string.format("It must reach level %d: train it at the dragon ribs", DragonConfig.MAX_LEVEL)
 		end
 		if s.stones < nextStage.stones then
-			return false, string.format("Servono %d pietre dell'evoluzione (sconfiggi il boss in vetta)", nextStage.stones)
+			return false, string.format("You need %d evolution stones (defeat the boss at the summit)", nextStage.stones)
 		end
 		s.stones -= nextStage.stones
 		d.stage += 1
@@ -323,33 +324,32 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 		task.delay(if following then 1.6 else 0, function()
 			changed(player, following)
 		end)
-		return true, "Si e' evoluto: " .. nextStage.name .. "!"
+		return true, "It evolved: " .. Names.t(nextStage.name) .. "!"
 	elseif kind == "hatch" then
 		local index = tonumber(arg) or -1
 		local egg = s.nest[index]
 		if not egg then
-			return false, "Uovo non trovato"
+			return false, "Egg not found"
 		end
 		if os.time() < egg.readyAt then
-			return false, "Non e' ancora pronto"
+			return false, "Not ready yet"
 		end
 		if #s.dragons >= DragonConfig.MAX_DRAGONS then
-			return false, "Collezione piena: libera un drago"
+			return false, "Collection full: release a dragon"
 		end
 		table.remove(s.nest, index)
 		if Dragons.onHatch then
 			(Dragons.onHatch :: any)(player, egg)
 		end
 		Dragons.give(player, egg.element, egg.rarity, 1)
-		local e = DragonConfig.element(egg.element)
-		return true, "E' nato un " .. (if e then e.name else "drago") .. " " .. egg.rarity .. "!"
+		return true, string.format("A %s %s hatched!", Names.t(egg.rarity), Names.dragon(egg.element))
 	elseif kind == "release" or kind == "sell" then
 		local d, k = findDragon(s, tonumber(arg) or -1)
 		if not d or not k then
-			return false, "Drago non trovato"
+			return false, "Dragon not found"
 		end
 		if #s.dragons <= 1 then
-			return false, "Non puoi vendere il tuo unico drago"
+			return false, "You can't sell your only dragon"
 		end
 		table.remove(s.dragons, k)
 		local idx = table.find(s.equipped, d.id)
@@ -358,9 +358,9 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 		end
 		local value = if Dragons.onSell then (Dragons.onSell :: any)(player, d) else 0
 		changed(player, idx ~= nil)
-		return true, string.format("Venduto per %d monete", value)
+		return true, string.format("Sold for %d coins", value)
 	end
-	return false, "Azione sconosciuta"
+	return false, "Unknown action"
 end
 
 ------------------------------------------------------------------------------------------

@@ -88,6 +88,18 @@ function Scatter.place(map: Heightmap.Map)
 	end
 	map.features.clearings = map.features.clearings or {}
 	local function free(x: number, z: number, r: number): boolean
+		-- niente massi sulle strade dei borghi (celle di 16 stud, vedi Borghi)
+		local roads = map.features.roadCells
+		if roads then
+			local n = math.ceil(r / 16)
+			for i = -n, n do
+				for j = -n, n do
+					if roads[(math.floor(x / 16) + i) .. "," .. (math.floor(z / 16) + j)] then
+						return false
+					end
+				end
+			end
+		end
 		for _, c in map.features.clearings do
 			if (x - c.x) ^ 2 + (z - c.z) ^ 2 < (c.r + r) ^ 2 then
 				return false

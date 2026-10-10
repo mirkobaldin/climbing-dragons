@@ -20,6 +20,30 @@ uova e draghi familiari. Il codice e' sincronizzato in Studio con **Rojo** (`def
   Eclissi, Fulmine (Fulmine Nero), Ossa, Gas. Modelli in `ServerStorage.Draghi`, rig per
   l'Animation Editor in `Workspace.RigDraghi`; animazioni generate da `MapGen.AnimDraghi`.
 - Modelli 3D (uova, draghi, piccozze, baite, palafitte, costole) stanno in `ServerStorage` dentro il file place, non nel repo.
+- Testi a schermo SOLO in inglese. Gli id dei dati restano italiani (Gelo, Raro, Ferro, Tenda...):
+  per mostrarli usa `shared/Names` (`Names.t("Gelo")` = "Frost", `Names.dragon(el)`). Nomi dei Tool in
+  `ClimbConfig` (TOOL_NAME, PICKAXE_NAME, GRAPPLE_NAME, TORCH_NAME), mai scritti a mano.
+- Modelli 3D fatti da codice in Blender 5.2: `tools/blender/borghi.py` (+ `borghi_lib.py`), un solo
+  `tools/blender/out/borghi.fbx` da importare in Studio, poi `BorghiKit.prepare()` (texture da
+  `BorghiTextures`, collisioni da `BorghiCollide`, generato). Per cambiare solo qualche modello:
+  `blender -b --factory-startup --python borghi.py -- --export --only NomeA,NomeB` -> `out/aggiornamento.fbx`
+  (importarlo e rilanciare `prepare()`: sostituisce solo quei modelli). Mirko ha bocciato attrezzi, zaino,
+  forziere, nido e cristalli fatti cosi': piccozze e cristalli sono i suoi (`ServerStorage.Modelli`).
+  Isole volanti: `src/mapgen/Isole.luau` (anche ultima fase di `Generate()`).
+- Borghi cinesi/giapponesi della pianura: `src/mapgen/Borghi.luau` (case, pagoda, tempio, torii, ponti,
+  casali con i campi, rete di strade con A* tra borghi, campo base, palestra e arena: lastricato,
+  ponti, lanterne, cartelli, soste). Si rifanno da soli: `require(game.ServerStorage.MapGen:Clone().Borghi).build()`,
+  ma le strade dipinte nel terreno restano: per toglierle serve `Generate()`.
+- Dopo il tutorial ci sono le missioni (`src/server/Missions.luau`, attributi MissionStep/MissionText,
+  salvate da Progression): uovo, nido, schiusa, arena, palestra, minerali nelle grotte, vetta. Frecce e
+  segnale con la distanza: attributi GuideTarget/GuideLabel, disegnati da `client/Guide`.
+- Admin: il proprietario da' la modalita' admin con `admin <nome>` (DataStore "AdminConcessi"), ogni admin
+  fa comandi per altri con `to <nome> <comando>` (l'azione arriva al client col RemoteEvent AdminAction).
+- Zaino: tasto I (anche V), con minerali, drop dei nemici (icone da ReplicatedStorage.DropIcone) e attrezzi.
+- Suoni: tutti gli id in `src/shared/SoundConfig.luau`, si suonano per nome con `client/Sfx`.
+- Effetti visivi: libreria `ReplicatedStorage.VFXLib` (emitter flipbook e mesh copiati in Studio dai
+  pacchetti di Mirko, ora in `ServerStorage.VFXSorgente`), usata da `client/VFXKit` (draghi, cristalli).
+- Prima di pubblicare: comando admin `uscita` (o l'Output del Play in Studio, righe `[Uscita]`).
 - Animazioni: salvate in `ServerStorage.RBX_ANIMSAVES` (Rig del personaggio e `Drago_Ombra_Rig`); in Studio il loader le usa direttamente, nel gioco pubblicato servono gli ID in `ClimbConfig` / `DragonConfig`.
 
 ## Sicurezza (importante)

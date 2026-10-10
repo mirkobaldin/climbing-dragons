@@ -98,13 +98,15 @@ function Weather.setup()
 	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
 	local grade = Lighting:FindFirstChildOfClass("ColorCorrectionEffect")
 	local accumulator = 0
+	-- Lighting si replica a tutti i client: ClockTime cambiato a ogni frame erano 60 aggiornamenti
+	-- al secondo per giocatore (e il sole ricalcolato ogni frame). Due volte al secondo basta.
 	RunService.Heartbeat:Connect(function(dt)
-		local t = (Lighting.ClockTime + dt * hoursPerSecond) % 24
-		Lighting.ClockTime = t
 		accumulator += dt
-		if accumulator < 0.25 then
+		if accumulator < 0.5 then
 			return
 		end
+		local t = (Lighting.ClockTime + accumulator * hoursPerSecond) % 24
+		Lighting.ClockTime = t
 		accumulator = 0
 		-- day: 0 di notte, 1 di giorno (transizioni di ~1.5 ore attorno a 6:00 e 18:30)
 		local day = math.clamp((t - 5.25) / 1.5, 0, 1) * math.clamp((19.25 - t) / 1.5, 0, 1)

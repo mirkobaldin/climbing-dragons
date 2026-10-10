@@ -2,7 +2,11 @@
 -- Comandi admin: si aprono con il tasto ; (o F2) e si scrivono nella barra in basso.
 -- Solo per gli admin: in Studio tutti, nel gioco pubblicato il proprietario (o il
 -- proprietario del gruppo) e gli UserId in DragonConfig.ADMINS. Il server controlla sempre.
+-- Il proprietario puo' dare la modalita' admin ad altri giocatori ("admin <nome>", salvato nel
+-- DataStore "AdminConcessi") e ogni admin puo' fare un comando per un altro ("to <nome> fly").
 -- I comandi di movimento (fly, noclip) li esegue il client, ma solo dopo il si' del server.
+
+local DataStoreService = game:GetService("DataStoreService")
 
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
@@ -18,8 +22,10 @@ local Economy = require(script.Parent.Economy)
 local Progression = require(script.Parent.Progression)
 local Ropes = require(script.Parent.Ropes)
 local Tutorial = require(script.Parent.Tutorial)
+local Missions = require(script.Parent.Missions)
 local Weather = require(script.Parent.Weather)
 local TrailerProps = require(script.Parent.TrailerProps)
+local Preflight = require(script.Parent.Preflight)
 
 local Admin = {}
 
@@ -41,6 +47,12 @@ stones <n>             pietre dell'evoluzione
 pass <FastIncubation|EggFinder|ExtraDragon|ExtraIncubator>
 god / ungod   heal   warm   pitons
 tutorial <reset|skip>
+missions <reset|skip>  le missioni dopo il tutorial
+admin <nome> / unadmin <nome>   dai o togli la modalita' admin a un giocatore (resta salvata)
+admins                 chi ha la modalita' admin
+to <nome> <comando>    il comando per un altro giocatore: to Luca fly, to Luca coins 5000,
+                       to Luca dragon Gelo Raro, to Luca clip12, to Luca god
+uscita                 cosa manca per pubblicare il gioco
 cinematica             scena da trailer: strapiombo, uovo e caduta
 tiktok                 scenetta: il rampino aggancia un drago
 trailer                trailer di 19 s (montagna, draghi, grotte, gas, addestramento, evoluzione)
@@ -49,9 +61,14 @@ clip4 / clip5 / clip6  clip senza scritte: boss Titano, giro delle zone dei drag
 clip7 ... clip11       giro della mappa, una sola mappa, rampino, gas, giorno 1 / giorno 30
 clip12 clip13 clip15   palestra, drago contro cristalli, case (clip14 tolta)
 clip16                 lancio della piccozza al Titano in terza persona coi 3 draghi
+clip17                 sopra le nuvole: isole volanti, rampino da un'isola all'altra, drago
+clip18                 ogni cristallo, ogni bioma (uno per elemento, dal basso alla vetta)
+clip19                 tre piccozze una dopo l'altra, l'ultima rompe il cristallo
+clip20                 dall'uovo al drago: machiya, altare del tempio di notte, schiusa, alba
 help]]
 
-local function isAdmin(player: Player): boolean
+-- admin "veri" (possono dare la modalita' admin agli altri)
+local function isOwner(player: Player): boolean
 	if RunService:IsStudio() then
 		return true
 	end
@@ -65,6 +82,47 @@ local function isAdmin(player: Player): boolean
 		return player:GetRankInGroup(game.CreatorId)
 	end)
 	return ok and rank == 255
+end
+
+-- giocatori a cui il proprietario ha dato la modalita' admin (UserId -> nome)
+local granted: { [number]: string } = {}
+local grantStore: DataStore? = nil
+
+local function saveGranted()
+	local list = {}
+	for id, name in granted do
+		table.insert(list, { id = id, name = name })
+	end
+	task.spawn(function()
+		if grantStore then
+			pcall(function()
+				(grantStore :: DataStore):SetAsync("utenti", list)
+			end)
+		end
+	end)
+end
+
+local function isAdmin(player: Player): boolean
+	return isOwner(player) or granted[player.UserId] ~= nil
+end
+
+-- giocatore dal nome (anche solo l'inizio, nome o nome visualizzato)
+local function findPlayer(name: string?): Player?
+	if not name or name == "" then
+		return nil
+	end
+	local lower = string.lower(name)
+	for _, p in Players:GetPlayers() do
+		if string.lower(p.Name) == lower or string.lower(p.DisplayName) == lower then
+			return p
+		end
+	end
+	for _, p in Players:GetPlayers() do
+		if string.sub(string.lower(p.Name), 1, #lower) == lower or string.sub(string.lower(p.DisplayName), 1, #lower) == lower then
+			return p
+		end
+	end
+	return nil
 end
 
 local function findElement(name: string?): string?
@@ -129,20 +187,19 @@ local function teleport(player: Player, pos: Vector3)
 	end
 end
 
--- Esegue un comando; restituisce (ok, messaggio, azione per il client)
-local function run(player: Player, text: any): (boolean, string, string?)
-	if not isAdmin(player) then
-		return false, "Non sei admin", nil
-	end
-	if type(text) ~= "string" then
-		return false, "Comando vuoto", nil
-	end
+local function splitArgs(text: string): { string }
 	local args = string.split(string.gsub(text, "^[;:/]", ""), " ")
 	for k = #args, 1, -1 do
 		if args[k] == "" then
 			table.remove(args, k)
 		end
 	end
+	return args
+end
+
+-- Esegue un comando per "player" (chi lo scrive, o il giocatore scelto con "to");
+-- restituisce (ok, messaggio, azione per il client di "player")
+local function exec(player: Player, args: { string }): (boolean, string, string?)
 	local cmd = string.lower(args[1] or "")
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -156,7 +213,7 @@ local function run(player: Player, text: any): (boolean, string, string?)
 		return true, "Ciak! (scena da trailer)", "cinematica"
 	elseif cmd == "tiktok" then
 		return true, "Ciak! (I added a grappling hook...)", "tiktok"
-	elseif cmd == "trailer" or (string.match(cmd, "^clip%d+$") and (tonumber(string.sub(cmd, 5)) or 99) <= 16) then
+	elseif cmd == "trailer" or (string.match(cmd, "^clip%d+$") and (tonumber(string.sub(cmd, 5)) or 99) <= 20) then
 		local take = TrailerProps.prepare()
 		-- mentre giri la clip i nemici ti ignorano (il personaggio nascosto segue la camera)
 		player:SetAttribute("Filming", true)
@@ -228,7 +285,7 @@ local function run(player: Player, text: any): (boolean, string, string?)
 	elseif cmd == "egg" then
 		local element = findElement(args[2]) or "Roccia"
 		if not root then
-			return false, "Nessun personaggio", nil
+			return false, "No character", nil
 		end
 		Eggs.spawnAt((root :: BasePart).Position + (root :: BasePart).CFrame.LookVector * 6 - Vector3.new(0, 3, 0), element, findRarity(args[3]))
 		return true, "Uovo " .. element .. " creato davanti a te", nil
@@ -262,7 +319,7 @@ local function run(player: Player, text: any): (boolean, string, string?)
 		return true, "Pass " .. name .. " attivo (solo per questa sessione)", nil
 	elseif cmd == "god" or cmd == "ungod" then
 		if not character then
-			return false, "Nessun personaggio", nil
+			return false, "No character", nil
 		end
 		local ff = character:FindFirstChild("AdminGod")
 		if cmd == "god" and not ff then
@@ -283,6 +340,9 @@ local function run(player: Player, text: any): (boolean, string, string?)
 	elseif cmd == "pitons" then
 		Ropes.refill(player)
 		return true, "Chiodi pieni", nil
+	elseif cmd == "uscita" then
+		local lines = Preflight.report()
+		return true, table.concat(lines, "\n"), nil
 	elseif cmd == "tutorial" then
 		if args[2] == "skip" then
 			player:SetAttribute("TutorialStep", Tutorial.STEP_COUNT + 1)
@@ -291,17 +351,105 @@ local function run(player: Player, text: any): (boolean, string, string?)
 			Tutorial.reset(player)
 		end
 		return true, "Tutorial " .. (args[2] or "reset"), nil
+	elseif cmd == "missions" then
+		if args[2] == "skip" then
+			player:SetAttribute("MissionStep", ((player:GetAttribute("MissionStep") or 1) :: number) + 1)
+		else
+			Missions.reset(player)
+		end
+		return true, "Missions " .. (args[2] or "reset"), nil
 	end
 	return false, "Comando sconosciuto (scrivi help)", nil
 end
 
+local actionEvent: RemoteEvent? = nil
+
+local function run(player: Player, text: any): (boolean, string, string?)
+	if not isAdmin(player) then
+		return false, "Non sei admin", nil
+	end
+	if type(text) ~= "string" then
+		return false, "Comando vuoto", nil
+	end
+	local args = splitArgs(text)
+	local cmd = string.lower(args[1] or "")
+	if cmd == "admin" or cmd == "unadmin" then
+		if not isOwner(player) then
+			return false, "Solo il proprietario puo' dare la modalita' admin", nil
+		end
+		local target = findPlayer(args[2])
+		if not target then
+			return false, "Giocatore non trovato (uso: " .. cmd .. " <nome>)", nil
+		end
+		if cmd == "admin" then
+			granted[target.UserId] = target.Name
+		else
+			granted[target.UserId] = nil
+		end
+		saveGranted()
+		target:SetAttribute("IsAdmin", isAdmin(target))
+		return true, (if cmd == "admin" then "Modalita' admin data a " else "Modalita' admin tolta a ") .. target.Name, nil
+	elseif cmd == "admins" then
+		local names = {}
+		for _, name in granted do
+			table.insert(names, name)
+		end
+		table.sort(names)
+		return true, if #names > 0 then "Admin dati: " .. table.concat(names, ", ") else "Nessun admin dato (oltre al proprietario)", nil
+	elseif cmd == "to" then
+		local target = findPlayer(args[2])
+		if not target then
+			return false, "Giocatore non trovato (uso: to <nome> <comando>)", nil
+		end
+		local rest = table.move(args, 3, #args, 1, {})
+		local sub = string.lower(rest[1] or "")
+		if sub == "" or sub == "to" or sub == "admin" or sub == "unadmin" or sub == "admins" or sub == "help" or sub == "uscita" then
+			return false, "Uso: to <nome> <comando>", nil
+		end
+		local ok, message, action = exec(target, rest)
+		-- l'azione (volo, noclip, clip...) la fa il client dell'altro giocatore
+		if ok and action and actionEvent then
+			(actionEvent :: RemoteEvent):FireClient(target, action, player.Name .. ": " .. table.concat(rest, " "))
+		end
+		return ok, "[" .. target.Name .. "] " .. message, nil
+	end
+	return exec(player, args)
+end
+
 function Admin.setup()
+	local remotes = ReplicatedStorage:WaitForChild("Remotes")
 	local fn = Instance.new("RemoteFunction")
 	fn.Name = "AdminCommand"
-	fn.Parent = ReplicatedStorage:WaitForChild("Remotes")
+	fn.Parent = remotes
 	fn.OnServerInvoke = run
+	local ev = Instance.new("RemoteEvent")
+	ev.Name = "AdminAction"
+	ev.Parent = remotes
+	actionEvent = ev
 	local function onPlayer(player: Player)
 		player:SetAttribute("IsAdmin", isAdmin(player))
+	end
+	-- chi ha avuto la modalita' admin nelle partite prima
+	local ok, store = pcall(function()
+		return DataStoreService:GetDataStore("AdminConcessi")
+	end)
+	if ok then
+		grantStore = store
+		task.spawn(function()
+			local okGet, list = pcall(function()
+				return store:GetAsync("utenti")
+			end)
+			if okGet and type(list) == "table" then
+				for _, e in list do
+					if type(e) == "table" and type(e.id) == "number" then
+						granted[e.id] = tostring(e.name)
+					end
+				end
+				for _, p in Players:GetPlayers() do
+					onPlayer(p)
+				end
+			end
+		end)
 	end
 	Players.PlayerAdded:Connect(onPlayer)
 	for _, p in Players:GetPlayers() do

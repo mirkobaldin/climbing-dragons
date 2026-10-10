@@ -74,7 +74,7 @@ local function spawnOne(name: string, at: Vector3)
 	m:PivotTo(CFrame.new(base))
 	-- area di raccolta, luce e scintille
 	local pick = Instance.new("Part")
-	pick.Name = "Raccogli"
+	pick.Name = "Pick up"
 	pick.Shape = Enum.PartType.Ball
 	pick.Size = Vector3.one * 6
 	pick.Transparency = 1
@@ -98,14 +98,10 @@ local function spawnOne(name: string, at: Vector3)
 	m.Name = "Drop_" .. name
 	CollectionService:AddTag(m, "Drop")
 	m.Parent = folderWorld
-	-- galleggia e gira (sul server: pochi oggetti)
-	task.spawn(function()
-		local t0 = os.clock()
-		while m.Parent and os.clock() - t0 < 60 do
-			local t = os.clock() - t0
-			m:PivotTo(CFrame.new(base + Vector3.new(0, math.sin(t * 2) * 0.5, 0)) * CFrame.Angles(0, t * 1.5, 0))
-			task.wait(0.05)
-		end
+	-- galleggia e gira sul client (TrainingFX, attributo Base): mossa dal server ogni 0.05 s
+	-- era una replica continua verso tutti i giocatori
+	m:SetAttribute("Base", base)
+	task.delay(60, function()
 		if m.Parent then
 			m:Destroy()
 		end
@@ -146,6 +142,30 @@ function Drops.setup()
 	f.Name = "Drop"
 	f.Parent = workspace
 	folderWorld = f
+	-- copia dei modelli dei materiali per le icone dello zaino (il client non vede ServerStorage)
+	local store = ServerStorage:FindFirstChild("Modelli")
+	local icons = Instance.new("Folder")
+	icons.Name = "DropIcone"
+	for name in Drops.NAMES do
+		local tpl = store and store:FindFirstChild(name, true)
+		if tpl and tpl:IsA("Model") then
+			local c = tpl:Clone()
+			for _, d in c:GetDescendants() do
+				if d:IsA("LuaSourceContainer") or d:IsA("Sound") then
+					d:Destroy()
+				end
+			end
+			c.Name = name
+			c.Parent = icons
+		end
+	end
+	local nameMap = Instance.new("Configuration")
+	nameMap.Name = "Nomi"
+	for id, shown in Drops.NAMES do
+		nameMap:SetAttribute(id, shown)
+	end
+	nameMap.Parent = icons
+	icons.Parent = game:GetService("ReplicatedStorage")
 end
 
 return Drops

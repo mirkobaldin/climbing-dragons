@@ -40,6 +40,7 @@ type Enemy = {
 	boss: EnemyConfig.Boss?,
 	seated: boolean?,
 	homeCF: CFrame?,
+	sleeping: boolean?, -- nessun giocatore vicino: fermo
 }
 
 local enemies: { Enemy } = {}
@@ -359,7 +360,7 @@ local function attack(enemy: Enemy, player: Player)
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 		fxEvent:FireAllClients("slam", enemy.model)
 		if root and humanoid and humanoid.Health > 0 and (root.Position - enemy.root.Position).Magnitude <= enemy.def.reach * 1.35 + enemy.root.Size.X then
-			Survival.damage(humanoid, enemy.def.damage, "Colpito da " .. enemy.def.name)
+			Survival.damage(humanoid, enemy.def.damage, "Hit by a " .. enemy.def.name)
 			local away = root.Position - enemy.root.Position
 			away = Vector3.new(away.X, 0, away.Z)
 			away = if away.Magnitude > 0.1 then away.Unit else enemy.root.CFrame.LookVector
@@ -528,9 +529,46 @@ spawnBoss = function(def: EnemyConfig.Boss)
 	end)
 end
 
+-- nessun giocatore nei paraggi: il nemico dorme (niente passeggiate, fisica e animazioni da
+-- mandare ai client per nessuno)
+local SLEEP_DISTANCE = 400
+local function anyoneNear(pos: Vector3): boolean
+	for _, player in Players:GetPlayers() do
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if root and (root.Position - pos).Magnitude < SLEEP_DISTANCE then
+			return true
+		end
+	end
+	return false
+end
+
 local function think(enemy: Enemy)
 	if enemy.dead then
 		return
+	end
+	if not enemy.target and not anyoneNear(enemy.root.Position) then
+		if not enemy.sleeping then
+			enemy.sleeping = true
+			enemy.humanoid:MoveTo(enemy.root.Position)
+			enemy.root.Anchored = true -- niente fisica finche' dorme
+			if enemy.tracks.walk then
+				(enemy.tracks.walk :: AnimationTrack):AdjustWeight(0.01, 0.3)
+			end
+			if enemy.tracks.idle then
+				(enemy.tracks.idle :: AnimationTrack):AdjustWeight(1, 0.3)
+			end
+		end
+		return
+	end
+	if enemy.sleeping then
+		enemy.sleeping = false
+		if not enemy.seated then
+			enemy.root.Anchored = false
+			pcall(function()
+				enemy.root:SetNetworkOwner(nil) -- l'intelligenza resta sul server
+			end)
+		end
 	end
 	if enemy.boss and enemy.boss.throne then
 		-- sul trono finche' nessuno si avvicina; quando torna a casa si risiede

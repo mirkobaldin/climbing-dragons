@@ -11,3 +11,8 @@ sourcemap.json
 /assets/
 /graphify-out/
 /info
+textures/
+
+# output generati da Blender (si rifanno con tools/blender/borghi.py)
+/tools/blender/out/
+__pycache__/

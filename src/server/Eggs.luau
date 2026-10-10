@@ -3,7 +3,7 @@
 --   * spawn: fino a MAX_WORLD_EGGS uova sparse tra tunnel, caverne, fiumi, boschi e pareti.
 --     L'elemento dipende dal posto (grotte -> Roccia/Brace, ghiaccio -> Gelo, acqua -> Fiume,
 --     boschi -> Ciliegio, quota alta -> Cosmico) e la rarita' migliora salendo
---   * trasporto: "Raccogli" mette l'uovo sulla schiena; se muori cade dove sei
+--   * trasporto: "Pick up" mette l'uovo sulla schiena; se muori cade dove sei
 --   * nido (tag "Incubator") nella tua casa (si sblocca comprando la Tenda): "Metti a covare";
 --     il resto dal menu Draghi (tasto G)
 -- La cartella workspace.EggIndex ha un Vector3Value per uovo: la usa la bussola (Egg Finder)
@@ -14,6 +14,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
+local Names = require(ReplicatedStorage.Shared.Names)
 local DragonModels = require(script.Parent.DragonModels)
 local Dragons = require(script.Parent.Dragons)
 
@@ -123,10 +124,15 @@ local function collectSpots()
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = { workspace.Terrain }
+	-- niente uova dentro le case dei borghi: dall'alto il raggio deve arrivare al terreno
+	local roofs = RaycastParams.new()
+	roofs.FilterType = Enum.RaycastFilterType.Include
+	roofs.FilterDescendantsInstances = { workspace.Terrain, workspace:FindFirstChild("Borghi") or workspace.Terrain }
 	for _ = 1, 80 do
 		local origin = Vector3.new(rng:NextNumber(-2600, 2600), 900, rng:NextNumber(-1700, 1700))
 		local hit = workspace:Raycast(origin, Vector3.new(0, -1000, 0), params)
-		if hit and hit.Position.Y > 30 and hit.Position.Y < 450 and (hit.Material == Enum.Material.Grass or hit.Material == Enum.Material.LeafyGrass) then
+		local top = hit and workspace:Raycast(origin, Vector3.new(0, -1000, 0), roofs)
+		if hit and top and top.Instance == workspace.Terrain and hit.Position.Y > 30 and hit.Position.Y < 450 and (hit.Material == Enum.Material.Grass or hit.Material == Enum.Material.LeafyGrass) then
 			table.insert(spots, { position = hit.Position, element = if rng:NextNumber() < 0.3 then "Ombra" else "Roccia" })
 		end
 	end
@@ -167,9 +173,9 @@ local function placeEgg(pos: Vector3, element: string, rarity: string, extra: { 
 	local root = model.PrimaryPart
 	if root then
 		local prompt = Instance.new("ProximityPrompt")
-		prompt.ActionText = "Raccogli"
+		prompt.ActionText = "Pick up"
 		local e = DragonConfig.element(element)
-		prompt.ObjectText = string.format("Uovo %s (%s)", if e then e.id else element, rarity)
+		prompt.ObjectText = string.format("%s Egg (%s)", Names.t(if e then e.id else element), Names.t(rarity))
 		prompt.HoldDuration = 0.6
 		prompt.MaxActivationDistance = 10
 		prompt.RequiresLineOfSight = false
@@ -240,12 +246,12 @@ function Eggs.pickUp(player: Player, egg: Model)
 		return
 	end
 	if carrying(player) then
-		notice(player, "Hai gia' un uovo: portalo al Nido alla base")
+		notice(player, "You already have an egg: take it to your nest")
 		return
 	end
 	local owner = egg:GetAttribute("OnlyFor")
 	if owner and owner ~= player.UserId then
-		notice(player, "Questo uovo e' di un altro giocatore")
+		notice(player, "This egg belongs to another player")
 		return
 	end
 	local element = egg:GetAttribute("Element") :: string
@@ -283,7 +289,7 @@ function Eggs.pickUp(player: Player, egg: Model)
 	carried[player] = visual
 	player:SetAttribute("CarryingEgg", element .. "|" .. rarity)
 	player:SetAttribute("CarryingQuick", quick)
-	notice(player, "Uovo raccolto! Portalo al nido della tua casa, o vendilo all'emporio (se cadi lo perdi)")
+	notice(player, "Egg picked up! Take it to your home nest or sell it at the store (fall and you lose it)")
 
 	if typeof(respawnTutorial) == "Vector3" then
 		-- l'uovo del tutorial ricompare per il prossimo giocatore
@@ -315,7 +321,7 @@ local function dropEgg(player: Player)
 		local element, rarity = string.match(value, "^(.-)|(.*)$")
 		local pos = groundNear(root.Position) or root.Position
 		placeEgg(pos, element or "Roccia", rarity or "Comune", if quick then { Quick = true } else nil)
-		notice(player, "Hai perso l'uovo! E' rimasto dove sei caduto")
+		notice(player, "You lost the egg! It's where you fell")
 	end
 end
 
@@ -323,7 +329,7 @@ end
 local function useNest(player: Player, remotes: { [string]: RemoteEvent }, nest: Instance)
 	local owner = nest:GetAttribute("Owner")
 	if owner and owner ~= player.UserId then
-		notice(player, "Questo e' il nido di un altro giocatore: il tuo e' nella tua casa")
+		notice(player, "This is another player's nest: yours is at your house")
 		return
 	end
 	local value = player:GetAttribute("CarryingEgg")
@@ -337,10 +343,10 @@ local function useNest(player: Player, remotes: { [string]: RemoteEvent }, nest:
 	if Dragons.incubate(player, element or "Roccia", rarity or "Comune", if quick then 20 else nil) then
 		stopCarrying(player)
 		player:SetAttribute("EggsIncubated", (player:GetAttribute("EggsIncubated") or 0) + 1)
-		notice(player, "Uovo nel nido! Premi G per vedere quando si schiude")
+		notice(player, "Egg in the nest! Press G to see when it hatches")
 		remotes.OpenDragons:FireClient(player, "nest")
 	else
-		notice(player, "Il nido e' pieno: schiudi prima un uovo")
+		notice(player, "The nest is full: hatch an egg first")
 	end
 end
 

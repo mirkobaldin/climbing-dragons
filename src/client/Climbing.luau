@@ -175,13 +175,13 @@ end
 -- Puo' aggrapparsi a questa superficie? Se no, spiega perche'
 local function canGrab(result: RaycastResult): (boolean, string?)
 	if result.Instance and CollectionService:HasTag(result.Instance, "NoClimb") then
-		return false, "Parete liscia: qui serve il Rampino"
+		return false, "Smooth wall: you need the Grappling Hook here"
 	end
 	if ICY[result.Material] and not Gear.has(player, "Ramponi") and not DragonConfig.hasAbility(player, "Gelo") then
-		return false, "Parete di ghiaccio: servono i Ramponi (Banco da lavoro)"
+		return false, "Ice wall: you need Crampons (Workbench)"
 	end
 	if ClientState.stamina < ClimbConfig.MIN_STAMINA_TO_GRAB then
-		return false, "Troppo stanco per aggrapparti"
+		return false, "Too tired to grab on"
 	end
 	return true, nil
 end
@@ -627,12 +627,12 @@ local function climbStep(dt: number)
 	local material = if hit then (hit :: RaycastResult).Material else Enum.Material.Rock
 	local icy = ICY[material] == true
 	if icy and not Gear.has(player, "Ramponi") and not DragonConfig.hasAbility(player, "Gelo") then
-		ClientState.hint = "Ghiaccio! Senza Ramponi non tieni la presa"
+		ClientState.hint = "Ice! Without Crampons you can't hold on"
 		detach(false, "ice")
 		return
 	end
 	if hit and (hit :: RaycastResult).Instance and CollectionService:HasTag((hit :: RaycastResult).Instance, "NoClimb") then
-		ClientState.hint = "Parete liscia: qui serve il Rampino"
+		ClientState.hint = "Smooth wall: you need the Grappling Hook here"
 		detach(false, "noClimb")
 		return
 	end
@@ -640,7 +640,7 @@ local function climbStep(dt: number)
 	local axe = hasTool(ClimbConfig.TOOL_NAME)
 	-- Sotto un tetto ci si tiene solo con le piccozze piantate nella roccia: a mani nude no.
 	if roofness > 0.3 and not axe then
-		ClientState.hint = "Sotto un tetto serve la Piccozza per restare attaccato"
+		ClientState.hint = "Under a roof you need the Ice Axe to hang on"
 		detach(false, "roofNoAxe")
 		return
 	end
@@ -703,9 +703,9 @@ local function climbStep(dt: number)
 		end
 	end
 	if roofness > 0.5 then
-		ClientState.hint = "Tetto: sei appeso, le braccia non reggono a lungo"
+		ClientState.hint = "Roof: you're hanging, your arms won't last long"
 	elseif roofness > 0.15 then
-		ClientState.hint = "Strapiombo: la roccia spancia, stanca il doppio"
+		ClientState.hint = "Overhang: the rock leans out, twice as tiring"
 	end
 	-- staccati dalla roccia? spingi verso la parete. Sotto un tetto tira con piu' forza,
 	-- altrimenti il peso del corpo stacca le piccozze.
@@ -768,18 +768,18 @@ local function climbStep(dt: number)
 	drain *= 1 - math.min(0.4, ((game:GetService("Players").LocalPlayer:GetAttribute("Resistenza") or 0) :: number) * 0.01)
 	ClientState.stamina = math.max(0, ClientState.stamina - drain * dt)
 	if ClientState.stamina <= 0 then
-		ClientState.hint = "Sei esausto! Riposa a terra o appeso alla corda."
+		ClientState.hint = "You're exhausted! Rest on the ground or hang on the rope."
 		detach(false, "exhausted")
 		return
 	elseif sliding then
-		ClientState.hint = "Scivoli! Stamina quasi finita"
+		ClientState.hint = "You're slipping! Stamina almost gone"
 	end
 
 	-- Appiglio friabile: avvisa il server, che lo fara' crollare
 	local hitInst = hit and (hit :: RaycastResult).Instance
 	if hitInst and not reportedRocks[hitInst] and CollectionService:HasTag(hitInst, "CrumblingRock") then
 		reportedRocks[hitInst] = true
-		ClientState.hint = "La roccia si sgretola!"
+		ClientState.hint = "The rock is crumbling!"
 		remotes.GrabRock:FireServer(hitInst)
 	end
 end
@@ -801,7 +801,7 @@ local function ropeStep(dt: number)
 		end
 		hanging = not attached and not grounded and dist >= rope.Length - 0.6
 		if rope.Length >= ClimbConfig.ROPE_MAX and dist >= ClimbConfig.ROPE_MAX - 1 then
-			ClientState.hint = "Corda finita: pianta un nuovo chiodo (F)"
+			ClientState.hint = "Out of rope: place a new piton (F)"
 		end
 	end
 	if not attached then
@@ -817,7 +817,7 @@ end
 
 local function drivePiton(position: Vector3, normal: Vector3)
 	if (player:GetAttribute("Pitons") or 0) <= 0 then
-		ClientState.hint = "Chiodi finiti: riforniscili in un campo base o all'emporio"
+		ClientState.hint = "Out of pitons: restock at a base camp or the store"
 		return
 	end
 	ClimbAnimator.hammer()
@@ -834,7 +834,7 @@ local function placePiton()
 		then workspace:Raycast(r.Position + climbUp, -wallNormal * 4, rayParams())
 		else findWallAround()
 	if not result then
-		ClientState.hint = "Avvicinati a una parete per piantare un chiodo"
+		ClientState.hint = "Get close to a wall to place a piton"
 		return
 	end
 	drivePiton((result :: RaycastResult).Position, (result :: RaycastResult).Normal)
@@ -895,7 +895,7 @@ local function aimStep()
 	if not hit then
 		disc.Transparency, dot.Transparency = 1, 1
 		aimPos, aimNormal = nil, nil
-		ClientState.hint = "Punta la roccia dove vuoi il chiodo"
+		ClientState.hint = "Aim at the rock where you want the piton"
 		return
 	end
 	local h = hit :: RaycastResult
@@ -910,8 +910,8 @@ local function aimStep()
 	aimPos, aimNormal = (if ok then h.Position else nil), (if ok then h.Normal else nil)
 	ClientState.hint = if far
 		then "Troppo lontano: avvicinati"
-		elseif flat then "Il chiodo va in parete, non sul piano"
-		else "Lascia il tasto per piantare il chiodo qui"
+		elseif flat then "Pitons go into walls, not flat ground"
+		else "Release the key to place the piton here"
 end
 
 function Climbing.aimBegin()
@@ -949,7 +949,7 @@ local function onAxeClick()
 	end
 	local result = findWallAround()
 	if not result then
-		ClientState.hint = "Nessuna parete ripida davanti a te"
+		ClientState.hint = "No steep wall in front of you"
 		return
 	end
 	local ok, why = canGrab(result)
@@ -1005,7 +1005,7 @@ local function onCharacter(newCharacter: Model)
 				end)
 			end
 			playHold()
-			ClientState.hint = "Click vicino a una parete per aggrapparti  |  F: chiodo (tieni premuto per mirare)"
+			ClientState.hint = "Click near a wall to grab on  |  F: piton (hold to aim)"
 		end
 	end)
 end
@@ -1042,7 +1042,7 @@ function Climbing.start()
 						end
 					end)
 				else
-					ClientState.hint = "Troppo stanco per lanciarti"
+					ClientState.hint = "Too tired to leap"
 				end
 				return
 			end
@@ -1055,7 +1055,7 @@ function Climbing.start()
 		detach(false, "knockback")
 		if root then
 			(root :: BasePart).AssemblyLinearVelocity += push
-			ClientState.hint = "Colpito!"
+			ClientState.hint = "Hit!"
 		end
 	end)
 

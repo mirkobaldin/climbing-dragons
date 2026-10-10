@@ -50,14 +50,14 @@ function MobileControls.start()
 		return b
 	end
 
-	local run = round("Corri", Theme.GOOD, 1, function() end)
+	local run = round("Run", Theme.GOOD, 1, function() end)
 	run.Activated:Connect(function()
 		local on = Sprint.toggle()
 		run.BackgroundColor3 = if on then Theme.GOOD else Theme.BG
 		run.TextColor3 = if on then Theme.BG else Theme.GOOD
 	end)
-	local jumpOff = round("Salta via", Theme.ACCENT, 1, Climbing.jumpOff)
-	local piton = round("Chiodo", Color3.fromRGB(200, 205, 215), 2, function() end)
+	local jumpOff = round("Jump off", Theme.ACCENT, 1, Climbing.jumpOff)
+	local piton = round("Piton", Color3.fromRGB(200, 205, 215), 2, function() end)
 	-- tenendo premuto compare il mirino sulla roccia, al rilascio il chiodo va dove punta
 	local function isTap(input: InputObject): boolean
 		return input.UserInputType == Enum.UserInputType.Touch
@@ -73,7 +73,7 @@ function MobileControls.start()
 			Climbing.aimFinish()
 		end
 	end)
-	local release = round("Sgancia", Theme.BAD, 3, Climbing.releaseRope)
+	local release = round("Unclip", Theme.BAD, 3, Climbing.releaseRope)
 
 	RunService.Heartbeat:Connect(function()
 		local climbing = ClientState.climbing

@@ -1,11 +1,12 @@
 --!strict
 -- Scheda "Crafting" del menu (si apre anche dal Banco da lavoro): gli attrezzi con il costo
--- in minerali (verde = li hai, rosso = ti mancano) e "Costruisci". Il server controlla tutto.
+-- in minerali (verde = li hai, rosso = ti mancano) e "Craft". Il server controlla tutto.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Gear = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gear"))
+local Names = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Names"))
 local Theme = require(script.Parent.Theme)
 
 local player = Players.LocalPlayer
@@ -21,7 +22,7 @@ local GEAR_COLORS = {
 }
 
 local function oreCount(ore: string): number
-	local folder = player:FindFirstChild("Minerali")
+	local folder = player:FindFirstChild("Ores")
 	local v = folder and folder:FindFirstChild(ore) :: IntValue?
 	return if v then v.Value else 0
 end
@@ -42,8 +43,8 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 			UDim2.new(0, 8, 0, 8)
 		-- dove si costruisce: al volo ovunque, oppure solo al banco (campo o casa)
 		local where = if recipe.station == "Ovunque"
-			then '  <font color="#6ECD78" size="12">ovunque</font>'
-			else '  <font color="#FFC450" size="12">al banco da lavoro</font>'
+			then '  <font color="#6ECD78" size="12">anywhere</font>'
+			else '  <font color="#FFC450" size="12">at a workbench</font>'
 		local title = Theme.label(card, recipe.name .. where, 16, Theme.TEXT, true)
 		title.Position = UDim2.new(0, 92, 0, 6)
 		title.Size = UDim2.new(1, -220, 0, 20)
@@ -53,7 +54,7 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 		local cost = Theme.label(card, "", 13, Theme.TEXT, true)
 		cost.Position = UDim2.new(0, 92, 0, 62)
 		cost.Size = UDim2.new(1, -220, 0, 20)
-		local button = Theme.button(card, "Costruisci", Theme.GOOD, UDim2.new(0, 116, 0, 42))
+		local button = Theme.button(card, "Craft", Theme.GOOD, UDim2.new(0, 116, 0, 42))
 		button.AnchorPoint = Vector2.new(1, 0.5)
 		button.Position = UDim2.new(1, -10, 0.5, 0)
 
@@ -63,14 +64,14 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 			for ore, amount in recipe.cost do
 				local have = oreCount(ore)
 				affordable = affordable and have >= amount
-				table.insert(parts, string.format('<font color="%s">%s %d/%d</font>', if have >= amount then "#6ECD78" else "#EB5F55", ore, have, amount))
+				table.insert(parts, string.format('<font color="%s">%s %d/%d</font>', if have >= amount then "#6ECD78" else "#EB5F55", Names.t(ore), have, amount))
 			end
 			cost.Text = table.concat(parts, "   ")
 			if not recipe.consumable and Gear.has(player, recipe.id) then
-				button.Text = "Posseduto"
+				button.Text = "Owned"
 				button.BackgroundColor3 = Theme.MUTED
 			else
-				button.Text = "Costruisci"
+				button.Text = "Craft"
 				button.BackgroundColor3 = if affordable then Theme.GOOD else Color3.fromRGB(110, 114, 124)
 			end
 		end

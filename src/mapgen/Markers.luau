@@ -105,6 +105,7 @@ function Markers.place(map: Heightmap.Map)
 		{ "BaseCamps", f.camps, "BaseCamp" },
 		{ "CaveEntrances", f.caveEntrances, "CaveEntrance" },
 		{ "MineChambers", f.mineChambers, "MineChamber" },
+		{ "TunnelRooms", f.tunnelRooms, "TunnelRoom" },
 		{ "Ponds", f.ponds, "Pond" },
 	}
 	for _, entry in lists do

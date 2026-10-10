@@ -44,7 +44,7 @@ function ToxicGas.setup()
 				end
 				local k = ToxicGas.amount(root.Position)
 				if k > 0.05 and not DragonConfig.hasAbility(player, "Gas") then
-					Survival.damage(humanoid, DAMAGE_PER_SECOND * k, "Gas tossici")
+					Survival.damage(humanoid, DAMAGE_PER_SECOND * k, "Toxic gas")
 					if os.clock() - (lastNotice[player] or 0) > NOTICE_EVERY then
 						lastNotice[player] = os.clock()
 						player:SetAttribute("Notice", "TOXIC GAS! Get out, or come back with a Gas dragon")

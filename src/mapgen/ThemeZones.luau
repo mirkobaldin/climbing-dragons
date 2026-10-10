@@ -199,7 +199,7 @@ local function crystalModels(element: string): { Model }
 end
 
 -- un cristallo-modello alto h appoggiato in base
-local function placeModel(parent: Instance, tpl: Model, base: Vector3, h: number, rng: Random, normal: Vector3?)
+local function placeModel(parent: Instance, tpl: Model, base: Vector3, h: number, rng: Random, normal: Vector3?, element: string?)
 	local m = tpl:Clone()
 	for _, d in m:GetDescendants() do
 		if d:IsA("LuaSourceContainer") then
@@ -235,6 +235,7 @@ local function placeModel(parent: Instance, tpl: Model, base: Vector3, h: number
 	m:PivotTo(CFrame.new(base) * rot * CFrame.new(0, lift, 0) * tilt)
 	m:SetAttribute("Base", base) -- per il controllo finale: deve poggiare sulla roccia
 	m:SetAttribute("Normal", n)
+	m:SetAttribute("Element", element) -- per gli effetti sul client (client/CrystalFX)
 	m.Name = "Cristallo"
 	m.Parent = parent
 end
@@ -763,7 +764,7 @@ function ThemeZones.build(map: Heightmap.Map)
 			if holder:IsA("Model") and holder.Name == "Cristallo" and holder:GetAttribute("Height") then
 				if #models > 0 then
 					local h = (holder:GetAttribute("Height") :: number) * 1.8
-					placeModel(holder.Parent :: Instance, models[rng:NextInteger(1, #models)], holder:GetAttribute("Base") :: Vector3, h, rng, holder:GetAttribute("Normal") :: Vector3?)
+					placeModel(holder.Parent :: Instance, models[rng:NextInteger(1, #models)], holder:GetAttribute("Base") :: Vector3, h, rng, holder:GetAttribute("Normal") :: Vector3?, t.ELEMENT)
 				end
 				holder:Destroy()
 			end
@@ -797,10 +798,144 @@ function ThemeZones.build(map: Heightmap.Map)
 		nests.Parent = markers
 	end
 	folder.Parent = workspace
+	local removed = ThemeZones.crystals(cfg.SEED)
+	print(string.format("[MapGen] Zone a tema: %s (cristalli sospesi tolti: %d)", table.concat(made, ", "), removed))
+end
+
+------------------------------------------------------------------------------------------
+-- Cristalli delle grotte di ghiaccio e delle valli dei gas (cartella ZoneATema.CristalliGeloGas).
+-- Si puo' rilanciare da sola, senza rigenerare la mappa, dalla Command Bar:
+--   require(game.ServerStorage.MapGen:Clone().ThemeZones).crystals()
+-- Nelle grotte: tanti cristalli in tre taglie (piccoli, medi, giganti), a ciuffi, anche sulle
+-- pareti e appesi al soffitto. Le forme: il cristallo di ghiaccio di Mirko e, rifatte di ghiaccio
+-- (vetro azzurro traslucido), le sagome degli altri suoi cristalli.
+
+local ICE = Color3.fromRGB(165, 225, 255)
+
+-- le sagome degli altri cristalli di Mirko, di ghiaccio (fuori dal mondo: sono solo stampi)
+local function iceShapes(): { Model }
+	local out = {}
+	for _, element in { "Tempesta", "Fulmine", "Cosmico", "Eclissi", "Roccia", "Gas" } do
+		for _, tpl in crystalModels(element) do
+			local _, size = tpl:GetBoundingBox()
+			if size.Magnitude > 1 then -- uno dei modelli della roccia e' vuoto (0.05 studs)
+				local m = tpl:Clone()
+				for _, d in m:GetDescendants() do
+					if d:IsA("SurfaceAppearance") or d:IsA("LuaSourceContainer") then
+						d:Destroy()
+					elseif d:IsA("BasePart") then
+						d.Material = Enum.Material.Glass
+						d.Color = ICE
+						d.Transparency = 0.2
+						d.Reflectance = 0.08
+					end
+				end
+				table.insert(out, m)
+			end
+		end
+	end
+	return out
+end
+
+function ThemeZones.crystals(seed: number?): number
+	local folder = workspace:FindFirstChild("ZoneATema")
+	if not folder then
+		warn("[MapGen] manca Workspace.ZoneATema: rigenera la mappa")
+		return 0
+	end
+	local old = folder:FindFirstChild("CristalliGeloGas")
+	if old then
+		old:Destroy()
+	end
 	local extra = Instance.new("Folder")
 	extra.Name = "CristalliGeloGas"
 	extra.Parent = folder
-	local rng = Random.new(cfg.SEED + 991)
+	local rng = Random.new((seed or 1) + 991)
+	local ice = crystalModels("Gelo")
+	local shapes = iceShapes()
+	-- meta' il cristallo di ghiaccio originale, meta' le altre forme
+	local function iceModel(): Model?
+		if #shapes > 0 and (#ice == 0 or rng:NextNumber() < 0.5) then
+			return shapes[rng:NextInteger(1, #shapes)]
+		end
+		return if #ice > 0 then ice[rng:NextInteger(1, #ice)] else nil
+	end
+	-- taglie: tanti piccoli, un po' di medi, qualche gigante (solo dove c'e' spazio)
+	local function iceSize(giants: boolean): number
+		local r = rng:NextNumber()
+		if r < 0.55 then
+			return rng:NextNumber(4, 11)
+		elseif r < 0.88 or not giants then
+			return rng:NextNumber(12, 24)
+		end
+		return rng:NextNumber(28, 48)
+	end
+	-- un cristallo di ghiaccio alto al massimo il 40% dello spazio libero sopra di lui (la forma
+	-- si puo' allungare fino a 2.3 volte): i giganti non bucano il soffitto della grotta
+	local function placeIce(tpl: Model, at: Vector3, h: number, normal: Vector3)
+		local up = workspace:Raycast(at + normal * 1.5, normal * 220, terrainOnly)
+		if up then
+			h = math.min(h, up.Distance * 0.4)
+		end
+		if h >= 2.5 then
+			placeModel(extra, tpl, at, h, rng, normal, "Gelo")
+		end
+	end
+	local function floorSpot(c: Vector3, radius: number, fromY: number): RaycastResult?
+		local a = rng:NextNumber(0, 2 * math.pi)
+		local r = radius * math.sqrt(rng:NextNumber())
+		local hit = workspace:Raycast(Vector3.new(c.X + math.cos(a) * r, fromY, c.Z + math.sin(a) * r), Vector3.new(0, -fromY + c.Y - 60, 0), terrainOnly)
+		return if hit and hit.Normal.Y > 0.6 then hit else nil
+	end
+	local function iceFloor(c: Vector3, radius: number, n: number, fromY: number, giants: boolean)
+		local placed = 0
+		for _ = 1, n * 6 do
+			if placed >= n then
+				break
+			end
+			local hit = floorSpot(c, radius, fromY)
+			local tpl = iceModel()
+			if hit and tpl then
+				placeIce(tpl, hit.Position, iceSize(giants), hit.Normal)
+				placed += 1
+			end
+		end
+	end
+	-- ciuffi: un cristallo grande e qualche piccolo attorno, inclinati verso l'esterno
+	local function iceClusters(c: Vector3, radius: number, n: number, fromY: number)
+		for _ = 1, n do
+			local hit = floorSpot(c, radius, fromY)
+			if hit then
+				local center = hit.Position
+				local big = iceModel()
+				if big then
+					placeIce(big, center, rng:NextNumber(10, 22), hit.Normal)
+				end
+				for _ = 1, rng:NextInteger(3, 5) do
+					local a = rng:NextNumber(0, 2 * math.pi)
+					local q = center + Vector3.new(math.cos(a), 0, math.sin(a)) * rng:NextNumber(3, 7)
+					local h2 = workspace:Raycast(q + Vector3.new(0, 8, 0), Vector3.new(0, -16, 0), terrainOnly)
+					local tpl = iceModel()
+					if h2 and tpl then
+						local lean = (h2.Normal + Vector3.new(math.cos(a), 0, math.sin(a)) * 0.6).Unit
+						placeIce(tpl, h2.Position, rng:NextNumber(4, 10), lean)
+					end
+				end
+			end
+		end
+	end
+	-- pareti e soffitto (i pavimenti li fanno gli altri)
+	local function iceWalls(c: Vector3, reach: number, n: number, small: boolean)
+		for _, s in cavitySpots(c, reach, n * 2, rng) do
+			if s.n.Y < 0.5 and n > 0 then
+				local tpl = iceModel()
+				if tpl then
+					placeIce(tpl, s.p, if small then rng:NextNumber(3, 9) else rng:NextNumber(4, 16), s.n)
+					n -= 1
+				end
+			end
+		end
+	end
 	local function scatter(element: string, c: Vector3, radius: number, n: number, fromY: number)
 		local models = crystalModels(element)
 		if #models == 0 then
@@ -811,11 +946,9 @@ function ThemeZones.build(map: Heightmap.Map)
 			if placed >= n then
 				break
 			end
-			local a = rng:NextNumber(0, 2 * math.pi)
-			local r = radius * math.sqrt(rng:NextNumber())
-			local hit = workspace:Raycast(Vector3.new(c.X + math.cos(a) * r, fromY, c.Z + math.sin(a) * r), Vector3.new(0, -fromY + c.Y - 60, 0), terrainOnly)
-			if hit and hit.Normal.Y > 0.6 then
-				placeModel(extra, models[rng:NextInteger(1, #models)], hit.Position, rng:NextNumber(5, 12), rng)
+			local hit = floorSpot(c, radius, fromY)
+			if hit then
+				placeModel(extra, models[rng:NextInteger(1, #models)], hit.Position, rng:NextNumber(5, 12), rng, nil, element)
 				placed += 1
 			end
 		end
@@ -824,14 +957,19 @@ function ThemeZones.build(map: Heightmap.Map)
 		local den = workspace:GetAttribute(key .. "Den")
 		if typeof(den) == "CFrame" then
 			-- dentro la sala: i raggi partono poco sopra il pavimento (sopra c'e' il soffitto)
-			scatter("Gelo", den.Position, 150, 45, den.Position.Y + 25)
+			local c = den.Position
+			iceFloor(c, 150, 110, c.Y + 25, true)
+			iceClusters(c, 140, 25, c.Y + 25)
+			iceWalls(c + Vector3.new(0, 18, 0), 170, 70, false)
 		end
+		task.wait()
 	end
 	-- anche lungo le gallerie delle grotte di ghiaccio (le luci azzurre segnano il percorso)
 	local glacier = workspace:FindFirstChild("Glacier")
 	for _, l in (if glacier then glacier:GetDescendants() else {}) :: { Instance } do
 		if l:IsA("BasePart") and l.Parent and string.find(l.Parent.Name, "Luci", 1, true) then
-			scatter("Gelo", l.Position, 30, 5, l.Position.Y + 6)
+			iceFloor(l.Position, 32, 8, l.Position.Y + 6, false)
+			iceWalls(l.Position, 40, 4, true)
 		end
 	end
 	for i = 1, (workspace:GetAttribute("GasCount") or 0) :: number do
@@ -840,6 +978,10 @@ function ThemeZones.build(map: Heightmap.Map)
 			scatter("Gas", c, r * 0.95, 35, c.Y + 300)
 		end
 	end
+	for _, m in shapes do
+		m:Destroy()
+	end
+	-- via i cristalli che non poggiano sulla roccia
 	local removed = 0
 	for k, m in folder:GetDescendants() do
 		if m:IsA("Model") and m.Name == "Cristallo" then
@@ -856,7 +998,8 @@ function ThemeZones.build(map: Heightmap.Map)
 			task.wait()
 		end
 	end
-	print(string.format("[MapGen] Zone a tema: %s (cristalli sospesi tolti: %d)", table.concat(made, ", "), removed))
+	print(string.format("[MapGen] Cristalli di grotte e gas: %d (sospesi tolti: %d)", #extra:GetChildren(), removed))
+	return removed
 end
 
 return ThemeZones

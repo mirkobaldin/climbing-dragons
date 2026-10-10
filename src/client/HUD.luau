@@ -17,6 +17,7 @@ local StarterGui = game:GetService("StarterGui")
 
 local ClimbConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ClimbConfig"))
 local Gear = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gear"))
+local Names = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Names"))
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
 local Theme = require(script.Parent.Theme)
@@ -25,7 +26,7 @@ local player = Players.LocalPlayer
 
 local HUD = {}
 
-local WEATHER_NAMES = { Clear = "Sereno", Cloudy = "Nuvoloso", Rain = "Pioggia", Thunderstorm = "Temporale", Storm = "Tempesta", Snow = "Neve" }
+local WEATHER_NAMES = { Clear = "Clear", Cloudy = "Cloudy", Rain = "Rain", Thunderstorm = "Thunderstorm", Storm = "Storm", Snow = "Snow" }
 
 -- Barra con riempimento e testo sopra
 local function bar(parent: Instance, color: Color3, height: number): (Frame, Frame, TextLabel)
@@ -193,8 +194,8 @@ function HUD.start()
 		local lv = d.level or 1
 		local need = DragonConfig.xpForLevel(lv)
 		local stage = DragonConfig.STAGES[math.clamp(d.stage or 1, 1, #DragonConfig.STAGES)]
-		local stageName = ({ Cucciolo = "Hatchling", Giovane = "Young", Adulto = "Adult" } :: any)[stage.name] or stage.name
-		petName.Text = string.format("%s <font color=\"#ffc86a\">%s</font>", tostring(d.element), ({ Comune = "Common", Raro = "Rare", Epico = "Epic", Leggendario = "Legendary" } :: any)[d.rarity] or tostring(d.rarity or ""))
+		local stageName = Names.t(stage.name)
+		petName.Text = string.format("%s <font color=\"#ffc86a\">%s</font>", Names.t(d.element), Names.t(d.rarity))
 		petLevel.Text = string.format("Lv %d · %s", lv, stageName)
 		petXpFill.Size = UDim2.fromScale(math.clamp((d.xp or 0) / need, 0, 1), 1)
 		petXpText.Text = string.format("%d / %d XP", math.floor(d.xp or 0), need)
@@ -226,27 +227,29 @@ function HUD.start()
 	skip.Font = Enum.Font.GothamBold
 	skip.TextSize = 14
 	skip.TextColor3 = Theme.BG
-	skip.Text = "Salta il tutorial"
+	skip.Text = "Skip tutorial"
 	skip.Parent = quest
 	Theme.corner(skip, 10)
 	local armedAt = 0
 	skip.Activated:Connect(function()
 		if os.clock() - armedAt > 4 then
 			armedAt = os.clock()
-			skip.Text = "Sicuro? Tocca ancora"
+			skip.Text = "Sure? Tap again"
 			skip.BackgroundColor3 = Theme.BAD
 			task.delay(4, function()
 				if os.clock() - armedAt >= 4 then
-					skip.Text = "Salta il tutorial"
+					skip.Text = "Skip tutorial"
 					skip.BackgroundColor3 = Theme.ACCENT
 				end
 			end)
 			return
 		end
 		armedAt = 0
-		skip.Text = "Salta il tutorial"
+		skip.Text = "Skip tutorial"
 		skip.BackgroundColor3 = Theme.ACCENT
-		local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("SkipTutorial")
+		-- durante le missioni il pulsante salta la missione, non il tutorial
+		local name = if player:GetAttribute("TutorialText") then "SkipTutorial" else "SkipMission"
+		local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild(name)
 		if remote then
 			(remote :: RemoteEvent):FireServer()
 		end
@@ -285,7 +288,7 @@ function HUD.start()
 			then Color3.fromRGB(120, 200, 110)
 			elseif ratio > 0.2 then Color3.fromRGB(230, 190, 70)
 			else Color3.fromRGB(220, 70, 60)
-		staminaText.Text = string.format("%d%%  ·  %d chiodi", math.floor(ratio * 100), player:GetAttribute("Pitons") or 0)
+		staminaText.Text = string.format("%d%%  ·  %d pitons", math.floor(ratio * 100), player:GetAttribute("Pitons") or 0)
 
 		-- ora, meteo, quota, calore
 		local t = Lighting.ClockTime
@@ -294,7 +297,7 @@ function HUD.start()
 		local ICON = { Clear = if day then "☀️" else "🌙", Cloudy = "☁️", Rain = "🌧️", Thunderstorm = "⛈️", Storm = "🌪️", Snow = "❄️" }
 		weatherIcon.Text = ICON[w] or (if day then "☀️" else "🌙")
 		timeBig.Text = string.format("%02d:%02d", math.floor(t), math.floor((t % 1) * 60))
-		clock.Text = string.format("%s  ·  %s", if day then "Giorno" else "Notte", WEATHER_NAMES[w] or "Sereno")
+		clock.Text = string.format("%s  ·  %s", if day then "Day" else "Night", WEATHER_NAMES[w] or "Clear")
 		-- fondo: azzurro di giorno, blu notte, grigio-viola in tempesta
 		if sky then
 			local top = if w == "Storm" or w == "Thunderstorm" then Color3.fromRGB(70, 60, 100) elseif day then Color3.fromRGB(46, 96, 160) else Color3.fromRGB(26, 30, 70)
@@ -306,12 +309,13 @@ function HUD.start()
 		warmthBack.Visible = warmth < 99.5 or alt > Gear.COLD_ALTITUDE - 20
 		warmthFill.Size = UDim2.new(math.clamp(warmth / 100, 0, 1), 0, 1, 0)
 		warmthFill.BackgroundColor3 = if warmth > 40 then Color3.fromRGB(255, 150, 70) else Color3.fromRGB(110, 170, 255)
-		warmthText.Text = if warmth <= 0 then "🥶 Congelamento!" else string.format("🌡️ Calore %d%%", math.floor(warmth))
+		warmthText.Text = if warmth <= 0 then "🥶 Freezing!" else string.format("🌡️ Warmth %d%%", math.floor(warmth))
 
 		local carrying = player:GetAttribute("CarryingEgg")
 		local finderText = ClientState.eggFinder
 		if type(carrying) == "string" then
-			finderText = "Porti un uovo " .. (string.gsub(carrying, "|", " ")) .. ": al nido!"
+			local parts = string.split(carrying, "|")
+			finderText = string.format("Carrying an egg (%s %s): take it to your nest!", Names.t(parts[2]), Names.t(parts[1]))
 		end
 		finder.Visible = finderText ~= nil
 		finder.Text = finderText or ""
@@ -324,10 +328,16 @@ function HUD.start()
 		gearLabel.Visible = #owned > 0
 		gearLabel.Text = table.concat(owned, " · ")
 
-		-- tutorial
-		local questLine = player:GetAttribute("TutorialText")
+		-- tutorial, poi le missioni (stesso riquadro)
+		local tutorialLine = player:GetAttribute("TutorialText")
+		local questLine = if type(tutorialLine) == "string" then tutorialLine else player:GetAttribute("MissionText")
 		quest.Visible = type(questLine) == "string"
 		questText.Text = if type(questLine) == "string" then questLine else ""
+		local inTutorial = type(tutorialLine) == "string"
+		questTitle.Text = if inTutorial then "Tutorial" else "Mission"
+		if os.clock() - armedAt > 4 then
+			skip.Text = if inTutorial then "Skip tutorial" else "Skip mission"
+		end
 
 		-- avvisi dal server e suggerimenti (restano 4 secondi)
 		local notice = player:GetAttribute("Notice")

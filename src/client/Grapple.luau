@@ -9,6 +9,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Gear = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gear"))
+local ClimbConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ClimbConfig"))
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
 local Climbing = require(script.Parent.Climbing)
@@ -48,7 +49,7 @@ local function fire()
 	end
 	local hit = aimRay(root)
 	if not hit then
-		ClientState.hint = "Troppo lontano per il Rampino (max " .. Gear.GRAPPLE_RANGE .. ")"
+		ClientState.hint = "Too far for the Grappling Hook (max " .. Gear.GRAPPLE_RANGE .. ")"
 		return
 	end
 	busy = true
@@ -131,7 +132,7 @@ end
 function Grapple.start()
 	local function onCharacter(character: Model)
 		character.ChildAdded:Connect(function(child)
-			if child:IsA("Tool") and child.Name == "Rampino" and not child:GetAttribute("Bound") then
+			if child:IsA("Tool") and child.Name == ClimbConfig.GRAPPLE_NAME and not child:GetAttribute("Bound") then
 				child:SetAttribute("Bound", true)
 				child.Activated:Connect(fire)
 			end

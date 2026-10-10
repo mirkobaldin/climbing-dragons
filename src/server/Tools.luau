@@ -16,8 +16,8 @@ local ClimbConfig = require(ReplicatedStorage.Shared.ClimbConfig)
 
 local Tools = {}
 
-local AXE_TIP = "Click vicino a una parete: aggrappati/lasciati | Spazio: salta via | F: chiodo | R: sgancia la corda"
-local PICK_TIP = "Click vicino a un giacimento: estrai il minerale"
+local AXE_TIP = "Click near a wall: grab / let go | Space: jump off | F: piton | R: unclip the rope"
+local PICK_TIP = "Click near an ore vein: mine it"
 local OFFHAND = { FakeHandle = true, LeftHandle = true, OffHandle = true }
 
 local function part(name: string, size: Vector3, color: Color3, material: Enum.Material): Part
@@ -286,8 +286,8 @@ end
 -- Rampino: impugnatura con tre uncini d'acciaio e un rotolo di corda
 local function grapplingHook(): Tool
 	local tool = Instance.new("Tool")
-	tool.Name = "Rampino"
-	tool.ToolTip = "Click su una parete lontana: la corda ti tira su"
+	tool.Name = ClimbConfig.GRAPPLE_NAME
+	tool.ToolTip = "Click a distant wall: the rope pulls you up"
 	tool.CanBeDropped = false
 	tool.Grip = CFrame.new(0, -0.6, 0)
 	local handle = part("Handle", Vector3.new(0.4, 1.6, 0.4), Color3.fromRGB(40, 40, 44), Enum.Material.Metal)
@@ -382,8 +382,8 @@ local function gunTool(): Tool?
 	end
 	main.Name = "Handle"
 	tool.Grip = CFrame.new(main.Size * GUN_GRIP_AT) * GUN_GRIP_ROT
-	tool.Name = "Rampino"
-	tool.ToolTip = "Click su una parete lontana: la corda ti tira su"
+	tool.Name = ClimbConfig.GRAPPLE_NAME
+	tool.ToolTip = "Click a distant wall: the rope pulls you up"
 	tool.CanBeDropped = false
 	tool.RequiresHandle = true
 	return tool
@@ -393,8 +393,8 @@ end
 -- in mano, scalda un po' (tag "HeatSource" sulla fiamma, vedi il freddo in Progression).
 local function torch(): Tool
 	local tool = Instance.new("Tool")
-	tool.Name = "Torcia"
-	tool.ToolTip = "Fa luce nelle grotte e di notte"
+	tool.Name = ClimbConfig.TORCH_NAME
+	tool.ToolTip = "Lights up caves and the night"
 	tool.CanBeDropped = false
 	tool.Grip = CFrame.new(0, -0.8, 0)
 	local handle = part("Handle", Vector3.new(0.35, 2.4, 0.35), Color3.fromRGB(110, 76, 46), Enum.Material.Wood)
@@ -422,7 +422,7 @@ end
 function Tools.make(id: string): Tool?
 	if id == "Torcia" then
 		local source = findModel({ "Torcia", "Torch" })
-		local tool = if source then toolFromModel(source, "Torcia", "Fa luce nelle grotte e di notte") else nil
+		local tool = if source then toolFromModel(source, ClimbConfig.TORCH_NAME, "Lights up caves and the night") else nil
 		return tool or torch()
 	end
 	if id == "Rampino" then
@@ -431,7 +431,7 @@ function Tools.make(id: string): Tool?
 			return gun
 		end
 		local source = findModel({ "Rampino", "Grappling Hook", "GrapplingHook" })
-		local tool = if source then toolFromModel(source, "Rampino", "Click su una parete lontana: la corda ti tira su") else nil
+		local tool = if source then toolFromModel(source, ClimbConfig.GRAPPLE_NAME, "Click a distant wall: the rope pulls you up") else nil
 		return tool or grapplingHook()
 	end
 	return nil
@@ -446,14 +446,14 @@ local function install(tool: Tool)
 end
 
 function Tools.setup()
-	local axeSource = findModel({ ClimbConfig.TOOL_NAME, "IceAxe", "Ice Axes" })
+	local axeSource = findModel({ ClimbConfig.TOOL_NAME, "Piccozza", "IceAxe", "Ice Axes" })
 	local axe = if axeSource then toolFromModel(axeSource, ClimbConfig.TOOL_NAME, AXE_TIP) else nil
 	if axeSource and not axe then
 		warn("[Tools] Il modello della piccozza non ha parti: uso quella predefinita")
 	end
 	install(axe or builtTool(ClimbConfig.TOOL_NAME, AXE_TIP, 2.2, 0.5))
 
-	local pickSource = findModel({ ClimbConfig.PICKAXE_NAME, "Simple Pickaxe" })
+	local pickSource = findModel({ ClimbConfig.PICKAXE_NAME, "Piccone", "Simple Pickaxe" })
 	local pick = if pickSource then toolFromModel(pickSource, ClimbConfig.PICKAXE_NAME, PICK_TIP) else nil
 	install(pick or builtTool(ClimbConfig.PICKAXE_NAME, PICK_TIP, 3, 0))
 
