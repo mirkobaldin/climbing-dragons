@@ -1,10 +1,10 @@
-﻿--!strict
+--!strict
 -- Schermata persistente: la logica di rinascita continua a passare dal server.
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local Shared = RS:WaitForChild("Shared")
-local ShopConfig = require(Shared.ShopConfig)
-local Ui = require(Shared.UiView)
+local ShopConfig = require(Shared:WaitForChild("ShopConfig"))
+local Ui = require(Shared:WaitForChild("UiView"))
 local player = Players.LocalPlayer
 local DeathScreen = {}
 local TIPS = {
@@ -19,10 +19,14 @@ function DeathScreen.start()
 	local gui = Ui.screen("DeathScreen")
 	local panel = Ui.node(gui, "Panel")
 	local background = Ui.node(gui, "Background")
-	background.ImageTransparency = .35
+	background.ImageTransparency = 0.35
 	panel.Revive.Visible = ShopConfig.DEV_PRODUCTS.Revive > 0
-	panel.Respawn.Activated:Connect(function() (RS.Remotes:WaitForChild("Respawn") :: RemoteEvent):FireServer() end)
-	panel.Revive.Activated:Connect(function() (RS.Remotes:WaitForChild("Shop") :: RemoteFunction):InvokeServer("robux", "Revive") end)
+	panel.Respawn.Activated:Connect(function()
+		(RS.Remotes:WaitForChild("Respawn") :: RemoteEvent):FireServer()
+	end)
+	panel.Revive.Activated:Connect(function()
+		(RS.Remotes:WaitForChild("Shop") :: RemoteFunction):InvokeServer("robux", "Revive")
+	end)
 	local function show()
 		local cause = player:GetAttribute("DeathCause")
 		panel.Cause.Text = if type(cause) == "string" then cause else "Unknown cause"
@@ -41,12 +45,15 @@ function DeathScreen.start()
 		gui.Enabled = false
 		local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 		humanoid.Died:Connect(function()
-			task.wait(.4)
-			if player.Character == character and humanoid.Health <= 0 then show() end
+			task.wait(0.4)
+			if player.Character == character and humanoid.Health <= 0 then
+				show()
+			end
 		end)
 	end
 	player.CharacterAdded:Connect(onCharacter)
-	if player.Character then task.spawn(onCharacter, player.Character) end
+	if player.Character then
+		task.spawn(onCharacter, player.Character)
+	end
 end
 return DeathScreen
-
