@@ -1,17 +1,24 @@
-﻿--!strict
+--!strict
 -- Carte del nido e della collezione, con logica server invariata.
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local Shared = RS:WaitForChild("Shared")
-local DragonConfig = require(Shared.DragonConfig)
-local EconomyConfig = require(Shared.EconomyConfig)
-local Names = require(Shared.Names)
-local Ui = require(Shared.UiView)
+local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
+local EconomyConfig = require(Shared:WaitForChild("EconomyConfig"))
+local Names = require(Shared:WaitForChild("Names"))
+local Ui = require(Shared:WaitForChild("UiView"))
 local Theme = require(script.Parent.Theme)
 local player = Players.LocalPlayer
 local DragonUI = {}
-local RARITY = {Comune="common", NonComune="common", Raro="rare", Epico="epic", Leggendario="legendary", Mitico="legendary"}
+local RARITY = {
+	Comune = "common",
+	NonComune = "common",
+	Raro = "rare",
+	Epico = "epic",
+	Leggendario = "legendary",
+	Mitico = "legendary",
+}
 local function preview(kind: string, element: string): Instance?
 	local f = RS:FindFirstChild("Previews")
 	local sub = f and f:FindFirstChild(kind)
@@ -31,10 +38,21 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		Ui.clear(nestList)
 		Ui.clear(dragonList)
 		local raw = player:GetAttribute("DragonData")
-		if type(raw) ~= "string" then return end
+		if type(raw) ~= "string" then
+			return
+		end
 		local ok, data = pcall(HttpService.JSONDecode, HttpService, raw)
-		if not ok or type(data) ~= "table" then return end
-		header.Text = string.format("Stones: %d · Following: %d/%d · Home: %d (%d coins/min)", data.stones or 0, #data.equipped, data.maxEquipped or 1, data.roostSlots or 0, player:GetAttribute("RoostRate") or 0)
+		if not ok or type(data) ~= "table" then
+			return
+		end
+		header.Text = string.format(
+			"Stones: %d · Following: %d/%d · Home: %d (%d coins/min)",
+			data.stones or 0,
+			#data.equipped,
+			data.maxEquipped or 1,
+			data.roostSlots or 0,
+			player:GetAttribute("RoostRate") or 0
+		)
 		for index, egg in data.nest do
 			local c = Ui.template("EggCard", nestList)
 			c.LayoutOrder = index
@@ -42,13 +60,19 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			Theme.assetPreview(c.Icon, "icon_egg", preview("Eggs", egg.element))
 			c.Title.Text = Names.t(egg.element) .. " Egg\n" .. Names.t(egg.rarity)
 			local left = math.max(0, egg.readyAt - os.time())
-			c.Time.Text = if left <= 0 then "Ready to hatch" else string.format("Ready in %d:%02d", left // 60, left % 60)
+			c.Time.Text = if left <= 0
+				then "Ready to hatch"
+				else string.format("Ready in %d:%02d", left // 60, left % 60)
 			c.Hatch.Visible = left <= 0
-			c.Hatch.Activated:Connect(function() act("hatch", index) end)
+			c.Hatch.Activated:Connect(function()
+				act("hatch", index)
+			end)
 		end
 		if #data.nest == 0 then
 			local c = Ui.template("TextCard", nestList)
-			c.Text.Text = if (data.nestSlots or 0) > 0 then "Find eggs and bring them to your home nest." else "Buy the Tent on your plot to unlock the nest."
+			c.Text.Text = if (data.nestSlots or 0) > 0
+				then "Find eggs and bring them to your home nest."
+				else "Buy the Tent on your plot to unlock the nest."
 		end
 		for index, d in data.dragons do
 			local e = DragonConfig.element(d.element)
@@ -58,30 +82,50 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			local c = Ui.template("DragonCard", dragonList)
 			c.LayoutOrder = index
 			Ui.skin(c, "rarity_" .. (RARITY[d.rarity] or "common"))
-			if following then c.Stroke.Color = Theme.GOOD; c.Stroke.Enabled = true end
+			if following then
+				c.Stroke.Color = Theme.GOOD
+				c.Stroke.Enabled = true
+			end
 			Theme.viewport(c.Preview, preview("Dragons", d.element), UDim2.fromScale(1, 1), false)
 			Ui.asset(c.Element, "elem_" .. d.element)
-			c.Title.Text = (if d.shiny then "SHINY · " else "") .. Names.dragon(d.element) .. " · " .. Names.t(d.rarity) .. " · " .. Names.t(stage.name)
+			c.Title.Text = (if d.shiny then "SHINY · " else "")
+				.. Names.dragon(d.element)
+				.. " · "
+				.. Names.t(d.rarity)
+				.. " · "
+				.. Names.t(stage.name)
 			c.Ability.Text = if e then e.ability else ""
 			local level = d.level or 1
 			local maxed = level >= DragonConfig.MAX_LEVEL
 			local need = DragonConfig.xpForLevel(level)
 			c.XP.Fill.Size = UDim2.fromScale(if maxed then 1 else math.clamp((d.xp or 0) / need, 0, 1), 1)
-			c.XP.Text.Text = if maxed then string.format("Lv %d · MAX", level) else string.format("Lv %d · %d/%d XP", level, d.xp or 0, need)
+			c.XP.Text.Text = if maxed
+				then string.format("Lv %d · MAX", level)
+				else string.format("Lv %d · %d/%d XP", level, d.xp or 0, need)
 			c.Follow.Text = if following then "Rest" else "Follow"
-			c.Follow.Activated:Connect(function() act(if following then "unequip" else "equip", d.id) end)
+			c.Follow.Activated:Connect(function()
+				act(if following then "unequip" else "equip", d.id)
+			end)
 			c.Evolve.Visible = nextStage ~= nil
 			c.Evolve.Text = if maxed then "Evolve!" else string.format("Evolve (Lv %d)", DragonConfig.MAX_LEVEL)
-			c.Evolve.Activated:Connect(function() if nextStage then act("evolve", d.id) end end)
+			c.Evolve.Activated:Connect(function()
+				if nextStage then
+					act("evolve", d.id)
+				end
+			end)
 			local price = (EconomyConfig.DRAGON_PRICES[d.rarity] or 20) * d.stage
 			c.Sell.Text = if confirmSell == d.id then "Sure?" else "Sell " .. price
 			c.Sell.Activated:Connect(function()
-				if confirmSell == d.id then confirmSell = nil; act("sell", d.id)
-				else confirmSell = d.id; render() end
+				if confirmSell == d.id then
+					confirmSell = nil
+					act("sell", d.id)
+				else
+					confirmSell = d.id
+					render()
+				end
 			end)
 		end
 	end
 	return render
 end
 return DragonUI
-
