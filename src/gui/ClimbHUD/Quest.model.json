@@ -1,5 +1,4 @@
 {
-  "name": "Quest",
   "className": "Frame",
   "properties": {
     "Position": {
@@ -214,7 +213,7 @@
               0
             ],
             [
-              0.65,
+              0.61,
               0
             ]
           ]

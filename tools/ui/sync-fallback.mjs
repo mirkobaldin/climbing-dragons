@@ -19,7 +19,7 @@ function serialize(n){
 }
 const screens=fs.readdirSync('src/gui',{withFileTypes:true}).filter(d=>d.isDirectory()).map(d=>{
  const dir=path.join('src/gui',d.name), meta=JSON.parse(fs.readFileSync(path.join(dir,'init.meta.json')));
- return {name:d.name,className:meta.className,properties:meta.properties,children:fs.readdirSync(dir).filter(n=>n.endsWith('.model.json')).map(n=>JSON.parse(fs.readFileSync(path.join(dir,n))))};
+ return {name:d.name,className:meta.className,properties:meta.properties,children:fs.readdirSync(dir).filter(n=>n.endsWith('.model.json')).map(n=>({...JSON.parse(fs.readFileSync(path.join(dir,n))),name:n.replace('.model.json','')}))};
 });
 const result=`--!strict
 -- Generato da tools/ui/sync-fallback.mjs: modificare i modelli in src/gui.

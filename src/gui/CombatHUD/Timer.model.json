@@ -1,5 +1,4 @@
 {
-  "name": "Timer",
   "className": "TextLabel",
   "properties": {
     "Position": {

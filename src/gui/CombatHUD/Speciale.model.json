@@ -1,5 +1,4 @@
 {
-  "name": "Speciale",
   "className": "TextButton",
   "properties": {
     "Position": {
@@ -51,7 +50,8 @@
       "UiAsset": {
         "String": "btn_round_normal"
       }
-    }
+    },
+    "Visible": false
   },
   "children": [
     {

@@ -1,5 +1,4 @@
 {
-  "name": "Hint",
   "className": "TextLabel",
   "properties": {
     "Position": {

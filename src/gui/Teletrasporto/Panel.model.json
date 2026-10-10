@@ -1,5 +1,4 @@
 {
-  "name": "Panel",
   "className": "Frame",
   "properties": {
     "Position": {
@@ -260,7 +259,7 @@
           ]
         },
         "BorderSizePixel": 0,
-        "Text": "Base camp (hub)",
+        "Text": "",
         "Font": "GothamBold",
         "TextSize": 14,
         "TextColor3": {
@@ -412,6 +411,57 @@
             "TextXAlignment": "Right"
           },
           "children": []
+        },
+        {
+          "name": "Title",
+          "className": "TextLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.13,
+                  0
+                ],
+                [
+                  0.04,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.55,
+                  0
+                ],
+                [
+                  0.92,
+                  0
+                ]
+              ]
+            },
+            "BackgroundColor3": {
+              "Color3": [
+                0.10980392156862745,
+                0.13333333333333333,
+                0.18823529411764706
+              ]
+            },
+            "BorderSizePixel": 0,
+            "Text": "Base camp (hub)",
+            "Font": "GothamBold",
+            "TextSize": 13,
+            "TextColor3": {
+              "Color3": [
+                0.9411764705882353,
+                0.9411764705882353,
+                0.9490196078431372
+              ]
+            },
+            "TextWrapped": true,
+            "TextStrokeTransparency": 0.6,
+            "BackgroundTransparency": 1
+          }
         }
       ]
     },
@@ -451,7 +501,7 @@
           ]
         },
         "BorderSizePixel": 0,
-        "Text": "My camp",
+        "Text": "",
         "Font": "GothamBold",
         "TextSize": 14,
         "TextColor3": {
@@ -603,6 +653,57 @@
             "TextXAlignment": "Right"
           },
           "children": []
+        },
+        {
+          "name": "Title",
+          "className": "TextLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.13,
+                  0
+                ],
+                [
+                  0.04,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.55,
+                  0
+                ],
+                [
+                  0.92,
+                  0
+                ]
+              ]
+            },
+            "BackgroundColor3": {
+              "Color3": [
+                0.10980392156862745,
+                0.13333333333333333,
+                0.18823529411764706
+              ]
+            },
+            "BorderSizePixel": 0,
+            "Text": "My camp",
+            "Font": "GothamBold",
+            "TextSize": 13,
+            "TextColor3": {
+              "Color3": [
+                0.9411764705882353,
+                0.9411764705882353,
+                0.9490196078431372
+              ]
+            },
+            "TextWrapped": true,
+            "TextStrokeTransparency": 0.6,
+            "BackgroundTransparency": 1
+          }
         }
       ]
     },
@@ -642,7 +743,7 @@
           ]
         },
         "BorderSizePixel": 0,
-        "Text": "Dragon training",
+        "Text": "",
         "Font": "GothamBold",
         "TextSize": 14,
         "TextColor3": {
@@ -794,6 +895,57 @@
             "TextXAlignment": "Right"
           },
           "children": []
+        },
+        {
+          "name": "Title",
+          "className": "TextLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.13,
+                  0
+                ],
+                [
+                  0.04,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.55,
+                  0
+                ],
+                [
+                  0.92,
+                  0
+                ]
+              ]
+            },
+            "BackgroundColor3": {
+              "Color3": [
+                0.10980392156862745,
+                0.13333333333333333,
+                0.18823529411764706
+              ]
+            },
+            "BorderSizePixel": 0,
+            "Text": "Dragon training",
+            "Font": "GothamBold",
+            "TextSize": 13,
+            "TextColor3": {
+              "Color3": [
+                0.9411764705882353,
+                0.9411764705882353,
+                0.9490196078431372
+              ]
+            },
+            "TextWrapped": true,
+            "TextStrokeTransparency": 0.6,
+            "BackgroundTransparency": 1
+          }
         }
       ]
     },
@@ -833,7 +985,7 @@
           ]
         },
         "BorderSizePixel": 0,
-        "Text": "Muscle Beach (gym)",
+        "Text": "",
         "Font": "GothamBold",
         "TextSize": 14,
         "TextColor3": {
@@ -985,6 +1137,57 @@
             "TextXAlignment": "Right"
           },
           "children": []
+        },
+        {
+          "name": "Title",
+          "className": "TextLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.13,
+                  0
+                ],
+                [
+                  0.04,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.55,
+                  0
+                ],
+                [
+                  0.92,
+                  0
+                ]
+              ]
+            },
+            "BackgroundColor3": {
+              "Color3": [
+                0.10980392156862745,
+                0.13333333333333333,
+                0.18823529411764706
+              ]
+            },
+            "BorderSizePixel": 0,
+            "Text": "Muscle Beach (gym)",
+            "Font": "GothamBold",
+            "TextSize": 13,
+            "TextColor3": {
+              "Color3": [
+                0.9411764705882353,
+                0.9411764705882353,
+                0.9490196078431372
+              ]
+            },
+            "TextWrapped": true,
+            "TextStrokeTransparency": 0.6,
+            "BackgroundTransparency": 1
+          }
         }
       ]
     }

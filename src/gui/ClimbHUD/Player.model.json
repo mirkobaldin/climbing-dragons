@@ -1,5 +1,4 @@
 {
-  "name": "Player",
   "className": "Frame",
   "properties": {
     "Position": {
@@ -560,7 +559,8 @@
           "UiAsset": {
             "String": ""
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {

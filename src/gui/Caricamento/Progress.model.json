@@ -1,5 +1,4 @@
 {
-  "name": "Progress",
   "className": "Frame",
   "properties": {
     "Position": {
@@ -90,7 +89,7 @@
         "Size": {
           "UDim2": [
             [
-              1,
+              0,
               0
             ],
             [

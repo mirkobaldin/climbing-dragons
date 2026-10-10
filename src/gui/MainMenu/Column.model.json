@@ -1,6 +1,5 @@
 {
-  "name": "Column",
-  "className": "Frame",
+  "className": "ScrollingFrame",
   "properties": {
     "Position": {
       "UDim2": [
@@ -34,7 +33,23 @@
         0.18823529411764706
       ]
     },
-    "BackgroundTransparency": 1
+    "BackgroundTransparency": 1,
+    "CanvasSize": {
+      "UDim2": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "AutomaticCanvasSize": "Y",
+    "ScrollingDirection": "Y",
+    "ScrollBarThickness": 3,
+    "ClipsDescendants": true
   },
   "children": [
     {
@@ -56,11 +71,11 @@
         "Size": {
           "UDim2": [
             [
-              1,
+              0.94,
               0
             ],
             [
-              0.135,
+              0.25,
               0
             ]
           ]
@@ -90,7 +105,8 @@
           "UiAsset": {
             "String": "btn_secondary_normal"
           }
-        }
+        },
+        "LayoutOrder": 1
       },
       "children": [
         {
@@ -193,7 +209,7 @@
               0
             ],
             [
-              0.145,
+              0,
               0
             ]
           ]
@@ -201,11 +217,11 @@
         "Size": {
           "UDim2": [
             [
-              1,
+              0.94,
               0
             ],
             [
-              0.135,
+              0.25,
               0
             ]
           ]
@@ -235,7 +251,8 @@
           "UiAsset": {
             "String": "btn_secondary_normal"
           }
-        }
+        },
+        "LayoutOrder": 2
       },
       "children": [
         {
@@ -338,7 +355,7 @@
               0
             ],
             [
-              0.29,
+              0,
               0
             ]
           ]
@@ -346,11 +363,11 @@
         "Size": {
           "UDim2": [
             [
-              1,
+              0.94,
               0
             ],
             [
-              0.135,
+              0.25,
               0
             ]
           ]
@@ -380,7 +397,8 @@
           "UiAsset": {
             "String": "btn_secondary_normal"
           }
-        }
+        },
+        "LayoutOrder": 3
       },
       "children": [
         {
@@ -483,7 +501,7 @@
               0
             ],
             [
-              0.43499999999999994,
+              0,
               0
             ]
           ]
@@ -491,11 +509,11 @@
         "Size": {
           "UDim2": [
             [
-              1,
+              0.94,
               0
             ],
             [
-              0.135,
+              0.25,
               0
             ]
           ]
@@ -525,7 +543,8 @@
           "UiAsset": {
             "String": "btn_secondary_normal"
           }
-        }
+        },
+        "LayoutOrder": 4
       },
       "children": [
         {
@@ -628,7 +647,7 @@
               0
             ],
             [
-              0.58,
+              0,
               0
             ]
           ]
@@ -636,11 +655,11 @@
         "Size": {
           "UDim2": [
             [
-              1,
+              0.94,
               0
             ],
             [
-              0.135,
+              0.25,
               0
             ]
           ]
@@ -670,7 +689,8 @@
           "UiAsset": {
             "String": "btn_secondary_normal"
           }
-        }
+        },
+        "LayoutOrder": 5
       },
       "children": [
         {
@@ -773,7 +793,7 @@
               0
             ],
             [
-              0.725,
+              0,
               0
             ]
           ]
@@ -781,11 +801,11 @@
         "Size": {
           "UDim2": [
             [
-              1,
+              0.94,
               0
             ],
             [
-              0.135,
+              0.25,
               0
             ]
           ]
@@ -815,7 +835,8 @@
           "UiAsset": {
             "String": "btn_secondary_normal"
           }
-        }
+        },
+        "LayoutOrder": 6
       },
       "children": [
         {
@@ -879,7 +900,7 @@
               0
             ],
             [
-              0.87,
+              0,
               0
             ]
           ]
@@ -887,11 +908,11 @@
         "Size": {
           "UDim2": [
             [
-              1,
+              0.94,
               0
             ],
             [
-              0.13,
+              0.25,
               0
             ]
           ]
@@ -921,7 +942,8 @@
           "UiAsset": {
             "String": "btn_secondary_normal"
           }
-        }
+        },
+        "LayoutOrder": 0
       },
       "children": [
         {
@@ -973,6 +995,20 @@
           "children": []
         }
       ]
+    },
+    {
+      "name": "Layout",
+      "className": "UIListLayout",
+      "properties": {
+        "SortOrder": "LayoutOrder",
+        "Padding": {
+          "UDim": [
+            0,
+            4
+          ]
+        }
+      },
+      "children": []
     }
   ]
 }

@@ -1,5 +1,4 @@
 {
-  "name": "Tip",
   "className": "TextLabel",
   "properties": {
     "Position": {

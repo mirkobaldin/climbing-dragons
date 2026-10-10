@@ -114,7 +114,7 @@ UiAssets.slices = {
 	btn_round_pressed = Rect.new(127, 127, 129, 129),
 }
 function UiAssets.get(name: string): string?
- local id = (UiAssets.ids :: {[string]: string})[name]
- return if id and id ~= "" then id else nil
+	local id = (UiAssets.ids :: { [string]: string })[name]
+	return if id and id ~= "" then id else nil
 end
 return UiAssets

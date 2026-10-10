@@ -1,5 +1,4 @@
 {
-  "name": "Pet",
   "className": "Frame",
   "properties": {
     "Position": {
@@ -39,7 +38,8 @@
       "UiAsset": {
         "String": "panel_card"
       }
-    }
+    },
+    "Visible": false
   },
   "children": [
     {

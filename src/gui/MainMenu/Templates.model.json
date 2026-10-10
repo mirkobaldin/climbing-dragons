@@ -1,5 +1,4 @@
 {
-  "name": "Templates",
   "className": "Folder",
   "properties": {},
   "children": [
@@ -44,7 +43,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -233,7 +233,7 @@
             "Position": {
               "UDim2": [
                 [
-                  0.05,
+                  0.13,
                   0
                 ],
                 [
@@ -245,7 +245,7 @@
             "Size": {
               "UDim2": [
                 [
-                  0.9,
+                  0.83,
                   0
                 ],
                 [
@@ -630,6 +630,44 @@
               ]
             }
           ]
+        },
+        {
+          "name": "Coin",
+          "className": "ImageLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.04,
+                  0
+                ],
+                [
+                  0.5,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.07,
+                  0
+                ],
+                [
+                  0.15,
+                  0
+                ]
+              ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": "",
+            "ScaleType": "Fit",
+            "Attributes": {
+              "UiAsset": {
+                "String": "icon_coin"
+              }
+            }
+          }
         }
       ]
     },
@@ -674,7 +712,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -899,7 +938,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -1271,7 +1311,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -1450,7 +1491,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -1781,7 +1823,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -2526,7 +2569,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -2956,7 +3000,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -3410,7 +3455,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -3748,7 +3794,8 @@
           "UiAsset": {
             "String": "panel_card"
           }
-        }
+        },
+        "Visible": false
       },
       "children": [
         {
@@ -3889,7 +3936,8 @@
         "TextWrapped": true,
         "RichText": true,
         "TextStrokeTransparency": 0.6,
-        "TextXAlignment": "Left"
+        "TextXAlignment": "Left",
+        "Visible": false
       },
       "children": [
         {

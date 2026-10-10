@@ -1,5 +1,4 @@
 {
-  "name": "Notice",
   "className": "Frame",
   "properties": {
     "Position": {
@@ -40,7 +39,8 @@
         "String": "panel_toast"
       }
     },
-    "Visible": false
+    "Visible": false,
+    "ZIndex": 10
   },
   "children": [
     {
