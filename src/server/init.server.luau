@@ -27,6 +27,9 @@ local Unstuck = require(script.Unstuck)
 local CinematicSpots = require(script.CinematicSpots)
 local Ocean = require(script.Ocean)
 local Preflight = require(script.Preflight)
+local Upgrades = require(script.Upgrades)
+local Flyers = require(script.Flyers)
+local WorldEvents = require(script.WorldEvents)
 
 local remotes = Remotes.setup()
 Unstuck.setup() -- per primo: non deve dipendere da quello che viene dopo
@@ -213,6 +216,7 @@ Gym.setup()
 Drops.setup()
 Economy.setup()
 Survival.setup()
+Upgrades.setup() -- potenziamenti, taglie, scudo, vetta e discesa (prima di Progression: carica i salvataggi)
 Progression.setup(remotes)
 BaseCamps.setup()
 Mining.setup()
@@ -221,4 +225,6 @@ task.spawn(Tutorial.setup) -- aspetta la cartella Tutorial senza bloccare il res
 Missions.setup() -- dopo il tutorial: uovo, nido, arena, palestra, grotte, vetta
 -- (Admin.setup e' all'inizio)
 Shop.setup(remotes)
+task.spawn(Flyers.setup) -- drago selvatico e guardiano della vetta (aspettano EnemyFX)
+task.spawn(WorldEvents.setup) -- meteore, drago selvatico, grande valanga
 Preflight.setup()

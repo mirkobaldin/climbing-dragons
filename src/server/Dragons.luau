@@ -16,12 +16,13 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
+local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
 local Names = require(ReplicatedStorage.Shared.Names)
 local DragonModels = require(script.Parent.DragonModels)
 
 local Dragons = {}
 
-export type DragonData = { id: number, element: string, rarity: string, stage: number, level: number?, xp: number? }
+export type DragonData = { id: number, element: string, rarity: string, stage: number, level: number?, xp: number?, shiny: boolean? }
 export type NestEgg = { element: string, rarity: string, readyAt: number }
 export type State = {
 	dragons: { DragonData },
@@ -138,6 +139,9 @@ local function refreshPets(player: Player)
 			model:SetAttribute("DragonId", d.id)
 			model:SetAttribute("Level", d.level or 1)
 			model:SetAttribute("Slot", slot)
+			if d.shiny then
+				model:SetAttribute("Shiny", true)
+			end
 			model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 			model:PivotTo(start * CFrame.new(slot * 3, 3, 3))
 			model.Parent = folder
@@ -182,6 +186,8 @@ function Dragons.addXp(player: Player, dragonId: number, amount: number): (numbe
 	if not d then
 		return 0, 0
 	end
+	-- rinascite e draghi shiny: piu' esperienza
+	amount *= UpgradeConfig.xpMult(player) * (if d.shiny then UpgradeConfig.SHINY_XP else 1)
 	local before = d.level or 1
 	d.level = before
 	d.xp = (d.xp or 0) + amount
@@ -222,12 +228,12 @@ end
 ------------------------------------------------------------------------------------------
 -- Azioni
 
-function Dragons.give(player: Player, element: string, rarity: string, stage: number?): DragonData?
+function Dragons.give(player: Player, element: string, rarity: string, stage: number?, shiny: boolean?): DragonData?
 	local s = Dragons.state(player)
 	if #s.dragons >= DragonConfig.MAX_DRAGONS then
 		return nil
 	end
-	local d = { id = s.nextId, element = element, rarity = rarity, stage = stage or 1 }
+	local d: DragonData = { id = s.nextId, element = element, rarity = rarity, stage = stage or 1, shiny = if shiny then true else nil }
 	s.nextId += 1
 	table.insert(s.dragons, d)
 	local pets = false
@@ -341,8 +347,10 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 		if Dragons.onHatch then
 			(Dragons.onHatch :: any)(player, egg)
 		end
-		Dragons.give(player, egg.element, egg.rarity, 1)
-		return true, string.format("A %s %s hatched!", Names.t(egg.rarity), Names.dragon(egg.element))
+		-- ogni tanto nasce un drago Shiny (dorato): piu' esperienza e vale di piu'
+		local shiny = math.random() < UpgradeConfig.SHINY_CHANCE
+		Dragons.give(player, egg.element, egg.rarity, 1, shiny)
+		return true, string.format("A %s%s %s hatched!", if shiny then "SHINY " else "", Names.t(egg.rarity), Names.dragon(egg.element))
 	elseif kind == "release" or kind == "sell" then
 		local d, k = findDragon(s, tonumber(arg) or -1)
 		if not d or not k then

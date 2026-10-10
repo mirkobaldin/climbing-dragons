@@ -7,6 +7,7 @@
 --   Tuta termica     il freddo in quota consuma molto meno calore
 --   Rampino          spara una corda fino a RANGE studs: supera le pareti lisce
 --   Piccone rinforzato  estrae Rubino e minerale Cosmico
+--   Parapendio       Spazio mentre cadi: plani giu' dalla montagna (discesa a tempo dalla vetta)
 --
 -- Il giocatore possiede un attrezzo se ha l'attributo "Gear_<Id>" = true (salvato tra le
 -- partite dal server).
@@ -53,6 +54,13 @@ local RECIPES: { Recipe } = {
 		name = "Reinforced Pickaxe",
 		description = "Gold and crystal tip: mines Ruby and Cosmic ore.",
 		cost = { Oro = 6, Cristallo = 4, Ferro = 6 },
+		station = "Banco",
+	},
+	{
+		id = "Parapendio",
+		name = "Paraglider",
+		description = "Press Space while falling to open it and glide down the mountain.",
+		cost = { Ferro = 10, Cristallo = 4, Carbone = 8 },
 		station = "Banco",
 	},
 	-- Da costruire ovunque, al volo, con quello che hai nello zaino

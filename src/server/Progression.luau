@@ -20,6 +20,7 @@ local Tools = require(script.Parent.Tools)
 local Dragons = require(script.Parent.Dragons)
 local Economy = require(script.Parent.Economy)
 local Survival = require(script.Parent.Survival)
+local Upgrades = require(script.Parent.Upgrades)
 
 local Progression = {}
 
@@ -93,6 +94,7 @@ local function save(player: Player)
 		economy = Economy.serialize(player),
 		tutorial = player:GetAttribute("TutorialStep"),
 		missions = player:GetAttribute("MissionStep"),
+		upgrades = Upgrades.serialize(player), -- potenziamenti, statistiche, taglie, rinascite
 		materials = (function() -- materiali raccolti (drop dei nemici)
 			local t = {}
 			local f = player:FindFirstChild("Materiali")
@@ -134,6 +136,7 @@ local function load(player: Player)
 	local economyData: any = nil
 	local tutorial: any = nil
 	local missions: any = nil
+	local upgradeData: any = nil
 	if store then
 		local ok, data = pcall(function()
 			return (store :: DataStore):GetAsync("player_" .. player.UserId)
@@ -155,6 +158,7 @@ local function load(player: Player)
 			economyData = data.economy
 			tutorial = data.tutorial
 			missions = data.missions
+			upgradeData = data.upgrades
 			if type(data.materials) == "table" then
 				local f = Instance.new("Folder")
 				f.Name = "Materiali"
@@ -186,6 +190,7 @@ local function load(player: Player)
 	player:SetAttribute("MissionStep", if type(missions) == "number" then missions else 1)
 	Dragons.load(player, dragonData)
 	Economy.load(player, economyData)
+	Upgrades.load(player, upgradeData)
 	updateTotal(player)
 	giveTools(player)
 end

@@ -21,6 +21,9 @@ local Dragons = require(script.Parent.Dragons)
 local Drops = require(script.Parent.Drops)
 local Economy = require(script.Parent.Economy)
 local Survival = require(script.Parent.Survival)
+local Upgrades = require(script.Parent.Upgrades)
+local Flyers = require(script.Parent.Flyers)
+local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
 
 local Enemies = {}
 
@@ -41,6 +44,9 @@ type Enemy = {
 	seated: boolean?,
 	homeCF: CFrame?,
 	sleeping: boolean?, -- nessun giocatore vicino: fermo
+	baseDef: EnemyConfig.EnemyType?, -- valori senza il livello della zona (per ricomparire)
+	stunUntil: number?, -- stordito (colpo d'uncino, attacco Roccia)
+	slowUntil: number?, -- rallentato (attacco Gelo)
 }
 
 local enemies: { Enemy } = {}
@@ -89,7 +95,24 @@ end
 ------------------------------------------------------------------------------------------
 -- Modello pronto per muoversi: radice invisibile che fa da corpo fisico, la mesh saldata sopra
 
-local function build(kind: string, def: EnemyConfig.EnemyType, at: Vector3): Enemy?
+-- Piu' in alto si sale, piu' i nemici sono forti (e pagano di piu'): livello della zona
+local function zoneLevel(y: number): number
+	return 1 + math.max(0, math.floor(y / UpgradeConfig.ZONE_STEP))
+end
+
+local function scaled(def: EnemyConfig.EnemyType, level: number): EnemyConfig.EnemyType
+	local d = table.clone(def)
+	local k = level - 1
+	d.health = math.floor(def.health * (1 + UpgradeConfig.ZONE_HEALTH * k))
+	d.damage = math.floor(def.damage * (1 + UpgradeConfig.ZONE_DAMAGE * k))
+	d.coins = math.floor(def.coins * (1 + UpgradeConfig.ZONE_REWARD * k))
+	d.xp = math.floor(def.xp * (1 + UpgradeConfig.ZONE_REWARD * k))
+	d.name = string.format("Lv %d %s", level, def.name)
+	return d
+end
+
+local function build(kind: string, baseDef: EnemyConfig.EnemyType, at: Vector3): Enemy?
+	local def = scaled(baseDef, zoneLevel(at.Y))
 	local templates = ServerStorage:FindFirstChild("Nemici")
 	local template = templates and templates:FindFirstChild(kind)
 	if not template or not template:IsA("Model") then
@@ -208,6 +231,7 @@ local function build(kind: string, def: EnemyConfig.EnemyType, at: Vector3): Ene
 		tracks = { walk = load("walk", true), idle = load("idle", true), attack = load("attack", false), sit = load("sit", true) },
 		damagedBy = {},
 		dead = false,
+		baseDef = baseDef,
 	}
 	if enemy.tracks.idle then
 		(enemy.tracks.idle :: AnimationTrack):Play(0.2)
@@ -292,6 +316,11 @@ local function giveRewards(enemy: Enemy)
 				Dragons.addXp(player, d.id, math.max(1, math.floor(enemy.def.xp * share + 0.5)))
 			end
 			fxEvent:FireClient(player, "reward", enemy.root.Position, math.floor(enemy.def.coins * share + 0.5), math.floor(enemy.def.xp * share + 0.5))
+			Upgrades.addStat(player, "Kills")
+			Upgrades.addStat(player, "Kills_" .. enemy.kind)
+			if enemy.boss then
+				Upgrades.addStat(player, "BossKills")
+			end
 		end
 	end
 end
@@ -333,7 +362,7 @@ local function die(enemy: Enemy)
 		end
 		local at = spawnFor(enemy.kind)
 		if at then
-			local e = build(enemy.kind, enemy.def, at)
+			local e = build(enemy.kind, enemy.baseDef or enemy.def, at)
 			if e then
 				table.insert(enemies, e)
 				e.humanoid.Died:Connect(function()
@@ -570,6 +599,12 @@ local function think(enemy: Enemy)
 			end)
 		end
 	end
+	-- stordito: fermo dov'e'; rallentato: meta' velocita'
+	if enemy.stunUntil and os.clock() < (enemy.stunUntil :: number) then
+		enemy.humanoid:MoveTo(enemy.root.Position)
+		return
+	end
+	enemy.humanoid.WalkSpeed = if enemy.slowUntil and os.clock() < (enemy.slowUntil :: number) then enemy.def.speed * 0.5 else enemy.def.speed
 	if enemy.boss and enemy.boss.throne then
 		-- sul trono finche' nessuno si avvicina; quando torna a casa si risiede
 		local near = nearestPlayer(enemy)
@@ -701,7 +736,10 @@ function Enemies.setup()
 			return
 		end
 		lastThrow[player] = now
-		dmg *= 1.3 * (1 + ((player:GetAttribute("Forza") or 0) :: number) * 0.02)
+		-- potenziamento "Lancio": danno, portata e rimbalzi su altri nemici vicini
+		local range = UpgradeConfig.value(player, "Lancio", "range")
+		local bounces = UpgradeConfig.value(player, "Lancio", "bounces")
+		dmg *= 1.3 * UpgradeConfig.value(player, "Lancio", "mult") * (1 + ((player:GetAttribute("Forza") or 0) :: number) * 0.02)
 		local from = (root :: BasePart).Position + Vector3.new(0, 1.5, 0)
 		local d = dir.Unit
 		local best, bestAlong = nil, math.huge
@@ -710,19 +748,199 @@ function Enemies.setup()
 				local v = enemy.root.Position - from
 				local along = v:Dot(d)
 				local off = (v - d * along).Magnitude
-				if along > 0 and along < 55 and off < 4 + enemy.root.Size.X * 0.5 and along < bestAlong then
+				if along > 0 and along < range and off < 4 + enemy.root.Size.X * 0.5 and along < bestAlong then
 					best, bestAlong = enemy, along
 				end
+			end
+		end
+		-- draghi volanti sulla traiettoria
+		for _, f in Flyers.near(from + d * range * 0.5, range * 0.6) do
+			local v = Flyers.position(f) - from
+			local along = v:Dot(d)
+			if along > 0 and along < range + 20 and (v - d * along).Magnitude < 7 * f.def.scale then
+				task.delay(along / 90, Flyers.damage, f, player, dmg)
 			end
 		end
 		if best then
 			-- il colpo arriva quando la piccozza e' li' (circa 90 studs al secondo)
 			task.delay(bestAlong / 90, function()
-				if not best.dead then
-					damageEnemy(best, player, dmg)
+				if best.dead then
+					return
+				end
+				damageEnemy(best, player, dmg)
+				-- rimbalzi: la piccozza salta al nemico piu' vicino non ancora colpito
+				local hitList = { best }
+				local last = best
+				for _ = 1, bounces do
+					local nextE, nextD = nil, 30
+					for _, e in enemies do
+						if not e.dead and not table.find(hitList, e) then
+							local dd = (e.root.Position - last.root.Position).Magnitude
+							if dd < nextD then
+								nextE, nextD = e, dd
+							end
+						end
+					end
+					if not nextE then
+						break
+					end
+					fxEvent:FireAllClients("bounce", last.root.Position, nextE.root.Position)
+					task.wait(0.18)
+					damageEnemy(nextE, player, dmg * 0.7)
+					table.insert(hitList, nextE)
+					last = nextE
 				end
 			end)
 		end
+	end)
+
+	-- bersagli attorno a un punto: nemici e draghi volanti (attacchi ad area)
+	local function hitAround(player: Player, at: Vector3, radius: number, amount: number, onEnemy: ((Enemy) -> ())?): number
+		local count = 0
+		for _, enemy in table.clone(enemies) do
+			if not enemy.dead and (enemy.root.Position - at).Magnitude <= radius + enemy.root.Size.X * 0.5 then
+				if onEnemy then
+					onEnemy(enemy)
+				end
+				damageEnemy(enemy, player, amount)
+				count += 1
+			end
+		end
+		for _, f in Flyers.near(at, radius) do
+			Flyers.damage(f, player, amount)
+			count += 1
+		end
+		return count
+	end
+
+	-- colpo d'uncino: il rampino si aggancia a un nemico (potenziamento "Uncino"), il client ti
+	-- tira addosso a lui; qui danno e stordimento (quando arrivi, circa 0.5 s)
+	local strikeEvent = Instance.new("RemoteEvent")
+	strikeEvent.Name = "GrappleStrike"
+	strikeEvent.Parent = ReplicatedStorage.Remotes
+	local lastStrike: { [Player]: number } = {}
+	strikeEvent.OnServerEvent:Connect(function(player, model)
+		if typeof(model) ~= "Instance" or UpgradeConfig.level(player, "Uncino") < 1 then
+			return
+		end
+		local now = os.clock()
+		if now - (lastStrike[player] or 0) < 1.5 then
+			return
+		end
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if not root then
+			return
+		end
+		local range = UpgradeConfig.value(player, "Rampino", "range") + 25
+		local damage = UpgradeConfig.value(player, "Uncino", "damage")
+		local stun = UpgradeConfig.value(player, "Uncino", "stun")
+		for _, enemy in enemies do
+			if not enemy.dead and (model == enemy.model or model:IsDescendantOf(enemy.model)) then
+				local dist = (enemy.root.Position - (root :: BasePart).Position).Magnitude
+				if dist <= range then
+					lastStrike[player] = now
+					task.delay(math.clamp(dist / 80, 0.2, 1.2), function()
+						if not enemy.dead then
+							enemy.stunUntil = os.clock() + stun
+							damageEnemy(enemy, player, damage)
+							fxEvent:FireAllClients("stun", enemy.model, stun)
+							Upgrades.addStat(player, "AirHits")
+						end
+					end)
+				end
+				return
+			end
+		end
+		local f = Flyers.fromModel(model)
+		if f and (Flyers.position(f) - (root :: BasePart).Position).Magnitude <= range + 20 then
+			lastStrike[player] = now
+			task.delay(0.6, function()
+				Flyers.damage(f, player, damage)
+				Upgrades.addStat(player, "AirHits")
+			end)
+		end
+	end)
+
+	-- picchiata: il client avvisa quando atterra cadendo veloce; onda d'urto attorno a lui
+	local plungeEvent = Instance.new("RemoteEvent")
+	plungeEvent.Name = "Plunge"
+	plungeEvent.Parent = ReplicatedStorage.Remotes
+	local lastPlunge: { [Player]: number } = {}
+	plungeEvent.OnServerEvent:Connect(function(player, speed)
+		if type(speed) ~= "number" or speed < UpgradeConfig.PLUNGE_MIN_SPEED or UpgradeConfig.level(player, "Picchiata") < 1 then
+			return
+		end
+		local now = os.clock()
+		if now - (lastPlunge[player] or 0) < 1 then
+			return
+		end
+		lastPlunge[player] = now
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if not root then
+			return
+		end
+		-- piu' veloce cadi, piu' fa male (fino al doppio)
+		local mult = math.clamp(speed / 70, 1, 2)
+		local radius = UpgradeConfig.value(player, "Picchiata", "radius")
+		local damage = UpgradeConfig.value(player, "Picchiata", "damage") * mult
+		local at = (root :: BasePart).Position
+		fxEvent:FireAllClients("plunge", at, radius)
+		local n = hitAround(player, at, radius, damage, function(enemy)
+			enemy.stunUntil = os.clock() + 0.8
+		end)
+		if n > 0 then
+			player:SetAttribute("PlungeHit", os.clock()) -- niente danni da caduta (Survival)
+			Upgrades.addStat(player, "AirHits", n)
+		end
+	end)
+
+	-- attacco speciale del drago (tasto Z): onda del suo elemento attorno a te
+	local specialEvent = Instance.new("RemoteEvent")
+	specialEvent.Name = "DragonSpecial"
+	specialEvent.Parent = ReplicatedStorage.Remotes
+	local SP = UpgradeConfig.SPECIAL
+	specialEvent.OnServerEvent:Connect(function(player)
+		local list = Dragons.equippedDragons(player)
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if #list == 0 or not root then
+			return
+		end
+		local d = list[1]
+		local level = d.level or 1
+		local cooldown = math.max(6, SP.COOLDOWN - level * 0.1)
+		local readyAt = (player:GetAttribute("SpecialReady") or 0) :: number
+		if workspace:GetServerTimeNow() < readyAt then
+			return
+		end
+		player:SetAttribute("SpecialReady", workspace:GetServerTimeNow() + cooldown)
+		Upgrades.addStat(player, "Specials")
+		local at = (root :: BasePart).Position
+		local e = d.element
+		local radius = SP.RADIUS * (if e == "Tempesta" or e == "Fulmine" then 1.4 else 1)
+		local damage = (SP.DAMAGE + 2 * level) * (if e == "Ombra" or e == "Eclissi" or e == "Cosmico" then 1.3 else 1)
+		fxEvent:FireAllClients("special", at, radius, e, player.UserId)
+		local trainingFxRef = ReplicatedStorage.Remotes:FindFirstChild("TrainingFX") :: RemoteEvent?
+		hitAround(player, at, radius, damage, function(enemy)
+			if trainingFxRef then
+				trainingFxRef:FireAllClients("hit", player.UserId, enemy.root.Position, e, 0)
+			end
+			if e == "Gelo" then
+				enemy.slowUntil = os.clock() + 5 -- congelato: meta' velocita'
+			elseif e == "Roccia" or e == "Ossa" then
+				enemy.stunUntil = os.clock() + 2
+			elseif e == "Brace" or e == "Sole" or e == "Gas" then
+				-- brucia (o avvelena) per qualche secondo
+				task.spawn(function()
+					for _ = 1, 4 do
+						task.wait(1)
+						if enemy.dead then
+							return
+						end
+						damageEnemy(enemy, player, damage * 0.15)
+					end
+				end)
+			end
+		end)
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		lastThrow[player] = nil

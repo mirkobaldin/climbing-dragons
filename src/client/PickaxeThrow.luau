@@ -18,7 +18,11 @@ local Sfx = require(script.Parent.Sfx)
 local PickaxeThrow = {}
 
 local player = Players.LocalPlayer
-local RANGE = 55
+-- portata: potenziamento "Lancio" (55 studs senza)
+local UpgradeConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UpgradeConfig"))
+local function rangeNow(): number
+	return UpgradeConfig.value(Players.LocalPlayer, "Lancio", "range")
+end
 local SPEED = 90 -- studs al secondo (uguale al server)
 local busy = false
 
@@ -51,7 +55,7 @@ local function aimPoint(character: Model, extra: { Instance }): Vector3
 		table.insert(ignore, x)
 	end
 	params.FilterDescendantsInstances = ignore
-	local reach = (cam.CFrame.Position - character:GetPivot().Position).Magnitude + RANGE
+	local reach = (cam.CFrame.Position - character:GetPivot().Position).Magnitude + rangeNow()
 	local hit = workspace:Raycast(ray.Origin, ray.Direction * reach, params)
 	return if hit then hit.Position else ray.Origin + ray.Direction * reach
 end
@@ -161,8 +165,8 @@ local function throw()
 		table.insert(ignore, workspace.Pets)
 	end
 	params.FilterDescendantsInstances = ignore
-	local hit = workspace:Raycast(from, dir * RANGE, params)
-	local far = if hit and hit.Distance > 4 then hit.Position - dir * 1.5 else from + dir * (if hit then 4 else RANGE)
+	local hit = workspace:Raycast(from, dir * rangeNow(), params)
+	local far = if hit and hit.Distance > 4 then hit.Position - dir * 1.5 else from + dir * (if hit then 4 else rangeNow())
 	local outTime = (far - from).Magnitude / SPEED
 	local side = dir:Cross(Vector3.yAxis)
 	side = if side.Magnitude > 0.01 then side.Unit else Vector3.xAxis
@@ -264,7 +268,7 @@ function PickaxeThrow.start()
 			cross.Position = UDim2.fromOffset(p.X, p.Y)
 			-- arancione se il punto mirato e' a tiro (entro la gittata)
 			local aim = aimPoint(character :: Model, {})
-			local inRange = ((character :: Model):GetPivot().Position - aim).Magnitude <= RANGE
+			local inRange = ((character :: Model):GetPivot().Position - aim).Magnitude <= rangeNow()
 			ring.Color = if busy then Color3.fromRGB(120, 120, 120) elseif inRange then Color3.fromRGB(255, 120, 90) else Color3.new(1, 1, 1)
 		end
 	end)

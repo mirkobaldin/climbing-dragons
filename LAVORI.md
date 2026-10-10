@@ -14,3 +14,4 @@ Quando il branch e' unito in `main`, togli la riga.
 | Codex | codex/materiali-20261007 | Generazione 17 immagini di materiali e bottini con sfondo trasparente | artifacts/materiali-20261007/* |
 | Codex | codex/altari-props-20261007 | Generazione 11 altari-nido, banco crafting, scheletro gigante e arena | artifacts/altari-props-20261007/* |
 | Codex | codex/modelli-statici-20261007 | Revisione V4 Blender: piccozze decorate a 360 gradi, 24 varianti di cristalli con shader vetro/ghiaccio ed export | artifacts/modelli-statici-20261007/* |
+| Codex | codex/ui-immagini-20261010 | Set grafico UI: sfondi, pannelli, pulsanti, icone e immagini negozio; compito 2 in attesa di conferma main/file liberi | artifacts/ui-20261010/* |

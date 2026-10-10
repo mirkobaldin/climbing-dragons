@@ -26,6 +26,8 @@ local Missions = require(script.Parent.Missions)
 local Weather = require(script.Parent.Weather)
 local TrailerProps = require(script.Parent.TrailerProps)
 local Preflight = require(script.Parent.Preflight)
+local WorldEvents = require(script.Parent.WorldEvents)
+local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
 
 local Admin = {}
 
@@ -48,6 +50,9 @@ pass <FastIncubation|EggFinder|ExtraDragon|ExtraIncubator>
 god / ungod   heal   warm   pitons
 tutorial <reset|skip>
 missions <reset|skip>  le missioni dopo il tutorial
+evento [meteore|drago|valanga]   evento della mappa vicino a te (senza nome: a caso)
+upmax / upreset        tutti i potenziamenti al massimo / a zero
+materiali <n>          n di ogni drop dei nemici (pelliccia, cristallo di ghiaccio, nucleo)
 admin <nome> / unadmin <nome>   dai o togli la modalita' admin a un giocatore (resta salvata)
 admins                 chi ha la modalita' admin
 to <nome> <comando>    il comando per un altro giocatore: to Luca fly, to Luca coins 5000,
@@ -351,6 +356,30 @@ local function exec(player: Player, args: { string }): (boolean, string, string?
 			Tutorial.reset(player)
 		end
 		return true, "Tutorial " .. (args[2] or "reset"), nil
+	elseif cmd == "evento" then
+		return true, WorldEvents.run(args[2], player), nil
+	elseif cmd == "upmax" or cmd == "upreset" then
+		for _, u in UpgradeConfig.UPGRADES do
+			player:SetAttribute("Up_" .. u.id, if cmd == "upmax" then u.max else 0)
+		end
+		player:SetAttribute("Shield", UpgradeConfig.value(player, "Scudo", "hp"))
+		return true, if cmd == "upmax" then "Potenziamenti al massimo" else "Potenziamenti a zero", nil
+	elseif cmd == "materiali" then
+		local n = tonumber(args[2]) or 10
+		local f = player:FindFirstChild("Materiali") or Instance.new("Folder")
+		f.Name = "Materiali"
+		f.Parent = player
+		for _, name in { "Pelliccia_Yeti", "Cristallo_Ghiaccio", "Nucleo_Glaciale" } do
+			local v = f:FindFirstChild(name) :: IntValue?
+			if not v then
+				local nv = Instance.new("IntValue")
+				nv.Name = name
+				nv.Parent = f
+				v = nv
+			end
+			(v :: IntValue).Value += n
+		end
+		return true, "Materiali +" .. n, nil
 	elseif cmd == "missions" then
 		if args[2] == "skip" then
 			player:SetAttribute("MissionStep", ((player:GetAttribute("MissionStep") or 1) :: number) + 1)

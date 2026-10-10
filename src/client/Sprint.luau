@@ -9,6 +9,7 @@ local RunService = game:GetService("RunService")
 
 local ClimbConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ClimbConfig"))
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
+local UpgradeConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UpgradeConfig"))
 local ClientState = require(script.Parent.ClientState)
 
 local player = Players.LocalPlayer
@@ -53,13 +54,13 @@ function Sprint.start()
 		local sprinting = wantsSprint and moving and not exhausted and not ClientState.climbing
 		ClientState.sprinting = sprinting
 		if not ClientState.climbing then
-			local base = ClientState.speedOverride or ClimbConfig.WALK_SPEED
+			local base = ClientState.speedOverride or ClimbConfig.WALK_SPEED * UpgradeConfig.value(player, "Stivali", "speed") -- stivali
 			-- il drago Fulmine Nero fa correre piu' veloce
 			local bolt = if DragonConfig.hasAbility(player, "Fulmine") then 1.15 else 1
 			humanoid.WalkSpeed = if sprinting then base * bolt * ClimbConfig.SPRINT_SPEED / ClimbConfig.WALK_SPEED else base
 		end
 		if sprinting and grounded then
-			ClientState.stamina = math.max(0, ClientState.stamina - ClimbConfig.SPRINT_DRAIN / ClientState.regenBoost * dt * (1 - math.min(0.4, ((Players.LocalPlayer:GetAttribute("Resistenza") or 0) :: number) * 0.01))) -- palestra
+			ClientState.stamina = math.max(0, ClientState.stamina - ClimbConfig.SPRINT_DRAIN / ClientState.regenBoost / UpgradeConfig.value(player, "Esoscheletro", "stamina") * dt * (1 - math.min(0.4, ((Players.LocalPlayer:GetAttribute("Resistenza") or 0) :: number) * 0.01))) -- palestra
 		end
 		local camera = workspace.CurrentCamera
 		if camera then

@@ -11,6 +11,7 @@ local UserInputService = game:GetService("UserInputService")
 local Gear = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gear"))
 local ClimbConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ClimbConfig"))
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
+local UpgradeConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UpgradeConfig"))
 local ClientState = require(script.Parent.ClientState)
 local Climbing = require(script.Parent.Climbing)
 
@@ -21,6 +22,26 @@ local Grapple = {}
 local busy = false
 local lastUse = 0
 
+-- portata del rampino (potenziamento "Rampino")
+local function range(): number
+	return UpgradeConfig.value(player, "Rampino", "range")
+end
+
+-- il modello di un nemico o di un drago volante colpito dal raggio (per il colpo d'uncino)
+local function enemyOf(inst: Instance): Model?
+	for _, name in { "Nemici", "Volanti" } do
+		local f = workspace:FindFirstChild(name)
+		if f and inst:IsDescendantOf(f) then
+			local m = inst
+			while m.Parent and m.Parent ~= f do
+				m = m.Parent :: Instance
+			end
+			return if m:IsA("Model") then m else nil
+		end
+	end
+	return nil
+end
+
 local function aimRay(root: BasePart): RaycastResult?
 	local camera = workspace.CurrentCamera
 	local mouse = UserInputService:GetMouseLocation()
@@ -30,9 +51,9 @@ local function aimRay(root: BasePart): RaycastResult?
 	params.FilterDescendantsInstances = { player.Character :: Instance, camera }
 	params.IgnoreWater = true
 	-- dal punto della camera fino alla portata (misurata dal personaggio)
-	local reach = Gear.GRAPPLE_RANGE + (camera.CFrame.Position - root.Position).Magnitude
+	local reach = range() + (camera.CFrame.Position - root.Position).Magnitude
 	local result = workspace:Raycast(ray.Origin, ray.Direction * reach, params)
-	if result and (result.Position - root.Position).Magnitude <= Gear.GRAPPLE_RANGE then
+	if result and (result.Position - root.Position).Magnitude <= range() then
 		return result
 	end
 	return nil
@@ -49,7 +70,7 @@ local function fire()
 	end
 	local hit = aimRay(root)
 	if not hit then
-		ClientState.hint = "Too far for the Grappling Hook (max " .. Gear.GRAPPLE_RANGE .. ")"
+		ClientState.hint = "Too far for the Grappling Hook (max " .. range() .. ")"
 		return
 	end
 	busy = true
@@ -104,9 +125,25 @@ local function fire()
 	humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
 
 	local target = hit.Position + hit.Normal * 2.5
+	-- colpo d'uncino: agganciato a un nemico (o a un drago volante) ti tira addosso a lui
+	local foe = if UpgradeConfig.level(player, "Uncino") >= 1 then enemyOf(hit.Instance) else nil
+	if foe then
+		local strike = ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("GrappleStrike") :: RemoteEvent?
+		if strike then
+			strike:FireServer(foe)
+		end
+	end
 	local started = os.clock()
 	local conn: RBXScriptConnection
 	conn = RunService.Heartbeat:Connect(function()
+		if foe and foe.Parent then
+			-- il nemico si muove: si punta davanti a lui
+			local p = (foe :: Model):GetPivot().Position
+			local toMe = root.Position - p
+			toMe = if toMe.Magnitude > 0.1 then toMe.Unit else Vector3.yAxis
+			target = p + toMe * 5
+			anchor.CFrame = CFrame.new(p)
+		end
 		local offset = target - root.Position
 		local done = offset.Magnitude < 3.5 or os.clock() - started > 4 or humanoid.Health <= 0
 		if done then
@@ -118,8 +155,10 @@ local function fire()
 			end
 			root.AssemblyLinearVelocity = Vector3.zero
 			ClientState.noFallUntil = os.clock() + 2
-			if not Climbing.grabNearest() then
-				ClientState.hint = "Agganciato!"
+			if foe then
+				ClientState.hint = "Grapple Strike!"
+			elseif not Climbing.grabNearest() then
+				ClientState.hint = "Hooked!"
 			end
 			busy = false
 			return

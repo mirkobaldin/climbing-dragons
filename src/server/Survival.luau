@@ -9,8 +9,12 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
+local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
 
 local Survival = {}
+
+-- scudo di ghiaccio (lo imposta Upgrades): restituisce il danno che resta dopo lo scudo
+Survival.absorb = nil :: ((Player, number) -> number)?
 
 local SAFE_SPEED = 78 -- sotto questa velocita' d'impatto non ti fai niente (~15 studs di caduta)
 local DAMAGE_PER_SPEED = 0.72 -- mortale da ~120 studs (prima ~90)
@@ -25,6 +29,12 @@ function Survival.damage(humanoid: Humanoid, amount: number, cause: string)
 	local player = Players:GetPlayerFromCharacter(humanoid.Parent)
 	if player then
 		Survival.setCause(player, cause)
+		if Survival.absorb then
+			amount = (Survival.absorb :: any)(player, amount)
+		end
+	end
+	if amount <= 0 then
+		return
 	end
 	humanoid:TakeDamage(amount)
 end
@@ -42,6 +52,11 @@ local function onFall(player: Player, speed: any, meters: any)
 	local dmg = (speed - SAFE_SPEED) * DAMAGE_PER_SPEED
 	if DragonConfig.hasAbility(player, "Ombra") then
 		dmg *= 0.5 -- il drago Ombra attutisce le cadute
+	end
+	-- esoscheletro: meno danni; picchiata andata a segno sui nemici: nessun danno
+	dmg *= 1 - UpgradeConfig.value(player, "Esoscheletro", "fall")
+	if os.clock() - ((player:GetAttribute("PlungeHit") or 0) :: number) < 1.5 then
+		dmg = 0
 	end
 	if dmg > 0 then
 		Survival.damage(humanoid, dmg, string.format("Fell %d meters", math.floor(math.clamp(meters, 0, 5000))))

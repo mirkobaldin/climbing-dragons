@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local ClientState = require(script.Parent.ClientState)
+local UpgradeConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UpgradeConfig"))
 
 local player = Players.LocalPlayer
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
@@ -54,6 +55,14 @@ function FallDamage.start()
 		elseif falling then
 			falling = false
 			local inWater = humanoid.FloorMaterial == Enum.Material.Water or humanoid:GetState() == Enum.HumanoidStateType.Swimming
+			-- picchiata (potenziamento): atterrando veloce fai un'onda d'urto sui nemici; va
+			-- mandata prima del danno da caduta, cosi' il server sa se annullarlo
+			if not inWater and peak >= UpgradeConfig.PLUNGE_MIN_SPEED and UpgradeConfig.level(player, "Picchiata") >= 1 then
+				local plunge = remotes:FindFirstChild("Plunge") :: RemoteEvent?
+				if plunge then
+					plunge:FireServer(peak)
+				end
+			end
 			if not inWater and peak > 60 then
 				local fallDamage = remotes:FindFirstChild("FallDamage") :: RemoteEvent?
 				if fallDamage then

@@ -37,6 +37,12 @@ uova e draghi familiari. Il codice e' sincronizzato in Studio con **Rojo** (`def
 - Dopo il tutorial ci sono le missioni (`src/server/Missions.luau`, attributi MissionStep/MissionText,
   salvate da Progression): uovo, nido, schiusa, arena, palestra, minerali nelle grotte, vetta. Frecce e
   segnale con la distanza: attributi GuideTarget/GuideLabel, disegnati da `client/Guide`.
+- Combattimento e progressione: valori in `src/shared/UpgradeConfig.luau` (potenziamenti `Up_<id>`,
+  taglie, sfida del giorno, rinascita, livelli dei nemici per quota, eventi, draghi volanti, shiny).
+  Server: `Upgrades` (acquisti, statistiche, scudo, vetta, discesa a tempo, salvataggio dentro
+  Progression), `Flyers` (drago selvatico e Guardiano della vetta: il client li muove dagli
+  attributi del volo), `WorldEvents` (meteore, drago, grande valanga; admin `evento`), attacchi in
+  `Enemies` (uncino, picchiata, speciale Z, rimbalzi). Client: `Combat`, `Glider`, `UpgradeUI` (tasto U).
 - Admin: il proprietario da' la modalita' admin con `admin <nome>` (DataStore "AdminConcessi"), ogni admin
   fa comandi per altri con `to <nome> <comando>` (l'azione arriva al client col RemoteEvent AdminAction).
 - Zaino: tasto I (anche V), con minerali, drop dei nemici (icone da ReplicatedStorage.DropIcone) e attrezzi.

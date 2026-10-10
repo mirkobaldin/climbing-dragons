@@ -17,6 +17,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 local Names = require(ReplicatedStorage.Shared.Names)
 local EconomyConfig = require(ReplicatedStorage.Shared.EconomyConfig)
+local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
 local DragonModels = require(script.Parent.DragonModels)
 local Dragons = require(script.Parent.Dragons)
 
@@ -68,6 +69,9 @@ end
 
 function Economy.addCoins(player: Player, amount: number)
 	local s = state(player)
+	if amount > 0 then
+		amount = math.floor(amount * UpgradeConfig.coinMult(player) + 0.5) -- bonus delle rinascite
+	end
 	s.coins = math.max(0, s.coins + amount)
 	publish(player)
 end
@@ -415,7 +419,7 @@ function Economy.setup()
 
 	-- vendere un drago dal menu Draghi
 	Dragons.onSell = function(player: Player, d: any)
-		local value = (EconomyConfig.DRAGON_PRICES[d.rarity] or 20) * d.stage
+		local value = (EconomyConfig.DRAGON_PRICES[d.rarity] or 20) * d.stage * (if d.shiny then UpgradeConfig.SHINY_VALUE else 1)
 		Economy.addCoins(player, value)
 		return value
 	end

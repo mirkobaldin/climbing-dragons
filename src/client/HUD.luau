@@ -157,11 +157,19 @@ function HUD.start()
 	nameLabel.Size = UDim2.new(1, 0, 0, 16)
 	local _, healthFill, healthText = bar(stack, Color3.fromRGB(220, 60, 60), 16)
 	local staminaBack, staminaFill, staminaText = bar(stack, Color3.fromRGB(120, 200, 110), 14)
+	-- scudo di ghiaccio (potenziamento): compare quando ce l'hai e la scheda si allunga
+	local shieldBack, shieldFill, shieldText = bar(stack, Color3.fromRGB(120, 200, 255), 12)
+	shieldBack.Visible = false
 
 	-- Statistiche del drago al seguito, sempre a schermo sotto la scheda del giocatore (spostata a
 	-- destra della colonna dei pulsanti, che sul telefono sale fin qui)
 	local pet = card(gui)
 	pet.Position = UDim2.new(0, 88, 0, 86)
+	local function shieldLayout(on: boolean)
+		shieldBack.Visible = on
+		me.Size = UDim2.new(0, 250, 0, if on then 90 else 74)
+		pet.Position = UDim2.new(0, 88, 0, if on then 102 else 86)
+	end
 	pet.Size = UDim2.new(0, 172, 0, 0)
 	pet.Visible = false
 	Theme.padding(pet, 8)
@@ -289,6 +297,15 @@ function HUD.start()
 			elseif ratio > 0.2 then Color3.fromRGB(230, 190, 70)
 			else Color3.fromRGB(220, 70, 60)
 		staminaText.Text = string.format("%d%%  ·  %d pitons", math.floor(ratio * 100), player:GetAttribute("Pitons") or 0)
+		local shieldMax = (player:GetAttribute("ShieldMax") or 0) :: number
+		if (shieldMax > 0) ~= shieldBack.Visible then
+			shieldLayout(shieldMax > 0)
+		end
+		if shieldMax > 0 then
+			local sh = (player:GetAttribute("Shield") or 0) :: number
+			shieldFill.Size = UDim2.new(math.clamp(sh / shieldMax, 0, 1), 0, 1, 0)
+			shieldText.Text = string.format("Shield %d", sh)
+		end
 
 		-- ora, meteo, quota, calore
 		local t = Lighting.ClockTime

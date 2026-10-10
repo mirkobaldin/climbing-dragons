@@ -1,9 +1,9 @@
 --!strict
 -- Menu principale: una colonna di pulsanti grandi a sinistra (a meta' schermo, lontana dal
 -- joystick e dal tasto salto del telefono) e una finestra con le schede:
---   Negozio (compra / vendi / Robux) · Zaino · Draghi · Crafting
+--   Negozio (compra / vendi / Robux) · Zaino · Draghi · Crafting · Potenziamenti (taglie, rinascita)
 -- La finestra si adatta allo schermo (anche telefono in verticale) e non copre tutto.
--- Tasti: B negozio, I zaino (anche V), G draghi, N crafting. Si apre anche dall'emporio, dal nido e
+-- Tasti: B negozio, I zaino (anche V), G draghi, N crafting, U potenziamenti. Si apre anche dall'emporio, dal nido e
 -- dal banco da lavoro.
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -17,6 +17,7 @@ local Gear = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gear
 local ShopConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ShopConfig"))
 local CraftingUI = require(script.Parent.CraftingUI)
 local DragonUI = require(script.Parent.DragonUI)
+local UpgradeUI = require(script.Parent.UpgradeUI)
 local Theme = require(script.Parent.Theme)
 
 local player = Players.LocalPlayer
@@ -354,13 +355,13 @@ function MainMenu.start()
 	local column = Theme.frame(gui, nil, 1)
 	column.AnchorPoint = Vector2.new(0, 0.5)
 	column.Position = UDim2.new(0, 10, 0.46, 0)
-	column.Size = UDim2.new(0, 70, 0, 4 * 78)
+	column.Size = UDim2.new(0, 70, 0, 5 * 78)
 	Theme.list(column, 8)
 	-- "Hide": nasconde e rimostra la colonna (resta solo questo pulsantino)
 	local hideBtn = Instance.new("TextButton")
 	hideBtn.Name = "NascondiIcone"
 	hideBtn.AnchorPoint = Vector2.new(0, 0)
-	hideBtn.Position = UDim2.new(0, 10, 0.46, (4 * 78) / 2 + 4) -- sotto la colonna
+	hideBtn.Position = UDim2.new(0, 10, 0.46, (5 * 78) / 2 + 4) -- sotto la colonna
 	hideBtn.Size = UDim2.new(0, 70, 0, 26)
 	hideBtn.BackgroundColor3 = Theme.BG
 	hideBtn.BackgroundTransparency = 0.2
@@ -421,6 +422,9 @@ function MainMenu.start()
 		{ name = "Crafting", key = Enum.KeyCode.N, icon = function()
 			return Theme.itemModel("Pitons", Color3.fromRGB(170, 174, 180))
 		end },
+		{ name = "Upgrades", key = Enum.KeyCode.U, icon = function()
+			return Theme.itemModel("Rampino", Color3.fromRGB(196, 150, 80))
+		end },
 	}
 	local current: Tab? = nil
 
@@ -449,6 +453,8 @@ function MainMenu.start()
 				tab.refresh = mountInventory(f)
 			elseif tab.name == "Dragons" then
 				tab.refresh = DragonUI.mount(f, status)
+			elseif tab.name == "Upgrades" then
+				tab.refresh = UpgradeUI.mount(f, status)
 			else
 				tab.refresh = CraftingUI.mount(f, status)
 			end

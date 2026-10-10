@@ -29,6 +29,7 @@ local ClimbConfig = require(Shared:WaitForChild("ClimbConfig"))
 local Gear = require(Shared:WaitForChild("Gear"))
 local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
 local ClimbPoses = require(Shared:WaitForChild("ClimbPoses"))
+local UpgradeConfig = require(Shared:WaitForChild("UpgradeConfig"))
 local ClimbAnimator = require(script.Parent.ClimbAnimator)
 local ClimbIK = require(script.Parent.ClimbIK)
 local ClimbFeel = require(script.Parent.ClimbFeel)
@@ -766,6 +767,8 @@ local function climbStep(dt: number)
 	drain *= 1 + 2.4 * roofness
 	-- palestra: ogni livello Fitness toglie l'1% di fatica (fino al 40%)
 	drain *= 1 - math.min(0.4, ((game:GetService("Players").LocalPlayer:GetAttribute("Resistenza") or 0) :: number) * 0.01)
+	-- esoscheletro: la stamina dura di piu'
+	drain /= UpgradeConfig.value(player, "Esoscheletro", "stamina")
 	ClientState.stamina = math.max(0, ClientState.stamina - drain * dt)
 	if ClientState.stamina <= 0 then
 		ClientState.hint = "You're exhausted! Rest on the ground or hang on the rope."

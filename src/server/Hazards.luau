@@ -205,6 +205,26 @@ local function mountainEvent()
 	end
 end
 
+-- Grande valanga (evento della mappa, server/WorldEvents): tre ondate larghe sopra "target".
+-- Restituisce false se sopra non c'e' pendio.
+function Hazards.bigAvalanche(target: Vector3): boolean
+	local start, downhill = upslopeOf(target)
+	if not start then
+		return false
+	end
+	local across = Vector3.new(-downhill.Z, 0, downhill.X)
+	for wave = 1, 3 do
+		for k = 1, 22 do
+			local lateral = (k / 22 - 0.5) * 110
+			local pos = (start :: Vector3) + across * lateral + Vector3.new(0, wave * 8 + math.random() * 6, 0)
+			rollingBall(pos, 7 + math.random() * 9, downhill * (34 + wave * 4) + Vector3.new(0, -10, 0), true, 18)
+			task.wait(0.05)
+		end
+		task.wait(1.6)
+	end
+	return true
+end
+
 function Hazards.setup(remotes: { [string]: RemoteEvent })
 	knockback = remotes.Knockback
 	task.spawn(function()

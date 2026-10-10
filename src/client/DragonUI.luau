@@ -143,7 +143,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			Theme.viewport(card, preview("Dragons", d.element), UDim2.new(0, 84, 0, 84), false).Position = UDim2.new(0, 6, 0, 6)
 			local t = Theme.label(
 				card,
-				string.format('%s  <font color="%s">%s</font>  <font color="#A5AAB6">%s</font>', Names.dragon(d.element), hex(r.color), Names.t(d.rarity), Names.t(stage.name)),
+				string.format('%s%s  <font color="%s">%s</font>  <font color="#A5AAB6">%s</font>', if d.shiny then '<font color="#FFD86E">✨ SHINY</font> ' else '', Names.dragon(d.element), hex(r.color), Names.t(d.rarity), Names.t(stage.name)),
 				14,
 				Theme.TEXT,
 				true

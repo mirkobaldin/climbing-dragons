@@ -3,6 +3,8 @@
 -- ghiaccio). Modelli in ServerStorage.Nemici, rig per l'Animation Editor in Workspace.RigNemici,
 -- animazioni generate da MapGen.AnimNemici (nemico-cammina, nemico-fermo, nemico-attacco).
 
+local ClimbConfig = require(script.Parent.ClimbConfig)
+
 local EnemyConfig = {}
 
 export type EnemyType = {
@@ -80,7 +82,9 @@ EnemyConfig.BOSSES = {
 } :: { Boss }
 
 -- Danno dei tuoi colpi (click con l'attrezzo in mano vicino al nemico)
-EnemyConfig.PLAYER_DAMAGE = { Piccozza = 22, Piccone = 16 }
+-- (per nome del Tool: prima erano "Piccozza"/"Piccone" e dopo i nomi in inglese i colpi non
+-- facevano piu' danno)
+EnemyConfig.PLAYER_DAMAGE = { [ClimbConfig.TOOL_NAME] = 22, [ClimbConfig.PICKAXE_NAME] = 16 } :: { [string]: number }
 EnemyConfig.PLAYER_REACH = 11
 EnemyConfig.PLAYER_COOLDOWN = 0.55
 -- Il drago al seguito aiuta: un colpo ogni DRAGON_EVERY secondi (danno + 0.15 per livello)
