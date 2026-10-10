@@ -669,6 +669,10 @@ local function startAim(event: RemoteEvent)
 			lockRing.Size = UDim2.fromOffset(s, s)
 		end
 	end)
+	-- Il comando touch in StarterGui richiama lo stesso colpo (mira, effetti e statistiche).
+	TrainingFX.shoot = function()
+		if on then shoot() end
+	end
 	UserInputService.InputChanged:Connect(function(input)
 		if on and input.UserInputType == Enum.UserInputType.MouseMovement then
 			yaw -= input.Delta.X * 0.0045
