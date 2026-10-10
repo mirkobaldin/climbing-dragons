@@ -1,0 +1,46 @@
+{
+  "name": "Title",
+  "className": "TextLabel",
+  "properties": {
+    "Position": {
+      "UDim2": [
+        [
+          0.1,
+          0
+        ],
+        [
+          0.15,
+          0
+        ]
+      ]
+    },
+    "Size": {
+      "UDim2": [
+        [
+          0.8,
+          0
+        ],
+        [
+          0.16,
+          0
+        ]
+      ]
+    },
+    "BackgroundTransparency": 1,
+    "Text": "Climbing & Dragons",
+    "Font": "GothamBlack",
+    "TextSize": 40,
+    "TextColor3": {
+      "Color3": [
+        0.9411764705882353,
+        0.9411764705882353,
+        0.9490196078431372
+      ]
+    },
+    "TextWrapped": true,
+    "RichText": true,
+    "TextStrokeTransparency": 0.6,
+    "TextXAlignment": "Center"
+  },
+  "children": []
+}

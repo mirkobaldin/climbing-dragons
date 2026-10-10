@@ -1,0 +1,75 @@
+{
+  "name": "Background",
+  "className": "Frame",
+  "properties": {
+    "Position": {
+      "UDim2": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "Size": {
+      "UDim2": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    "BorderSizePixel": 0,
+    "BackgroundColor3": {
+      "Color3": [
+        0.10980392156862745,
+        0.13333333333333333,
+        0.18823529411764706
+      ]
+    },
+    "BackgroundTransparency": 0.08,
+    "Attributes": {
+      "UiAsset": {
+        "String": "bg_loading"
+      }
+    }
+  },
+  "children": [
+    {
+      "name": "Corner",
+      "className": "UICorner",
+      "properties": {
+        "CornerRadius": {
+          "UDim": [
+            0,
+            10
+          ]
+        }
+      },
+      "children": []
+    },
+    {
+      "name": "Stroke",
+      "className": "UIStroke",
+      "properties": {
+        "Color": {
+          "Color3": [
+            1,
+            0.7686274509803922,
+            0.3137254901960784
+          ]
+        },
+        "Thickness": 1,
+        "Transparency": 0.65
+      },
+      "children": []
+    }
+  ]
+}

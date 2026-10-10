@@ -32,6 +32,10 @@
         }
       }
     },
+    "StarterGui": {
+      "$path": "src/gui",
+      "$ignoreUnknownInstances": true
+    },
     "Workspace": {
       "$properties": {
         "FilteringEnabled": true,
