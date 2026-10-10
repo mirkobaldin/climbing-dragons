@@ -34,7 +34,7 @@ local function attach(obj: Instance)
 end
 
 local function watch(gui: Instance)
-	if not gui:IsA("ScreenGui") or not ONLY[gui.Name] then
+	if not gui:IsA("ScreenGui") or not ONLY[gui.Name] or gui:GetAttribute("ResponsiveUI") then
 		return
 	end
 	for _, c in gui:GetChildren() do
