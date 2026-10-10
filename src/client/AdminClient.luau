@@ -180,10 +180,14 @@ function AdminClient.start()
 	local row = Instance.new("Frame")
 	row.Name = "Riga"
 	row.AnchorPoint = Vector2.new(1, 0)
-	row.Position = UDim2.new(1, -12, 0, 170) -- sotto il riquadro dell'ora
-	row.Size = UDim2.fromOffset(190, 40)
+	row.Position = UDim2.new(1, -16, 0, 176) -- sotto il riquadro dell'ora (stessa scala dell'HUD)
+	row.Size = UDim2.fromOffset(200, 42)
 	row.BackgroundTransparency = 1
 	row.Parent = buttons
+	local UiV = require(game:GetService("ReplicatedStorage").Shared.UiView) :: any
+	UiV.viewportChanged(function(vp)
+		UiV.fitScale(buttons, vp)
+	end)
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Horizontal
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
@@ -203,6 +207,10 @@ function AdminClient.start()
 		corner.CornerRadius = UDim.new(0, 8)
 		corner.Parent = b
 		b.Parent = row
+		-- stesso stile dei pulsanti dell'interfaccia (immagini)
+		local Ui = require(game:GetService("ReplicatedStorage").Shared.UiView) :: any
+		b:SetAttribute("UiAsset", if info[1] == "Admin" then "btn_secondary_normal" else "btn_primary_normal")
+		Ui.skin(b, b:GetAttribute("UiAsset"))
 		b.Activated:Connect(function()
 			if info[1] == "Admin" then
 				if gui.Enabled then

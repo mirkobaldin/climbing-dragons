@@ -519,14 +519,19 @@ function Combat.start()
 	spBtn.Activated:Connect(special)
 	local timer = Ui.node(gui, "Timer")
 	local eventLabel = Ui.node(gui, "Event")
+	-- pulsante dello speciale in basso a destra (sul telefono sopra il tasto salto); cronometro
+	-- e evento in alto al centro sotto la missione (prima stavano in mezzo allo schermo)
+	Ui.text(timer, 26, true)
+	Ui.text(eventLabel, 18, true)
 	Ui.viewportChanged(function(vp)
-		local portrait = vp.X < vp.Y
-		spBtn.Position = UDim2.fromScale(if portrait then .31 else .66, if portrait then .64 else .42)
-		spBtn.Size = UDim2.fromScale(50 / vp.X, 50 / vp.Y)
-		timer.Position = UDim2.fromScale(if portrait then .15 else .4, if portrait then .565 else .57)
-		timer.Size = UDim2.fromScale(if portrait then .7 else .38, if portrait then .035 else .055)
-		eventLabel.Position = UDim2.fromScale(if portrait then .15 else .4, if portrait then .607 else .64)
-		eventLabel.Size = UDim2.fromScale(if portrait then .7 else .38, if portrait then .026 else .05)
+		local logical = Ui.fitScale(gui, vp)
+		if UserInputService.TouchEnabled then
+			Ui.px(spBtn, 1, -120, 1, -170, 72, 72, 1, 1)
+		else
+			Ui.px(spBtn, 1, -24, 1, -24, 76, 76, 1, 1)
+		end
+		Ui.px(timer, 0.5, 0, 0, 190, math.min(520, logical.X - 32), 34, 0.5, 0)
+		Ui.px(eventLabel, 0.5, 0, 0, 228, math.min(620, logical.X - 32), 28, 0.5, 0)
 	end)
 
 	local accum = 0

@@ -212,8 +212,63 @@ end
 function MainMenu.start()
 	local gui = Ui.screen("MainMenu")
 	local column, window = Ui.node(gui, "Column"), Ui.node(gui, "Window")
-	column.Teleport.Text = if UIS.TouchEnabled then "Teleport" else "Teleport (T)"
+	-- colonna del menu: pulsanti tondi a icona (prima pillole lunghe in una lista a scorrimento)
+	column.ScrollingEnabled = false
+	column.ScrollBarThickness = 0
+	-- griglia: una colonna se c'e' spazio, altrimenti due o tre (schermi bassi)
+	local list = column:FindFirstChildOfClass("UIListLayout")
+	if list then
+		list:Destroy()
+	end
+	local grid = Instance.new("UIGridLayout")
+	grid.CellSize = UDim2.fromOffset(78, 78)
+	grid.CellPadding = UDim2.fromOffset(8, 8)
+	grid.SortOrder = Enum.SortOrder.LayoutOrder
+	grid.FillDirection = Enum.FillDirection.Horizontal
+	grid.Parent = column
+	for k, n in { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" } do
+		column[n].LayoutOrder = k
+	end
+	column.NascondiIcone.Visible = false
+	if not column.Teleport:FindFirstChild("Icon") then
+		local icon = column.Store.Icon:Clone()
+		icon.Parent = column.Teleport
+		Ui.asset(icon, "icon_teleport")
+	end
+	for _, n in { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" } do
+		local btn = column[n]
+		btn:SetAttribute("UiAsset", "btn_round_normal")
+		Ui.skin(btn, "btn_round_normal")
+		btn.TextSize = 12
+		btn.TextScaled = false
+		btn.Size = UDim2.fromOffset(78, 78)
+		local icon = btn:FindFirstChild("Icon")
+		if icon then
+			icon.AnchorPoint = Vector2.new(0.5, 0)
+			icon.Position = UDim2.fromScale(0.5, 0.12)
+			icon.Size = UDim2.fromScale(0.56, 0.56)
+			icon.ZIndex = 3
+		end
+		local caption = btn:FindFirstChild("AssetCaption")
+		if caption then
+			caption.Position = UDim2.fromScale(0, 0.7)
+			caption.Size = UDim2.fromScale(1, 0.26)
+			caption.TextScaled = false
+			caption.TextSize = 13
+			caption.Font = Enum.Font.GothamBlack
+			caption.TextXAlignment = Enum.TextXAlignment.Center
+			caption.ZIndex = 4
+		end
+	end
+	column.Teleport.Text = if UIS.TouchEnabled then "Travel" else "Travel (T)"
 	local content = window.Content
+	-- pulsanti delle sotto-schede (Buy / Sell, Upgrades / Bounties...) con testo leggibile
+	for _, d in content:GetDescendants() do
+		if d:IsA("TextButton") and d.Parent and d.Parent.Name == "Tabs" then
+			Ui.text(d, 18, true)
+		end
+	end
+	Ui.text(window.Title, 24, true)
 	Ui.skin(window.Title, "panel_header")
 	local function status(message: string, ok: boolean)
 		window.Status.Text = message
@@ -284,14 +339,19 @@ function MainMenu.start()
 		local portrait = vp.X < vp.Y
 		window.Position = UDim2.fromScale(if portrait then 0.5 else 0.56, 0.5)
 		window.Size = UDim2.fromScale(if portrait then 0.97 else 0.83, 0.9)
-		local top = if portrait then 0.43 else 0.33
-		local height = math.max(48, math.min(364, vp.Y - 170 - top * vp.Y))
-		column.Position = UDim2.fromScale(0.01, top)
-		column.Size = UDim2.fromScale(if portrait then 0.22 else 0.13, height / vp.Y)
-		for _, child in column:GetChildren() do
-			if child:IsA("GuiButton") then
-				child.Size = UDim2.fromScale(0.94, 48 / height)
-			end
+		-- stessa scala dell'HUD; la colonna sotto il pannello del drago (attributo LeftBottom)
+		local logical = Ui.fitScale(gui, vp)
+		local hud = player.PlayerGui:FindFirstChild("ClimbHUD")
+		local function place()
+			local top = ((hud and hud:GetAttribute("LeftBottom")) or 300) :: number
+			local rows = math.clamp(math.floor((logical.Y - top - 16 + 8) / 86), 1, 6)
+			local cols = math.ceil(6 / rows)
+			Ui.px(column, 0, 16, 0, top, cols * 86, math.ceil(6 / cols) * 86)
+		end
+		place()
+		if hud and not hud:GetAttribute("MenuBound") then
+			hud:SetAttribute("MenuBound", true)
+			hud:GetAttributeChangedSignal("LeftBottom"):Connect(place)
 		end
 		local body = content.Dragons.Body
 		body.Nest.Position = UDim2.fromScale(0, 0)

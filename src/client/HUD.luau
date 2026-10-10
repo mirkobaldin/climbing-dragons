@@ -46,7 +46,7 @@ function HUD.start()
 	local shieldBack, shieldFill, shieldText = me.Shield, me.Shield.Fill, me.Shield.Text
 	local petName, petLevel, petXpFill, petXpText, petStats =
 		Ui.node(pet, "Name"), pet.Level, pet.XP.Fill, pet.XP.Text, pet.Stats
-	local function shieldLayout(on: boolean)
+	local shieldLayout: (boolean) -> () = function(on: boolean)
 		shieldBack.Visible = on
 	end
 	local questTitle, questText, skip = quest.Title, quest.Text, quest.Skip
@@ -73,23 +73,99 @@ function HUD.start()
 		end)
 	end
 	player:GetAttributeChangedSignal("NoticeTime"):Connect(showNotice)
+	-- Impaginazione in pixel logici (UiView.fitScale adatta tutto allo schermo). A sinistra in
+	-- colonna: giocatore, monete, drago (poi i pulsanti del menu); a destra il meteo; in alto al
+	-- centro la missione e sotto gli avvisi. Prima le misure erano in percentuale dello schermo
+	-- e i testi minuscoli uscivano dai riquadri.
+	local P = Ui.px
+	local shieldOn = false
+	local function layoutPlayer()
+		local h = if shieldOn then 132 else 114
+		P(me, 0, 16, 0, 16, 340, h)
+		P(Ui.node(me, "Name"), 0, 62, 0, 14, 262, 22)
+		P(me.HealthIcon, 0, 22, 0, 42, 30, 30)
+		P(me.Health, 0, 62, 0, 44, 258, 26)
+		P(me.StaminaIcon, 0, 24, 0, 76, 26, 26)
+		P(me.Stamina, 0, 62, 0, 78, 258, 20)
+		P(me.Shield, 0, 62, 0, 104, 258, 14)
+		local y = 16 + h + 8
+		P(coins, 0, 16, 0, y, 340, 50)
+		P(pet, 0, 16, 0, y + 58, 340, 96)
+		gui:SetAttribute("LeftBottom", y + 58 + (if pet.Visible then 96 else 0) + 10)
+	end
+	shieldLayout = function(on: boolean)
+		shieldOn = on
+		shieldBack.Visible = on
+		layoutPlayer()
+	end
+	-- testi: grandi e dentro i riquadri
+	Ui.text(Ui.node(me, "Name"), 18, true)
+	Ui.text(healthText, 15, true)
+	Ui.text(staminaText, 13, true)
+	Ui.text(shieldText, 10, true)
+	Ui.text(coinText, 24, true)
+	Ui.text(pitonText, 24, true)
+	P(coins.Icon, 0, 14, 0, 8, 34, 34)
+	P(coinText, 0, 56, 0, 0, 120, 50)
+	P(coins.PitonIcon, 0, 186, 0, 8, 34, 34)
+	P(pitonText, 0, 226, 0, 0, 100, 50)
+	Ui.text(petName, 17, true)
+	Ui.text(petLevel, 14)
+	Ui.text(petXpText, 12, true)
+	petStats.Visible = false -- l'attacco va nella riga del livello
+	P(pet.Element, 0, 16, 0, 12, 44, 44)
+	P(petName, 0, 70, 0, 10, 254, 22)
+	P(petLevel, 0, 70, 0, 34, 254, 20)
+	P(pet.XP, 0, 18, 0, 62, 304, 18)
+	Ui.text(weatherFallback, 30)
+	Ui.text(timeBig, 32, true)
+	Ui.text(clock, 16)
+	Ui.text(altitude, 17, true)
+	Ui.text(warmthText, 13, true)
+	Ui.text(finder, 13, true)
+	gearLabel.Visible = false -- l'elenco degli attrezzi era illeggibile: sta nello zaino
+	for _, l in { timeBig, clock, altitude } do
+		(l :: TextLabel).TextXAlignment = Enum.TextXAlignment.Left
+	end
+	Ui.text(questTitle, 19, true)
+	Ui.text(questText, 15)
+	Ui.text(skip, 13, true)
+	Ui.text(noticePanel.Text, 17, true)
+	Ui.text(hint, 19, true)
+	local function layoutWeather()
+		local h = if finder.Visible then 186 else 148
+		P(info, 1, -16, 0, 16, 252, h, 1, 0)
+		P(weatherIcon, 0, 16, 0, 16, 58, 58)
+		P(weatherFallback, 0, 16, 0, 16, 58, 58)
+		P(timeBig, 0, 88, 0, 14, 148, 34)
+		P(clock, 0, 88, 0, 50, 148, 20)
+		P(altitude, 0, 20, 0, 84, 212, 22)
+		P(warmthBack, 0, 20, 0, 114, 212, 18)
+		P(finder, 0, 20, 0, 140, 212, 36)
+	end
+	finder:GetPropertyChangedSignal("Visible"):Connect(layoutWeather)
 	Ui.viewportChanged(function(vp)
-		local portrait = vp.X < vp.Y
-		me.Size = UDim2.fromScale(if portrait then 0.49 else 0.25, if portrait then 0.14 else 0.22)
-		coins.Position = UDim2.fromScale(0.015, if portrait then 0.16 else 0.24)
-		coins.Size = UDim2.fromScale(if portrait then 0.49 else 0.25, 0.065)
-		info.Position = UDim2.fromScale(if portrait then 0.52 else 0.765, 0.015)
-		info.Size = UDim2.fromScale(if portrait then 0.465 else 0.22, if portrait then 0.2 else 0.27)
-		quest.Position = UDim2.fromScale(if portrait then 0.015 else 0.29, if portrait then 0.235 else 0.015)
-		quest.Size = UDim2.fromScale(if portrait then 0.97 else 0.46, if portrait then 0.18 else 0.3)
-		pet.Position = UDim2.fromScale(if portrait then 0.25 else 0.16, if portrait then 0.43 else 0.33)
-		pet.Size = UDim2.fromScale(if portrait then 0.5 else 0.23, if portrait then 0.13 else 0.2)
-		noticePanel.Position = UDim2.fromScale(if portrait then 0.2 else 0.3, 0.015)
+		local logical = Ui.fitScale(gui, vp)
+		local portrait = logical.X < 340 + 470 + 252 + 64
+		layoutPlayer()
+		layoutWeather()
+		if portrait then
+			-- schermo stretto: la missione sotto la colonna di sinistra
+			local below = (gui:GetAttribute("LeftBottom") or 300) :: number
+			P(quest, 0, 16, 0, below, math.min(470, logical.X - 32), 100)
+		else
+			P(quest, 0.5, 0, 0, 16, 470, 100, 0.5, 0)
+		end
+		P(quest.Icon, 0, 16, 0, 16, 40, 40)
+		P(questTitle, 0, 66, 0, 12, 250, 24)
+		P(skip, 1, -16, 0, 12, 130, 32, 1, 0)
+		P(questText, 0, 66, 0, 40, 388, 50)
+		P(noticePanel, 0.5, 0, 0, if portrait then 16 else 124, math.min(520, logical.X - 32), 58, 0.5, 0)
 		noticePosition = noticePanel.Position
-		noticePanel.Size = UDim2.fromScale(if portrait then 0.6 else 0.44, if portrait then 0.065 else 0.085)
-		hint.Position = UDim2.fromScale(if portrait then 0.15 else 0.28, if portrait then 0.565 else 0.76)
-		hint.Size = UDim2.fromScale(if portrait then 0.7 else 0.44, 0.06)
+		P(noticePanel.Text, 0, 22, 0, 6, math.min(520, logical.X - 32) - 44, 46)
+		P(hint, 0.5, 0, 1, -120, math.min(640, logical.X - 32), 32, 0.5, 1)
 	end)
+	pet:GetPropertyChangedSignal("Visible"):Connect(layoutPlayer)
 	local function refreshPet()
 		local ok, data = pcall(function()
 			return game:GetService("HttpService"):JSONDecode(player:GetAttribute("DragonData") :: string)
@@ -112,7 +188,7 @@ function HUD.start()
 		local stage = DragonConfig.STAGES[math.clamp(d.stage or 1, 1, #DragonConfig.STAGES)]
 		local stageName = Names.t(stage.name)
 		petName.Text = string.format('%s <font color="#ffc86a">%s</font>', Names.t(d.element), Names.t(d.rarity))
-		petLevel.Text = string.format("Lv %d · %s", lv, stageName)
+		petLevel.Text = string.format("Lv %d · %s · ATK %.1f", lv, stageName, 8 + 0.15 * lv)
 		petXpFill.Size = UDim2.fromScale(math.clamp((d.xp or 0) / need, 0, 1), 1)
 		petXpText.Text = string.format("%d / %d XP", math.floor(d.xp or 0), need)
 		petStats.Text = string.format(
@@ -213,7 +289,7 @@ function HUD.start()
 		timeBig.Text = string.format("%02d:%02d", math.floor(t), math.floor((t % 1) * 60))
 		clock.Text = string.format("%s  ·  %s", if day then "Day" else "Night", WEATHER_NAMES[w] or "Clear")
 		local alt = if root then math.max(0, math.floor(root.Position.Y - 20)) else 0
-		altitude.Text = string.format("⛰️  %d m", alt)
+		altitude.Text = string.format("Altitude  %d m", alt)
 		local warmth = (player:GetAttribute("Warmth") or 100) :: number
 		warmthBack.Visible = warmth < 99.5 or alt > Gear.COLD_ALTITUDE - 20
 		warmthFill.Size = UDim2.new(math.clamp(warmth / 100, 0, 1), 0, 1, 0)
@@ -239,7 +315,6 @@ function HUD.start()
 				table.insert(owned, recipe.name)
 			end
 		end
-		gearLabel.Visible = #owned > 0
 		gearLabel.Text = table.concat(owned, " · ")
 
 		-- tutorial, poi le missioni (stesso riquadro)

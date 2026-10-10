@@ -4,7 +4,9 @@ local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local RS = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Shared = RS:WaitForChild("Shared")
 local Ui = require(Shared:WaitForChild("UiView"))
 local Assets = require(Shared:WaitForChild("UiAssets"))
@@ -22,6 +24,19 @@ local TIPS = {
 local gui = Ui.screen("Caricamento")
 gui.Enabled = true
 ReplicatedFirst:RemoveDefaultLoadingScreen()
+-- la barra degli attrezzi di Roblox (1 Ice Axe, 2 Pickaxe...) finiva sopra il pulsante PLAY e si
+-- prendeva il click e la schermata restava bloccata. Nascosta finche' c'e' il caricamento
+local function setBackpack(on: boolean)
+	for _ = 1, 20 do
+		if pcall(function()
+			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, on)
+		end) then
+			return
+		end
+		task.wait(0.25)
+	end
+end
+task.spawn(setBackpack, false)
 local progress = Ui.node(gui, "Progress")
 local tip = Ui.node(gui, "Tip")
 local play = Ui.node(gui, "Play")
@@ -31,6 +46,16 @@ local ready, chosen = false, false
 play.Visible = false
 play.Activated:Connect(function()
 	if ready then
+		chosen = true
+	end
+end)
+-- si parte anche con Invio, Spazio o un click (o tocco) in qualunque punto
+local anyInput = UserInputService.InputBegan:Connect(function(input)
+	if not ready then
+		return
+	end
+	local t = input.UserInputType
+	if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.Touch or input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
 		chosen = true
 	end
 end)
@@ -76,9 +101,12 @@ task.wait(math.max(0, MIN_TIME - (os.clock() - t0)))
 progress.Fill.Size = UDim2.fromScale(1, 1)
 ready = true
 play.Visible = true
-while gui.Parent and not chosen do
+-- se non si tocca niente si parte da soli dopo 15 s (mai piu' bloccati qui)
+local readyAt = os.clock()
+while gui.Parent and not chosen and os.clock() - readyAt < 15 do
 	task.wait(0.1)
 end
+anyInput:Disconnect()
 for _, d in gui:GetDescendants() do
 	if d:IsA("GuiObject") then
 		TweenService:Create(d, TweenInfo.new(0.18), { BackgroundTransparency = 1 }):Play()
@@ -91,3 +119,4 @@ for _, d in gui:GetDescendants() do
 end
 task.wait(0.2)
 gui:Destroy()
+setBackpack(true)

@@ -55,7 +55,9 @@ local function fitSlice(target: ImageLabel, name: string, slice: Rect)
 		if s.X < 1 or s.Y < 1 then
 			return
 		end
-		target.SliceScale = math.clamp(math.min(s.X * 0.8 / edgeX, s.Y * 0.8 / edgeY), 0.05, 0.5)
+		-- cornici dei riquadri sottili (piu' spazio dentro), pulsanti un po' piu' pieni
+		local maxScale = if string.sub(name, 1, 4) == "btn_" then 0.5 else 0.3
+		target.SliceScale = math.clamp(math.min(s.X * 0.8 / edgeX, s.Y * 0.8 / edgeY), 0.05, maxScale)
 	end
 	resize()
 	if not target:GetAttribute("SliceFitBound") then
@@ -160,6 +162,22 @@ function UiView.screen(name: string): ScreenGui
 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
 	if not watchedPlayerGui then
 		watchedPlayerGui = true
+		-- rete di sicurezza: per i primi 2 minuti una sola copia di ogni schermata (la copia
+		-- automatica di StarterGui puo' arrivare prima o dopo, con tempi diversi a ogni avvio)
+		task.spawn(function()
+			for _ = 1, 240 do
+				task.wait(0.5)
+				for screenName, active in activeScreens do
+					if active.Parent then
+						for _, other in pg:GetChildren() do
+							if other ~= active and other.Name == screenName and other:IsA("ScreenGui") then
+								other:Destroy()
+							end
+						end
+					end
+				end
+			end
+		end)
 		pg.ChildAdded:Connect(function(child)
 			-- ReplicatedFirst puo' anticipare la copia automatica di StarterGui al primo spawn.
 			local active = activeScreens[child.Name]
@@ -183,12 +201,117 @@ function UiView.screen(name: string): ScreenGui
 	return made
 end
 
+-- Stile delle schede del menu: righe compatte con testi grandi e il pulsante a destra (prima
+-- riquadri alti mezza finestra con scritte minuscole). Le schede in griglia (negozio, zaino,
+-- draghi) tengono la cella della griglia: si ingrandiscono solo i testi.
+local U = UDim2.new
+local function sized(o: Instance?, size: number, bold: boolean?)
+	if o and (o:IsA("TextLabel") or o:IsA("TextButton")) then
+		o.TextScaled = false
+		o.TextSize = size
+		o.TextWrapped = true
+		if bold ~= nil then
+			o.Font = if bold then Enum.Font.GothamBlack else Enum.Font.GothamBold
+		end
+	end
+end
+local function place(o: Instance?, pos: UDim2, size: UDim2, anchor: Vector2?)
+	if o and o:IsA("GuiObject") then
+		o.AnchorPoint = anchor or Vector2.zero
+		o.Position = pos
+		o.Size = size
+	end
+end
+local RIGHT = Vector2.new(1, 0.5)
+local CARD_STYLE: { [string]: (any) -> () } = {
+	UpgradeCard = function(c)
+		c.Size = U(1, -10, 0, 124)
+		place(c.Icon, U(0, 16, 0, 16), U(0, 60, 0, 60))
+		sized(c.Icon, 36)
+		place(c.Title, U(0, 90, 0, 12), U(1, -270, 0, 24))
+		sized(c.Title, 18, true)
+		place(c.Description, U(0, 90, 0, 38), U(1, -270, 0, 22))
+		sized(c.Description, 14)
+		place(c.Effect, U(0, 90, 0, 62), U(1, -270, 0, 22))
+		sized(c.Effect, 14, true)
+		place(c.Cost, U(0, 90, 0, 88), U(1, -270, 0, 24))
+		sized(c.Cost, 14, true)
+		place(c.Action, U(1, -18, 0.5, 0), U(0, 160, 0, 48), RIGHT)
+		sized(c.Action, 17, true)
+	end,
+	BountyCard = function(c)
+		c.Size = U(1, -10, 0, 104)
+		place(c.Title, U(0, 18, 0, 12), U(1, -220, 0, 24))
+		sized(c.Title, 17, true)
+		place(c.Progress, U(0, 18, 0, 44), U(1, -220, 0, 14))
+		place(c.Reward, U(0, 18, 0, 64), U(1, -220, 0, 28))
+		sized(c.Reward, 14)
+		place(c.Claim, U(1, -18, 0.5, 0), U(0, 160, 0, 48), RIGHT)
+		sized(c.Claim, 16, true)
+	end,
+	RebirthCard = function(c)
+		c.Size = U(1, -10, 0, 240)
+		sized(c.Title, 26, true)
+		sized(c.Description, 16)
+		sized(c.Cost, 16, true)
+		sized(c.Action, 18, true)
+	end,
+	TextCard = function(c)
+		sized(c.Text, 16)
+	end,
+	Heading = function(c)
+		if c:IsA("TextLabel") then
+			c.Size = U(1, -10, 0, 34)
+			sized(c, 20, true)
+		end
+	end,
+	ItemCard = function(c)
+		sized(c.Title, 17, true)
+		sized(c.Description, 14)
+		sized(c.Cost, 16, true)
+		sized(c.Buy, 16, true)
+	end,
+	RecipeCard = function(c)
+		sized(c.Title, 17, true)
+		sized(c.Description, 14)
+		sized(c.Craft, 16, true)
+	end,
+	InventoryCard = function(c)
+		sized(c.Title, 15, true)
+		sized(c.Count, 16, true)
+	end,
+	EggCard = function(c)
+		sized(c.Title, 15, true)
+		sized(c.Time, 15)
+		sized(c.Hatch, 16, true)
+	end,
+	DragonCard = function(c)
+		sized(c.Title, 16, true)
+		sized(c.Ability, 13)
+		sized(c.Follow, 15, true)
+		sized(c.Evolve, 15, true)
+		sized(c.Sell, 15, true)
+	end,
+	Material = function(c)
+		sized(c.Text, 14, true)
+	end,
+}
+
 function UiView.template(name: string, parent: Instance): any
 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
 	local gui = pg:FindFirstChild("MainMenu")
 	assert(gui, "MainMenu deve essere pronto prima delle schede")
 	local copy = UiView.node(gui, "Templates/" .. name):Clone()
 	copy.Visible = true
+	local style = CARD_STYLE[name]
+	if style then
+		-- le altezze minime dei modelli tenevano le righe alte mezza finestra
+		local limit = copy:FindFirstChild("SizeLimit")
+		if limit and limit:IsA("UISizeConstraint") then
+			limit.MinSize = Vector2.zero
+		end
+		pcall(style, copy)
+	end
 	copy.Parent = parent
 	UiView.apply(copy)
 	return copy
@@ -226,6 +349,43 @@ function UiView.open(panel: GuiObject)
 		end
 		panel.BackgroundTransparency = 1
 		TweenService:Create(panel, TweenInfo.new(0.18), { BackgroundTransparency = transparency }):Play()
+	end
+end
+
+-- Scala unica di una schermata: tutto si disegna in pixel "logici" per uno schermo di
+-- 1280x680 e un UIScale sulla ScreenGui lo adatta (telefono piu' piccolo, monitor grande piu'
+-- grande). Restituisce la grandezza logica dello schermo.
+function UiView.fitScale(gui: ScreenGui, vp: Vector2): Vector2
+	local s = math.clamp(math.min(vp.X / 1280, vp.Y / 680), 0.55, 1.6)
+	local u = gui:FindFirstChild("ScalaUI") :: UIScale?
+	if not u then
+		local nu = Instance.new("UIScale")
+		nu.Name = "ScalaUI"
+		nu.Parent = gui
+		u = nu
+	end
+	(u :: UIScale).Scale = s
+	return vp / s
+end
+
+-- posiziona in pixel logici: (ax, x) e (ay, y) come UDim, w e h in pixel; anchor opzionale
+function UiView.px(o: GuiObject?, ax: number, x: number, ay: number, y: number, w: number, h: number, anchorX: number?, anchorY: number?)
+	if not o then
+		return
+	end
+	o.AnchorPoint = Vector2.new(anchorX or 0, anchorY or 0)
+	o.Position = UDim2.new(ax, x, ay, y)
+	o.Size = UDim2.fromOffset(w, h)
+end
+
+-- testo leggibile: dimensione fissa (niente TextScaled che lo rimpiccioliva) e bordo scuro
+function UiView.text(o: Instance?, size: number, bold: boolean?)
+	if o and (o:IsA("TextLabel") or o:IsA("TextButton")) then
+		o.TextScaled = false
+		o.TextSize = size
+		o.TextWrapped = true
+		o.Font = if bold then Enum.Font.GothamBlack else Enum.Font.GothamBold
+		o.TextStrokeTransparency = 0.45
 	end
 end
 
