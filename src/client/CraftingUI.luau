@@ -1,98 +1,62 @@
---!strict
--- Scheda "Crafting" del menu (si apre anche dal Banco da lavoro): gli attrezzi con il costo
--- in minerali (verde = li hai, rosso = ti mancano) e "Craft". Il server controlla tutto.
-
+﻿--!strict
+-- Ricette e costi aggiornano i modelli di StarterGui; il server controlla gli acquisti.
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Gear = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gear"))
-local Names = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Names"))
+local RS = game:GetService("ReplicatedStorage")
+local Shared = RS:WaitForChild("Shared")
+local Gear = require(Shared.Gear)
+local Names = require(Shared.Names)
+local Ui = require(Shared.UiView)
 local Theme = require(script.Parent.Theme)
-
 local player = Players.LocalPlayer
-local remotes = ReplicatedStorage:WaitForChild("Remotes")
-
 local CraftingUI = {}
-
-local GEAR_COLORS = {
-	Ramponi = Color3.fromRGB(170, 174, 180),
-	Tuta = Color3.fromRGB(235, 120, 50),
-	Rampino = Color3.fromRGB(196, 150, 80),
-	PiccoRinforzato = Color3.fromRGB(255, 190, 40),
-}
-
-local function oreCount(ore: string): number
-	local folder = player:FindFirstChild("Ores")
-	local v = folder and folder:FindFirstChild(ore) :: IntValue?
-	return if v then v.Value else 0
+local function count(ore: string): number
+	local f = player:FindFirstChild("Ores")
+	local v = f and f:FindFirstChild(ore)
+	return if v and v:IsA("IntValue") then v.Value else 0
 end
-
--- icone 3D gia' pronte in Theme.itemModel per le ricette nuove
-local ICON = { Chiodi = "Pitons", Torcia = "Torcia" }
-
 function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): () -> ()
-	local list = Theme.scroll(container)
-	Theme.list(list, 8)
-	local refreshers: { () -> () } = {}
-
-	for _, recipe in Gear.RECIPES do
-		local card = Theme.frame(list, Theme.CARD)
-		card.Size = UDim2.new(1, -8, 0, 92)
-		Theme.corner(card, 10)
-		Theme.viewport(card, Theme.itemModel(ICON[recipe.id] or recipe.id, GEAR_COLORS[recipe.id] or Theme.ACCENT), UDim2.new(0, 76, 0, 76), false).Position =
-			UDim2.new(0, 8, 0, 8)
-		-- dove si costruisce: al volo ovunque, oppure solo al banco (campo o casa)
-		local where = if recipe.station == "Ovunque"
-			then '  <font color="#6ECD78" size="12">anywhere</font>'
-			else '  <font color="#FFC450" size="12">at a workbench</font>'
-		local title = Theme.label(card, recipe.name .. where, 16, Theme.TEXT, true)
-		title.Position = UDim2.new(0, 92, 0, 6)
-		title.Size = UDim2.new(1, -220, 0, 20)
-		local desc = Theme.label(card, recipe.description, 12, Theme.MUTED)
-		desc.Position = UDim2.new(0, 92, 0, 28)
-		desc.Size = UDim2.new(1, -220, 0, 30)
-		local cost = Theme.label(card, "", 13, Theme.TEXT, true)
-		cost.Position = UDim2.new(0, 92, 0, 62)
-		cost.Size = UDim2.new(1, -220, 0, 20)
-		local button = Theme.button(card, "Craft", Theme.GOOD, UDim2.new(0, 116, 0, 42))
-		button.AnchorPoint = Vector2.new(1, 0.5)
-		button.Position = UDim2.new(1, -10, 0.5, 0)
-
+	local list = Ui.node(container, "List")
+	local refreshers: {() -> ()} = {}
+	for k, recipe in Gear.RECIPES do
+		local card = Ui.template("RecipeCard", list)
+		card.LayoutOrder = k
+		Theme.viewport(card.Preview, Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT), UDim2.fromScale(1, 1), false)
+		card.Title.Text = recipe.name
+		card.Description.Text = recipe.description .. (if recipe.station == "Ovunque" then " · Craft anywhere" else " · At a workbench")
+		local materialRows = {}
+		local ores = {}
+		for ore in recipe.cost do table.insert(ores, ore) end
+		table.sort(ores)
+		for i, ore in ores do
+			local row = Ui.template("Material", card.Materials)
+			row.Size = UDim2.fromScale(1, 1 / math.max(1, #ores))
+			row.Position = UDim2.fromScale(0, (i - 1) / math.max(1, #ores))
+			row.SizeLimit.MinSize = Vector2.zero
+			row.SizeLimit.MaxSize = Vector2.new(10000, 10000)
+			Theme.assetPreview(row.Icon, "ore_" .. ore, Theme.oreModel(ore))
+			materialRows[ore] = row
+		end
 		local function refresh()
-			local parts = {}
 			local affordable = true
 			for ore, amount in recipe.cost do
-				local have = oreCount(ore)
+				local have = count(ore)
 				affordable = affordable and have >= amount
-				table.insert(parts, string.format('<font color="%s">%s %d/%d</font>', if have >= amount then "#6ECD78" else "#EB5F55", Names.t(ore), have, amount))
+				materialRows[ore].Text.Text = string.format("%s %d/%d", Names.t(ore), have, amount)
+				materialRows[ore].Text.TextColor3 = if have >= amount then Theme.GOOD else Theme.BAD
 			end
-			cost.Text = table.concat(parts, "   ")
-			if not recipe.consumable and Gear.has(player, recipe.id) then
-				button.Text = "Owned"
-				button.BackgroundColor3 = Theme.MUTED
-			else
-				button.Text = "Craft"
-				button.BackgroundColor3 = if affordable then Theme.GOOD else Color3.fromRGB(110, 114, 124)
-			end
+			local owned = not recipe.consumable and Gear.has(player, recipe.id)
+			card.Craft.Text = if owned then "Owned" else "Craft"
+			card.Craft.BackgroundColor3 = if owned then Theme.MUTED elseif affordable then Theme.GOOD else Theme.CARD
 		end
 		table.insert(refreshers, refresh)
-		button.Activated:Connect(function()
-			if not recipe.consumable and Gear.has(player, recipe.id) then
-				return
-			end
-			local ok, message = (remotes:WaitForChild("Craft") :: RemoteFunction):InvokeServer(recipe.id)
+		card.Craft.Activated:Connect(function()
+			if not recipe.consumable and Gear.has(player, recipe.id) then return end
+			local ok, message = (RS.Remotes:WaitForChild("Craft") :: RemoteFunction):InvokeServer(recipe.id)
 			status(message or "", ok)
-			for _, r in refreshers do
-				r()
-			end
+			for _, r in refreshers do r() end
 		end)
 	end
-
-	return function()
-		for _, r in refreshers do
-			r()
-		end
-	end
+	return function() for _, r in refreshers do r() end end
 end
-
 return CraftingUI
+
