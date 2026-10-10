@@ -1,198 +1,142 @@
 --!strict
--- Menu principale: una colonna di pulsanti grandi a sinistra (a meta' schermo, lontana dal
--- joystick e dal tasto salto del telefono) e una finestra con le schede:
---   Negozio (compra / vendi / Robux) · Zaino · Draghi · Crafting · Potenziamenti (taglie, rinascita)
--- La finestra si adatta allo schermo (anche telefono in verticale) e non copre tutto.
--- Tasti: B negozio, I zaino (anche V), G draghi, N crafting, U potenziamenti. Si apre anche dall'emporio, dal nido e
--- dal banco da lavoro.
-
-local ContextActionService = game:GetService("ContextActionService")
+-- Controller del menu: struttura e carte provengono dai modelli StarterGui.
+local CAS = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
-local EconomyConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("EconomyConfig"))
-local Names = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Names"))
-local Gear = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Gear"))
-local ShopConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ShopConfig"))
+local RS = game:GetService("ReplicatedStorage")
+local UIS = game:GetService("UserInputService")
+local Shared = RS:WaitForChild("Shared")
+local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
+local EconomyConfig = require(Shared:WaitForChild("EconomyConfig"))
+local Names = require(Shared:WaitForChild("Names"))
+local Gear = require(Shared:WaitForChild("Gear"))
+local ShopConfig = require(Shared:WaitForChild("ShopConfig"))
+local Ui = require(Shared:WaitForChild("UiView"))
+local Theme = require(script.Parent.Theme)
 local CraftingUI = require(script.Parent.CraftingUI)
 local DragonUI = require(script.Parent.DragonUI)
 local UpgradeUI = require(script.Parent.UpgradeUI)
-local Theme = require(script.Parent.Theme)
-
 local player = Players.LocalPlayer
-local remotes = ReplicatedStorage:WaitForChild("Remotes")
-
+local remotes = RS:WaitForChild("Remotes")
 local MainMenu = {}
-
-type Tab = { name: string, key: Enum.KeyCode, key2: Enum.KeyCode?, icon: () -> Instance?, frame: Frame?, refresh: (() -> ())? }
-
 local ORES = { "Carbone", "Ferro", "Oro", "Cristallo", "Rubino", "Cosmico" }
 
 local function oreCount(ore: string): number
-	local folder = player:FindFirstChild("Ores")
-	local v = folder and folder:FindFirstChild(ore) :: IntValue?
-	return if v then v.Value else 0
+	local f = player:FindFirstChild("Ores")
+	local v = f and f:FindFirstChild(ore)
+	return if v and v:IsA("IntValue") then v.Value else 0
 end
-
 local function preview(kind: string, element: string): Instance?
-	local folder = ReplicatedStorage:FindFirstChild("Previews")
-	local sub = folder and folder:FindFirstChild(kind)
+	local f = RS:FindFirstChild("Previews")
+	local sub = f and f:FindFirstChild(kind)
 	return sub and sub:FindFirstChild(element)
 end
-
-local function clear(frame: Instance)
-	for _, c in frame:GetChildren() do
-		if c:IsA("GuiObject") then
-			c:Destroy()
-		end
+local function grid(list: ScrollingFrame)
+	local old = list:FindFirstChildOfClass("UIListLayout")
+	if old then
+		old:Destroy()
 	end
+	local layout = Instance.new("UIGridLayout")
+	layout.CellPadding = UDim2.fromScale(0.02, 0.025)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = list
+	local function resize()
+		layout.CellSize =
+			UDim2.fromScale(if list.AbsoluteSize.X >= 540 then 0.48 else 0.97, 180 / math.max(1, list.AbsoluteSize.Y))
+	end
+	list:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
+	resize()
 end
-
-------------------------------------------------------------------------------------------
--- Negozio
-
 local function mountShop(container: Frame, status: (string, boolean) -> ()): () -> ()
+	local list = Ui.node(container, "List")
+	grid(list)
 	local sub = "Buy"
-	local tabsRow = Theme.frame(container, nil, 1)
-	tabsRow.Size = UDim2.new(1, 0, 0, 38)
-	Theme.list(tabsRow, 6, true)
-	local body = Theme.frame(container, nil, 1)
-	body.Position = UDim2.new(0, 0, 0, 44)
-	body.Size = UDim2.new(1, 0, 1, -44)
-	local list = Theme.scroll(body)
-	local grid = Instance.new("UIGridLayout")
-	grid.CellSize = UDim2.new(0.5, -6, 0, 120)
-	grid.CellPadding = UDim2.new(0, 6, 0, 6)
-	grid.SortOrder = Enum.SortOrder.LayoutOrder
-	grid.Parent = list
-	local subButtons: { [string]: TextButton } = {}
 	local render: () -> ()
-
-	local function call(action: string, id: string?, amount: any)
+	local function call(action: string, id: string?, amount: any?)
 		local ok, message = (remotes:WaitForChild("Shop") :: RemoteFunction):InvokeServer(action, id, amount)
-		if message and message ~= "" then
-			status(message, ok)
-		end
+		status(message or "", ok)
 		render()
 	end
-
-	local function card(order: number): Frame
-		local c = Theme.frame(list, Theme.CARD)
+	local function card(order: number): any
+		local c = Ui.template("ItemCard", list)
 		c.LayoutOrder = order
-		Theme.corner(c, 10)
+		c.SellActions.Visible, c.Buy.Visible = false, false
+		c.Coin.Visible = false
 		return c
 	end
-
 	render = function()
-		for name, b in subButtons do
-			b.BackgroundColor3 = if name == sub then Theme.ACCENT else Theme.CARD
-			b.TextColor3 = if name == sub then Theme.BG else Theme.TEXT
-		end
-		for _, c in list:GetChildren() do
-			if c:IsA("Frame") then
-				c:Destroy()
-			end
+		Ui.clear(list)
+		for _, name in { "Buy", "Sell", "Robux" } do
+			Ui.node(container, "Tabs/" .. name).BackgroundColor3 = if name == sub then Theme.ACCENT else Theme.CARD
 		end
 		if sub == "Buy" then
 			for k, item in ShopConfig.ITEMS do
 				local c = card(k)
-				local icon: Instance = if item.id == "MysteryEgg" or item.id == "RareEgg"
-					then (preview("Eggs", "Cosmico") or Theme.itemModel(item.id, item.color))
-					else Theme.itemModel(item.id, item.color)
-				Theme.viewport(c, icon, UDim2.new(0, 64, 0, 64)).Position = UDim2.new(0, 6, 0, 6)
-				local t = Theme.label(c, item.name, 14, Theme.TEXT, true)
-				t.Position = UDim2.new(0, 76, 0, 6)
-				t.Size = UDim2.new(1, -80, 0, 18)
-				local d = Theme.label(c, item.description, 11, Theme.MUTED)
-				d.Position = UDim2.new(0, 76, 0, 26)
-				d.Size = UDim2.new(1, -80, 0, 44)
-				local b = Theme.button(c, string.format("%d coins", item.price), Theme.COIN, UDim2.new(1, -12, 0, 36))
-				b.Position = UDim2.new(0, 6, 1, -42)
-				b.Activated:Connect(function()
+				local egg = item.id == "MysteryEgg" or item.id == "RareEgg"
+				Theme.assetPreview(
+					c.Icon,
+					if egg then "icon_egg" elseif item.id == "Pitons" then "icon_piton" else "",
+					if egg then preview("Eggs", "Cosmico") else Theme.itemModel(item.id, item.color)
+				)
+				c.Title.Text, c.Description.Text = item.name, item.description
+				c.Cost.Text = string.format("%d coins", item.price)
+				Ui.asset(c.Coin, "icon_coin")
+				c.Buy.Visible = true
+				c.Buy.Activated:Connect(function()
 					call("buy", item.id)
 				end)
 			end
 		elseif sub == "Sell" then
 			for k, ore in ORES do
-				local have = oreCount(ore)
 				local c = card(k)
-				Theme.viewport(c, Theme.oreModel(ore), UDim2.new(0, 56, 0, 56)).Position = UDim2.new(0, 6, 0, 6)
-				local t = Theme.label(c, string.format("%s  x%d", Names.t(ore), have), 14, Theme.TEXT, true)
-				t.Position = UDim2.new(0, 68, 0, 8)
-				t.Size = UDim2.new(1, -72, 0, 18)
-				local p = Theme.label(c, string.format("%d coins each", EconomyConfig.ORE_PRICES[ore] or 1), 12, Theme.COIN)
-				p.Position = UDim2.new(0, 68, 0, 30)
-				p.Size = UDim2.new(1, -72, 0, 16)
-				local row = Theme.frame(c, nil, 1)
-				row.Position = UDim2.new(0, 6, 1, -42)
-				row.Size = UDim2.new(1, -12, 0, 36)
-				Theme.list(row, 6, true)
-				local one = Theme.button(row, "Sell 1", Theme.CARD, UDim2.new(0.5, -3, 1, 0))
-				one.TextColor3 = Theme.TEXT
-				Theme.stroke(one, Theme.MUTED, 1, 0.5)
-				one.Activated:Connect(function()
+				Theme.assetPreview(c.Icon, "ore_" .. ore, Theme.oreModel(ore))
+				c.Title.Text = string.format("%s  x%d", Names.t(ore), oreCount(ore))
+				c.Cost.Text = string.format("%d coins each", EconomyConfig.ORE_PRICES[ore] or 1)
+				Ui.asset(c.Coin, "icon_coin")
+				c.SellActions.Visible = true
+				c.SellActions.One.Activated:Connect(function()
 					call("sellOre", ore, 1)
 				end)
-				local all = Theme.button(row, "Sell all", Theme.GOOD, UDim2.new(0.5, -3, 1, 0))
-				all.Activated:Connect(function()
+				c.SellActions.All.Activated:Connect(function()
 					call("sellOre", ore, "all")
 				end)
-				if have <= 0 then
-					one.AutoButtonColor, all.AutoButtonColor = false, false
-					all.BackgroundColor3 = Color3.fromRGB(80, 84, 92)
-				end
 			end
-			local carrying = player:GetAttribute("CarryingEgg")
 			local c = card(99)
+			local raw = player:GetAttribute("CarryingEgg")
 			local element, rarity = "", ""
-			if type(carrying) == "string" then
-				element, rarity = string.match(carrying, "^(.-)|(.*)$")
+			if type(raw) == "string" then
+				local a, b = string.match(raw, "^(.-)|(.*)$")
+				element, rarity = a or "", b or ""
 			end
-			Theme.viewport(c, if element ~= "" then preview("Eggs", element :: string) else nil, UDim2.new(0, 56, 0, 56)).Position = UDim2.new(0, 6, 0, 6)
-			local t = Theme.label(c, if element ~= "" then string.format("%s %s Egg", Names.t(rarity), Names.t(element)) else "Carried egg", 14, Theme.TEXT, true)
-			t.Position = UDim2.new(0, 68, 0, 8)
-			t.Size = UDim2.new(1, -72, 0, 18)
-			local p = Theme.label(c, if rarity ~= "" then string.format("%d coins", EconomyConfig.EGG_PRICES[rarity] or 10) else "Bring one here to sell it", 12, Theme.MUTED)
-			p.Position = UDim2.new(0, 68, 0, 30)
-			p.Size = UDim2.new(1, -72, 0, 30)
-			if element ~= "" then
-				local b = Theme.button(c, "Sell egg", Theme.GOOD, UDim2.new(1, -12, 0, 36))
-				b.Position = UDim2.new(0, 6, 1, -42)
-				b.Activated:Connect(function()
-					call("sellEgg")
-				end)
-			end
+			Theme.assetPreview(c.Icon, "icon_egg", preview("Eggs", element))
+			c.Title.Text = if element ~= "" then Names.t(rarity) .. " " .. Names.t(element) .. " Egg" else "Carried egg"
+			c.Description.Text = if rarity ~= ""
+				then string.format("%d coins", EconomyConfig.EGG_PRICES[rarity] or 10)
+				else "Bring an egg here to sell it"
+			c.Buy.Visible, c.Buy.Text = element ~= "", "Sell egg"
+			c.Buy.Activated:Connect(function()
+				call("sellEgg")
+			end)
 		else
 			local entries = {
-				{ "EggFinder", "Egg Finder", "Compass to the nearest egg" },
-				{ "FastIncubation", "Fast Incubation x2", "Eggs hatch in half the time" },
-				{ "ExtraDragon", "+1 Dragon Follower", "Bring two dragons with you" },
-				{ "ExtraIncubator", "Big Nest", "+2 nest slots" },
-				{ "Revive", "Mountain Rescue", "When you die, respawn where you fell" },
-				{ "InstantHatch", "Instant Hatch", "Every egg in your nest ready now" },
-				{ "Coins1000", "1000 Coins", "A boost for your house" },
-				{ "TrainingX2", "Training XP x2", "Dragons train twice as fast, forever" },
-				{ "TrainingBoost", "Training Boost x3", "Training XP x3 for 15 minutes" },
+				{ "EggFinder", "Egg Finder", "Compass to the nearest egg", "pass_" },
+				{ "FastIncubation", "Fast Incubation x2", "Eggs hatch in half the time", "pass_" },
+				{ "ExtraDragon", "+1 Dragon Follower", "Bring two dragons with you", "pass_" },
+				{ "ExtraIncubator", "Big Nest", "+2 nest slots", "pass_" },
+				{ "Revive", "Mountain Rescue", "Respawn where you fell", "prod_" },
+				{ "InstantHatch", "Instant Hatch", "Every egg in your nest ready now", "prod_" },
+				{ "Coins1000", "1000 Coins", "A boost for your house", "prod_" },
+				{ "TrainingX2", "Training XP x2", "Double training XP, forever", "pass_" },
+				{ "TrainingBoost", "Training Boost x3", "Triple training XP for 15 minutes", "prod_" },
 			}
 			for k, e in entries do
 				local c = card(k)
+				Ui.asset(c.Icon, e[4] .. e[1])
+				c.Title.Text, c.Description.Text = e[2], e[3]
 				local owned = player:GetAttribute("Pass_" .. e[1]) == true
-				local t = Theme.label(c, e[2], 15, Theme.TEXT, true)
-				t.Position = UDim2.new(0, 10, 0, 8)
-				t.Size = UDim2.new(1, -20, 0, 20)
-				local d = Theme.label(c, e[3], 12, Theme.MUTED)
-				d.Position = UDim2.new(0, 10, 0, 32)
-				d.Size = UDim2.new(1, -20, 0, 32)
 				local available = (DragonConfig.GAMEPASSES[e[1]] or ShopConfig.DEV_PRODUCTS[e[1]] or 0) > 0
-				local b = Theme.button(
-					c,
-					if owned then "Owned" elseif available then "Buy (Robux)" else "Coming soon",
-					if owned then Theme.MUTED elseif available then Theme.GOOD else Color3.fromRGB(80, 84, 92),
-					UDim2.new(1, -12, 0, 36)
-				)
-				b.Position = UDim2.new(0, 6, 1, -42)
-				b.Activated:Connect(function()
+				c.Buy.Visible = true
+				c.Buy.Text = if owned then "Owned" elseif available then "Buy (Robux)" else "Coming soon"
+				c.Buy.Activated:Connect(function()
 					if not owned and available then
 						call("robux", e[1])
 					end
@@ -200,384 +144,207 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 			end
 		end
 	end
-
 	for _, name in { "Buy", "Sell", "Robux" } do
-		local b = Theme.button(tabsRow, name, Theme.CARD, UDim2.new(0, 100, 0, 34))
-		subButtons[name] = b
-		b.Activated:Connect(function()
+		Ui.node(container, "Tabs/" .. name).Activated:Connect(function()
 			sub = name
 			render()
 		end)
 	end
 	return render
 end
-
-------------------------------------------------------------------------------------------
--- Zaino
-
 local function mountInventory(container: Frame): () -> ()
-	local list = Theme.scroll(container)
-	Theme.list(list, 10)
+	local list = Ui.node(container, "List")
+	grid(list)
 	return function()
-		clear(list)
-		local summary = Theme.frame(list, Theme.CARD)
-		summary.Size = UDim2.new(1, -8, 0, 64)
-		summary.LayoutOrder = 1
-		Theme.corner(summary, 10)
-		Theme.padding(summary, 10)
+		Ui.clear(list)
+		local summary = Ui.template("TextCard", list)
+		summary.LayoutOrder = 0
+		summary.SizeLimit.MinSize = Vector2.new(0, 142)
+		summary.SizeLimit.MaxSize = Vector2.new(10000, 142)
 		local house = EconomyConfig.HOUSES[(player:GetAttribute("HouseLevel") or 0) :: number]
-		Theme.label(
-			summary,
-			string.format(
-				'<font color="#FFCD3C">%d coins</font>   ·   House: %s   ·   Dragons at home: %d coins/min\nPitons: %d   ·   Warmth: %d%%',
-				(player:GetAttribute("Coins") or 0) :: number,
-				if house then Names.t(house.name) else "none (buy the Tent on your plot)",
-				(player:GetAttribute("RoostRate") or 0) :: number,
-				(player:GetAttribute("Pitons") or 0) :: number,
-				math.floor((player:GetAttribute("Warmth") or 100) :: number)
-			),
-			14,
-			Theme.TEXT,
-			true
-		).Size =
-			UDim2.fromScale(1, 1)
-
-		local title = Theme.label(list, "Ores", 15, Theme.TEXT, true)
-		title.LayoutOrder = 2
-		local grid = Theme.frame(list, nil, 1)
-		grid.LayoutOrder = 3
-		grid.Size = UDim2.new(1, -8, 0, 0)
-		grid.AutomaticSize = Enum.AutomaticSize.Y
-		local layout = Instance.new("UIGridLayout")
-		layout.CellSize = UDim2.new(0, 96, 0, 110)
-		layout.CellPadding = UDim2.new(0, 8, 0, 8)
-		layout.Parent = grid
+		summary.Text.Text = string.format(
+			"%d coins\nHouse: %s\nDragons at home: %d coins/min\nPitons: %d · Warmth: %d%%",
+			player:GetAttribute("Coins") or 0,
+			if house then Names.t(house.name) else "none (buy the Tent on your plot)",
+			player:GetAttribute("RoostRate") or 0,
+			player:GetAttribute("Pitons") or 0,
+			math.floor((player:GetAttribute("Warmth") or 100) :: number)
+		)
+		local order = 0
+		local function item(title: string, count: string, asset: string, model: Instance?)
+			order += 1
+			local c = Ui.template("InventoryCard", list)
+			c.LayoutOrder = order
+			c.Title.Text, c.Count.Text = title, count
+			Theme.assetPreview(c.Icon, asset, model)
+		end
 		for _, ore in ORES do
-			local c = Theme.frame(grid, Theme.CARD)
-			Theme.corner(c, 10)
-			Theme.viewport(c, Theme.oreModel(ore), UDim2.new(1, 0, 0, 70))
-			local l = Theme.label(c, string.format("%s\n<b>%d</b>", Names.t(ore), oreCount(ore)), 13, Theme.TEXT)
-			l.TextXAlignment = Enum.TextXAlignment.Center
-			l.Position = UDim2.new(0, 0, 0, 70)
-			l.Size = UDim2.new(1, 0, 0, 38)
+			item(Names.t(ore), tostring(oreCount(ore)), "ore_" .. ore, Theme.oreModel(ore))
 		end
-
-		-- materiali lasciati dai nemici (cartella "Materiali"), coi modelli veri di Mirko
 		local mats = player:FindFirstChild("Materiali")
-		local icons = ReplicatedStorage:FindFirstChild("DropIcone")
+		local icons = RS:FindFirstChild("DropIcone")
 		local names = icons and icons:FindFirstChild("Nomi")
-		local dropList = {}
-		for _, v in (if mats then mats:GetChildren() else {}) :: { Instance } do
-			if v:IsA("IntValue") and v.Value > 0 then
-				table.insert(dropList, v)
-			end
-		end
-		table.sort(dropList, function(x, y)
-			return x.Name < y.Name
+		local drops = if mats then mats:GetChildren() else {}
+		table.sort(drops, function(a, b)
+			return a.Name < b.Name
 		end)
-		local dTitle = Theme.label(list, if #dropList > 0 then "Drops" else "Drops (defeat yetis and ice golems to collect them)", 15, Theme.TEXT, true)
-		dTitle.LayoutOrder = 3
-		dTitle.Size = UDim2.new(1, -8, 0, 20)
-		dTitle.TextWrapped = true
-		local dGrid = Theme.frame(list, nil, 1)
-		dGrid.LayoutOrder = 3
-		dGrid.Size = UDim2.new(1, -8, 0, 0)
-		dGrid.AutomaticSize = Enum.AutomaticSize.Y
-		local dLayout = Instance.new("UIGridLayout")
-		dLayout.CellSize = UDim2.new(0, 96, 0, 110)
-		dLayout.CellPadding = UDim2.new(0, 8, 0, 8)
-		dLayout.Parent = dGrid
-		for _, v in dropList do
-			local c = Theme.frame(dGrid, Theme.CARD)
-			Theme.corner(c, 10)
-			local tpl = icons and icons:FindFirstChild(v.Name)
-			Theme.viewport(c, if tpl then tpl:Clone() else Theme.itemModel("Drop", Theme.ACCENT), UDim2.new(1, 0, 0, 70), true)
-			local shown = names and names:GetAttribute(v.Name)
-			local l = Theme.label(c, string.format("%s\n<b>%d</b>", if type(shown) == "string" then shown else (string.gsub(v.Name, "_", " ")), (v :: IntValue).Value), 13, Theme.TEXT)
-			l.TextXAlignment = Enum.TextXAlignment.Center
-			l.Position = UDim2.new(0, 0, 0, 70)
-			l.Size = UDim2.new(1, 0, 0, 38)
+		for _, v in drops do
+			if v:IsA("IntValue") and v.Value > 0 then
+				local shown = names and names:GetAttribute(v.Name)
+				item(
+					if type(shown) == "string" then shown else Names.t(v.Name),
+					tostring(v.Value),
+					"",
+					icons and icons:FindFirstChild(v.Name)
+				)
+			end
 		end
-
-		local gTitle = Theme.label(list, "Gear", 15, Theme.TEXT, true)
-		gTitle.LayoutOrder = 4
-		-- icone 3D come nel crafting; quello che non hai e' scuro
-		local ICON = { Chiodi = "Pitons", Torcia = "Torcia" }
-		local COLORS = {
-			Ramponi = Color3.fromRGB(170, 174, 180),
-			Tuta = Color3.fromRGB(235, 120, 50),
-			Rampino = Color3.fromRGB(196, 150, 80),
-			PiccoRinforzato = Color3.fromRGB(255, 190, 40),
-		}
-		for k, recipe in Gear.RECIPES do
-			local owned = Gear.has(player, recipe.id)
-			local row = Theme.frame(list, Theme.CARD)
-			row.LayoutOrder = 4 + k
-			row.Size = UDim2.new(1, -8, 0, 64)
-			Theme.corner(row, 10)
-			if owned then
-				Theme.stroke(row, Theme.GOOD, 1.5, 0.35)
-			end
-			local icon = Theme.viewport(row, Theme.itemModel(ICON[recipe.id] or recipe.id, COLORS[recipe.id] or Theme.ACCENT), UDim2.new(0, 56, 0, 56), false)
-			icon.Position = UDim2.new(0, 6, 0, 4)
-			if not owned then
-				icon.ImageTransparency = 0.55
-				icon.ImageColor3 = Color3.fromRGB(150, 150, 160)
-			end
-			local l = Theme.label(
-				row,
-				string.format(
-					'%s\n<font size="12" color="%s">%s</font>',
-					recipe.name,
-					if owned then "#6ECD78" else "#A5AAB6",
-					if owned then "owned" elseif recipe.station == "Ovunque" then "craft anywhere" else "craft at a Workbench"
-				),
-				15,
-				Theme.TEXT,
-				true
+		for _, recipe in Gear.RECIPES do
+			item(
+				recipe.name,
+				if Gear.has(player, recipe.id) then "Owned" else "Not owned",
+				"",
+				Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT)
 			)
-			l.Position = UDim2.new(0, 72, 0, 0)
-			l.Size = UDim2.new(1, -84, 1, 0)
 		end
 	end
 end
-
-------------------------------------------------------------------------------------------
-
 function MainMenu.start()
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "MainMenu"
-	gui.ResetOnSpawn = false
-	gui.DisplayOrder = 5
-	gui.Parent = player:WaitForChild("PlayerGui")
-
-	-- colonna dei pulsanti (sinistra, a meta' altezza)
-	local column = Theme.frame(gui, nil, 1)
-	column.AnchorPoint = Vector2.new(0, 0.5)
-	column.Position = UDim2.new(0, 10, 0.46, 0)
-	column.Size = UDim2.new(0, 70, 0, 5 * 78)
-	Theme.list(column, 8)
-	-- "Hide": nasconde e rimostra la colonna (resta solo questo pulsantino)
-	local hideBtn = Instance.new("TextButton")
-	hideBtn.Name = "NascondiIcone"
-	hideBtn.AnchorPoint = Vector2.new(0, 0)
-	hideBtn.Position = UDim2.new(0, 10, 0.46, (5 * 78) / 2 + 4) -- sotto la colonna
-	hideBtn.Size = UDim2.new(0, 70, 0, 26)
-	hideBtn.BackgroundColor3 = Theme.BG
-	hideBtn.BackgroundTransparency = 0.2
-	hideBtn.Font = Enum.Font.GothamBold
-	hideBtn.TextSize = 13
-	hideBtn.TextColor3 = Theme.TEXT
-	hideBtn.Text = "Hide"
-	hideBtn.Parent = gui
-	Theme.corner(hideBtn, 10)
-	hideBtn.Activated:Connect(function()
-		column.Visible = not column.Visible
-		hideBtn.Text = if column.Visible then "Hide" else "Show"
-	end)
-
-	-- finestra
-	local window = Theme.frame(gui, Theme.BG, 0.06)
-	window.AnchorPoint = Vector2.new(0.5, 0.5)
-	window.Position = UDim2.fromScale(0.52, 0.5)
-	window.Size = UDim2.fromScale(0.7, 0.72)
-	window.Visible = false
-	Theme.corner(window, 14)
-	Theme.stroke(window, Theme.ACCENT, 2, 0.6)
-	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(760, 500)
-	limit.MinSize = Vector2.new(300, 240)
-	limit.Parent = window
-	Theme.padding(window, 12)
-
-	local title = Theme.label(window, "", 20, Theme.ACCENT, true)
-	title.Size = UDim2.new(1, -50, 0, 28)
-	local close = Theme.button(window, "X", Theme.CARD, UDim2.new(0, 40, 0, 40))
-	close.TextColor3 = Theme.TEXT
-	close.AnchorPoint = Vector2.new(1, 0)
-	close.Position = UDim2.new(1, 0, 0, -4)
-	local content = Theme.frame(window, nil, 1)
-	content.Position = UDim2.new(0, 0, 0, 38)
-	content.Size = UDim2.new(1, 0, 1, -64)
-	local statusLabel = Theme.label(window, "", 14, Theme.GOOD, true)
-	statusLabel.AnchorPoint = Vector2.new(0, 1)
-	statusLabel.Position = UDim2.new(0, 0, 1, 0)
-	statusLabel.Size = UDim2.new(1, 0, 0, 20)
-	statusLabel.TextXAlignment = Enum.TextXAlignment.Center
-	local function status(text: string, ok: boolean)
-		statusLabel.Text = text
-		statusLabel.TextColor3 = if ok then Theme.GOOD else Theme.BAD
+	local gui = Ui.screen("MainMenu")
+	local column, window = Ui.node(gui, "Column"), Ui.node(gui, "Window")
+	column.Teleport.Text = if UIS.TouchEnabled then "Teleport" else "Teleport (T)"
+	local content = window.Content
+	Ui.skin(window.Title, "panel_header")
+	local function status(message: string, ok: boolean)
+		window.Status.Text = message
+		window.Status.TextColor3 = if ok then Theme.GOOD else Theme.BAD
 	end
-
-	local tabs: { Tab } = {
-		{ name = "Store", key = Enum.KeyCode.B, icon = function()
-			return Theme.itemModel("Coins", Theme.COIN)
-		end },
-		{ name = "Backpack", key = Enum.KeyCode.I, key2 = Enum.KeyCode.V, icon = function()
-			return Theme.oreModel("Oro")
-		end },
-		{ name = "Dragons", key = Enum.KeyCode.G, icon = function()
-			return preview("Dragons", "Cosmico")
-		end },
-		{ name = "Crafting", key = Enum.KeyCode.N, icon = function()
-			return Theme.itemModel("Pitons", Color3.fromRGB(170, 174, 180))
-		end },
-		{ name = "Upgrades", key = Enum.KeyCode.U, icon = function()
-			return Theme.itemModel("Rampino", Color3.fromRGB(196, 150, 80))
-		end },
-	}
-	local current: Tab? = nil
-
-	local function open(tab: Tab?)
-		if not tab or current == tab then
+	local names = { "Store", "Backpack", "Dragons", "Crafting", "Upgrades" }
+	local keys = { Enum.KeyCode.B, Enum.KeyCode.I, Enum.KeyCode.G, Enum.KeyCode.N, Enum.KeyCode.U }
+	local refreshers: { [string]: () -> () } = {}
+	local current: string? = nil
+	local function open(name: string?)
+		if not name or current == name then
 			window.Visible = false
 			current = nil
 			return
 		end
-		current = tab
-		window.Visible = true
-		title.Text = tab.name
-		statusLabel.Text = ""
-		for _, t in tabs do
-			if t.frame then
-				t.frame.Visible = t == tab
-			end
+		current = name
+		window.Title.Text = if name == "Store" then "Shop" else name
+		window.Status.Text = ""
+		for _, n in names do
+			content[n].Visible = n == name
 		end
-		if not tab.frame then
-			local f = Theme.frame(content, nil, 1)
-			f.Size = UDim2.fromScale(1, 1)
-			tab.frame = f
-			if tab.name == "Store" then
-				tab.refresh = mountShop(f, status)
-			elseif tab.name == "Backpack" then
-				tab.refresh = mountInventory(f)
-			elseif tab.name == "Dragons" then
-				tab.refresh = DragonUI.mount(f, status)
-			elseif tab.name == "Upgrades" then
-				tab.refresh = UpgradeUI.mount(f, status)
-			else
-				tab.refresh = CraftingUI.mount(f, status)
-			end
+		if not refreshers[name] then
+			local c = content[name]
+			refreshers[name] = if name == "Store"
+				then mountShop(c, status)
+				elseif name == "Backpack" then mountInventory(c)
+				elseif name == "Dragons" then DragonUI.mount(c, status)
+				elseif name == "Upgrades" then UpgradeUI.mount(c, status)
+				else CraftingUI.mount(c, status)
 		end
-		if tab.refresh then
-			(tab.refresh :: () -> ())()
-		end
+		refreshers[name]()
+		Ui.open(window)
 	end
-	local function byName(name: string): Tab?
-		for _, t in tabs do
-			if t.name == name then
-				return t
-			end
-		end
-		return nil
-	end
-
-	for k, tab in tabs do
-		local b = Instance.new("TextButton")
-		b.LayoutOrder = k
-		b.Size = UDim2.new(0, 70, 0, 70)
-		b.BackgroundColor3 = Color3.new(1, 1, 1)
-		b.BackgroundTransparency = 0.05
-		b.Text = ""
-		b.Parent = column
-		Theme.corner(b, 18)
-		-- stesso stile delle schede: vetro blu notte, bordo dorato
-		Theme.gradient(b, Color3.fromRGB(40, 54, 92), Color3.fromRGB(14, 18, 32), 90)
-		Theme.stroke(b, Theme.ACCENT, 2, 0.35)
-		local vf = Theme.viewport(b, nil, UDim2.new(1, -10, 1, -24))
-		vf.Position = UDim2.new(0, 5, 0, 2)
-		task.spawn(function()
-			-- l'anteprima dei draghi arriva dal server dopo qualche istante
-			for _ = 1, 20 do
-				local obj = tab.icon()
-				if obj then
-					vf:Destroy()
-					Theme.viewport(b, obj, UDim2.new(1, -10, 1, -24), true).Position = UDim2.new(0, 5, 0, 2)
-					return
-				end
-				task.wait(1)
-			end
-		end)
-		local l = Theme.label(b, tab.name, 11, Theme.TEXT, true)
-		l.TextXAlignment = Enum.TextXAlignment.Center
-		l.AnchorPoint = Vector2.new(0, 1)
-		l.Position = UDim2.new(0, 0, 1, -3)
-		l.Size = UDim2.new(1, 0, 0, 16)
+	for k, name in names do
+		local b = column[name]
+		b.Text = (if name == "Store" then "Shop" else name)
+			.. (if UIS.TouchEnabled then "" else " (" .. keys[k].Name .. ")")
 		b.Activated:Connect(function()
-			open(tab)
+			open(name)
 		end)
-		ContextActionService:BindAction("Menu" .. tab.name, function(_, state)
+		CAS:BindAction("Menu" .. name, function(_, state)
 			if state == Enum.UserInputState.Begin then
-				open(tab)
+				open(name)
 			end
 			return Enum.ContextActionResult.Pass
-		end, false, tab.key, tab.key2 or tab.key)
+		end, false, keys[k], if name == "Backpack" then Enum.KeyCode.V else keys[k])
 	end
-	close.Activated:Connect(function()
+	window.Close.Activated:Connect(function()
 		open(nil)
 	end)
-
+	column.Teleport.Activated:Connect(function()
+		open(nil)
+		local teleport = player.PlayerGui:FindFirstChild("Teletrasporto")
+		if teleport then
+			Ui.open(Ui.node(teleport, "Panel"))
+		end
+	end)
+	local expanded = true
+	column.NascondiIcone.Activated:Connect(function()
+		expanded = not expanded
+		for _, n in names do
+			column[n].Visible = expanded
+		end
+		column.Teleport.Visible = expanded
+		column.NascondiIcone.Text = if expanded then "Hide" else "Show"
+	end)
+	Ui.viewportChanged(function(vp)
+		local portrait = vp.X < vp.Y
+		window.Position = UDim2.fromScale(if portrait then 0.5 else 0.56, 0.5)
+		window.Size = UDim2.fromScale(if portrait then 0.97 else 0.83, 0.9)
+		local top = if portrait then 0.43 else 0.33
+		local height = math.max(48, math.min(364, vp.Y - 170 - top * vp.Y))
+		column.Position = UDim2.fromScale(0.01, top)
+		column.Size = UDim2.fromScale(if portrait then 0.22 else 0.13, height / vp.Y)
+		for _, child in column:GetChildren() do
+			if child:IsA("GuiButton") then
+				child.Size = UDim2.fromScale(0.94, 48 / height)
+			end
+		end
+		local body = content.Dragons.Body
+		body.Nest.Position = UDim2.fromScale(0, 0)
+		body.Nest.Size = UDim2.fromScale(if portrait then 1 else 0.36, if portrait then 0.4 else 1)
+		body.Dragons.Position = UDim2.fromScale(if portrait then 0 else 0.38, if portrait then 0.43 else 0)
+		body.Dragons.Size = UDim2.fromScale(if portrait then 1 else 0.62, if portrait then 0.57 else 1)
+	end)
 	for eventName, tabName in { OpenShop = "Store", OpenCrafting = "Crafting", OpenDragons = "Dragons" } do
 		(remotes:WaitForChild(eventName) :: RemoteEvent).OnClientEvent:Connect(function()
-			local t = byName(tabName)
-			if t and current ~= t then
-				open(t)
+			if current ~= tabName then
+				open(tabName)
 			end
 		end)
 	end
-
-	-- ridisegna la scheda aperta quando cambiano soldi, minerali, draghi...
 	local function refreshOpen()
-		if current and current.refresh then
-			(current.refresh :: () -> ())()
+		if current and refreshers[current] then
+			refreshers[current]()
 		end
 	end
 	for _, attr in { "Coins", "DragonData", "CarryingEgg", "HouseLevel", "Pitons" } do
 		player:GetAttributeChangedSignal(attr):Connect(refreshOpen)
 	end
-	task.spawn(function()
-		-- anche i drop dei nemici (cartella "Materiali")
+	for id in DragonConfig.GAMEPASSES do
+		player:GetAttributeChangedSignal("Pass_" .. id):Connect(refreshOpen)
+	end
+	for _, folderName in { "Ores", "Materiali" } do
 		task.spawn(function()
-			local mats = player:WaitForChild("Materiali", 120)
-			if mats then
-				local function watch(v: Instance)
-					if v:IsA("IntValue") then
-						v.Changed:Connect(refreshOpen)
-					end
-				end
-				for _, v in mats:GetChildren() do
-					watch(v)
-				end
-				mats.ChildAdded:Connect(function(v)
-					watch(v)
-					refreshOpen()
-				end)
+			local folder = player:WaitForChild(folderName, 120)
+			if not folder then
+				return
 			end
-		end)
-		local minerals = player:WaitForChild("Ores", 30)
-		if minerals then
-			minerals.DescendantAdded:Connect(refreshOpen)
-			for _, v in minerals:GetChildren() do
+			local function watch(v: Instance)
 				if v:IsA("IntValue") then
 					v.Changed:Connect(refreshOpen)
 				end
 			end
-			minerals.ChildAdded:Connect(function(v)
-				if v:IsA("IntValue") then
-					v.Changed:Connect(refreshOpen)
-				end
+			for _, v in folder:GetChildren() do
+				watch(v)
+			end
+			folder.ChildAdded:Connect(function(v)
+				watch(v)
+				refreshOpen()
 			end)
-		end
-	end)
-	-- i tempi di cova scorrono mentre la scheda Draghi e' aperta
+			folder.ChildRemoved:Connect(refreshOpen)
+		end)
+	end
 	task.spawn(function()
-		while true do
+		while gui.Parent do
 			task.wait(1)
-			if current and current.name == "Dragons" then
+			if current == "Dragons" then
 				refreshOpen()
 			end
 		end
 	end)
 end
-
 return MainMenu

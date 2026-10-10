@@ -25,6 +25,7 @@ local DragonVFX = require(script.Parent.DragonVFX)
 local ClientState = require(script.Parent.ClientState)
 local Sfx = require(script.Parent.Sfx)
 local Theme = require(script.Parent.Theme)
+local Ui = require(ReplicatedStorage:WaitForChild("Shared").UiView)
 
 local Combat = {}
 
@@ -437,60 +438,24 @@ function Combat.start()
 		return Enum.ContextActionResult.Pass
 	end, false, Enum.KeyCode.Z, Enum.KeyCode.ButtonY)
 
-	-- interfaccia: pulsante del drago, cronometro, evento
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "CombatHUD"
-	gui.ResetOnSpawn = false
-	gui.DisplayOrder = 3
-	gui.Parent = player:WaitForChild("PlayerGui")
-
-	-- pulsante dell'attacco speciale (in basso al centro, a destra della barra degli attrezzi)
-	local touch = UserInputService.TouchEnabled
-	local spBtn = Instance.new("TextButton")
-	spBtn.Name = "Speciale"
-	spBtn.AnchorPoint = Vector2.new(0.5, 1)
-	spBtn.Position = if touch then UDim2.new(1, -120, 1, -110) else UDim2.new(0.5, 230, 1, -14)
-	spBtn.Size = UDim2.fromOffset(64, 64)
-	spBtn.BackgroundColor3 = Color3.new(1, 1, 1)
-	spBtn.Text = ""
-	spBtn.Visible = false
-	spBtn.Parent = gui
-	Theme.corner(spBtn, 32)
-	Theme.gradient(spBtn, Color3.fromRGB(60, 40, 90), Color3.fromRGB(18, 14, 30), 90)
-	local spStroke = Instance.new("UIStroke")
-	spStroke.Thickness = 2.5
-	spStroke.Color = Theme.ACCENT
-	spStroke.Parent = spBtn
-	local spIcon = Theme.label(spBtn, "🐉", 26, Theme.TEXT, true)
-	spIcon.Size = UDim2.new(1, 0, 1, -14)
-	spIcon.TextXAlignment = Enum.TextXAlignment.Center
-	local spKey = Theme.label(spBtn, if touch then "Roar" else "Z", 12, Theme.ACCENT, true)
-	spKey.AnchorPoint = Vector2.new(0, 1)
-	spKey.Position = UDim2.new(0, 0, 1, -4)
-	spKey.Size = UDim2.new(1, 0, 0, 14)
-	spKey.TextXAlignment = Enum.TextXAlignment.Center
-	local spCool = Theme.label(spBtn, "", 20, Theme.TEXT, true)
-	spCool.Size = UDim2.fromScale(1, 1)
-	spCool.TextXAlignment = Enum.TextXAlignment.Center
-	spCool.BackgroundTransparency = 0.35
-	spCool.BackgroundColor3 = Color3.new(0, 0, 0)
-	spCool.ZIndex = 3
-	Theme.corner(spCool, 32)
+	-- Il pulsante mantiene nome e azione; il modello e la cornice si modificano in Studio.
+	local gui = Ui.screen("CombatHUD")
+	local spBtn = Ui.node(gui, "Speciale")
+	local spStroke = spBtn.Stroke
+	local spCool = spBtn.Cooldown
+	spBtn.Key.Text = if UserInputService.TouchEnabled then "Roar" else "Z"
 	spBtn.Activated:Connect(special)
-
-	-- cronometro della discesa e evento in corso (in alto al centro, sotto le monete)
-	local timer = Theme.label(gui, "", 22, Theme.ACCENT, true)
-	timer.AnchorPoint = Vector2.new(0.5, 0)
-	timer.Position = UDim2.new(0.5, 0, 0, 46)
-	timer.Size = UDim2.new(0, 320, 0, 28)
-	timer.TextXAlignment = Enum.TextXAlignment.Center
-	timer.TextStrokeTransparency = 0.4
-	local eventLabel = Theme.label(gui, "", 15, Color3.fromRGB(255, 170, 120), true)
-	eventLabel.AnchorPoint = Vector2.new(0.5, 0)
-	eventLabel.Position = UDim2.new(0.5, 0, 0, 76)
-	eventLabel.Size = UDim2.new(0, 520, 0, 22)
-	eventLabel.TextXAlignment = Enum.TextXAlignment.Center
-	eventLabel.TextStrokeTransparency = 0.4
+	local timer = Ui.node(gui, "Timer")
+	local eventLabel = Ui.node(gui, "Event")
+	Ui.viewportChanged(function(vp)
+		local portrait = vp.X < vp.Y
+		spBtn.Position = UDim2.fromScale(if portrait then .31 else .66, if portrait then .64 else .42)
+		spBtn.Size = UDim2.fromScale(50 / vp.X, 50 / vp.Y)
+		timer.Position = UDim2.fromScale(if portrait then .15 else .4, if portrait then .565 else .57)
+		timer.Size = UDim2.fromScale(if portrait then .7 else .38, if portrait then .035 else .055)
+		eventLabel.Position = UDim2.fromScale(if portrait then .15 else .4, if portrait then .607 else .64)
+		eventLabel.Size = UDim2.fromScale(if portrait then .7 else .38, if portrait then .026 else .05)
+	end)
 
 	local accum = 0
 	RunService.RenderStepped:Connect(function(dt)

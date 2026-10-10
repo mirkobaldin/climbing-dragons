@@ -1,0 +1,105 @@
+{
+  "className": "TextButton",
+  "properties": {
+    "Position": {
+      "UDim2": [
+        [
+          0.84,
+          0
+        ],
+        [
+          0.4,
+          0
+        ]
+      ]
+    },
+    "Size": {
+      "UDim2": [
+        [
+          0.15,
+          0
+        ],
+        [
+          0.1,
+          0
+        ]
+      ]
+    },
+    "BackgroundColor3": {
+      "Color3": [
+        0.10980392156862745,
+        0.13333333333333333,
+        0.18823529411764706
+      ]
+    },
+    "BorderSizePixel": 0,
+    "Text": "Teleport (T)",
+    "Font": "GothamBold",
+    "TextSize": 14,
+    "TextColor3": {
+      "Color3": [
+        0.9411764705882353,
+        0.9411764705882353,
+        0.9490196078431372
+      ]
+    },
+    "TextWrapped": true,
+    "TextStrokeTransparency": 0.6,
+    "AutoButtonColor": true,
+    "Attributes": {
+      "UiAsset": {
+        "String": "btn_secondary_normal"
+      }
+    }
+  },
+  "children": [
+    {
+      "name": "Corner",
+      "className": "UICorner",
+      "properties": {
+        "CornerRadius": {
+          "UDim": [
+            0,
+            10
+          ]
+        }
+      },
+      "children": []
+    },
+    {
+      "name": "Stroke",
+      "className": "UIStroke",
+      "properties": {
+        "Color": {
+          "Color3": [
+            1,
+            0.7686274509803922,
+            0.3137254901960784
+          ]
+        },
+        "Thickness": 1,
+        "Transparency": 0.65
+      },
+      "children": []
+    },
+    {
+      "name": "SizeLimit",
+      "className": "UISizeConstraint",
+      "properties": {
+        "MinSize": {
+          "Vector2": [
+            44,
+            44
+          ]
+        },
+        "MaxSize": {
+          "Vector2": [
+            10000,
+            10000
+          ]
+        }
+      },
+      "children": []
+    }
+  ]
+}

@@ -277,9 +277,9 @@ function PickaxeThrow.start()
 			task.spawn(throw)
 		end
 		return Enum.ContextActionResult.Pass
-	end, true, Enum.KeyCode.Q)
-	ContextActionService:SetTitle("LancioPiccozza", "Throw")
-	ContextActionService:SetPosition("LancioPiccozza", UDim2.new(1, -150, 1, -190))
+	end, false, Enum.KeyCode.Q)
 end
 
+-- Il pulsante in StarterGui usa lo stesso gesto e lo stesso controllo del tasto Q.
+PickaxeThrow.activate = throw
 return PickaxeThrow

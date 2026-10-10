@@ -1,0 +1,161 @@
+{
+  "className": "Frame",
+  "properties": {
+    "Position": {
+      "UDim2": [
+        [
+          0.18,
+          0
+        ],
+        [
+          0.69,
+          0
+        ]
+      ]
+    },
+    "Size": {
+      "UDim2": [
+        [
+          0.64,
+          0
+        ],
+        [
+          0.035,
+          0
+        ]
+      ]
+    },
+    "BorderSizePixel": 0,
+    "BackgroundColor3": {
+      "Color3": [
+        0.10980392156862745,
+        0.13333333333333333,
+        0.18823529411764706
+      ]
+    },
+    "BackgroundTransparency": 0.08,
+    "Attributes": {
+      "UiAsset": {
+        "String": ""
+      }
+    }
+  },
+  "children": [
+    {
+      "name": "Corner",
+      "className": "UICorner",
+      "properties": {
+        "CornerRadius": {
+          "UDim": [
+            0,
+            10
+          ]
+        }
+      },
+      "children": []
+    },
+    {
+      "name": "Stroke",
+      "className": "UIStroke",
+      "properties": {
+        "Color": {
+          "Color3": [
+            1,
+            0.7686274509803922,
+            0.3137254901960784
+          ]
+        },
+        "Thickness": 1,
+        "Transparency": 0.65
+      },
+      "children": []
+    },
+    {
+      "name": "Fill",
+      "className": "Frame",
+      "properties": {
+        "Position": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        "Size": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "BorderSizePixel": 0,
+        "BackgroundColor3": {
+          "Color3": [
+            1,
+            0.7686274509803922,
+            0.3137254901960784
+          ]
+        },
+        "BackgroundTransparency": 0
+      },
+      "children": []
+    },
+    {
+      "name": "Text",
+      "className": "TextLabel",
+      "properties": {
+        "Position": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        "Size": {
+          "UDim2": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "BackgroundTransparency": 1,
+        "Text": "",
+        "Font": "GothamBold",
+        "TextSize": 12,
+        "TextColor3": {
+          "Color3": [
+            0.9411764705882353,
+            0.9411764705882353,
+            0.9490196078431372
+          ]
+        },
+        "TextWrapped": true,
+        "RichText": true,
+        "TextStrokeTransparency": 0.6,
+        "TextXAlignment": "Center",
+        "ZIndex": 3
+      },
+      "children": []
+    }
+  ]
+}

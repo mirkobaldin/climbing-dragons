@@ -1,0 +1,1014 @@
+{
+  "className": "ScrollingFrame",
+  "properties": {
+    "Position": {
+      "UDim2": [
+        [
+          0.01,
+          0
+        ],
+        [
+          0.3,
+          0
+        ]
+      ]
+    },
+    "Size": {
+      "UDim2": [
+        [
+          0.09,
+          0
+        ],
+        [
+          0.4,
+          0
+        ]
+      ]
+    },
+    "BorderSizePixel": 0,
+    "BackgroundColor3": {
+      "Color3": [
+        0.10980392156862745,
+        0.13333333333333333,
+        0.18823529411764706
+      ]
+    },
+    "BackgroundTransparency": 1,
+    "CanvasSize": {
+      "UDim2": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "AutomaticCanvasSize": "Y",
+    "ScrollingDirection": "Y",
+    "ScrollBarThickness": 3,
+    "ClipsDescendants": true
+  },
+  "children": [
+    {
+      "name": "Store",
+      "className": "TextButton",
+      "properties": {
+        "Position": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        "Size": {
+          "UDim2": [
+            [
+              0.94,
+              0
+            ],
+            [
+              0.25,
+              0
+            ]
+          ]
+        },
+        "BackgroundColor3": {
+          "Color3": [
+            0.10980392156862745,
+            0.13333333333333333,
+            0.18823529411764706
+          ]
+        },
+        "BorderSizePixel": 0,
+        "Text": "Store",
+        "Font": "GothamBold",
+        "TextSize": 14,
+        "TextColor3": {
+          "Color3": [
+            0.9411764705882353,
+            0.9411764705882353,
+            0.9490196078431372
+          ]
+        },
+        "TextWrapped": true,
+        "TextStrokeTransparency": 0.6,
+        "AutoButtonColor": true,
+        "Attributes": {
+          "UiAsset": {
+            "String": "btn_secondary_normal"
+          }
+        },
+        "LayoutOrder": 1
+      },
+      "children": [
+        {
+          "name": "Corner",
+          "className": "UICorner",
+          "properties": {
+            "CornerRadius": {
+              "UDim": [
+                0,
+                10
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Stroke",
+          "className": "UIStroke",
+          "properties": {
+            "Color": {
+              "Color3": [
+                1,
+                0.7686274509803922,
+                0.3137254901960784
+              ]
+            },
+            "Thickness": 1,
+            "Transparency": 0.65
+          },
+          "children": []
+        },
+        {
+          "name": "SizeLimit",
+          "className": "UISizeConstraint",
+          "properties": {
+            "MinSize": {
+              "Vector2": [
+                44,
+                44
+              ]
+            },
+            "MaxSize": {
+              "Vector2": [
+                10000,
+                10000
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Icon",
+          "className": "ImageLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.02,
+                  0
+                ],
+                [
+                  0.12,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.2,
+                  0
+                ],
+                [
+                  0.76,
+                  0
+                ]
+              ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": "",
+            "ScaleType": "Fit",
+            "Attributes": {
+              "UiAsset": {
+                "String": "icon_shop"
+              }
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "Backpack",
+      "className": "TextButton",
+      "properties": {
+        "Position": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        "Size": {
+          "UDim2": [
+            [
+              0.94,
+              0
+            ],
+            [
+              0.25,
+              0
+            ]
+          ]
+        },
+        "BackgroundColor3": {
+          "Color3": [
+            0.10980392156862745,
+            0.13333333333333333,
+            0.18823529411764706
+          ]
+        },
+        "BorderSizePixel": 0,
+        "Text": "Backpack",
+        "Font": "GothamBold",
+        "TextSize": 14,
+        "TextColor3": {
+          "Color3": [
+            0.9411764705882353,
+            0.9411764705882353,
+            0.9490196078431372
+          ]
+        },
+        "TextWrapped": true,
+        "TextStrokeTransparency": 0.6,
+        "AutoButtonColor": true,
+        "Attributes": {
+          "UiAsset": {
+            "String": "btn_secondary_normal"
+          }
+        },
+        "LayoutOrder": 2
+      },
+      "children": [
+        {
+          "name": "Corner",
+          "className": "UICorner",
+          "properties": {
+            "CornerRadius": {
+              "UDim": [
+                0,
+                10
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Stroke",
+          "className": "UIStroke",
+          "properties": {
+            "Color": {
+              "Color3": [
+                1,
+                0.7686274509803922,
+                0.3137254901960784
+              ]
+            },
+            "Thickness": 1,
+            "Transparency": 0.65
+          },
+          "children": []
+        },
+        {
+          "name": "SizeLimit",
+          "className": "UISizeConstraint",
+          "properties": {
+            "MinSize": {
+              "Vector2": [
+                44,
+                44
+              ]
+            },
+            "MaxSize": {
+              "Vector2": [
+                10000,
+                10000
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Icon",
+          "className": "ImageLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.02,
+                  0
+                ],
+                [
+                  0.12,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.2,
+                  0
+                ],
+                [
+                  0.76,
+                  0
+                ]
+              ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": "",
+            "ScaleType": "Fit",
+            "Attributes": {
+              "UiAsset": {
+                "String": "icon_backpack"
+              }
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "Dragons",
+      "className": "TextButton",
+      "properties": {
+        "Position": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        "Size": {
+          "UDim2": [
+            [
+              0.94,
+              0
+            ],
+            [
+              0.25,
+              0
+            ]
+          ]
+        },
+        "BackgroundColor3": {
+          "Color3": [
+            0.10980392156862745,
+            0.13333333333333333,
+            0.18823529411764706
+          ]
+        },
+        "BorderSizePixel": 0,
+        "Text": "Dragons",
+        "Font": "GothamBold",
+        "TextSize": 14,
+        "TextColor3": {
+          "Color3": [
+            0.9411764705882353,
+            0.9411764705882353,
+            0.9490196078431372
+          ]
+        },
+        "TextWrapped": true,
+        "TextStrokeTransparency": 0.6,
+        "AutoButtonColor": true,
+        "Attributes": {
+          "UiAsset": {
+            "String": "btn_secondary_normal"
+          }
+        },
+        "LayoutOrder": 3
+      },
+      "children": [
+        {
+          "name": "Corner",
+          "className": "UICorner",
+          "properties": {
+            "CornerRadius": {
+              "UDim": [
+                0,
+                10
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Stroke",
+          "className": "UIStroke",
+          "properties": {
+            "Color": {
+              "Color3": [
+                1,
+                0.7686274509803922,
+                0.3137254901960784
+              ]
+            },
+            "Thickness": 1,
+            "Transparency": 0.65
+          },
+          "children": []
+        },
+        {
+          "name": "SizeLimit",
+          "className": "UISizeConstraint",
+          "properties": {
+            "MinSize": {
+              "Vector2": [
+                44,
+                44
+              ]
+            },
+            "MaxSize": {
+              "Vector2": [
+                10000,
+                10000
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Icon",
+          "className": "ImageLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.02,
+                  0
+                ],
+                [
+                  0.12,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.2,
+                  0
+                ],
+                [
+                  0.76,
+                  0
+                ]
+              ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": "",
+            "ScaleType": "Fit",
+            "Attributes": {
+              "UiAsset": {
+                "String": "icon_dragons"
+              }
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "Crafting",
+      "className": "TextButton",
+      "properties": {
+        "Position": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        "Size": {
+          "UDim2": [
+            [
+              0.94,
+              0
+            ],
+            [
+              0.25,
+              0
+            ]
+          ]
+        },
+        "BackgroundColor3": {
+          "Color3": [
+            0.10980392156862745,
+            0.13333333333333333,
+            0.18823529411764706
+          ]
+        },
+        "BorderSizePixel": 0,
+        "Text": "Crafting",
+        "Font": "GothamBold",
+        "TextSize": 14,
+        "TextColor3": {
+          "Color3": [
+            0.9411764705882353,
+            0.9411764705882353,
+            0.9490196078431372
+          ]
+        },
+        "TextWrapped": true,
+        "TextStrokeTransparency": 0.6,
+        "AutoButtonColor": true,
+        "Attributes": {
+          "UiAsset": {
+            "String": "btn_secondary_normal"
+          }
+        },
+        "LayoutOrder": 4
+      },
+      "children": [
+        {
+          "name": "Corner",
+          "className": "UICorner",
+          "properties": {
+            "CornerRadius": {
+              "UDim": [
+                0,
+                10
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Stroke",
+          "className": "UIStroke",
+          "properties": {
+            "Color": {
+              "Color3": [
+                1,
+                0.7686274509803922,
+                0.3137254901960784
+              ]
+            },
+            "Thickness": 1,
+            "Transparency": 0.65
+          },
+          "children": []
+        },
+        {
+          "name": "SizeLimit",
+          "className": "UISizeConstraint",
+          "properties": {
+            "MinSize": {
+              "Vector2": [
+                44,
+                44
+              ]
+            },
+            "MaxSize": {
+              "Vector2": [
+                10000,
+                10000
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Icon",
+          "className": "ImageLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.02,
+                  0
+                ],
+                [
+                  0.12,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.2,
+                  0
+                ],
+                [
+                  0.76,
+                  0
+                ]
+              ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": "",
+            "ScaleType": "Fit",
+            "Attributes": {
+              "UiAsset": {
+                "String": "icon_crafting"
+              }
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "Upgrades",
+      "className": "TextButton",
+      "properties": {
+        "Position": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        "Size": {
+          "UDim2": [
+            [
+              0.94,
+              0
+            ],
+            [
+              0.25,
+              0
+            ]
+          ]
+        },
+        "BackgroundColor3": {
+          "Color3": [
+            0.10980392156862745,
+            0.13333333333333333,
+            0.18823529411764706
+          ]
+        },
+        "BorderSizePixel": 0,
+        "Text": "Upgrades",
+        "Font": "GothamBold",
+        "TextSize": 14,
+        "TextColor3": {
+          "Color3": [
+            0.9411764705882353,
+            0.9411764705882353,
+            0.9490196078431372
+          ]
+        },
+        "TextWrapped": true,
+        "TextStrokeTransparency": 0.6,
+        "AutoButtonColor": true,
+        "Attributes": {
+          "UiAsset": {
+            "String": "btn_secondary_normal"
+          }
+        },
+        "LayoutOrder": 5
+      },
+      "children": [
+        {
+          "name": "Corner",
+          "className": "UICorner",
+          "properties": {
+            "CornerRadius": {
+              "UDim": [
+                0,
+                10
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Stroke",
+          "className": "UIStroke",
+          "properties": {
+            "Color": {
+              "Color3": [
+                1,
+                0.7686274509803922,
+                0.3137254901960784
+              ]
+            },
+            "Thickness": 1,
+            "Transparency": 0.65
+          },
+          "children": []
+        },
+        {
+          "name": "SizeLimit",
+          "className": "UISizeConstraint",
+          "properties": {
+            "MinSize": {
+              "Vector2": [
+                44,
+                44
+              ]
+            },
+            "MaxSize": {
+              "Vector2": [
+                10000,
+                10000
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Icon",
+          "className": "ImageLabel",
+          "properties": {
+            "Position": {
+              "UDim2": [
+                [
+                  0.02,
+                  0
+                ],
+                [
+                  0.12,
+                  0
+                ]
+              ]
+            },
+            "Size": {
+              "UDim2": [
+                [
+                  0.2,
+                  0
+                ],
+                [
+                  0.76,
+                  0
+                ]
+              ]
+            },
+            "BackgroundTransparency": 1,
+            "Image": "",
+            "ScaleType": "Fit",
+            "Attributes": {
+              "UiAsset": {
+                "String": "icon_settings"
+              }
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "Teleport",
+      "className": "TextButton",
+      "properties": {
+        "Position": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        "Size": {
+          "UDim2": [
+            [
+              0.94,
+              0
+            ],
+            [
+              0.25,
+              0
+            ]
+          ]
+        },
+        "BackgroundColor3": {
+          "Color3": [
+            0.10980392156862745,
+            0.13333333333333333,
+            0.18823529411764706
+          ]
+        },
+        "BorderSizePixel": 0,
+        "Text": "Teleport",
+        "Font": "GothamBold",
+        "TextSize": 14,
+        "TextColor3": {
+          "Color3": [
+            0.9411764705882353,
+            0.9411764705882353,
+            0.9490196078431372
+          ]
+        },
+        "TextWrapped": true,
+        "TextStrokeTransparency": 0.6,
+        "AutoButtonColor": true,
+        "Attributes": {
+          "UiAsset": {
+            "String": "btn_secondary_normal"
+          }
+        },
+        "LayoutOrder": 6
+      },
+      "children": [
+        {
+          "name": "Corner",
+          "className": "UICorner",
+          "properties": {
+            "CornerRadius": {
+              "UDim": [
+                0,
+                10
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Stroke",
+          "className": "UIStroke",
+          "properties": {
+            "Color": {
+              "Color3": [
+                1,
+                0.7686274509803922,
+                0.3137254901960784
+              ]
+            },
+            "Thickness": 1,
+            "Transparency": 0.65
+          },
+          "children": []
+        },
+        {
+          "name": "SizeLimit",
+          "className": "UISizeConstraint",
+          "properties": {
+            "MinSize": {
+              "Vector2": [
+                44,
+                44
+              ]
+            },
+            "MaxSize": {
+              "Vector2": [
+                10000,
+                10000
+              ]
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "NascondiIcone",
+      "className": "TextButton",
+      "properties": {
+        "Position": {
+          "UDim2": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        "Size": {
+          "UDim2": [
+            [
+              0.94,
+              0
+            ],
+            [
+              0.25,
+              0
+            ]
+          ]
+        },
+        "BackgroundColor3": {
+          "Color3": [
+            0.10980392156862745,
+            0.13333333333333333,
+            0.18823529411764706
+          ]
+        },
+        "BorderSizePixel": 0,
+        "Text": "Hide",
+        "Font": "GothamBold",
+        "TextSize": 14,
+        "TextColor3": {
+          "Color3": [
+            0.9411764705882353,
+            0.9411764705882353,
+            0.9490196078431372
+          ]
+        },
+        "TextWrapped": true,
+        "TextStrokeTransparency": 0.6,
+        "AutoButtonColor": true,
+        "Attributes": {
+          "UiAsset": {
+            "String": "btn_secondary_normal"
+          }
+        },
+        "LayoutOrder": 0
+      },
+      "children": [
+        {
+          "name": "Corner",
+          "className": "UICorner",
+          "properties": {
+            "CornerRadius": {
+              "UDim": [
+                0,
+                10
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "Stroke",
+          "className": "UIStroke",
+          "properties": {
+            "Color": {
+              "Color3": [
+                1,
+                0.7686274509803922,
+                0.3137254901960784
+              ]
+            },
+            "Thickness": 1,
+            "Transparency": 0.65
+          },
+          "children": []
+        },
+        {
+          "name": "SizeLimit",
+          "className": "UISizeConstraint",
+          "properties": {
+            "MinSize": {
+              "Vector2": [
+                44,
+                44
+              ]
+            },
+            "MaxSize": {
+              "Vector2": [
+                10000,
+                10000
+              ]
+            }
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "Layout",
+      "className": "UIListLayout",
+      "properties": {
+        "SortOrder": "LayoutOrder",
+        "Padding": {
+          "UDim": [
+            0,
+            4
+          ]
+        }
+      },
+      "children": []
+    }
+  ]
+}
