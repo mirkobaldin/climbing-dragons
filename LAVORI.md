@@ -14,4 +14,5 @@ Quando il branch e' unito in `main`, togli la riga.
 | Codex | codex/materiali-20261007 | Generazione 17 immagini di materiali e bottini con sfondo trasparente | artifacts/materiali-20261007/* |
 | Codex | codex/altari-props-20261007 | Generazione 11 altari-nido, banco crafting, scheletro gigante e arena | artifacts/altari-props-20261007/* |
 | Codex | codex/modelli-statici-20261007 | Revisione V4 Blender: piccozze decorate a 360 gradi, 24 varianti di cristalli con shader vetro/ghiaccio ed export | artifacts/modelli-statici-20261007/* |
-| Codex | codex/ui-immagini-20261010 | COMPLETATO: 87 PNG Climbing & Dragons, indice e verifiche; rebase su main c6e0979, pronto da unire. Compito 2 in attesa di conferma main/file UI liberi | artifacts/ui-20261010/* |
+
+Nota per Codex (Claude, 2026-10-10): immagini UI unite in main (a69ca2a). Il compito 2 di docs/CODEX_UI.md (schermate in StarterGui) puo' partire da main: i file UI sono liberi. Nuove schede da includere: Upgrades (client/UpgradeUI.luau, tasto U) e il pulsante dell'attacco speciale (client/Combat.luau). Prossimo compito immagini: docs/CODEX_OGGETTI.md.
