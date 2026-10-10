@@ -28,161 +28,53 @@ local HUD = {}
 
 local WEATHER_NAMES = { Clear = "Clear", Cloudy = "Cloudy", Rain = "Rain", Thunderstorm = "Thunderstorm", Storm = "Storm", Snow = "Snow" }
 
--- Barra con riempimento e testo sopra
-local function bar(parent: Instance, color: Color3, height: number): (Frame, Frame, TextLabel)
-	local back = Theme.frame(parent, Theme.BG, 0.25)
-	back.Size = UDim2.new(1, 0, 0, height)
-	Theme.corner(back, height // 2)
-	Theme.stroke(back, Color3.new(1, 1, 1), 1, 0.85)
-	local fill = Theme.frame(back, color)
-	fill.Size = UDim2.fromScale(1, 1)
-	Theme.corner(fill, height // 2)
-	local shine = Instance.new("UIGradient")
-	shine.Rotation = 90
-	shine.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0),
-		NumberSequenceKeypoint.new(1, 0.35),
-	})
-	shine.Parent = fill
-	local text = Instance.new("TextLabel")
-	text.BackgroundTransparency = 1
-	text.Size = UDim2.fromScale(1, 1)
-	text.Font = Enum.Font.GothamBold
-	text.TextSize = math.max(11, height - 6)
-	text.TextColor3 = Color3.new(1, 1, 1)
-	text.TextStrokeTransparency = 0.4
-	text.ZIndex = 3
-	text.Parent = back
-	return back, fill, text
-end
-
--- scheda: vetro blu notte con sfumatura, bordo chiaro sottile e ombra morbida sotto
-local function card(parent: Instance): Frame
-	local f = Theme.frame(parent, Color3.new(1, 1, 1), 0.08)
-	f.AutomaticSize = Enum.AutomaticSize.Y
-	Theme.corner(f, 14)
-	Theme.gradient(f, Color3.fromRGB(34, 46, 78), Color3.fromRGB(14, 18, 32), 90)
-	Theme.stroke(f, Color3.fromRGB(150, 190, 255), 1.5, 0.6)
-	return f
-end
+local Ui = require(ReplicatedStorage.Shared.UiView)
 
 function HUD.start()
-	pcall(function()
-		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false) -- usiamo la nostra barra
-	end)
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "ClimbHUD"
-	gui.ResetOnSpawn = false
-	gui.Parent = player:WaitForChild("PlayerGui")
-
-	-- Monete (in alto al centro)
-	local coins = card(gui)
-	coins.AnchorPoint = Vector2.new(0.5, 0)
-	coins.Position = UDim2.new(0.5, 0, 0, 6)
-	coins.Size = UDim2.new(0, 150, 0, 34)
-	coins.AutomaticSize = Enum.AutomaticSize.None
-	-- bordo d'oro: la valuta si riconosce al volo
-	local cs = coins:FindFirstChildOfClass("UIStroke")
-	if cs then
-		cs.Color = Theme.COIN
-		cs.Transparency = 0.25
-	end
-	local coinIcon = Theme.frame(coins, Theme.COIN)
-	coinIcon.AnchorPoint = Vector2.new(0, 0.5)
-	coinIcon.Position = UDim2.new(0, 8, 0.5, 0)
-	coinIcon.Size = UDim2.new(0, 20, 0, 20)
-	Theme.corner(coinIcon, 10)
-	Theme.stroke(coinIcon, Color3.fromRGB(180, 120, 0), 2, 0)
-	local coinText = Theme.label(coins, "0", 18, Theme.COIN, true)
-	coinText.Position = UDim2.new(0, 36, 0, 0)
-	coinText.Size = UDim2.new(1, -42, 1, 0)
-	coinText.TextXAlignment = Enum.TextXAlignment.Left
-
-	-- Meteo (in alto a destra): icona grande del tempo, ora, quota, temperatura. Il fondo cambia
-	-- colore col giorno, la notte e la tempesta
-	local info = card(gui)
-	info.AnchorPoint = Vector2.new(1, 0)
-	info.Position = UDim2.new(1, -10, 0, 6)
-	info.Size = UDim2.new(0, 220, 0, 0)
-	Theme.padding(info, 10)
-	Theme.list(info, 6)
-	local sky = info:FindFirstChildOfClass("UIGradient") :: UIGradient
-	local headRow = Theme.frame(info, nil, 1)
-	headRow.Size = UDim2.new(1, 0, 0, 40)
-	local weatherIcon = Theme.label(headRow, "☀️", 32, Theme.TEXT, true)
-	weatherIcon.Size = UDim2.new(0, 42, 1, 0)
-	weatherIcon.TextXAlignment = Enum.TextXAlignment.Center
-	local timeBig = Theme.label(headRow, "12:00", 24, Theme.TEXT, true)
-	timeBig.Font = Enum.Font.GothamBlack
-	timeBig.Position = UDim2.new(0, 48, 0, -2)
-	timeBig.Size = UDim2.new(1, -48, 0, 26)
-	local clock = Theme.label(headRow, "", 12, Color3.fromRGB(190, 210, 240), true)
-	clock.Position = UDim2.new(0, 48, 0, 24)
-	clock.Size = UDim2.new(1, -48, 0, 16)
-	local altitude = Theme.label(info, "", 14, Theme.TEXT, true)
-	local warmthBack, warmthFill, warmthText = bar(info, Color3.fromRGB(255, 150, 70), 18)
-	local finder = Theme.label(info, "", 12, Theme.ACCENT, true)
-	local gearLabel = Theme.label(info, "", 11, Theme.MUTED)
-
-	-- Scheda del giocatore (in alto a sinistra): avatar vero, salute e stamina in piccolo
-	local me = card(gui)
-	me.Position = UDim2.new(0, 10, 0, 6)
-	me.Size = UDim2.new(0, 250, 0, 74)
-	me.AutomaticSize = Enum.AutomaticSize.None
-
-	local avatar = Instance.new("ImageLabel")
-	avatar.AnchorPoint = Vector2.new(0, 0.5)
-	avatar.Position = UDim2.new(0, 9, 0.5, 0)
-	avatar.Size = UDim2.new(0, 56, 0, 56)
-	avatar.BackgroundColor3 = Theme.CARD
-	avatar.BorderSizePixel = 0
-	avatar.Parent = me
-	Theme.corner(avatar, 28)
-	Theme.stroke(avatar, Theme.ACCENT, 2, 0.35)
-	-- l'immagine del profilo arriva da Roblox, non e' un'icona scaricata
-	task.spawn(function()
-		local ok, url = pcall(function()
-			return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
-		end)
-		if ok then
-			avatar.Image = url
-		end
-	end)
-
-	local stack = Theme.frame(me, nil, 1)
-	stack.Position = UDim2.new(0, 74, 0, 8)
-	stack.Size = UDim2.new(1, -84, 1, -16)
-	Theme.list(stack, 3)
-	local nameLabel = Theme.label(stack, player.DisplayName, 13, Theme.TEXT, true)
-	nameLabel.Size = UDim2.new(1, 0, 0, 16)
-	local _, healthFill, healthText = bar(stack, Color3.fromRGB(220, 60, 60), 16)
-	local staminaBack, staminaFill, staminaText = bar(stack, Color3.fromRGB(120, 200, 110), 14)
-	-- scudo di ghiaccio (potenziamento): compare quando ce l'hai e la scheda si allunga
-	local shieldBack, shieldFill, shieldText = bar(stack, Color3.fromRGB(120, 200, 255), 12)
-	shieldBack.Visible = false
-
-	-- Statistiche del drago al seguito, sempre a schermo sotto la scheda del giocatore (spostata a
-	-- destra della colonna dei pulsanti, che sul telefono sale fin qui)
-	local pet = card(gui)
-	pet.Position = UDim2.new(0, 88, 0, 86)
-	local function shieldLayout(on: boolean)
-		shieldBack.Visible = on
-		me.Size = UDim2.new(0, 250, 0, if on then 90 else 74)
-		pet.Position = UDim2.new(0, 88, 0, if on then 102 else 86)
-	end
-	pet.Size = UDim2.new(0, 172, 0, 0)
-	pet.Visible = false
-	Theme.padding(pet, 8)
-	Theme.list(pet, 3)
-	local petName = Theme.label(pet, "", 13, Theme.TEXT, true)
-	petName.RichText = true
-	petName.Size = UDim2.new(1, 0, 0, 16)
-	local petLevel = Theme.label(pet, "", 11, Theme.MUTED, true)
-	petLevel.Size = UDim2.new(1, 0, 0, 14)
-	local _, petXpFill, petXpText = bar(pet, Color3.fromRGB(110, 200, 255), 13)
-	local petStats = Theme.label(pet, "", 11, Theme.TEXT)
-	petStats.RichText = true
-	petStats.Size = UDim2.new(1, 0, 0, 14)
+ pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false) end)
+ local gui = Ui.screen("ClimbHUD")
+ local me, coins, info, pet, quest = Ui.node(gui,"Player"), Ui.node(gui,"Coins"), Ui.node(gui,"Weather"), Ui.node(gui,"Pet"), Ui.node(gui,"Quest")
+ local coinText, pitonText = coins.Text, coins.Pitons
+ local weatherIcon, weatherFallback, timeBig, clock, altitude = info.Icon, info.Fallback, info.Time, info.Clock, info.Altitude
+ local warmthBack, warmthFill, warmthText = info.Warmth, info.Warmth.Fill, info.Warmth.Text
+ local finder, gearLabel = info.Finder, info.Gear
+ Ui.node(me, "Name").Text = player.DisplayName
+ local healthFill, healthText = me.Health.Fill, me.Health.Text
+ local staminaBack, staminaFill, staminaText = me.Stamina, me.Stamina.Fill, me.Stamina.Text
+ local shieldBack, shieldFill, shieldText = me.Shield, me.Shield.Fill, me.Shield.Text
+ local petName, petLevel, petXpFill, petXpText, petStats = Ui.node(pet, "Name"), pet.Level, pet.XP.Fill, pet.XP.Text, pet.Stats
+ local function shieldLayout(on: boolean) shieldBack.Visible = on end
+ local questTitle, questText, skip = quest.Title, quest.Text, quest.Skip
+ local hint = Ui.node(gui, "Hint")
+ local noticePanel = Ui.node(gui, "Notice")
+ local noticeVersion = 0
+ local function showNotice()
+  local message = player:GetAttribute("Notice")
+  if type(message) ~= "string" or message == "" then return end
+  noticeVersion += 1
+  local version = noticeVersion
+  noticePanel.Text.Text = message
+  local goal = noticePanel.Position
+  noticePanel.Position = UDim2.fromScale(goal.X.Scale, goal.Y.Scale - .04)
+  Ui.open(noticePanel)
+  game:GetService("TweenService"):Create(noticePanel, TweenInfo.new(.18), {Position=goal}):Play()
+  task.delay(4, function() if noticeVersion == version then noticePanel.Visible = false end end)
+ end
+ player:GetAttributeChangedSignal("NoticeTime"):Connect(showNotice)
+ Ui.viewportChanged(function(vp)
+  local portrait = vp.X < vp.Y
+  me.Size = UDim2.fromScale(if portrait then .49 else .25, if portrait then .14 else .22)
+  coins.Position = UDim2.fromScale(.015, if portrait then .16 else .24)
+  coins.Size = UDim2.fromScale(if portrait then .49 else .25, .065)
+  info.Position = UDim2.fromScale(if portrait then .52 else .765, .015)
+  info.Size = UDim2.fromScale(if portrait then .465 else .22, if portrait then .2 else .27)
+  quest.Position = UDim2.fromScale(if portrait then .015 else .29, if portrait then .235 else .015)
+  quest.Size = UDim2.fromScale(if portrait then .97 else .46, if portrait then .18 else .3)
+  pet.Position = UDim2.fromScale(if portrait then .25 else .16, if portrait then .43 else .33)
+  pet.Size = UDim2.fromScale(if portrait then .5 else .23, if portrait then .13 else .2)
+  noticePanel.Position = UDim2.fromScale(if portrait then .15 else .3, if portrait then .58 else .33)
+  noticePanel.Size = UDim2.fromScale(if portrait then .7 else .44, .085)
+ end)
 	local function refreshPet()
 		local ok, data = pcall(function()
 			return game:GetService("HttpService"):JSONDecode(player:GetAttribute("DragonData") :: string)
@@ -199,6 +91,7 @@ function HUD.start()
 		if not d then
 			return
 		end
+		Ui.asset(pet.Element, "elem_" .. d.element)
 		local lv = d.level or 1
 		local need = DragonConfig.xpForLevel(lv)
 		local stage = DragonConfig.STAGES[math.clamp(d.stage or 1, 1, #DragonConfig.STAGES)]
@@ -211,33 +104,6 @@ function HUD.start()
 	end
 	player:GetAttributeChangedSignal("DragonData"):Connect(refreshPet)
 	refreshPet()
-
-	-- Tutorial (sotto la scheda del giocatore)
-	local quest = card(gui)
-	quest.AnchorPoint = Vector2.new(0.5, 0)
-	quest.Position = UDim2.new(0.5, 0, 0, 62) -- in alto al centro, sotto le monete: non copre le icone
-	quest.Size = UDim2.new(0, 300, 0, 0)
-	quest.Visible = false
-	Theme.padding(quest, 10)
-	Theme.list(quest, 4)
-	local questTitle = Theme.label(quest, "Tutorial", 14, Theme.ACCENT, true)
-	questTitle.LayoutOrder = 1
-	local questText = Theme.label(quest, "", 14, Theme.TEXT)
-	questText.LayoutOrder = 2
-	questText.AutomaticSize = Enum.AutomaticSize.Y
-	questText.Size = UDim2.new(1, 0, 0, 0)
-	local skip = Instance.new("TextButton")
-	skip.LayoutOrder = 3
-	-- ben visibile (prima era grigio su grigio e nessuno lo trovava), con conferma: il primo
-	-- tocco chiede "sicuro?", il secondo entro 4 secondi salta davvero
-	skip.Size = UDim2.new(0, 170, 0, 36)
-	skip.BackgroundColor3 = Theme.ACCENT
-	skip.Font = Enum.Font.GothamBold
-	skip.TextSize = 14
-	skip.TextColor3 = Theme.BG
-	skip.Text = "Skip tutorial"
-	skip.Parent = quest
-	Theme.corner(skip, 10)
 	local armedAt = 0
 	skip.Activated:Connect(function()
 		if os.clock() - armedAt > 4 then
@@ -262,18 +128,10 @@ function HUD.start()
 			(remote :: RemoteEvent):FireServer()
 		end
 	end)
-
-	local hint = Theme.label(gui, "", 16, Color3.fromRGB(255, 236, 190), true)
-	hint.AnchorPoint = Vector2.new(0.5, 1)
-	hint.Position = UDim2.new(0.5, 0, 1, -120)
-	hint.Size = UDim2.new(0.8, 0, 0, 44)
-	hint.TextXAlignment = Enum.TextXAlignment.Center
-	hint.TextYAlignment = Enum.TextYAlignment.Bottom
-	hint.TextStrokeTransparency = 0.3
-
 	local lastHint, hintTime = "", 0
 	local lastNotice: any = nil
 	local shownHealth = 1
+	local lastWeather = ""
 
 	RunService.RenderStepped:Connect(function(dt)
 		local character = player.Character
@@ -281,6 +139,7 @@ function HUD.start()
 		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 
 		coinText.Text = tostring(player:GetAttribute("Coins") or 0)
+		pitonText.Text = tostring(player:GetAttribute("Pitons") or 0)
 
 		-- salute (scende in modo fluido)
 		local health = if humanoid then math.clamp(humanoid.Health / math.max(humanoid.MaxHealth, 1), 0, 1) else 0
@@ -296,7 +155,7 @@ function HUD.start()
 			then Color3.fromRGB(120, 200, 110)
 			elseif ratio > 0.2 then Color3.fromRGB(230, 190, 70)
 			else Color3.fromRGB(220, 70, 60)
-		staminaText.Text = string.format("%d%%  ·  %d pitons", math.floor(ratio * 100), player:GetAttribute("Pitons") or 0)
+		staminaText.Text = string.format("%d%%", math.floor(ratio * 100))
 		local shieldMax = (player:GetAttribute("ShieldMax") or 0) :: number
 		if (shieldMax > 0) ~= shieldBack.Visible then
 			shieldLayout(shieldMax > 0)
@@ -312,14 +171,14 @@ function HUD.start()
 		local day = t >= 6 and t < 19
 		local w = workspace:GetAttribute("Weather") :: any
 		local ICON = { Clear = if day then "☀️" else "🌙", Cloudy = "☁️", Rain = "🌧️", Thunderstorm = "⛈️", Storm = "🌪️", Snow = "❄️" }
-		weatherIcon.Text = ICON[w] or (if day then "☀️" else "🌙")
+		local weatherKey = ({Clear=if day then "clear" else "night", Cloudy="cloudy", Rain="rain", Thunderstorm="thunder", Storm="storm", Snow="snow"})[w] or (if day then "clear" else "night")
+  if weatherKey ~= lastWeather then
+   lastWeather = weatherKey
+   weatherFallback.Visible = not Ui.asset(weatherIcon, "weather_" .. weatherKey)
+   weatherFallback.Text = ICON[w] or (if day then "☀️" else "🌙")
+  end
 		timeBig.Text = string.format("%02d:%02d", math.floor(t), math.floor((t % 1) * 60))
 		clock.Text = string.format("%s  ·  %s", if day then "Day" else "Night", WEATHER_NAMES[w] or "Clear")
-		-- fondo: azzurro di giorno, blu notte, grigio-viola in tempesta
-		if sky then
-			local top = if w == "Storm" or w == "Thunderstorm" then Color3.fromRGB(70, 60, 100) elseif day then Color3.fromRGB(46, 96, 160) else Color3.fromRGB(26, 30, 70)
-			sky.Color = ColorSequence.new(top, Color3.fromRGB(14, 18, 32))
-		end
 		local alt = if root then math.max(0, math.floor(root.Position.Y - 20)) else 0
 		altitude.Text = string.format("⛰️  %d m", alt)
 		local warmth = (player:GetAttribute("Warmth") or 100) :: number
