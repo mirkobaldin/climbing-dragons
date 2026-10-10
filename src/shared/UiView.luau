@@ -20,6 +20,50 @@ function UiView.node(root: Instance, path: string): any
 	return current
 end
 
+-- grandezza dei PNG con i bordi 9-slice (serve a sapere quanto sono spessi i bordi)
+local IMAGE_SIZE: { [string]: Vector2 } = {
+	panel_main = Vector2.new(512, 512),
+	panel_card = Vector2.new(256, 256),
+	panel_header = Vector2.new(512, 128),
+	panel_toast = Vector2.new(512, 128),
+	panel_quest = Vector2.new(512, 192),
+	btn_round = Vector2.new(256, 256),
+	btn = Vector2.new(384, 128),
+	rarity = Vector2.new(256, 256),
+}
+local function imageSize(name: string): Vector2
+	if IMAGE_SIZE[name] then
+		return IMAGE_SIZE[name]
+	elseif string.find(name, "btn_round", 1, true) then
+		return IMAGE_SIZE.btn_round
+	elseif string.sub(name, 1, 4) == "btn_" then
+		return IMAGE_SIZE.btn
+	elseif string.sub(name, 1, 7) == "rarity_" then
+		return IMAGE_SIZE.rarity
+	end
+	return Vector2.new(256, 256)
+end
+
+-- scala dei bordi adatta alla grandezza vera: su un pulsante basso i bordi (pensati per 128 px)
+-- schiacciavano tutto e il pulsante diventava una riga
+local function fitSlice(target: ImageLabel, name: string, slice: Rect)
+	local full = imageSize(name)
+	local edgeX = slice.Min.X + (full.X - slice.Max.X)
+	local edgeY = slice.Min.Y + (full.Y - slice.Max.Y)
+	local function resize()
+		local s = target.AbsoluteSize
+		if s.X < 1 or s.Y < 1 then
+			return
+		end
+		target.SliceScale = math.clamp(math.min(s.X * 0.8 / edgeX, s.Y * 0.8 / edgeY), 0.05, 0.5)
+	end
+	resize()
+	if not target:GetAttribute("SliceFitBound") then
+		target:SetAttribute("SliceFitBound", true)
+		target:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
+	end
+end
+
 function UiView.asset(target: ImageLabel, name: string): boolean
 	local id = UiAssets.get(name)
 	target.Image = id or ""
@@ -28,7 +72,7 @@ function UiView.asset(target: ImageLabel, name: string): boolean
 	if slice then
 		target.ScaleType = Enum.ScaleType.Slice
 		target.SliceCenter = slice
-		target.SliceScale = 0.5
+		fitSlice(target, name, slice)
 	elseif string.sub(name, 1, 3) == "bg_" then
 		target.ScaleType = Enum.ScaleType.Crop
 	else
@@ -94,17 +138,6 @@ function UiView.skin(target: GuiObject, name: string)
 		end
 	end
 	UiView.asset(image :: ImageLabel, name)
-	if string.find(name, "btn_round", 1, true) then
-		local img = image :: ImageLabel
-		local function resize()
-			img.SliceScale = math.max(0.01, target.AbsoluteSize.X / 256)
-		end
-		resize()
-		if not target:GetAttribute("RoundScaleBound") then
-			target:SetAttribute("RoundScaleBound", true)
-			target:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
-		end
-	end
 end
 
 function UiView.apply(root: Instance)

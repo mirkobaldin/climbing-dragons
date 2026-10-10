@@ -71,7 +71,7 @@ do
 				dragonwalk = "Dragon_Walk",
 				dragonidle = "Dragon_Idle",
 			}
-			local ONCE = { Climb_Jump = true, Dragon_Roar = true, Dragon_Breath = true, Dragon_Bite = true, Dragon_Hit = true } -- si suonano una volta sola, niente loop
+			local ONCE = { Climb_Jump = true, Dragon_Roar = true, Dragon_Breath = true, Dragon_Bite = true, Dragon_Hit = true, Dragon_Sniff = true, Dragon_Shake = true, Dragon_Look = true, Dragon_Takeoff = true, Dragon_Land = true } -- si suonano una volta sola, niente loop
 		local function keyframesOf(k: KeyframeSequence): { Keyframe }
 			local list = k:GetKeyframes() :: { any }
 			table.sort(list, function(a, b)
@@ -127,6 +127,8 @@ do
 			dragovolo = "Dragon_Fly", dragocammina = "Dragon_Walk", dragofermo = "Dragon_Idle", dragopicchiata = "Dragon_Dive",
 			dragolibrato = "Dragon_Hover", dragoplanata = "Dragon_Glide", dragoruggito = "Dragon_Roar", dragosoffio = "Dragon_Breath",
 			dragomorso = "Dragon_Bite", dragocolpito = "Dragon_Hit",
+			dragoseduto = "Dragon_Sit", dragodorme = "Dragon_Sleep", dragocorsa = "Dragon_Run", dragoannusa = "Dragon_Sniff",
+			dragoscrolla = "Dragon_Shake", dragoguarda = "Dragon_Look", dragodecollo = "Dragon_Takeoff", dragoatterra = "Dragon_Land",
 			dragonfly = "Dragon_Fly", dragonwalk = "Dragon_Walk", dragonidle = "Dragon_Idle",
 		}
 		-- cartelle con lo stesso nome (es. vecchi salvataggi automatici) si uniscono; quelle del

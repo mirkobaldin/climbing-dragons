@@ -40,6 +40,10 @@ type Pet = {
 	cf: CFrame?,
 	phase: number,
 	nextOrbit: number,
+	stillSince: number?, -- fermo dal (si siede dopo 10 s, dorme dopo 30 s)
+	nextGesture: number?, -- prossimo gesto a caso (annusa, si guarda attorno...)
+	actUntil: number?, -- fine del gesto in corso
+	wasAir: boolean?, -- era in volo (decollo e atterraggio ai cambi)
 	quad: { QuadBone }?,
 	footDrop: number, -- quanto stanno sotto il pivot le zampe (per camminare a terra)
 	walkPhase: number,
@@ -148,6 +152,9 @@ local function modelAnim(key: string, name: string, published: string?): string?
 end
 
 -- Volo, camminata e fermo partono insieme; il RenderStepped ne regola i pesi
+-- gesti una tantum di ogni drago (vedi loadTracks)
+local actsOf: { [Model]: { [string]: any } } = setmetatable({}, { __mode = "k" }) :: any
+
 local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationTrack, idle: AnimationTrack }?
 	local key = model:GetAttribute("AnimKey")
 	local fly, walk, idle
@@ -175,9 +182,27 @@ local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationT
 				if kDive then
 					tracks.dive = KfsPlayer.load(model, kDive) -- picchiata (trailer e discese veloci)
 				end
+				-- a terra: seduto, dorme, corsa (cicli)
+				for name, key in { sit = "Dragon_Sit", sleep = "Dragon_Sleep", run = "Dragon_Run" } do
+					local k = kf(key)
+					if k then
+						tracks[name] = KfsPlayer.load(model, k)
+					end
+				end
 				for _, t in tracks do
 					t:Play(0, 0.001)
 				end
+				-- gesti una tantum: annusa, si scrolla, si guarda attorno, ruggisce, decollo, atterraggio
+				local acts = {}
+				for _, name in { "Sniff", "Shake", "Look", "Roar", "Takeoff", "Land" } do
+					local k = kf("Dragon_" .. name)
+					if k then
+						local tr = KfsPlayer.load(model, k)
+						tr.Looped = false
+						acts[name] = tr
+					end
+				end
+				actsOf[model] = acts -- a parte: chi scorre le tracce (clip del Trailer) trova solo tracce
 				return tracks :: any
 			end
 		end
@@ -565,9 +590,59 @@ function PetAnimator.start()
 					if (tracks :: any).dive then
 						(tracks :: any).dive:AdjustWeight(math.max(dive, 0.001), 0.2)
 					end
+					local tx = tracks :: any
+					-- fermo a lungo accanto al padrone: prima si siede, poi si addormenta
+					local now = os.clock()
+					local still = air < 0.2 and moving < 0.1
+					if not still then
+						pet.stillSince = now
+					end
+					local stillFor = now - (pet.stillSince or now)
+					local sleepK = if tx.sleep and stillFor > 30 then 1 else 0
+					local sitK = if tx.sit and stillFor > 10 and sleepK == 0 then 1 else 0
+					-- corsa quando il padrone corre (al posto della camminata)
+					local runK = if tx.run then math.clamp((flat.Magnitude - 16) / 8, 0, 1) else 0
+					local idleW = (1 - air) * (1 - moving)
 					tracks.fly:AdjustWeight(math.max(air - dive, 0.001), 0.1)
-					tracks.walk:AdjustWeight(math.max((1 - air) * moving, 0.001), 0.1)
-					tracks.idle:AdjustWeight(math.max((1 - air) * (1 - moving), 0.001), 0.1)
+					tracks.walk:AdjustWeight(math.max((1 - air) * moving * (1 - runK), 0.001), 0.1)
+					if tx.run then
+						tx.run:AdjustWeight(math.max((1 - air) * moving * runK, 0.001), 0.15)
+					end
+					tracks.idle:AdjustWeight(math.max(idleW * (1 - sitK - sleepK), 0.001), 0.4)
+					if tx.sit then
+						tx.sit:AdjustWeight(math.max(idleW * sitK, 0.001), 0.8)
+					end
+					if tx.sleep then
+						tx.sleep:AdjustWeight(math.max(idleW * sleepK, 0.001), 1.2)
+					end
+					-- gesti: decollo e atterraggio ai cambi, e ogni tanto uno a caso quando e' fermo
+					local acts = actsOf[model] or {}
+					local function act(name: string)
+						local tr = acts[name]
+						if tr then
+							tr.time = 0
+							tr:Play(0.15, 1.2)
+							pet.actUntil = now + tr.clip.length
+							task.delay(math.max(0.1, tr.clip.length - 0.2), function()
+								tr:Stop(0.3)
+							end)
+						end
+					end
+					local wasAir = pet.wasAir or false
+					if air > 0.6 and not wasAir then
+						pet.wasAir = true
+						act("Takeoff")
+					elseif air < 0.3 and wasAir then
+						pet.wasAir = false
+						act("Land")
+					end
+					if still and sleepK == 0 and now > (pet.nextGesture or now + 6) and now > (pet.actUntil or 0) then
+						local pick = { "Sniff", "Look", "Shake", "Look", "Sniff", "Roar" }
+						act(pick[math.random(1, #pick)])
+						pet.nextGesture = now + 7 + math.random() * 9
+					elseif not pet.nextGesture then
+						pet.nextGesture = now + 6
+					end
 					-- il passo segue la corsa del padrone
 					tracks.walk:AdjustSpeed(math.clamp(flat.Magnitude / 12, 0.6, 1.5))
 					-- i draghi grandi battono le ali piu' lenti (un adulto che sbatte come un cucciolo

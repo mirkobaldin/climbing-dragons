@@ -187,7 +187,7 @@ end
 -- animazioni del drago volante (quelle del suo rig, generate da MapGen.AnimDraghi): un ciclo
 -- per il pezzo di volo (attributo "Anim") e un gesto quando cambia "ActT" (attributo "Act")
 local LOOPS = { "Fly", "Glide", "Hover", "Dive", "Idle", "Walk" }
-local ACTS = { "Roar", "Breath", "Bite", "Hit" }
+local ACTS = { "Roar", "Breath", "Bite", "Hit", "Land", "Takeoff", "Look", "Shake" }
 local FALLBACK = { Glide = "Fly", Hover = "Fly", Dive = "Fly", Idle = "Fly", Walk = "Idle" }
 type FlyAnim = { tracks: { [string]: any }, actT: number?, actTrack: any?, actUntil: number }
 local flyAnims: { [Model]: FlyAnim } = {}
@@ -382,7 +382,79 @@ end
 
 ------------------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------------------
+-- Draghi a riposo attorno alla casa (tag "Riposo", server/Economy): dormono, si siedono,
+-- ogni tanto si svegliano e si guardano attorno. Solo quelli vicini alla camera.
+
+type Resting = { tracks: { [string]: any }, state: string, nextChange: number }
+local resting: { [Model]: Resting } = {}
+
+local function restStep()
+	local camPos = workspace.CurrentCamera.CFrame.Position
+	local saves = ReplicatedStorage:FindFirstChild("DragonAnimSaves")
+	for _, m in CollectionService:GetTagged("Riposo") do
+		if not m:IsA("Model") or (m:GetPivot().Position - camPos).Magnitude > 250 then
+			continue
+		end
+		local r = resting[m]
+		if not r then
+			local set = saves and saves:FindFirstChild((m:GetAttribute("AnimKey") or "") :: string)
+			if not set then
+				continue
+			end
+			local tracks = {}
+			for _, name in { "Idle", "Sit", "Sleep", "Look", "Shake" } do
+				local k = set:FindFirstChild("Dragon_" .. name)
+				if k and k:IsA("KeyframeSequence") then
+					local tr = KfsPlayer.load(m, k)
+					tr.Looped = name == "Idle" or name == "Sit" or name == "Sleep"
+					if tr.Looped then
+						tr:Play(0, 0.001)
+					end
+					tracks[name] = tr
+				end
+			end
+			r = { tracks = tracks, state = "", nextChange = 0 }
+			resting[m] = r
+		end
+		local rr = r :: Resting
+		if os.clock() >= rr.nextChange then
+			local roll = math.random()
+			local state = if roll < 0.5 then "Sleep" elseif roll < 0.8 then "Sit" else "Idle"
+			if rr.state == "Sleep" and state ~= "Sleep" then
+				-- si sveglia: si scrolla o si guarda attorno
+				local g = rr.tracks[if math.random() < 0.5 then "Shake" else "Look"]
+				if g then
+					g.time = 0
+					g:Play(0.2, 1.2)
+					task.delay(g.clip.length - 0.2, function()
+						g:Stop(0.3)
+					end)
+				end
+			end
+			rr.state = state
+			rr.nextChange = os.clock() + 15 + math.random() * 25
+			for name, tr in rr.tracks do
+				if tr.Looped then
+					tr:AdjustWeight(if name == state then 1 else 0.001, 1.5)
+				end
+			end
+		end
+	end
+	for m in resting do
+		if not m.Parent then
+			resting[m] = nil
+		end
+	end
+end
+
 function Combat.start()
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			pcall(restStep)
+		end
+	end)
 	local remotes = ReplicatedStorage:WaitForChild("Remotes")
 	task.spawn(function()
 		local fx = remotes:WaitForChild("EnemyFX", 60) :: RemoteEvent?

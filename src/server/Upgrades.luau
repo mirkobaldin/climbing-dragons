@@ -499,6 +499,7 @@ function Upgrades.serialize(player: Player): any
 		rebirths = player:GetAttribute("Rebirths") or 0,
 		sinceRebirth = player:GetAttribute("SummitsSinceRebirth") or 0,
 		best = player:GetAttribute("BestDescent"),
+		camps = player:GetAttribute("CampsFound"), -- campi base scoperti (teletrasporto)
 		bounties = s.bounties,
 		daily = s.daily,
 	}
@@ -521,6 +522,9 @@ function Upgrades.load(player: Player, data: any)
 		player:SetAttribute("SummitsSinceRebirth", tonumber(data.sinceRebirth) or 0)
 		if type(data.best) == "number" then
 			player:SetAttribute("BestDescent", data.best)
+		end
+		if type(data.camps) == "string" then
+			player:SetAttribute("CampsFound", data.camps)
 		end
 		if type(data.bounties) == "table" then
 			for _, b in data.bounties do

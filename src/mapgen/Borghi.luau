@@ -2314,6 +2314,21 @@ function Borghi.build(map: any?): Folder
 	if hub then
 		table.insert(keepOut, { p = hub.Position, r = 190 })
 	end
+	-- il teschio gigante e le costole (lunghi centinaia di studs): una fila di cerchi lungo l'asse
+	-- lungo, cosi' le case non finiscono dentro le ossa
+	local landmarks = workspace:FindFirstChild("Landmarks")
+	for _, name in { "DragonSkull", "DragonRibs" } do
+		local m = landmarks and landmarks:FindFirstChild(name)
+		if m and m:IsA("Model") then
+			local cf, size = m:GetBoundingBox()
+			local long = if size.X > size.Z then cf.RightVector else cf.LookVector
+			local length = math.max(size.X, size.Z)
+			local r = math.min(size.X, size.Z) / 2 + 40
+			for d = -length / 2, length / 2, r * 0.8 do
+				table.insert(keepOut, { p = cf.Position + long * d, r = r })
+			end
+		end
+	end
 	local ctx: Ctx = {
 		rng = Random.new(20261009),
 		grid = obstacleGrid(),

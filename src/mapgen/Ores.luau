@@ -206,15 +206,16 @@ function Ores.place(map: Heightmap.Map)
 		end
 	end
 
+	-- (piu' giacimenti per grotta: Mirko li trovava troppo pochi)
 	for _, c in map.features.mineChambers or {} do
-		around(c.x, c.y + 4, c.z, c.radius, 7)
+		around(c.x, c.y + 4, c.z, c.radius, 12)
 	end
 	for _, r in map.features.oreRooms or {} do
-		around(r.x, r.y + 5, r.z, 12, 2)
+		around(r.x, r.y + 5, r.z, 12, 4)
 	end
 	-- stanze lungo la galleria: giacimenti e una luce calda, cosi' si vedono dal tunnel
 	for _, r in map.features.tunnelRooms or {} do
-		around(r.x, r.y + 4, r.z, r.radius, 4)
+		around(r.x, r.y + 4, r.z, r.radius, 7)
 		local lamp = Instance.new("Part")
 		lamp.Name = "LuceStanza"
 		lamp.Anchored, lamp.CanCollide, lamp.CanQuery, lamp.CanTouch = true, false, false, false
@@ -229,6 +230,82 @@ function Ores.place(map: Heightmap.Map)
 		light.Parent = lamp
 		lamp.Parent = folder
 	end
+end
+
+-- Altri giacimenti senza rigenerare la mappa (dalla Command Bar):
+--   require(game.ServerStorage.MapGen:Clone().Ores).more(2)
+-- Da ogni giacimento esistente si guarda dentro la grotta (il suo davanti) e si cercano altri
+-- punti di parete attorno; stesso minerale (a volte uno vicino di quota), mai a meno di 6 studs
+-- da un altro.
+function Ores.more(perNode: number?): number
+	local folder = workspace:FindFirstChild("Ores")
+	if not folder then
+		return 0
+	end
+	local rng = Random.new(os.time())
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { workspace.Terrain }
+	local template = loadTemplate()
+	local existing: { Vector3 } = {}
+	local nodes = {}
+	for _, n in folder:GetChildren() do
+		if n:IsA("Model") and CollectionService:HasTag(n, "OreNode") then
+			table.insert(existing, n:GetPivot().Position)
+			table.insert(nodes, n)
+		end
+	end
+	local function free(p: Vector3): boolean
+		for _, q in existing do
+			if (q - p).Magnitude < 6 then
+				return false
+			end
+		end
+		return true
+	end
+	local made = 0
+	for i, n in nodes do
+		local pivot = n:GetPivot()
+		local inside = pivot.Position + pivot.LookVector * 9
+		local typeName = n:GetAttribute("OreType")
+		local ore = TYPES[1]
+		for _, t in TYPES do
+			if t.name == typeName then
+				ore = t
+			end
+		end
+		local added = 0
+		for _ = 1, 14 do
+			if added >= (perNode or 2) then
+				break
+			end
+			local dir = Vector3.new(rng:NextNumber(-1, 1), rng:NextNumber(-0.4, 0.6), rng:NextNumber(-1, 1))
+			if dir.Magnitude < 0.1 then
+				continue
+			end
+			local hit = workspace:Raycast(inside, dir.Unit * 30, params)
+			if hit and free(hit.Position) and hit.Normal.Y < 0.85 then
+				local pos, normal = hit.Position, hit.Normal
+				local base = CFrame.lookAt(pos - normal * 1.2, pos - normal * 1.2 + normal)
+				local model = if template then fromTemplate(template, base, ore, rng) else fromParts(base, ore, rng)
+				model.Name = "Ore_" .. ore.name
+				CollectionService:AddTag(model, "OreNode")
+				local amount = rng:NextInteger(3, 7)
+				model:SetAttribute("OreType", ore.name)
+				model:SetAttribute("Amount", amount)
+				model:SetAttribute("MaxAmount", amount)
+				model.Parent = folder
+				table.insert(existing, pos)
+				added += 1
+				made += 1
+			end
+		end
+		if i % 40 == 0 then
+			task.wait()
+		end
+	end
+	print(string.format("[MapGen] Minerali aggiunti: %d (prima %d)", made, #nodes))
+	return made
 end
 
 return Ores

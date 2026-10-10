@@ -66,10 +66,8 @@ local function applyAction(action: string)
 	elseif cmd == "trailer" then
 		local kind, take = string.match(arg, "^(%S+)%s*(%S*)$")
 		task.spawn(require(script.Parent.Trailer).play, kind or "trailer", if take and take ~= "" then take else nil)
-	elseif cmd == "regista" then
-		require(script.Parent.Regista).toggle()
-	elseif cmd == "sfilata" then
-		task.spawn(require(script.Parent.Regista).sfilata)
+	elseif cmd == "clipnuova" then
+		task.spawn(require(script.Parent.ClipNuove).play, arg)
 	elseif cmd == "fly" then
 		startFly()
 	elseif cmd == "unfly" then

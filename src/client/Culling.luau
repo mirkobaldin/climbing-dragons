@@ -7,7 +7,7 @@
 
 local Culling = {}
 
-local FOLDERS = { "Borghi", "ZoneATema", "Forest", "Village", "Glacier", "Landmarks", "Isole" }
+local FOLDERS = { "Borghi", "ZoneATema", "Forest", "Village", "Glacier", "Landmarks", "Isole", "Ores" }
 local LIGHT_FAR = 320 -- oltre questa distanza le luci si spengono
 local FX_FAR = 380 -- e le particelle
 local EVERY = 1.2 -- secondi tra un controllo e l'altro
@@ -77,7 +77,7 @@ function Culling.start()
 					if far and obj.Enabled then
 						obj.Enabled = false
 						culled[inst] = true
-					elseif not far and culled[inst] then
+					elseif not far and culled[inst] and e.part.Transparency < 1 then -- (giacimento esaurito: resta spento)
 						obj.Enabled = true
 						culled[inst] = nil
 					end

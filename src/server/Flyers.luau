@@ -297,6 +297,10 @@ local function land(f: Flyer, root: BasePart)
 	f.grounded = true
 	f.model:SetAttribute("Grounded", true)
 	hold(f, ground, tp, 0, "Idle")
+	act(f, "Land")
+	if not wait(f, 0.9) then
+		return
+	end
 	act(f, "Roar")
 	if wait(f, 0.9) then
 		-- il ruggito spinge via chi e' vicino
@@ -326,6 +330,10 @@ local function land(f: Flyer, root: BasePart)
 		return
 	end
 	-- decollo
+	act(f, "Takeoff")
+	if not wait(f, 0.6) then
+		return
+	end
 	curve(f, ground + Vector3.new(0, 50, 0), above(ground + Vector3.new(60, 90, 0), CLEAR + 30), 2.2, "Fly")
 	wait(f, 2.2)
 end
@@ -354,9 +362,9 @@ local function perch(f: Flyer)
 		end
 	end
 	hold(f, spot, spot + Vector3.new(math.random(-10, 10), 0, math.random(-10, 10)), 0, "Idle")
-	if math.random() < 0.4 then
-		act(f, "Roar")
-	end
+	-- da solo sulla vetta: ogni tanto ruggisce, si guarda attorno o si scrolla la neve di dosso
+	local r = math.random()
+	act(f, if r < 0.3 then "Roar" elseif r < 0.7 then "Look" else "Shake")
 	wait(f, 4)
 end
 

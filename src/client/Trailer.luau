@@ -34,6 +34,14 @@ local ICE = Color3.fromRGB(130, 210, 255)
 local RED = Color3.fromRGB(255, 70, 60)
 local GOLD = Color3.fromRGB(255, 220, 120)
 
+-- ora del giorno nelle clip: se Mirko l'ha fissata col comando admin "time" (attributo
+-- FixedTime) resta quella
+local function setClock(h: number)
+	if type(workspace:GetAttribute("FixedTime")) ~= "number" then
+		game:GetService("Lighting").ClockTime = h
+	end
+end
+
 local function smooth(x: number): number
 	x = math.clamp(x, 0, 1)
 	return x * x * (3 - 2 * x)
@@ -2770,7 +2778,7 @@ function Trailer.play(kind: string, take: string?)
 							eggTo(eggP)
 						end,
 						update = function()
-							Lighting.ClockTime = 15.5
+							setClock(15.5)
 						end,
 						cam = function(u)
 							local k = smooth(u)
@@ -2798,7 +2806,7 @@ function Trailer.play(kind: string, take: string?)
 							end
 						end,
 						update = function(u)
-							Lighting.ClockTime = 0.5
+							setClock(0.5)
 							glow.Brightness = 1.5 + math.sin(u * 18) * 1.2
 						end,
 						cam = function(u)
@@ -2821,7 +2829,7 @@ function Trailer.play(kind: string, take: string?)
 							pose(baby, "idle")
 						end,
 						update = function(u)
-							Lighting.ClockTime = 0.5
+							setClock(0.5)
 							if not hatched then
 								local a = math.rad(2 + 14 * u * u)
 								eggTo(eggP, CFrame.Angles(math.sin(os.clock() * 31) * a, 0, math.cos(os.clock() * 27) * a))
@@ -2871,12 +2879,12 @@ function Trailer.play(kind: string, take: string?)
 							pose(adult, "fly", 0.6)
 						end,
 						update = function(u)
-							Lighting.ClockTime = 6.1 + u * 0.4
+							setClock(6.1 + u * 0.4)
 							flyAlong(adult, function(x: number): Vector3
 								return yard + front * (20 + 220 * x) + UP * (12 + 130 * x * x)
 							end, u, 1.7)
 							if u >= 0.999 then
-								Lighting.ClockTime = clock0
+								setClock(clock0)
 							end
 						end,
 						cam = function(u)

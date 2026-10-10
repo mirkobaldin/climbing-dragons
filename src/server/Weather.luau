@@ -105,7 +105,9 @@ function Weather.setup()
 		if accumulator < 0.5 then
 			return
 		end
-		local t = (Lighting.ClockTime + accumulator * hoursPerSecond) % 24
+		-- ora fissata col comando admin "time" (per le clip): non avanza finche' non si scrive "time auto"
+		local fixed = workspace:GetAttribute("FixedTime")
+		local t = if type(fixed) == "number" then fixed % 24 else (Lighting.ClockTime + accumulator * hoursPerSecond) % 24
 		Lighting.ClockTime = t
 		accumulator = 0
 		-- day: 0 di notte, 1 di giorno (transizioni di ~1.5 ore attorno a 6:00 e 18:30)

@@ -6,7 +6,7 @@ Da incollare a Codex così com'è.
 
 ## Contesto (leggi prima AGENTS.md e LAVORI.md)
 
-Gioco Roblox "Hardcore Climbing & Survival": montagna stile K2, arrampicata con piccozza e
+Gioco Roblox "Climbing & Dragons": montagna stile K2, arrampicata con piccozza e
 rampino, minerali, nemici (yeti, golem di ghiaccio), draghi di 8 elementi (Roccia, Gelo, Cosmico,
 Tempesta, Eclissi, Fulmine, Ossa, Gas: Brace, Sole e Ombra sono stati tolti, non vanno fatti). Sono appena arrivati:
 potenziamenti dello scalatore, taglie, rinascita, parapendio con discesa a tempo, eventi (pioggia

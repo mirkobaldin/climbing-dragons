@@ -45,6 +45,13 @@ uova e draghi familiari. Il codice e' sincronizzato in Studio con **Rojo** (`def
   Progression), `Flyers` (drago selvatico e Guardiano della vetta: il client li muove dagli
   attributi del volo), `WorldEvents` (meteore, drago, grande valanga; admin `evento`), attacchi in
   `Enemies` (uncino, picchiata, speciale Z, rimbalzi). Client: `Combat`, `Glider`, `UpgradeUI` (tasto U).
+- Interfaccia: le schermate stanno in StarterGui (Rojo `src/gui`, guida `docs/UI_STARTERGUI.md`); le
+  immagini sono caricate su Roblox e gli ID stanno in `src/shared/UiAssets.luau` (PNG in
+  `artifacts/ui-20261010`). Dopo una modifica ai JSON: `node tools/ui/sync-fallback.mjs`.
+- Teletrasporto solo dai punti di viaggio (campo base principale, casa, arena, palestra, campi base
+  scoperti: attributi AtWaypoint e CampsFound, server/BaseCamps). Ogni campo base ha banco e commerciante.
+- Clip TikTok nuove: comandi admin clip21-clip25 (server/ClipProps + client/ClipNuove), testi in
+  `docs/CLIP_NUOVE.md`. `time 17` ferma l'ora (anche nelle clip), `time auto` la fa ripartire.
 - Admin: il proprietario da' la modalita' admin con `admin <nome>` (DataStore "AdminConcessi"), ogni admin
   fa comandi per altri con `to <nome> <comando>` (l'azione arriva al client col RemoteEvent AdminAction).
 - Zaino: tasto I (anche V), con minerali, drop dei nemici (icone da ReplicatedStorage.DropIcone) e attrezzi.

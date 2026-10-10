@@ -110,7 +110,39 @@ local function ratePerMinute(player: Player): number
 	return rate
 end
 
--- I draghi posati si vedono sopra la casa (fermi a mezz'aria, girati verso la valle)
+local groundParams = RaycastParams.new()
+groundParams.FilterType = Enum.RaycastFilterType.Include
+groundParams.FilterDescendantsInstances = { workspace.Terrain }
+
+-- quota del terreno sotto p (o p stesso se non c'e')
+local function groundY(p: Vector3): number
+	local hit = workspace:Raycast(p + Vector3.new(0, 80, 0), Vector3.new(0, -200, 0), groundParams)
+	return if hit then hit.Position.Y else p.Y
+end
+
+-- ingombro della casa (il modello piu' grande del terreno, non nido o falo') nello spazio del terreno
+local function houseBox(plot: Model): (Vector3, Vector3)
+	local house = plot:FindFirstChild("House")
+	local pivot = plot:GetPivot()
+	local best: Model? = nil
+	local bestSize = 0
+	for _, c in (if house then house:GetChildren() else {}) :: { Instance } do
+		if c:IsA("Model") and c.Name ~= "Nido" and c.Name ~= "Campfire" then
+			local _, s = c:GetBoundingBox()
+			if s.Magnitude > bestSize then
+				best, bestSize = c, s.Magnitude
+			end
+		end
+	end
+	if not best then
+		return Vector3.zero, Vector3.new(16, 10, 16)
+	end
+	local cf, size = (best :: Model):GetBoundingBox()
+	return pivot:PointToObjectSpace(cf.Position), size
+end
+
+-- I draghi posati riposano a terra attorno alla casa (prima erano sospesi a mezz'aria sopra il
+-- tetto): in cerchio, girati verso la casa, appoggiati al terreno; il client li anima (tag Riposo)
 local function refreshRoost(player: Player)
 	local s = state(player)
 	local plot = s.plot
@@ -124,10 +156,22 @@ local function refreshRoost(player: Player)
 	local folder = Instance.new("Folder")
 	folder.Name = "Roost"
 	local anchor = plot:GetPivot()
+	local center, size = houseBox(plot)
+	local ring = math.max(size.X, size.Z) * 0.5 + 10
 	for k, d in roosting(player) do
 		local model = DragonModels.dragon(d.element, d.rarity, d.stage)
-		local a = (k - 1) / 6 * math.pi * 2
-		model:PivotTo(anchor * CFrame.new(math.cos(a) * 12, 16 + (k % 2) * 3, math.sin(a) * 12 - 4))
+		local a = (k - 1) / 6 * math.pi * 2 + 0.6
+		local at = anchor * (center + Vector3.new(math.cos(a) * ring, 0, math.sin(a) * ring))
+		local _, ms = model:GetBoundingBox()
+		local base = Vector3.new(at.X, groundY(at) + ms.Y / 2, at.Z)
+		local houseAt = anchor * center
+		model:PivotTo(CFrame.lookAt(base, Vector3.new(houseAt.X, base.Y, houseAt.Z)))
+		for _, p in model:GetDescendants() do
+			if p:IsA("BasePart") then
+				p.Anchored = true
+			end
+		end
+		CollectionService:AddTag(model, "Riposo")
 		model.Parent = folder
 	end
 	folder.Parent = plot
@@ -180,8 +224,9 @@ local function plotSpawn(plot: Model): Vector3
 	return center.Position + Vector3.new(0, 4, 0)
 end
 
--- Forgia dello Chalet: incudine e braciere accanto al punto d'arrivo, apre il crafting come il
--- banco del campo base (tag Workbench)
+-- Forgia dello Chalet: il banco da lavoro di Mirko (ServerStorage.Modelli.Banco_Crafting) accanto
+-- al punto d'arrivo; apre il crafting come il banco del campo base (tag Workbench). Prima era un
+-- banco fatto di blocchi (incudine e braciere)
 local function buildForge(plot: Model, at: Vector3)
 	local old = plot:FindFirstChild("Forgia")
 	if old then
@@ -191,40 +236,42 @@ local function buildForge(plot: Model, at: Vector3)
 	forge.Name = "Forgia"
 	local center = plot:GetPivot()
 	local side = center.RightVector
-	local base = at + side * 7 - Vector3.new(0, 3, 0)
+	local base = at + side * 9
+	base = Vector3.new(base.X, groundY(base), base.Z)
 	local look = CFrame.lookAt(base, base - side)
-	local function block(name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material): Part
-		local p = Instance.new("Part")
-		p.Name = name
-		p.Anchored = true
-		p.Size = size
-		p.CFrame = cf
-		p.Color = color
-		p.Material = material
-		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
-		p.Parent = forge
-		return p
+	local store = ServerStorage:FindFirstChild("Modelli")
+	local t = store and store:FindFirstChild("Banco_Crafting", true)
+	if t and t:IsA("Model") then
+		local m = t:Clone()
+		for _, d in m:GetDescendants() do
+			if d:IsA("LuaSourceContainer") then
+				d:Destroy()
+			elseif d:IsA("BasePart") then
+				d.Anchored = true
+			end
+		end
+		local _, s0 = m:GetBoundingBox()
+		m:ScaleTo(m:GetScale() * 7 / math.max(s0.Y, 0.05)) -- alto come quello del campo base
+		m:PivotTo(look.Rotation + m:GetPivot().Position)
+		local box, sz = m:GetBoundingBox()
+		m:PivotTo(m:GetPivot() + (base - (box.Position - Vector3.new(0, sz.Y / 2, 0))))
+		m.Parent = forge
 	end
-	block("Base", Vector3.new(4, 2, 2.4), look * CFrame.new(0, 1, 0), Color3.fromRGB(70, 66, 64), Enum.Material.Slate)
-	local anvil = block("Incudine", Vector3.new(3.6, 1, 1.4), look * CFrame.new(0, 2.5, 0), Color3.fromRGB(50, 52, 58), Enum.Material.Metal)
-	local coals = block("Braciere", Vector3.new(2.6, 0.6, 2.6), look * CFrame.new(3.6, 1.6, 0), Color3.fromRGB(255, 120, 40), Enum.Material.Neon)
-	block("Focolare", Vector3.new(3.2, 1.4, 3.2), look * CFrame.new(3.6, 0.7, 0), Color3.fromRGB(90, 80, 74), Enum.Material.Cobblestone)
-	local fire = Instance.new("Fire")
-	fire.Size = 4
-	fire.Heat = 6
-	fire.Parent = coals
-	local light = Instance.new("PointLight")
-	light.Color = Color3.fromRGB(255, 150, 70)
-	light.Range = 16
-	light.Parent = coals
+	-- piano invisibile col prompt (come al campo base)
+	local top = Instance.new("Part")
+	top.Name = "Bench"
+	top.Anchored, top.CanCollide, top.Transparency = true, false, 1
+	top.Size = Vector3.new(10, 0.3, 4)
+	top.CFrame = look * CFrame.new(0, 3.95, 0)
+	top.Parent = forge
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = "Craft"
-	prompt.ObjectText = "Forge"
+	prompt.ObjectText = "Workbench"
 	prompt.HoldDuration = 0
 	prompt.MaxActivationDistance = 10
 	prompt.RequiresLineOfSight = false
-	prompt.Parent = anvil
-	CollectionService:AddTag(anvil, "Workbench")
+	prompt.Parent = top
+	CollectionService:AddTag(top, "Workbench")
 	forge.Parent = plot
 end
 
@@ -257,6 +304,28 @@ local function buildHouse(player: Player)
 	local model = template:Clone() :: Model
 	model.Name = "House"
 	model:PivotTo(plot:GetPivot())
+	-- il nido sta di lato alla casa, appoggiato a terra (nei modelli stava dentro i muri)
+	local nest = model:FindFirstChild("Nido")
+	if nest and nest:IsA("Model") then
+		local pivot = plot:GetPivot()
+		local bodyCenter, bodySize = Vector3.zero, Vector3.new(16, 10, 16)
+		local bestSize = 0
+		for _, c in model:GetChildren() do
+			if c:IsA("Model") and c ~= nest and c.Name ~= "Campfire" then
+				local cf, sz = c:GetBoundingBox()
+				if sz.Magnitude > bestSize then
+					bestSize = sz.Magnitude
+					bodyCenter, bodySize = pivot:PointToObjectSpace(cf.Position), sz
+				end
+			end
+		end
+		local _, nestSize = nest:GetBoundingBox()
+		local side = bodySize.X / 2 + nestSize.X / 2 + 5
+		local at = pivot * Vector3.new(bodyCenter.X - side, 0, bodyCenter.Z)
+		local nestCf, nestBox = nest:GetBoundingBox()
+		local lift = nest:GetPivot().Position.Y - (nestCf.Position.Y - nestBox.Y / 2)
+		nest:PivotTo(CFrame.new(at.X, groundY(at) + lift, at.Z) * pivot.Rotation)
+	end
 	for _, d in model:GetDescendants() do
 		if CollectionService:HasTag(d, "Incubator") and d:IsA("BasePart") then
 			d:SetAttribute("Owner", player.UserId)

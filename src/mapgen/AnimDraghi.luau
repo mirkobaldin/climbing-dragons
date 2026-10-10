@@ -898,6 +898,152 @@ local function buildHit(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 end
 
 ------------------------------------------------------------------------------------------
+-- Vita a terra: seduto, dorme, corsa, e i gesti (annusa, si scrolla, si guarda attorno,
+-- decollo, atterraggio). Mirko: "le animazioni sono ancora troppo limitate".
+
+local SIT_T, SLEEP_T, RUN_T = 3.0, 4.0, 0.6
+local SNIFF_T, SHAKE_T, LOOK_T, TAKEOFF_T, LAND_T = 2.2, 1.4, 2.6, 1.3, 1.1
+
+-- abbassa (o alza) il bacino di "amount" studs
+local function drop(poses: Poses, sk: Skel, amount: number)
+	local hipsRest = sk.rest[sk.hips]
+	poses[sk.hips] = CFrame.new(hipsRest:VectorToObjectSpace(Vector3.new(0, -amount, 0))) * (poses[sk.hips] or CFrame.identity)
+end
+
+-- zampe piegate sotto il corpo (k = 0 dritte, 1 del tutto piegate)
+local function tuckLegs(poses: Poses, sk: Skel, s: Signs, k: number, backOnly: boolean?)
+	for i, leg in sk.legs do
+		if backOnly and leg.front then
+			continue
+		end
+		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * (if leg.front then -20 else 35) * k)
+		if leg.bones[2] then
+			add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * 60 * k)
+		end
+		if leg.bones[3] then
+			add(poses, sk, leg.bones[3], sk.right, (s["lift" .. i] or 1) * -35 * k)
+		end
+	end
+end
+
+-- seduto come un cane: posteriori piegate, petto alto, coda attorno, si guarda in giro
+local function buildSit(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / SIT_T
+	drop(poses, sk, sk.height * 0.12)
+	rear(poses, sk, s, 24)
+	tuckLegs(poses, sk, s, 1, true)
+	neckTurn(poses, sk, s, -10 + 4 * wave("idle", "head", p), 18 * math.sin(2 * math.pi * p))
+	for k, b in sk.tail do
+		local f = (k - 1) / math.max(#sk.tail - 1, 1)
+		add(poses, sk, b, UP, (s.tailYaw or 1) * (8 + 14 * f) + 3 * math.sin(2 * math.pi * (p - 0.05 * k)))
+	end
+	foldWings(poses, sk, s, folds, 2 * wave("idle", "pelvis", p))
+	return poses
+end
+
+-- dorme: steso, zampe sotto, collo girato sul fianco, coda arrotolata, respiro lento
+local function buildSleep(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / SLEEP_T
+	local breath = math.sin(2 * math.pi * p)
+	drop(poses, sk, sk.height * 0.28)
+	tuckLegs(poses, sk, s, 1)
+	for _, b in sk.spine do
+		add(poses, sk, b, sk.right, (s.bodyPitch or 1) * 1.5 * breath)
+	end
+	neckTurn(poses, sk, s, -22 + 2 * breath, 55)
+	for k, b in sk.tail do
+		local f = (k - 1) / math.max(#sk.tail - 1, 1)
+		add(poses, sk, b, UP, (s.tailYaw or 1) * (10 + 22 * f))
+	end
+	foldWings(poses, sk, s, folds, 2 * breath)
+	return poses
+end
+
+-- corsa: il passo piu' veloce e ampio, il corpo che va su e giu' a balzi
+local function buildRun(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses = buildWalk(sk, s, (t / RUN_T) * WALK_T, folds)
+	local p = t / RUN_T
+	drop(poses, sk, sk.height * 0.03 * math.sin(4 * math.pi * p))
+	add(poses, sk, sk.hips, sk.right, (s.bodyPitch or 1) * 4 * math.sin(2 * math.pi * p))
+	neckTurn(poses, sk, s, -8, 0)
+	return poses
+end
+
+-- annusa il terreno: testa giu', piccoli scatti a destra e sinistra, poi su
+local function buildSniff(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / SNIFF_T
+	local down = bell(p, 0.05, 0.3, 0.75, 0.97)
+	rear(poses, sk, s, -6 * down)
+	neckTurn(poses, sk, s, -38 * down, 14 * down * math.sin(2 * math.pi * 5 * p))
+	foldWings(poses, sk, s, folds, 0)
+	tailLash(poses, sk, s, 4, p, 1.5)
+	return poses
+end
+
+-- si scrolla come un cane bagnato: il corpo ruota avanti e indietro, ali e testa sbattono
+local function buildShake(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / SHAKE_T
+	local env = bell(p, 0.02, 0.15, 0.75, 0.98)
+	local w = math.sin(2 * math.pi * 7 * p) * env
+	add(poses, sk, sk.hips, sk.fwd, 12 * w)
+	for _, b in sk.spine do
+		add(poses, sk, b, sk.fwd, -8 * w)
+	end
+	neckTurn(poses, sk, s, 4 * env, 25 * w)
+	wingsOpen(poses, sk, s, folds, 0.35 * env, 18 * w)
+	tailLash(poses, sk, s, 16 * env, p, 7)
+	return poses
+end
+
+-- si guarda attorno: la testa a sinistra, poi a destra, un po' in alto
+local function buildLook(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local poses: Poses = {}
+	local p = t / LOOK_T
+	local yaw = 40 * (bell(p, 0.05, 0.25, 0.4, 0.5) - bell(p, 0.5, 0.65, 0.8, 0.97))
+	neckTurn(poses, sk, s, 8 * bell(p, 0.05, 0.2, 0.8, 0.97), yaw)
+	foldWings(poses, sk, s, folds, 0)
+	tailLash(poses, sk, s, 3, p, 1)
+	return poses
+end
+
+-- decollo: si accuccia, salta sulle posteriori aprendo le ali con un battito grande
+local function buildTakeoff(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local p = t / TAKEOFF_T
+	local crouch = bell(p, 0, 0.2, 0.28, 0.4)
+	local leap = bell(p, 0.3, 0.45, 0.7, 0.98)
+	local poses: Poses = {}
+	drop(poses, sk, sk.height * 0.12 * crouch)
+	tuckLegs(poses, sk, s, 0.6 * crouch)
+	rear(poses, sk, s, 18 * leap)
+	wingsOpen(poses, sk, s, folds, math.max(crouch * 0.4, leap), 35 * leap * math.sin(math.pi * math.clamp((p - 0.3) / 0.6, 0, 1)) - 15 * crouch)
+	neckTurn(poses, sk, s, 12 * leap - 10 * crouch, 0)
+	tailLash(poses, sk, s, 6 * leap, p, 1)
+	return poses
+end
+
+-- atterraggio: ali aperte e alzate per frenare, zampe avanti, poi si richiude
+local function buildLand(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
+	local p = t / LAND_T
+	local brake = bell(p, 0, 0.1, 0.45, 0.85)
+	local touch = bell(p, 0.4, 0.55, 0.65, 0.95)
+	local poses: Poses = {}
+	rear(poses, sk, s, 20 * brake)
+	drop(poses, sk, sk.height * 0.08 * touch)
+	wingsOpen(poses, sk, s, folds, brake, 28 * brake)
+	for i, leg in sk.legs do
+		if leg.front then
+			add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * 25 * brake)
+		end
+	end
+	neckTurn(poses, sk, s, -8 * touch, 0)
+	return poses
+end
+
+------------------------------------------------------------------------------------------
 -- KeyframeSequence: posa radice col nome della mesh, poi le ossa annidate come lo scheletro
 
 local function writeSequence(sk: Skel, name: string, length: number, build: (number) -> Poses): KeyframeSequence
@@ -1073,6 +1219,14 @@ function AnimDraghi.genera(soloNome: string?): string
 				["drago-soffio"] = { BREATH_T, function(t) return buildBreath(sk, s, t, folds) end, true },
 				["drago-morso"] = { BITE_T, function(t) return buildBite(sk, s, t, folds) end, true },
 				["drago-colpito"] = { HIT_T, function(t) return buildHit(sk, s, t, folds) end, true },
+				["drago-seduto"] = { SIT_T, function(t) return buildSit(sk, s, t, folds) end },
+				["drago-dorme"] = { SLEEP_T, function(t) return buildSleep(sk, s, t, foldsDive) end },
+				["drago-corsa"] = { RUN_T, function(t) return buildRun(sk, s, t, folds) end },
+				["drago-annusa"] = { SNIFF_T, function(t) return buildSniff(sk, s, t, folds) end, true },
+				["drago-scrolla"] = { SHAKE_T, function(t) return buildShake(sk, s, t, folds) end, true },
+				["drago-guarda"] = { LOOK_T, function(t) return buildLook(sk, s, t, folds) end, true },
+				["drago-decollo"] = { TAKEOFF_T, function(t) return buildTakeoff(sk, s, t, folds) end, true },
+				["drago-atterra"] = { LAND_T, function(t) return buildLand(sk, s, t, folds) end, true },
 			} do
 				local old = store:FindFirstChild(name)
 				if old then

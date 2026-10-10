@@ -658,11 +658,14 @@ function Village.placeEmporio(parent: Instance, template: Model, cf: CFrame): Mo
 	local m = template:Clone()
 	m.Name = "Shop"
 	m:PivotTo(cf)
+	m:ScaleTo(m:GetScale() * 4) -- in scala 4 come gli edifici dei borghi
+	local _, size = m:GetBoundingBox()
+	-- il bancone (invisibile, col prompt) a terra appena dentro l'ingresso
 	local counter = Instance.new("Part")
 	counter.Name = "Counter"
 	counter.Anchored, counter.CanCollide, counter.CanQuery, counter.Transparency = true, false, false, 1
 	counter.Size = Vector3.new(14, 4, 3)
-	counter.CFrame = cf * CFrame.new(0, 2.8, -2.0)
+	counter.CFrame = cf * CFrame.new(0, 2.8, -size.Z / 2 + 10)
 	counter.Parent = m
 	CollectionService:AddTag(counter, "ShopCounter")
 	local prompt = Instance.new("ProximityPrompt")

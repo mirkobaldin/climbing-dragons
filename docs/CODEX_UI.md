@@ -6,7 +6,7 @@ Da incollare a Codex così com'è. Sono due compiti, da fare in ordine su due br
 
 ## Contesto (leggi prima AGENTS.md e LAVORI.md)
 
-Gioco Roblox "Hardcore Climbing & Survival": arrampicata su una montagna stile K2 (ghiaccio e
+Gioco Roblox "Climbing & Dragons": arrampicata su una montagna stile K2 (ghiaccio e
 roccia), sopravvivenza al freddo, minerali, uova e draghi familiari di 11 elementi (Roccia, Brace,
 Gelo, Cosmico, Tempesta, Sole, Ombra, Eclissi, Fulmine, Ossa, Gas). Si gioca da PC e da telefono.
 

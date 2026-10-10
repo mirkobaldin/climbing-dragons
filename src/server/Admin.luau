@@ -27,6 +27,7 @@ local Weather = require(script.Parent.Weather)
 local TrailerProps = require(script.Parent.TrailerProps)
 local Preflight = require(script.Parent.Preflight)
 local WorldEvents = require(script.Parent.WorldEvents)
+local ClipProps = require(script.Parent.ClipProps)
 local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
 
 local Admin = {}
@@ -36,7 +37,7 @@ fly / unfly            volo (WASD, Spazio su, Ctrl giu', Shift veloce)
 noclip / clip          attraversa i muri
 speed <n>  jump <n>    velocita' e salto
 tp <camp|mountain|summit|skull|tutorial|nome giocatore|x y z>
-time <ora>             es. time 21
+time <ora> | auto      es. time 17: l'ora resta ferma (anche nelle clip) finche' non scrivi time auto
 weather <Clear|Cloudy|Rain|Thunderstorm|Storm|Snow>
 give <minerale|all> <n>   es. give Ferro 20
 gear <all|Ramponi|Tuta|Rampino|PiccoRinforzato>
@@ -51,8 +52,11 @@ god / ungod   heal   warm   pitons
 tutorial <reset|skip>
 missions <reset|skip>  le missioni dopo il tutorial
 evento [meteore|drago|valanga]   evento della mappa vicino a te (senza nome: a caso)
-regista                modalita' regista per le clip (J/L inquadratura, Y righe 9:16, H HUD)
-sfilata                gli 8 draghi adulti in fila che ruggiscono (clip "vota ogni drago")
+clip21 / sfilata       gli 8 draghi adulti che ruggiscono uno dopo l'altro ("rate every dragon")
+clip22                 il Guardiano atterra davanti allo scalatore in vetta e gli ruggisce in faccia
+clip23                 1 IQ vs 200 IQ: caduta da una parete, poi la stessa salvata dal rampino
+clip24                 l'uovo si schiude: cucciolo SHINY
+clip25                 discesa in parapendio dalla vetta al campo base col cronometro
 shiny                  la prossima schiusa e' SHINY (clip della schiusa)
 upmax / upreset        tutti i potenziamenti al massimo / a zero
 materiali <n>          n di ogni drop dei nemici (pelliccia, cristallo di ghiaccio, nucleo)
@@ -259,12 +263,17 @@ local function exec(player: Player, args: { string }): (boolean, string, string?
 		teleport(player, target :: Vector3)
 		return true, "Teletrasportato", nil
 	elseif cmd == "time" then
+		if args[2] == "auto" then
+			workspace:SetAttribute("FixedTime", nil)
+			return true, "Ora: di nuovo il giorno che scorre", nil
+		end
 		local h = tonumber(args[2])
 		if not h then
-			return false, "Uso: time 21", nil
+			return false, "Uso: time 21 (resta ferma, anche nelle clip) o time auto", nil
 		end
 		Lighting.ClockTime = h % 24
-		return true, "Ora " .. h, nil
+		workspace:SetAttribute("FixedTime", h % 24) -- resta ferma (anche durante le clip)
+		return true, "Ora " .. h .. " (ferma; time auto per farla scorrere)", nil
 	elseif cmd == "weather" then
 		if args[2] and Weather.set(args[2]) then
 			return true, "Meteo: " .. args[2], nil
@@ -359,58 +368,17 @@ local function exec(player: Player, args: { string }): (boolean, string, string?
 			Tutorial.reset(player)
 		end
 		return true, "Tutorial " .. (args[2] or "reset"), nil
-	elseif cmd == "regista" then
-		return true, "Regista: J/L inquadratura, Y righe 9:16, H HUD (regista di nuovo per uscire)", "regista"
 	elseif cmd == "shiny" then
 		player:SetAttribute("ForceShiny", true)
 		return true, "La prossima schiusa sara' SHINY", nil
-	elseif cmd == "sfilata" then
-		-- gli 8 draghi adulti in fila davanti a te (per 70 s), la camera li passa uno a uno
-		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-		local store = game:GetService("ServerStorage"):FindFirstChild("Draghi")
-		if not root or not store then
-			return false, "Serve il personaggio e ServerStorage.Draghi", nil
+	elseif cmd == "sfilata" or (string.match(cmd, "^clip%d+$") and (tonumber(string.sub(cmd, 5)) or 0) >= 21) then
+		-- clip nuove (client/ClipNuove): il server prepara la scena in Workspace.ClipProps
+		local kind = if cmd == "sfilata" then "clip21" else cmd
+		local err = ClipProps.prepare(kind, player)
+		if err then
+			return false, err, nil
 		end
-		local old = workspace:FindFirstChild("Sfilata")
-		if old then
-			old:Destroy()
-		end
-		local folder = Instance.new("Folder")
-		folder.Name = "Sfilata"
-		local look = Vector3.new(root.CFrame.LookVector.X, 0, root.CFrame.LookVector.Z).Unit
-		local side = look:Cross(Vector3.yAxis)
-		local params = RaycastParams.new()
-		params.FilterType = Enum.RaycastFilterType.Include
-		params.FilterDescendantsInstances = { workspace.Terrain }
-		local order = { "Gelo", "Roccia", "Ossa", "Gas", "Tempesta", "Cosmico", "FulmineNero", "Eclissi" }
-		for k, el in order do
-			local t = store:FindFirstChild("Drago_" .. el .. "_Adulto")
-			if t and t:IsA("Model") then
-				local m = t:Clone()
-				for _, d in m:GetDescendants() do
-					if d:IsA("BasePart") then
-						d.Anchored = true
-						d.CanCollide = false
-					elseif d:IsA("LuaSourceContainer") then
-						d:Destroy()
-					end
-				end
-				local at = root.Position + look * 80 + side * ((k - 4.5) * 75)
-				local hit = workspace:Raycast(at + Vector3.new(0, 300, 0), Vector3.new(0, -800, 0), params)
-				local _, size = m:GetBoundingBox()
-				local base = (if hit then hit.Position else at) + Vector3.new(0, size.Y / 2, 0)
-				m:PivotTo(CFrame.lookAt(base, base - look))
-				m:SetAttribute("AnimKey", m.Name)
-				m:SetAttribute("Order", k)
-				m.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
-				m.Parent = folder
-			end
-		end
-		folder.Parent = workspace
-		task.delay(70, function()
-			folder:Destroy()
-		end)
-		return true, "Sfilata dei draghi adulti", "sfilata"
+		return true, "Ciak! " .. kind, "clipnuova " .. kind
 	elseif cmd == "evento" then
 		return true, WorldEvents.run(args[2], player), nil
 	elseif cmd == "upmax" or cmd == "upreset" then

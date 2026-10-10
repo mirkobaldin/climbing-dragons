@@ -16,6 +16,7 @@ local Progression = require(script.Parent.Progression)
 local Mining = {}
 
 local lastHit: { [Player]: number } = {}
+local fxEvent: RemoteEvent? = nil -- effetti sul client di chi estrae (suono, "+1", scossa)
 
 local function addOre(player: Player, oreType: string, amount: number)
 	Progression.oreValue(player, oreType).Value += amount
@@ -141,6 +142,9 @@ local function mine(player: Player, tool: Tool)
 	local color = if #parts > 0 then parts[1].Color else Color3.new(1, 1, 1)
 	burst(if node:IsA("Model") then node:GetPivot().Position else root.Position, color)
 	addOre(player, oreType :: string, 1)
+	if fxEvent then
+		(fxEvent :: RemoteEvent):FireClient(player, oreType, if node:IsA("Model") then node:GetPivot().Position else root.Position, amount, color)
+	end
 	player:SetAttribute("OresMined", (player:GetAttribute("OresMined") or 0) + 1) -- per il tutorial
 
 	if amount <= 0 then
@@ -162,6 +166,10 @@ local function bindTool(player: Player, tool: Instance)
 end
 
 function Mining.setup()
+	local ev = Instance.new("RemoteEvent")
+	ev.Name = "MineFX"
+	ev.Parent = ReplicatedStorage:WaitForChild("Remotes")
+	fxEvent = ev
 	for _, node in CollectionService:GetTagged("OreNode") do
 		if node:GetAttribute("MaxAmount") == nil then
 			node:SetAttribute("MaxAmount", node:GetAttribute("Amount") or 5)

@@ -1,7 +1,9 @@
 --!strict
--- Teletrasporto per chi ha lo Chalet (casa di livello 3, attributo HouseLevel): dal menu del
--- client (tasto T) si va nei punti principali. Il server controlla livello e attesa.
--- La vetta non c'e' apposta: quella si conquista scalando.
+-- Teletrasporto (menu T del client) tra i PUNTI DI VIAGGIO: campo base principale, il tuo
+-- accampamento, arena, palestra e i campi base della montagna che hai gia' raggiunto a piedi
+-- (attributo "CampsFound", es. "1,3,4", salvato da Upgrades). Si parte SOLO stando vicino a un
+-- punto di viaggio (attributo "AtWaypoint", lo calcola BaseCamps): prima dalla vetta si tornava
+-- giu' in zero secondi. La vetta non c'e' apposta: quella si conquista scalando.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -39,7 +41,7 @@ local function destinations(): { [string]: (Player) -> Vector3? }
 		end
 		return if n > 0 then sum / n else nil
 	end
-	return {
+	local list: { [string]: (Player) -> Vector3? } = {
 		["Base camp (hub)"] = function()
 			return marker("HubSpawn")
 		end,
@@ -62,6 +64,18 @@ local function destinations(): { [string]: (Player) -> Vector3? }
 			return nil
 		end,
 	}
+	-- i campi base della montagna (solo quelli scoperti: lo controlla chi chiama)
+	local camps = markers and markers:FindFirstChild("BaseCamps")
+	for _, c in (if camps then camps:GetChildren() else {}) :: { Instance } do
+		local index = tonumber(string.match(c.Name, "%d+"))
+		if index and c:IsA("BasePart") then
+			list["Base Camp " .. index] = function(player)
+				local found = "," .. tostring(player:GetAttribute("CampsFound") or "") .. ","
+				return if string.find(found, "," .. index .. ",", 1, true) then (c :: BasePart).Position else nil
+			end
+		end
+	end
+	return list
 end
 
 function Teleports.setup()
@@ -79,6 +93,11 @@ function Teleports.setup()
 			else false
 		if blocked then
 			player:SetAttribute("Notice", if need == "dragon" then "Unlocks with your first dragon" else "Unlocks with the Chalet")
+			player:SetAttribute("NoticeTime", os.clock())
+			return
+		end
+		if not player:GetAttribute("AtWaypoint") then
+			player:SetAttribute("Notice", "Teleport only from a base camp, your camp, the arena or the gym")
 			player:SetAttribute("NoticeTime", os.clock())
 			return
 		end

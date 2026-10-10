@@ -30,7 +30,7 @@ local CrystalFX = require(script.CrystalFX)
 local Culling = require(script.Culling)
 local Combat = require(script.Combat)
 local Glider = require(script.Glider)
-local Regista = require(script.Regista)
+local OreFX = require(script.OreFX)
 
 HUD.start()
 ClimbFeel.start()
@@ -61,4 +61,4 @@ CrystalFX.start()
 Culling.start() -- luci e particelle lontane spente (meno lag)
 Combat.start() -- attacco del drago (Z), draghi volanti, scudo, discesa, eventi
 Glider.start() -- parapendio (Spazio mentre cadi)
-Regista.start() -- modalita' regista per le clip (comando admin "regista")
+OreFX.start() -- minerali: contorno luminoso, suono e "+1" quando estrai
