@@ -1,0 +1,15 @@
+﻿{
+  "bg_loading": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-9b77c679-40d1-4266-a1f5-1f6cf10a1398.png",
+  "bg_menu": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-5aa1e594-118c-4f23-a826-4e51b5b7c4b4.png",
+  "bg_death": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-faa82d56-ad32-43dd-918a-fcf198422d36.png",
+  "logo": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-3f01d38b-3a07-4933-b338-b2fb15308f21.png",
+  "panel_main": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-9306419a-f6d4-4698-a99f-5eebce443e96.png",
+  "panel_card": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-095cc0a7-3d56-4f8e-ab2f-a1192dfd0337.png",
+  "panel_header": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-d8b79b93-ba1d-4f07-a2f6-2f3bce70b817.png",
+  "panel_toast": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-5e8d7ebb-0512-44b8-b402-b4efd11b281f.png",
+  "panel_quest": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-9720fbfa-7c58-4b7b-969f-d3bb679d2f0b.png",
+  "rarity_common": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-6be15ec4-16eb-4bda-b9ce-7468bf634cce.png",
+  "rarity_rare": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-05d15404-0efa-438b-b291-4f227b1e4401.png",
+  "rarity_epic": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-11ddaa13-f885-4935-804a-9480046ba298.png",
+  "rarity_legendary": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-876cca52-228a-4c25-8091-becfb7446d01.png"
+}

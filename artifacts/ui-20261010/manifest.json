@@ -1,0 +1,1064 @@
+[
+  {
+    "name": "bg_loading",
+    "w": 1024,
+    "h": 576,
+    "desc": "Epic dusk view of a huge K2-like ice and rock mountain, glaciers and icefall, a tiny climber with an ice axe on a ridge in the foreground, a dragon silhouette circling the summit, warm sunset light on the peak, cold blue shadows below, cinematic, leave the lower third darker and calm for UI text.",
+    "alpha": false,
+    "slice": null,
+    "use": "Caricamento",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset bg_loading.png. Exact target dimensions 1024x576. Epic dusk view of a huge K2-like ice and rock mountain, glaciers and icefall, a tiny climber with an ice axe on a ridge in the foreground, a dragon silhouette circling the summit, warm sunset light on the peak, cold blue shadows below, cinematic, leave the lower third darker and calm for UI text.",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-9b77c679-40d1-4266-a1f5-1f6cf10a1398.png"
+  },
+  {
+    "name": "bg_menu",
+    "w": 1024,
+    "h": 576,
+    "desc": "Night base camp at the foot of the mountain, glowing tents and lanterns, a sleeping baby dragon by a campfire, aurora over the snowy peak, soft vignette, left 40% darker and calm for the menu column.",
+    "alpha": false,
+    "slice": null,
+    "use": "Menu",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Full-bleed opaque landscape, crisp edges.\nUse case: stylized-concept. Single finished asset bg_menu.png. Target dimensions 1024x576. Night base camp at the foot of the mountain, glowing tents and lanterns, a sleeping baby dragon by a campfire, aurora over the snowy peak, soft vignette, left 40% darker and calm for the menu column.",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-5aa1e594-118c-4f23-a826-4e51b5b7c4b4.png"
+  },
+  {
+    "name": "bg_death",
+    "w": 1024,
+    "h": 576,
+    "desc": "Blizzard whiteout on a frozen cliff, broken rope and an ice axe stuck in the snow, cold desaturated blue with a red vignette at the edges, center calm for text.",
+    "alpha": false,
+    "slice": null,
+    "use": "Morte",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Full-bleed opaque landscape, crisp edges.\nUse case: stylized-concept. Single finished asset bg_death.png. Target dimensions 1024x576. Blizzard whiteout on a frozen cliff, broken rope and an ice axe stuck in the snow, cold desaturated blue with a red vignette at the edges, center calm for text.",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-faa82d56-ad32-43dd-918a-fcf198422d36.png"
+  },
+  {
+    "name": "logo",
+    "w": 1024,
+    "h": 512,
+    "desc": "Game logo exactly \"Climbing & Dragons\" in carved icy stone letters with gold trim, a crossed ice axe and dragon wing behind.",
+    "alpha": true,
+    "slice": null,
+    "use": "Caricamento e menu",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. Only the requested logo lettering, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: logo-brand. Create one finished fantasy game logo. Text exactly \"Climbing & Dragons\", these two words and ampersand only. Spell Climbing C-l-i-m-b-i-n-g and Dragons D-r-a-g-o-n-s. Carved icy stone letters with warm gold trim; a crossed ice axe and dragon wing behind. Broad 2:1 layout, target canvas 1024x512, completely transparent background, ample safe margin around every edge. Bold legible text and clean silhouette. Do not include Hardcore or any other word.",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-3f01d38b-3a07-4933-b338-b2fb15308f21.png"
+  },
+  {
+    "name": "panel_main",
+    "w": 512,
+    "h": 512,
+    "desc": "Window frame: dark navy translucent glass center, carved slate stone border with frost on top corners and small gold rivets in the corners, plain stretchable edges.",
+    "alpha": true,
+    "slice": [
+      80,
+      80,
+      80,
+      80
+    ],
+    "use": "Finestre",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset panel_main.png. Exact target dimensions 512x512. Window frame: dark navy translucent glass center, carved slate stone border with frost on top corners and small gold rivets in the corners, plain stretchable edges. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (80, 80, 80, 80 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "panel_card",
+    "w": 256,
+    "h": 256,
+    "desc": "Smaller item card: dark slate center, thin ice-blue inner line, gold corner studs.",
+    "alpha": true,
+    "slice": [
+      32,
+      32,
+      32,
+      32
+    ],
+    "use": "Carte oggetti",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset panel_card.png. Exact target dimensions 256x256. Smaller item card: dark slate center, thin ice-blue inner line, gold corner studs. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (32, 32, 32, 32 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "panel_header",
+    "w": 512,
+    "h": 128,
+    "desc": "Title banner plate: carved stone with gold trim and two small ice crystals at the ends, empty center.",
+    "alpha": true,
+    "slice": [
+      96,
+      40,
+      96,
+      40
+    ],
+    "use": "Titoli finestre",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset panel_header.png. Exact target dimensions 512x128. Title banner plate: carved stone with gold trim and two small ice crystals at the ends, empty center. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (96, 40, 96, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "panel_toast",
+    "w": 512,
+    "h": 128,
+    "desc": "Notification bar: dark glass with a thin gold left accent, rounded ends.",
+    "alpha": true,
+    "slice": [
+      56,
+      32,
+      56,
+      32
+    ],
+    "use": "Avvisi HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset panel_toast.png. Exact target dimensions 512x128. Notification bar: dark glass with a thin gold left accent, rounded ends. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (56, 32, 56, 32 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "panel_quest",
+    "w": 512,
+    "h": 192,
+    "desc": "Quest/mission scroll plate: dark leather-and-stone, small compass emblem confined to the top-left corner, empty center.",
+    "alpha": true,
+    "slice": [
+      96,
+      64,
+      64,
+      64
+    ],
+    "use": "Missione/tutorial",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset panel_quest.png. Exact target dimensions 512x192. Quest/mission scroll plate: dark leather-and-stone, small compass emblem confined to the top-left corner, empty center. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (96, 64, 64, 64 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "rarity_common",
+    "w": 256,
+    "h": 256,
+    "desc": "Square item card frame, dark navy blank center, chamfered corners, thin carved slate rim; grey stone. Keep same simple square shape as the other rarity cards.",
+    "alpha": true,
+    "slice": [
+      40,
+      40,
+      40,
+      40
+    ],
+    "use": "Rarita' draghi/oggetti",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset rarity_common.png. Exact target dimensions 256x256. Square item card frame, dark navy blank center, chamfered corners, thin carved slate rim; grey stone. Keep same simple square shape as the other rarity cards. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (40, 40, 40, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "rarity_rare",
+    "w": 256,
+    "h": 256,
+    "desc": "Square item card frame, dark navy blank center, chamfered corners, thin carved slate rim; ice-blue glowing. Keep same simple square shape as the other rarity cards.",
+    "alpha": true,
+    "slice": [
+      40,
+      40,
+      40,
+      40
+    ],
+    "use": "Rarita' draghi/oggetti",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset rarity_rare.png. Exact target dimensions 256x256. Square item card frame, dark navy blank center, chamfered corners, thin carved slate rim; ice-blue glowing. Keep same simple square shape as the other rarity cards. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (40, 40, 40, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "rarity_epic",
+    "w": 256,
+    "h": 256,
+    "desc": "Square item card frame, dark navy blank center, chamfered corners, thin carved slate rim; violet crystal. Keep same simple square shape as the other rarity cards.",
+    "alpha": true,
+    "slice": [
+      40,
+      40,
+      40,
+      40
+    ],
+    "use": "Rarita' draghi/oggetti",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset rarity_epic.png. Exact target dimensions 256x256. Square item card frame, dark navy blank center, chamfered corners, thin carved slate rim; violet crystal. Keep same simple square shape as the other rarity cards. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (40, 40, 40, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "rarity_legendary",
+    "w": 256,
+    "h": 256,
+    "desc": "Square item card frame, dark navy blank center, chamfered corners, thin carved slate rim; gold with ember glow. Keep same simple square shape as the other rarity cards.",
+    "alpha": true,
+    "slice": [
+      40,
+      40,
+      40,
+      40
+    ],
+    "use": "Rarita' draghi/oggetti",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset rarity_legendary.png. Exact target dimensions 256x256. Square item card frame, dark navy blank center, chamfered corners, thin carved slate rim; gold with ember glow. Keep same simple square shape as the other rarity cards. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (40, 40, 40, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_primary_normal",
+    "w": 384,
+    "h": 128,
+    "desc": "Wide game button, warm gold-orange glossy face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: normal resting appearance.",
+    "alpha": true,
+    "slice": [
+      48,
+      40,
+      48,
+      40
+    ],
+    "use": "Pulsante primary / normal",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_primary_normal.png. Exact target dimensions 384x128. Wide game button, warm gold-orange glossy face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: normal resting appearance. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (48, 40, 48, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_primary_hover",
+    "w": 384,
+    "h": 128,
+    "desc": "Wide game button, warm gold-orange glossy face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: brighter face and contained soft inner glow, identical geometry.",
+    "alpha": true,
+    "slice": [
+      48,
+      40,
+      48,
+      40
+    ],
+    "use": "Pulsante primary / hover",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_primary_hover.png. Exact target dimensions 384x128. Wide game button, warm gold-orange glossy face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: brighter face and contained soft inner glow, identical geometry. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (48, 40, 48, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_primary_pressed",
+    "w": 384,
+    "h": 128,
+    "desc": "Wide game button, warm gold-orange glossy face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: darker face, recessed bevel, pushed in, identical geometry.",
+    "alpha": true,
+    "slice": [
+      48,
+      40,
+      48,
+      40
+    ],
+    "use": "Pulsante primary / pressed",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_primary_pressed.png. Exact target dimensions 384x128. Wide game button, warm gold-orange glossy face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: darker face, recessed bevel, pushed in, identical geometry. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (48, 40, 48, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_secondary_normal",
+    "w": 384,
+    "h": 128,
+    "desc": "Wide game button, frosted ice-blue face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: normal resting appearance.",
+    "alpha": true,
+    "slice": [
+      48,
+      40,
+      48,
+      40
+    ],
+    "use": "Pulsante secondary / normal",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_secondary_normal.png. Exact target dimensions 384x128. Wide game button, frosted ice-blue face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: normal resting appearance. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (48, 40, 48, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_secondary_hover",
+    "w": 384,
+    "h": 128,
+    "desc": "Wide game button, frosted ice-blue face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: brighter face and contained soft inner glow, identical geometry.",
+    "alpha": true,
+    "slice": [
+      48,
+      40,
+      48,
+      40
+    ],
+    "use": "Pulsante secondary / hover",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_secondary_hover.png. Exact target dimensions 384x128. Wide game button, frosted ice-blue face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: brighter face and contained soft inner glow, identical geometry. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (48, 40, 48, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_secondary_pressed",
+    "w": 384,
+    "h": 128,
+    "desc": "Wide game button, frosted ice-blue face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: darker face, recessed bevel, pushed in, identical geometry.",
+    "alpha": true,
+    "slice": [
+      48,
+      40,
+      48,
+      40
+    ],
+    "use": "Pulsante secondary / pressed",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_secondary_pressed.png. Exact target dimensions 384x128. Wide game button, frosted ice-blue face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: darker face, recessed bevel, pushed in, identical geometry. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (48, 40, 48, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_danger_normal",
+    "w": 384,
+    "h": 128,
+    "desc": "Wide game button, deep red face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: normal resting appearance.",
+    "alpha": true,
+    "slice": [
+      48,
+      40,
+      48,
+      40
+    ],
+    "use": "Pulsante danger / normal",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_danger_normal.png. Exact target dimensions 384x128. Wide game button, deep red face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: normal resting appearance. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (48, 40, 48, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_danger_hover",
+    "w": 384,
+    "h": 128,
+    "desc": "Wide game button, deep red face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: brighter face and contained soft inner glow, identical geometry.",
+    "alpha": true,
+    "slice": [
+      48,
+      40,
+      48,
+      40
+    ],
+    "use": "Pulsante danger / hover",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_danger_hover.png. Exact target dimensions 384x128. Wide game button, deep red face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: brighter face and contained soft inner glow, identical geometry. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (48, 40, 48, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_danger_pressed",
+    "w": 384,
+    "h": 128,
+    "desc": "Wide game button, deep red face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: darker face, recessed bevel, pushed in, identical geometry.",
+    "alpha": true,
+    "slice": [
+      48,
+      40,
+      48,
+      40
+    ],
+    "use": "Pulsante danger / pressed",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_danger_pressed.png. Exact target dimensions 384x128. Wide game button, deep red face with carved stone rim, simple softly beveled rectangular silhouette, rounded corners, empty stretchable center. State: darker face, recessed bevel, pushed in, identical geometry. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image. Production nine-slice UI texture, straight front view without perspective. Keep all decorations within corner regions (48, 40, 48, 40 pixels from left, top, right, bottom at target size). Edge midsections plain and stretchable, center flat and empty with no motif, gradient or focal highlight. No external shadow.",
+    "source": null
+  },
+  {
+    "name": "btn_round_normal",
+    "w": 256,
+    "h": 256,
+    "desc": "Round mobile action button with dark glass with ice-blue rim, completely empty face (icon goes on top). Maintain a perfect circle. State: normal resting appearance.",
+    "alpha": true,
+    "slice": [
+      96,
+      96,
+      96,
+      96
+    ],
+    "use": "Pulsante round / normal",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_round_normal.png. Exact target dimensions 256x256. Round mobile action button with dark glass with ice-blue rim, completely empty face (icon goes on top). Maintain a perfect circle. State: normal resting appearance. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "btn_round_hover",
+    "w": 256,
+    "h": 256,
+    "desc": "Round mobile action button with dark glass with ice-blue rim, completely empty face (icon goes on top). Maintain a perfect circle. State: brighter face and contained soft inner glow, identical geometry.",
+    "alpha": true,
+    "slice": [
+      96,
+      96,
+      96,
+      96
+    ],
+    "use": "Pulsante round / hover",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_round_hover.png. Exact target dimensions 256x256. Round mobile action button with dark glass with ice-blue rim, completely empty face (icon goes on top). Maintain a perfect circle. State: brighter face and contained soft inner glow, identical geometry. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "btn_round_pressed",
+    "w": 256,
+    "h": 256,
+    "desc": "Round mobile action button with dark glass with ice-blue rim, completely empty face (icon goes on top). Maintain a perfect circle. State: darker face, recessed bevel, pushed in, identical geometry.",
+    "alpha": true,
+    "slice": [
+      96,
+      96,
+      96,
+      96
+    ],
+    "use": "Pulsante round / pressed",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_round_pressed.png. Exact target dimensions 256x256. Round mobile action button with dark glass with ice-blue rim, completely empty face (icon goes on top). Maintain a perfect circle. State: darker face, recessed bevel, pushed in, identical geometry. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "btn_close",
+    "w": 128,
+    "h": 128,
+    "desc": "Small round close button with an X made of two crossed ice shards. X is a pictogram, no lettering.",
+    "alpha": true,
+    "slice": null,
+    "use": "Chiusura finestre",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset btn_close.png. Exact target dimensions 128x128. Small round close button with an X made of two crossed ice shards. X is a pictogram, no lettering. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_shop",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: market stall with a glowing lantern. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_shop.png. Exact target dimensions 256x256. Single icon: market stall with a glowing lantern. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_backpack",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: climber backpack with coiled rope. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_backpack.png. Exact target dimensions 256x256. Single icon: climber backpack with coiled rope. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_dragons",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: dragon head emblem. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_dragons.png. Exact target dimensions 256x256. Single icon: dragon head emblem. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_crafting",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: anvil with hammer. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_crafting.png. Exact target dimensions 256x256. Single icon: anvil with hammer. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_teleport",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: glowing circular portal, abstract rune-like geometry without letters. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_teleport.png. Exact target dimensions 256x256. Single icon: glowing circular portal, abstract rune-like geometry without letters. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_settings",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: gear. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_settings.png. Exact target dimensions 256x256. Single icon: gear. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_coin",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: gold coin with a mountain engraved, no letters or currency marks. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_coin.png. Exact target dimensions 256x256. Single icon: gold coin with a mountain engraved, no letters or currency marks. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_health",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: red heart with frost edge. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_health.png. Exact target dimensions 256x256. Single icon: red heart with frost edge. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_stamina",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: green lightning bolt. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_stamina.png. Exact target dimensions 256x256. Single icon: green lightning bolt. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_warmth",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: thermometer with flame, no numbers or scale marks. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_warmth.png. Exact target dimensions 256x256. Single icon: thermometer with flame, no numbers or scale marks. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_cold",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: thermometer with snowflake, no numbers or scale marks. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_cold.png. Exact target dimensions 256x256. Single icon: thermometer with snowflake, no numbers or scale marks. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_piton",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: steel piton with rope loop. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_piton.png. Exact target dimensions 256x256. Single icon: steel piton with rope loop. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_altitude",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: mountain with up arrow. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_altitude.png. Exact target dimensions 256x256. Single icon: mountain with up arrow. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_quest",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: scroll with compass, blank parchment without writing. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_quest.png. Exact target dimensions 256x256. Single icon: scroll with compass, blank parchment without writing. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_egg",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: speckled dragon egg. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_egg.png. Exact target dimensions 256x256. Single icon: speckled dragon egg. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "icon_lock",
+    "w": 256,
+    "h": 256,
+    "desc": "Single icon: padlock with frost. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Menu/HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset icon_lock.png. Exact target dimensions 256x256. Single icon: padlock with frost. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "weather_clear",
+    "w": 256,
+    "h": 256,
+    "desc": "Weather icon: warm gold sun. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Meteo HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset weather_clear.png. Exact target dimensions 256x256. Weather icon: warm gold sun. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "weather_night",
+    "w": 256,
+    "h": 256,
+    "desc": "Weather icon: crescent moon with one small star. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Meteo HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset weather_night.png. Exact target dimensions 256x256. Weather icon: crescent moon with one small star. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "weather_cloudy",
+    "w": 256,
+    "h": 256,
+    "desc": "Weather icon: two overlapping slate-blue clouds. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Meteo HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset weather_cloudy.png. Exact target dimensions 256x256. Weather icon: two overlapping slate-blue clouds. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "weather_rain",
+    "w": 256,
+    "h": 256,
+    "desc": "Weather icon: blue cloud with three blue raindrops. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Meteo HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset weather_rain.png. Exact target dimensions 256x256. Weather icon: blue cloud with three blue raindrops. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "weather_thunder",
+    "w": 256,
+    "h": 256,
+    "desc": "Weather icon: cloud with one gold lightning bolt. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Meteo HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset weather_thunder.png. Exact target dimensions 256x256. Weather icon: cloud with one gold lightning bolt. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "weather_storm",
+    "w": 256,
+    "h": 256,
+    "desc": "Weather icon: dark storm cloud with a bold swirling wind gust and lightning. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Meteo HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset weather_storm.png. Exact target dimensions 256x256. Weather icon: dark storm cloud with a bold swirling wind gust and lightning. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "weather_snow",
+    "w": 256,
+    "h": 256,
+    "desc": "Weather icon: pale blue cloud with two bold snowflakes. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Meteo HUD",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset weather_snow.png. Exact target dimensions 256x256. Weather icon: pale blue cloud with two bold snowflakes. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "act_climb",
+    "w": 256,
+    "h": 256,
+    "desc": "Mobile action pictogram: single ice axe. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Comandi telefono",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset act_climb.png. Exact target dimensions 256x256. Mobile action pictogram: single ice axe. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "act_jump",
+    "w": 256,
+    "h": 256,
+    "desc": "Mobile action pictogram: jumping person with bent knees and upward movement. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Comandi telefono",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset act_jump.png. Exact target dimensions 256x256. Mobile action pictogram: jumping person with bent knees and upward movement. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "act_piton",
+    "w": 256,
+    "h": 256,
+    "desc": "Mobile action pictogram: steel piton with attachment loop. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Comandi telefono",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset act_piton.png. Exact target dimensions 256x256. Mobile action pictogram: steel piton with attachment loop. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "act_grapple",
+    "w": 256,
+    "h": 256,
+    "desc": "Mobile action pictogram: grappling hook with three curved prongs and short rope. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Comandi telefono",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset act_grapple.png. Exact target dimensions 256x256. Mobile action pictogram: grappling hook with three curved prongs and short rope. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "act_throw",
+    "w": 256,
+    "h": 256,
+    "desc": "Mobile action pictogram: spinning ice axe with a curved movement trail. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Comandi telefono",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset act_throw.png. Exact target dimensions 256x256. Mobile action pictogram: spinning ice axe with a curved movement trail. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "act_sprint",
+    "w": 256,
+    "h": 256,
+    "desc": "Mobile action pictogram: sprinting person. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Comandi telefono",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset act_sprint.png. Exact target dimensions 256x256. Mobile action pictogram: sprinting person. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "act_mine",
+    "w": 256,
+    "h": 256,
+    "desc": "Mobile action pictogram: mining pickaxe with symmetric pointed head. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Comandi telefono",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset act_mine.png. Exact target dimensions 256x256. Mobile action pictogram: mining pickaxe with symmetric pointed head. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "act_shoot",
+    "w": 256,
+    "h": 256,
+    "desc": "Mobile action pictogram: dragon head in profile breathing a bold flame. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Comandi telefono",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset act_shoot.png. Exact target dimensions 256x256. Mobile action pictogram: dragon head in profile breathing a bold flame. OVERRIDE palette for this asset: pure white silhouette only, no colors, no dark outlines, minimal clean interior cutouts, no background or button. Recognizable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Roccia",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: craggy rock mountain. Element body/accent/glow colors from DragonConfig: #807668 / #46403A / #E6C88C. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Roccia",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Roccia.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: craggy rock mountain. Element body/accent/glow colors from DragonConfig: #807668 / #46403A / #E6C88C. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Brace",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: burning ember flame. Element body/accent/glow colors from DragonConfig: #C84628 / #281E1C / #FF8C32. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Brace",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Brace.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: burning ember flame. Element body/accent/glow colors from DragonConfig: #C84628 / #281E1C / #FF8C32. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Gelo",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: sharp snowflake. Element body/accent/glow colors from DragonConfig: #BEE6FA / #5A96C8 / #A0E6FF. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Gelo",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Gelo.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: sharp snowflake. Element body/accent/glow colors from DragonConfig: #BEE6FA / #5A96C8 / #A0E6FF. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Cosmico",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: cosmic star with orbit. Element body/accent/glow colors from DragonConfig: #6E3CC8 / #FF00BF / #DC5AFF. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Cosmico",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Cosmico.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: cosmic star with orbit. Element body/accent/glow colors from DragonConfig: #6E3CC8 / #FF00BF / #DC5AFF. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Tempesta",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: storm cloud with curling wind. Element body/accent/glow colors from DragonConfig: #506496 / #E6F0FF / #96C8FF. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Tempesta",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Tempesta.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: storm cloud with curling wind. Element body/accent/glow colors from DragonConfig: #506496 / #E6F0FF / #96C8FF. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Sole",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: radiant sun. Element body/accent/glow colors from DragonConfig: #FABE46 / #FFF5C8 / #FFE178. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Sole",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Sole.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: radiant sun. Element body/accent/glow colors from DragonConfig: #FABE46 / #FFF5C8 / #FFE178. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Ombra",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: shadow dragon eye in dark mist. Element body/accent/glow colors from DragonConfig: #2D233C / #9650DC / #AA64FF. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Ombra",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Ombra.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: shadow dragon eye in dark mist. Element body/accent/glow colors from DragonConfig: #2D233C / #9650DC / #AA64FF. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Eclissi",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: black solar eclipse with ember corona. Element body/accent/glow colors from DragonConfig: #1E1C22 / #F0ECE6 / #FF9632. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Eclissi",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Eclissi.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: black solar eclipse with ember corona. Element body/accent/glow colors from DragonConfig: #1E1C22 / #F0ECE6 / #FF9632. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Fulmine",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: black lightning bolt edged in violet. Element body/accent/glow colors from DragonConfig: #231E32 / #966EFF / #AA8CFF. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Fulmine",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Fulmine.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: black lightning bolt edged in violet. Element body/accent/glow colors from DragonConfig: #231E32 / #966EFF / #AA8CFF. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Ossa",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: simple dragon skull. Element body/accent/glow colors from DragonConfig: #E1DCCD / #5A5046 / #C8FFDC. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Ossa",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Ossa.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: simple dragon skull. Element body/accent/glow colors from DragonConfig: #E1DCCD / #5A5046 / #C8FFDC. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "elem_Gas",
+    "w": 256,
+    "h": 256,
+    "desc": "Round dragon element emblem, carved slate circular rim, bold symbol: cyan gas cloud with magenta wisps, absolutely no green. Element body/accent/glow colors from DragonConfig: #3250D2 / #F050DC / #5ADCFF. Very simple interior details, strong silhouette, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Elemento drago Gas",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset elem_Gas.png. Exact target dimensions 256x256. Round dragon element emblem, carved slate circular rim, bold symbol: cyan gas cloud with magenta wisps, absolutely no green. Element body/accent/glow colors from DragonConfig: #3250D2 / #F050DC / #5ADCFF. Very simple interior details, strong silhouette, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "ore_Carbone",
+    "w": 256,
+    "h": 256,
+    "desc": "Mineral inventory icon: chunk of dark black coal. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Minerale Carbone",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset ore_Carbone.png. Exact target dimensions 256x256. Mineral inventory icon: chunk of dark black coal. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "ore_Ferro",
+    "w": 256,
+    "h": 256,
+    "desc": "Mineral inventory icon: grey iron ore chunk with a few silvery facets. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Minerale Ferro",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset ore_Ferro.png. Exact target dimensions 256x256. Mineral inventory icon: grey iron ore chunk with a few silvery facets. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "ore_Oro",
+    "w": 256,
+    "h": 256,
+    "desc": "Mineral inventory icon: gold ore chunk with bright gold veins. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Minerale Oro",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset ore_Oro.png. Exact target dimensions 256x256. Mineral inventory icon: gold ore chunk with bright gold veins. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "ore_Cristallo",
+    "w": 256,
+    "h": 256,
+    "desc": "Mineral inventory icon: cluster of three cyan clear crystals. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Minerale Cristallo",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset ore_Cristallo.png. Exact target dimensions 256x256. Mineral inventory icon: cluster of three cyan clear crystals. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "ore_Rubino",
+    "w": 256,
+    "h": 256,
+    "desc": "Mineral inventory icon: red ruby crystal chunk. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Minerale Rubino",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset ore_Rubino.png. Exact target dimensions 256x256. Mineral inventory icon: red ruby crystal chunk. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "ore_Cosmico",
+    "w": 256,
+    "h": 256,
+    "desc": "Mineral inventory icon: violet cosmic mineral crystal with magenta interior light. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px.",
+    "alpha": true,
+    "slice": null,
+    "use": "Minerale Cosmico",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Centered, isolated on a fully transparent background (PNG with alpha), crisp edges, no drop shadow outside the canvas.\nUse case: stylized-concept. Single finished asset ore_Cosmico.png. Exact target dimensions 256x256. Mineral inventory icon: violet cosmic mineral crystal with magenta interior light. Strong silhouette, dark 2-3px contour at final 256px size, very little internal detail, readable at 32px. Keep all artwork inside a transparent safe margin, no clipping, no checkerboard painted into the image.",
+    "source": null
+  },
+  {
+    "name": "pass_FastIncubation",
+    "w": 512,
+    "h": 512,
+    "desc": "Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: dragon egg in a warm nest with a simple hourglass and swift motion streaks, faster incubation. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "alpha": false,
+    "slice": null,
+    "use": "Negozio Robux",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset pass_FastIncubation.png. Exact target dimensions 512x512. Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: dragon egg in a warm nest with a simple hourglass and swift motion streaks, faster incubation. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "source": null
+  },
+  {
+    "name": "pass_EggFinder",
+    "w": 512,
+    "h": 512,
+    "desc": "Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: dragon egg and gold compass pointing toward it, egg finding. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "alpha": false,
+    "slice": null,
+    "use": "Negozio Robux",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset pass_EggFinder.png. Exact target dimensions 512x512. Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: dragon egg and gold compass pointing toward it, egg finding. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "source": null
+  },
+  {
+    "name": "pass_ExtraDragon",
+    "w": 512,
+    "h": 512,
+    "desc": "Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: two friendly baby dragons side by side, extra dragon companion. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "alpha": false,
+    "slice": null,
+    "use": "Negozio Robux",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset pass_ExtraDragon.png. Exact target dimensions 512x512. Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: two friendly baby dragons side by side, extra dragon companion. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "source": null
+  },
+  {
+    "name": "pass_ExtraIncubator",
+    "w": 512,
+    "h": 512,
+    "desc": "Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: two dragon eggs in two adjacent warm stone nests, extra incubator slots. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "alpha": false,
+    "slice": null,
+    "use": "Negozio Robux",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset pass_ExtraIncubator.png. Exact target dimensions 512x512. Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: two dragon eggs in two adjacent warm stone nests, extra incubator slots. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "source": null
+  },
+  {
+    "name": "pass_TrainingX2",
+    "w": 512,
+    "h": 512,
+    "desc": "Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: dragon hitting a glowing training crystal with two bold gold upward arrows, training experience multiplier, absolutely no digits. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "alpha": false,
+    "slice": null,
+    "use": "Negozio Robux",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset pass_TrainingX2.png. Exact target dimensions 512x512. Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: dragon hitting a glowing training crystal with two bold gold upward arrows, training experience multiplier, absolutely no digits. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "source": null
+  },
+  {
+    "name": "prod_Coins1000",
+    "w": 512,
+    "h": 512,
+    "desc": "Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: abundant pile of mountain-engraved gold coins, no currency symbols or numbers. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "alpha": false,
+    "slice": null,
+    "use": "Negozio Robux",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset prod_Coins1000.png. Exact target dimensions 512x512. Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: abundant pile of mountain-engraved gold coins, no currency symbols or numbers. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "source": null
+  },
+  {
+    "name": "prod_InstantHatch",
+    "w": 512,
+    "h": 512,
+    "desc": "Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: baby dragon hatching from a cracked egg in a gold burst of light. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "alpha": false,
+    "slice": null,
+    "use": "Negozio Robux",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset prod_InstantHatch.png. Exact target dimensions 512x512. Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: baby dragon hatching from a cracked egg in a gold burst of light. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "source": null
+  },
+  {
+    "name": "prod_Revive",
+    "w": 512,
+    "h": 512,
+    "desc": "Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: climber silhouette rising within a warm gold protective halo above snow, revival. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "alpha": false,
+    "slice": null,
+    "use": "Negozio Robux",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset prod_Revive.png. Exact target dimensions 512x512. Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: climber silhouette rising within a warm gold protective halo above snow, revival. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "source": null
+  },
+  {
+    "name": "prod_TrainingBoost",
+    "w": 512,
+    "h": 512,
+    "desc": "Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: dragon head emblem with a blazing gold upward arrow and burst of energy, temporary training boost. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "alpha": false,
+    "slice": null,
+    "use": "Negozio Robux",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset prod_TrainingBoost.png. Exact target dimensions 512x512. Premium store square illustration with a gold frame, solid dark navy background filling the square to all edges, subject: dragon head emblem with a blazing gold upward arrow and burst of energy, temporary training boost. Bold readable composition with few large shapes. No lettering, no price, no digits.",
+    "source": null
+  },
+  {
+    "name": "game_icon",
+    "w": 512,
+    "h": 512,
+    "desc": "Climber with ice axe and a friendly dragon standing on a snowy mountain summit, bold iconic composition readable as a small square, large subjects, dramatic blue ice and gold sunset. No lettering.",
+    "alpha": false,
+    "slice": null,
+    "use": "Icona pagina gioco",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset game_icon.png. Exact target dimensions 512x512. Climber with ice axe and a friendly dragon standing on a snowy mountain summit, bold iconic composition readable as a small square, large subjects, dramatic blue ice and gold sunset. No lettering.",
+    "source": null
+  },
+  {
+    "name": "thumb_1",
+    "w": 1024,
+    "h": 576,
+    "desc": "Dynamic climber using ice axes to ascend a towering blue frozen waterfall on a K2-like cliff, companion dragon flying nearby, dramatic mountain scale. Cinematic wide composition, no text or UI overlays.",
+    "alpha": false,
+    "slice": null,
+    "use": "Anteprima pagina gioco",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset thumb_1.png. Exact target dimensions 1024x576. Dynamic climber using ice axes to ascend a towering blue frozen waterfall on a K2-like cliff, companion dragon flying nearby, dramatic mountain scale. Cinematic wide composition, no text or UI overlays.",
+    "source": null
+  },
+  {
+    "name": "thumb_2",
+    "w": 1024,
+    "h": 576,
+    "desc": "Two elemental dragons facing off in a mountain training arena surrounded by large rib-like stone arches and glowing crystals, exciting fantasy action. Cinematic wide composition, no text or UI overlays.",
+    "alpha": false,
+    "slice": null,
+    "use": "Anteprima pagina gioco",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset thumb_2.png. Exact target dimensions 1024x576. Two elemental dragons facing off in a mountain training arena surrounded by large rib-like stone arches and glowing crystals, exciting fantasy action. Cinematic wide composition, no text or UI overlays.",
+    "source": null
+  },
+  {
+    "name": "thumb_3",
+    "w": 1024,
+    "h": 576,
+    "desc": "Peaceful Japanese-style village at the foot of a snowy K2-like mountain, tiled curved roofs, torii gate, footbridge, warm lanterns and a friendly baby dragon. Cinematic wide composition, no text or UI overlays.",
+    "alpha": false,
+    "slice": null,
+    "use": "Anteprima pagina gioco",
+    "prompt": "Stylized fantasy game UI asset for a Roblox mountain-climbing and dragon game. Hand-painted, clean readable shapes, soft bevels, subtle frost texture. Palette: deep night-navy panels (#10141C to #1C2230), carved dark slate stone rims, frosted ice-blue highlights (#8FD3FF), warm gold trim and accents (#FFC450), small ember-orange glow details. Lit from top-left. No text, no letters, no numbers, no watermark. Opaque background filling the whole canvas, crisp edges.\nUse case: stylized-concept. Single finished asset thumb_3.png. Exact target dimensions 1024x576. Peaceful Japanese-style village at the foot of a snowy K2-like mountain, tiled curved roofs, torii gate, footbridge, warm lanterns and a friendly baby dragon. Cinematic wide composition, no text or UI overlays.",
+    "source": null
+  }
+]
