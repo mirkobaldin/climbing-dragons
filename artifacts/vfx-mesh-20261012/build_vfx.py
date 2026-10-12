@@ -5,6 +5,7 @@ import math
 import random
 import json
 import sys
+import warnings
 from pathlib import Path
 from mathutils import Vector, Matrix
 
@@ -28,7 +29,10 @@ bpy.context.scene.collection.children.link(stage)
 def material(name, color, emission=0):
     mat = bpy.data.materials.new(name)
     mat.diffuse_color = (*color, 1)
-    mat.use_nodes = True
+    # Blender 5.2 mantiene questa proprieta', ma segnala gia' la futura rimozione.
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', DeprecationWarning)
+        mat.use_nodes = True
     node = mat.node_tree.nodes.get('Principled BSDF')
     node.inputs['Base Color'].default_value = (*color, 1)
     node.inputs['Roughness'].default_value = .7
