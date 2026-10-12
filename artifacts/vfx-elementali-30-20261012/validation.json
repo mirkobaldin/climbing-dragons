@@ -1,0 +1,249 @@
+{
+  "ok": true,
+  "blender": "5.2.2 LTS",
+  "single_fbx": [
+    {
+      "name": "VFX_37_RocciaCuoreFratturato",
+      "triangles": 1384,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_38_RocciaArtiglioTellurico",
+      "triangles": 1960,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_39_RocciaFagliaRadiale",
+      "triangles": 2828,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_40_RocciaAriete",
+      "triangles": 1844,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_41_GeloLanciaAurora",
+      "triangles": 1584,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_42_GeloSigilloEsagonale",
+      "triangles": 1484,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_43_GeloLotoGlaciale",
+      "triangles": 3184,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_44_GeloAlaTagliente",
+      "triangles": 1204,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_45_CosmicoAstrolabio",
+      "triangles": 4608,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_46_CosmicoDiscoAccrescimento",
+      "triangles": 4800,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_47_CosmicoCometaAstrale",
+      "triangles": 1760,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_48_CosmicoStellaDimensionale",
+      "triangles": 2764,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_49_TempestaAliBurrasca",
+      "triangles": 2752,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_50_TempestaCicloneSpirale",
+      "triangles": 3432,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_51_TempestaRasoioEolico",
+      "triangles": 2480,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_52_TempestaOcchioUragano",
+      "triangles": 3376,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_53_EclissiSoleNero",
+      "triangles": 8584,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_54_EclissiLamaApocalisse",
+      "triangles": 1932,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_55_EclissiNovaOscura",
+      "triangles": 6412,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_56_EclissiSerpenteSolare",
+      "triangles": 5948,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_57_FulmineLanciaRamificata",
+      "triangles": 512,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_58_FulmineArtiglioTuono",
+      "triangles": 1932,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_59_FulmineSferaTesla",
+      "triangles": 3056,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_60_FulmineReteParalizzante",
+      "triangles": 2640,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_61_OssaFauciDraconiche",
+      "triangles": 2208,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_62_OssaArtiglioScheletrico",
+      "triangles": 1060,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_63_OssaSpiraleVertebre",
+      "triangles": 4788,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_64_GasLotoMiasma",
+      "triangles": 3048,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_65_GasBollaVorticosa",
+      "triangles": 4580,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    },
+    {
+      "name": "VFX_66_GasSoffioSerpentino",
+      "triangles": 6424,
+      "uv": true,
+      "texture": true,
+      "boundary_edges": 0,
+      "ok": true
+    }
+  ],
+  "kit_meshes": 30,
+  "max_triangles": 8584,
+  "studio_tested": false
+}

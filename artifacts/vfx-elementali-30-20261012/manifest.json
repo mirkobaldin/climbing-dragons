@@ -1,0 +1,632 @@
+[
+  {
+    "name": "VFX_37_RocciaCuoreFratturato",
+    "element": "Roccia",
+    "role": "Cuore di pietra aperto con fratture ambra",
+    "animation": "rotazione lenta, poi lancio",
+    "pivot": "centro",
+    "triangles": 1384,
+    "dimensions": [
+      2.7971549034118652,
+      2.7699036598205566,
+      2.2086429595947266
+    ],
+    "file": "fbx/VFX_37_RocciaCuoreFratturato.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "45332C",
+      "976646",
+      "F6AC51",
+      "FFE2A2"
+    ]
+  },
+  {
+    "name": "VFX_38_RocciaArtiglioTellurico",
+    "element": "Roccia",
+    "role": "Cinque artigli di pietra che si richiudono",
+    "animation": "emersione dal terreno e stretta",
+    "pivot": "base",
+    "triangles": 1960,
+    "dimensions": [
+      3.611726999282837,
+      3.5203776359558105,
+      2.120715618133545
+    ],
+    "file": "fbx/VFX_38_RocciaArtiglioTellurico.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "45332C",
+      "976646",
+      "F6AC51",
+      "FFE2A2"
+    ]
+  },
+  {
+    "name": "VFX_39_RocciaFagliaRadiale",
+    "element": "Roccia",
+    "role": "Frattura circolare con schegge inclinate",
+    "animation": "espansione e dissolvenza",
+    "pivot": "base",
+    "triangles": 2828,
+    "dimensions": [
+      4.357846736907959,
+      4.348431587219238,
+      1.1769109964370728
+    ],
+    "file": "fbx/VFX_39_RocciaFagliaRadiale.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "45332C",
+      "976646",
+      "F6AC51",
+      "FFE2A2"
+    ]
+  },
+  {
+    "name": "VFX_40_RocciaAriete",
+    "element": "Roccia",
+    "role": "Testa di proiettile corazzata a tre scaglie",
+    "animation": "carica e impatto lungo Z",
+    "pivot": "centro",
+    "triangles": 1844,
+    "dimensions": [
+      3.4378628730773926,
+      2.6827359199523926,
+      3.498814105987549
+    ],
+    "file": "fbx/VFX_40_RocciaAriete.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "45332C",
+      "976646",
+      "F6AC51",
+      "FFE2A2"
+    ]
+  },
+  {
+    "name": "VFX_41_GeloLanciaAurora",
+    "element": "Gelo",
+    "role": "Lancia centrale a facce nette con tre filamenti",
+    "animation": "lancio e rotazione lungo Z",
+    "pivot": "centro",
+    "triangles": 1584,
+    "dimensions": [
+      1.5079541206359863,
+      1.4535629749298096,
+      4.008999824523926
+    ],
+    "file": "fbx/VFX_41_GeloLanciaAurora.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "124A75",
+      "279BD0",
+      "85EDFF",
+      "E7FCFF"
+    ]
+  },
+  {
+    "name": "VFX_42_GeloSigilloEsagonale",
+    "element": "Gelo",
+    "role": "Fiocco esagonale con dodici ramificazioni",
+    "animation": "rotazione e comparsa sotto il bersaglio",
+    "pivot": "base",
+    "triangles": 1484,
+    "dimensions": [
+      4.008999824523926,
+      3.471895694732666,
+      0.22898375988006592
+    ],
+    "file": "fbx/VFX_42_GeloSigilloEsagonale.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "124A75",
+      "279BD0",
+      "85EDFF",
+      "E7FCFF"
+    ]
+  },
+  {
+    "name": "VFX_43_GeloLotoGlaciale",
+    "element": "Gelo",
+    "role": "Eruzione a fiore con otto petali di cristallo",
+    "animation": "apertura verticale dal terreno",
+    "pivot": "base",
+    "triangles": 3184,
+    "dimensions": [
+      3.405526876449585,
+      3.405526876449585,
+      2.508999824523926
+    ],
+    "file": "fbx/VFX_43_GeloLotoGlaciale.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "124A75",
+      "279BD0",
+      "85EDFF",
+      "E7FCFF"
+    ]
+  },
+  {
+    "name": "VFX_44_GeloAlaTagliente",
+    "element": "Gelo",
+    "role": "Fendente alato con sette penne di ghiaccio",
+    "animation": "arco di taglio verticale",
+    "pivot": "centro",
+    "triangles": 1204,
+    "dimensions": [
+      2.8476858139038086,
+      0.30210691690444946,
+      3.0774784088134766
+    ],
+    "file": "fbx/VFX_44_GeloAlaTagliente.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "124A75",
+      "279BD0",
+      "85EDFF",
+      "E7FCFF"
+    ]
+  },
+  {
+    "name": "VFX_45_CosmicoAstrolabio",
+    "element": "Cosmico",
+    "role": "Nucleo a scaglie con tre orbite stellari",
+    "animation": "rotazione su due assi",
+    "pivot": "centro",
+    "triangles": 4608,
+    "dimensions": [
+      2.740253448486328,
+      3.2989978790283203,
+      3.228646755218506
+    ],
+    "file": "fbx/VFX_45_CosmicoAstrolabio.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "241642",
+      "693ECC",
+      "ED5CDD",
+      "DFBCFF"
+    ]
+  },
+  {
+    "name": "VFX_46_CosmicoDiscoAccrescimento",
+    "element": "Cosmico",
+    "role": "Disco galattico a quattro bracci attorno al vuoto",
+    "animation": "rotazione orizzontale e contrazione",
+    "pivot": "centro",
+    "triangles": 4800,
+    "dimensions": [
+      3.938791275024414,
+      3.938791275024414,
+      1.3936200141906738
+    ],
+    "file": "fbx/VFX_46_CosmicoDiscoAccrescimento.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "241642",
+      "693ECC",
+      "ED5CDD",
+      "DFBCFF"
+    ]
+  },
+  {
+    "name": "VFX_47_CosmicoCometaAstrale",
+    "element": "Cosmico",
+    "role": "Cometa sfaccettata con cinque code incurvate",
+    "animation": "punta avanti Y e scia dietro",
+    "pivot": "centro",
+    "triangles": 1760,
+    "dimensions": [
+      1.422332525253296,
+      4.256937503814697,
+      1.352962613105774
+    ],
+    "file": "fbx/VFX_47_CosmicoCometaAstrale.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "241642",
+      "693ECC",
+      "ED5CDD",
+      "DFBCFF"
+    ]
+  },
+  {
+    "name": "VFX_48_CosmicoStellaDimensionale",
+    "element": "Cosmico",
+    "role": "Sigillo tridimensionale con otto punte stellari",
+    "animation": "espansione e rotazione",
+    "pivot": "centro",
+    "triangles": 2764,
+    "dimensions": [
+      4.108999729156494,
+      1.738635778427124,
+      4.108999729156494
+    ],
+    "file": "fbx/VFX_48_CosmicoStellaDimensionale.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "241642",
+      "693ECC",
+      "ED5CDD",
+      "DFBCFF"
+    ]
+  },
+  {
+    "name": "VFX_49_TempestaAliBurrasca",
+    "element": "Tempesta",
+    "role": "Due ali di vento con quattro piume arcuate",
+    "animation": "battito e proiezione in avanti",
+    "pivot": "centro",
+    "triangles": 2752,
+    "dimensions": [
+      5.007512092590332,
+      0.7921962738037109,
+      1.5113931894302368
+    ],
+    "file": "fbx/VFX_49_TempestaAliBurrasca.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "233F65",
+      "4B8FAF",
+      "A8EDF8",
+      "EFFCFF"
+    ]
+  },
+  {
+    "name": "VFX_50_TempestaCicloneSpirale",
+    "element": "Tempesta",
+    "role": "Ciclone con tre correnti e cresta sfilacciata",
+    "animation": "rotazione verticale e crescita",
+    "pivot": "base",
+    "triangles": 3432,
+    "dimensions": [
+      3.1642298698425293,
+      3.427856922149658,
+      3.5037999153137207
+    ],
+    "file": "fbx/VFX_50_TempestaCicloneSpirale.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "233F65",
+      "4B8FAF",
+      "A8EDF8",
+      "EFFCFF"
+    ]
+  },
+  {
+    "name": "VFX_51_TempestaRasoioEolico",
+    "element": "Tempesta",
+    "role": "Cinque falci aerodinamiche a girandola",
+    "animation": "rotazione rapida e lancio orizzontale",
+    "pivot": "centro",
+    "triangles": 2480,
+    "dimensions": [
+      3.153660297393799,
+      3.1595916748046875,
+      0.16399811208248138
+    ],
+    "file": "fbx/VFX_51_TempestaRasoioEolico.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "233F65",
+      "4B8FAF",
+      "A8EDF8",
+      "EFFCFF"
+    ]
+  },
+  {
+    "name": "VFX_52_TempestaOcchioUragano",
+    "element": "Tempesta",
+    "role": "Guscio di correnti con centro aperto",
+    "animation": "rotazione su asse del volo",
+    "pivot": "centro",
+    "triangles": 3376,
+    "dimensions": [
+      2.912355899810791,
+      2.5050275325775146,
+      2.839839458465576
+    ],
+    "file": "fbx/VFX_52_TempestaOcchioUragano.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "233F65",
+      "4B8FAF",
+      "A8EDF8",
+      "EFFCFF"
+    ]
+  },
+  {
+    "name": "VFX_53_EclissiSoleNero",
+    "element": "Eclissi",
+    "role": "Nucleo nero con corona arancio e dodici lingue",
+    "animation": "carica e pulsazione",
+    "pivot": "centro",
+    "triangles": 8584,
+    "dimensions": [
+      3.5323646068573,
+      1.70772385597229,
+      3.5323646068573
+    ],
+    "file": "fbx/VFX_53_EclissiSoleNero.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "100E1C",
+      "57243B",
+      "FF6825",
+      "FFCC66"
+    ]
+  },
+  {
+    "name": "VFX_54_EclissiLamaApocalisse",
+    "element": "Eclissi",
+    "role": "Lama scura larga con doppio filo incandescente",
+    "animation": "taglio verticale",
+    "pivot": "centro",
+    "triangles": 1932,
+    "dimensions": [
+      3.836277961730957,
+      0.2688171863555908,
+      3.601259231567383
+    ],
+    "file": "fbx/VFX_54_EclissiLamaApocalisse.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "100E1C",
+      "57243B",
+      "FF6825",
+      "FFCC66"
+    ]
+  },
+  {
+    "name": "VFX_55_EclissiNovaOscura",
+    "element": "Eclissi",
+    "role": "Otto petali scuri bordati di fuoco arancio",
+    "animation": "detonazione radiale",
+    "pivot": "base",
+    "triangles": 6412,
+    "dimensions": [
+      4.514694690704346,
+      4.514694690704346,
+      0.09399430453777313
+    ],
+    "file": "fbx/VFX_55_EclissiNovaOscura.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "100E1C",
+      "57243B",
+      "FF6825",
+      "FFCC66"
+    ]
+  },
+  {
+    "name": "VFX_56_EclissiSerpenteSolare",
+    "element": "Eclissi",
+    "role": "Soffio intrecciato con testa ad anello",
+    "animation": "espansione da origine lungo Y",
+    "pivot": "emettitore",
+    "triangles": 5948,
+    "dimensions": [
+      1.8381404876708984,
+      3.8123631477355957,
+      1.8532741069793701
+    ],
+    "file": "fbx/VFX_56_EclissiSerpenteSolare.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "100E1C",
+      "57243B",
+      "FF6825",
+      "FFCC66"
+    ]
+  },
+  {
+    "name": "VFX_57_FulmineLanciaRamificata",
+    "element": "Fulmine",
+    "role": "Saetta spessa con nucleo chiaro e due rami",
+    "animation": "flash e lancio lungo X",
+    "pivot": "centro",
+    "triangles": 512,
+    "dimensions": [
+      4.254651069641113,
+      0.3101315200328827,
+      2.663506031036377
+    ],
+    "file": "fbx/VFX_57_FulmineLanciaRamificata.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "241337",
+      "7434C8",
+      "BA71FF",
+      "EFE0FF"
+    ]
+  },
+  {
+    "name": "VFX_58_FulmineArtiglioTuono",
+    "element": "Fulmine",
+    "role": "Cinque dita elettriche che si aprono",
+    "animation": "apertura a ventaglio",
+    "pivot": "centro",
+    "triangles": 1932,
+    "dimensions": [
+      3.1332006454467773,
+      3.341830253601074,
+      3.0444889068603516
+    ],
+    "file": "fbx/VFX_58_FulmineArtiglioTuono.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "241337",
+      "7434C8",
+      "BA71FF",
+      "EFE0FF"
+    ]
+  },
+  {
+    "name": "VFX_59_FulmineSferaTesla",
+    "element": "Fulmine",
+    "role": "Gabbia sferica di archi spezzati con nucleo",
+    "animation": "rotazione e lampeggio",
+    "pivot": "centro",
+    "triangles": 3056,
+    "dimensions": [
+      2.8304057121276855,
+      2.588571071624756,
+      2.446711540222168
+    ],
+    "file": "fbx/VFX_59_FulmineSferaTesla.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "241337",
+      "7434C8",
+      "BA71FF",
+      "EFE0FF"
+    ]
+  },
+  {
+    "name": "VFX_60_FulmineReteParalizzante",
+    "element": "Fulmine",
+    "role": "Rete a sei saette con rami e corona interrotta",
+    "animation": "flash a terra e dissolvenza",
+    "pivot": "base",
+    "triangles": 2640,
+    "dimensions": [
+      4.223793029785156,
+      3.7292299270629883,
+      0.11572916805744171
+    ],
+    "file": "fbx/VFX_60_FulmineReteParalizzante.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "241337",
+      "7434C8",
+      "BA71FF",
+      "EFE0FF"
+    ]
+  },
+  {
+    "name": "VFX_61_OssaFauciDraconiche",
+    "element": "Ossa",
+    "role": "Mascelle arcuate con diciotto zanne e quattro corni",
+    "animation": "chiusura suggerita con scala verticale",
+    "pivot": "centro",
+    "triangles": 2208,
+    "dimensions": [
+      3.3048667907714844,
+      0.30899932980537415,
+      2.7090001106262207
+    ],
+    "file": "fbx/VFX_61_OssaFauciDraconiche.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "45353C",
+      "9F8475",
+      "EDDBB6",
+      "FFF7DC"
+    ]
+  },
+  {
+    "name": "VFX_62_OssaArtiglioScheletrico",
+    "element": "Ossa",
+    "role": "Cinque dita curve con nocche e unghie",
+    "animation": "spazzata in avanti Y",
+    "pivot": "centro",
+    "triangles": 1060,
+    "dimensions": [
+      2.5597944259643555,
+      2.637197971343994,
+      1.3440117835998535
+    ],
+    "file": "fbx/VFX_62_OssaArtiglioScheletrico.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "45353C",
+      "9F8475",
+      "EDDBB6",
+      "FFF7DC"
+    ]
+  },
+  {
+    "name": "VFX_63_OssaSpiraleVertebre",
+    "element": "Ossa",
+    "role": "Colonna ruotata di nove vertebre con costole",
+    "animation": "rotazione e proiezione lungo Z",
+    "pivot": "centro",
+    "triangles": 4788,
+    "dimensions": [
+      1.8071889877319336,
+      1.8048770427703857,
+      3.1221704483032227
+    ],
+    "file": "fbx/VFX_63_OssaSpiraleVertebre.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "45353C",
+      "9F8475",
+      "EDDBB6",
+      "FFF7DC"
+    ]
+  },
+  {
+    "name": "VFX_64_GasLotoMiasma",
+    "element": "Gas",
+    "role": "Sei volute alternate ciano e magenta a fiore",
+    "animation": "apertura e rotazione lenta",
+    "pivot": "base",
+    "triangles": 3048,
+    "dimensions": [
+      2.8645222187042236,
+      2.8575527667999268,
+      1.7168315649032593
+    ],
+    "file": "fbx/VFX_64_GasLotoMiasma.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "263756",
+      "40CCE3",
+      "E764CD",
+      "DDFBFF"
+    ]
+  },
+  {
+    "name": "VFX_65_GasBollaVorticosa",
+    "element": "Gas",
+    "role": "Cinque veli curvi con spazi aperti e filamenti chiari",
+    "animation": "rotazione morbida del proiettile",
+    "pivot": "centro",
+    "triangles": 4580,
+    "dimensions": [
+      2.631248950958252,
+      2.6107306480407715,
+      1.3414950370788574
+    ],
+    "file": "fbx/VFX_65_GasBollaVorticosa.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "263756",
+      "40CCE3",
+      "E764CD",
+      "DDFBFF"
+    ]
+  },
+  {
+    "name": "VFX_66_GasSoffioSerpentino",
+    "element": "Gas",
+    "role": "Getto a quattro veli e anelli di pressione",
+    "animation": "crescita lungo Y e dissolvenza",
+    "pivot": "emettitore",
+    "triangles": 6424,
+    "dimensions": [
+      2.3571667671203613,
+      3.805000066757202,
+      2.3571667671203613
+    ],
+    "file": "fbx/VFX_66_GasSoffioSerpentino.fbx",
+    "texture": "textures/VFX_Palette.png",
+    "palette": [
+      "263756",
+      "40CCE3",
+      "E764CD",
+      "DDFBFF"
+    ]
+  }
+]
