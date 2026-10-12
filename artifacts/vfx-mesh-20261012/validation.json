@@ -1,0 +1,263 @@
+{
+  "blender": "5.2.2 LTS",
+  "single_fbx": [
+    {
+      "name": "VFX_01_Vortice",
+      "ok": true,
+      "triangles": 1584,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_02_SpiraleConica",
+      "ok": true,
+      "triangles": 1836,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_03_SferaNastri",
+      "ok": true,
+      "triangles": 2268,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_04_SferaFrammentata",
+      "ok": true,
+      "triangles": 3000,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_05_OndaUrto",
+      "ok": true,
+      "triangles": 1044,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_06_AnelliSpezzati",
+      "ok": true,
+      "triangles": 1260,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_07_Fendente",
+      "ok": true,
+      "triangles": 332,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_08_FendenteTriplo",
+      "ok": true,
+      "triangles": 852,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_09_CoronaImpatto",
+      "ok": true,
+      "triangles": 800,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_10_Colonna",
+      "ok": true,
+      "triangles": 1836,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_11_StellaImpatto",
+      "ok": true,
+      "triangles": 384,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_12_Scia",
+      "ok": true,
+      "triangles": 1044,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_13_RocciaProiettile",
+      "ok": true,
+      "triangles": 360,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_14_RocciaOnda",
+      "ok": true,
+      "triangles": 980,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_15_GeloLance",
+      "ok": true,
+      "triangles": 240,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_16_GeloEruzione",
+      "ok": true,
+      "triangles": 432,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_17_CosmicoNucleo",
+      "ok": true,
+      "triangles": 2760,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_18_CosmicoPortale",
+      "ok": true,
+      "triangles": 2032,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_19_TempestaLame",
+      "ok": true,
+      "triangles": 700,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_20_TempestaTornado",
+      "ok": true,
+      "triangles": 2788,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_21_EclissiCorona",
+      "ok": true,
+      "triangles": 2416,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_22_EclissiFalce",
+      "ok": true,
+      "triangles": 744,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_23_FulmineDardo",
+      "ok": true,
+      "triangles": 132,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_24_FulmineGabbia",
+      "ok": true,
+      "triangles": 588,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_25_OssaSpina",
+      "ok": true,
+      "triangles": 1224,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_26_OssaMorso",
+      "ok": true,
+      "triangles": 1000,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_27_GasNube",
+      "ok": true,
+      "triangles": 3864,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_28_GasGetto",
+      "ok": true,
+      "triangles": 2032,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_29_YetiArtigli",
+      "ok": true,
+      "triangles": 1060,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_30_YetiPugno",
+      "ok": true,
+      "triangles": 948,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_31_GolemFrattura",
+      "ok": true,
+      "triangles": 504,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_32_GolemStalagmiti",
+      "ok": true,
+      "triangles": 240,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_33_GuardianoRespiro",
+      "ok": true,
+      "triangles": 3444,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_34_GuardianoOnda",
+      "ok": true,
+      "triangles": 1512,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_35_MostroMorso",
+      "ok": true,
+      "triangles": 312,
+      "uv": true,
+      "pivot_origin": true
+    },
+    {
+      "name": "VFX_36_MostroCoda",
+      "ok": true,
+      "triangles": 1276,
+      "uv": true,
+      "pivot_origin": true
+    }
+  ],
+  "kit_meshes": 36,
+  "total_triangles": 47828,
+  "min_triangles": 132,
+  "max_triangles": 3864,
+  "studio_tested": false,
+  "ok": true
+}

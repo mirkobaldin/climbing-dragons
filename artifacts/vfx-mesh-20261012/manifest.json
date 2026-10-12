@@ -1,0 +1,722 @@
+[
+  {
+    "name": "VFX_01_Vortice",
+    "group": "Generici",
+    "use": "Vortice basso, carica e impatto",
+    "pivot": "base",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 800,
+    "triangles": 1584,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.4129,
+      3.4032,
+      0.834
+    ],
+    "file": "fbx/VFX_01_Vortice.fbx"
+  },
+  {
+    "name": "VFX_02_SpiraleConica",
+    "group": "Generici",
+    "use": "Spirale a cono ascendente",
+    "pivot": "base",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 924,
+    "triangles": 1836,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.0336,
+      2.913,
+      2.8075
+    ],
+    "file": "fbx/VFX_02_SpiraleConica.fbx"
+  },
+  {
+    "name": "VFX_03_SferaNastri",
+    "group": "Generici",
+    "use": "Sfera aperta avvolta da nastri",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 1148,
+    "triangles": 2268,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.0072,
+      2.8839,
+      2.9896
+    ],
+    "file": "fbx/VFX_03_SferaNastri.fbx"
+  },
+  {
+    "name": "VFX_04_SferaFrammentata",
+    "group": "Generici",
+    "use": "Sfera a frammenti irregolari, come nella schermata",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 1560,
+    "triangles": 3000,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      2.9697,
+      2.9919,
+      2.9973
+    ],
+    "file": "fbx/VFX_04_SferaFrammentata.fbx"
+  },
+  {
+    "name": "VFX_05_OndaUrto",
+    "group": "Generici",
+    "use": "Anello radiale da picchiata",
+    "pivot": "base",
+    "animation": "espansione rapida + dissolvenza",
+    "vertices": 540,
+    "triangles": 1044,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.8442,
+      3.8442,
+      0.014
+    ],
+    "file": "fbx/VFX_05_OndaUrto.fbx"
+  },
+  {
+    "name": "VFX_06_AnelliSpezzati",
+    "group": "Generici",
+    "use": "Tre corone discontinue concentriche",
+    "pivot": "base",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 648,
+    "triangles": 1260,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.44,
+      3.4085,
+      0.014
+    ],
+    "file": "fbx/VFX_06_AnelliSpezzati.fbx"
+  },
+  {
+    "name": "VFX_07_Fendente",
+    "group": "Generici",
+    "use": "Taglio largo a mezzaluna",
+    "pivot": "centro",
+    "animation": "arco di rotazione breve + dissolvenza",
+    "vertices": 168,
+    "triangles": 332,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.2669,
+      0.014,
+      2.8466
+    ],
+    "file": "fbx/VFX_07_Fendente.fbx"
+  },
+  {
+    "name": "VFX_08_FendenteTriplo",
+    "group": "Generici",
+    "use": "Tre tagli arcuati paralleli",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 432,
+    "triangles": 852,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.5197,
+      0.414,
+      2.7995
+    ],
+    "file": "fbx/VFX_08_FendenteTriplo.fbx"
+  },
+  {
+    "name": "VFX_09_CoronaImpatto",
+    "group": "Generici",
+    "use": "Corona di punte aperte per atterraggio",
+    "pivot": "base",
+    "animation": "scala verticale rapida + dissolvenza",
+    "vertices": 420,
+    "triangles": 800,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.2132,
+      3.0562,
+      1.8548
+    ],
+    "file": "fbx/VFX_09_CoronaImpatto.fbx"
+  },
+  {
+    "name": "VFX_10_Colonna",
+    "group": "Generici",
+    "use": "Colonna di energia a tre strisce",
+    "pivot": "base",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 924,
+    "triangles": 1836,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      1.5144,
+      1.5244,
+      3.8075
+    ],
+    "file": "fbx/VFX_10_Colonna.fbx"
+  },
+  {
+    "name": "VFX_11_StellaImpatto",
+    "group": "Generici",
+    "use": "Lampo radiale a dodici raggi",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 192,
+    "triangles": 384,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.8018,
+      3.3051,
+      0.3397
+    ],
+    "file": "fbx/VFX_11_StellaImpatto.fbx"
+  },
+  {
+    "name": "VFX_12_Scia",
+    "group": "Generici",
+    "use": "Scia curva a tre nastri; asse locale X",
+    "pivot": "centro",
+    "animation": "segue il proiettile + allungamento lungo X",
+    "vertices": 528,
+    "triangles": 1044,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      4.0,
+      1.2484,
+      0.314
+    ],
+    "file": "fbx/VFX_12_Scia.fbx"
+  },
+  {
+    "name": "VFX_13_RocciaProiettile",
+    "group": "Roccia",
+    "use": "Grappolo di schegge rocciose rotanti",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 216,
+    "triangles": 360,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      2.3702,
+      2.1838,
+      2.2555
+    ],
+    "file": "fbx/VFX_13_RocciaProiettile.fbx"
+  },
+  {
+    "name": "VFX_14_RocciaOnda",
+    "group": "Roccia",
+    "use": "Onda con denti di pietra",
+    "pivot": "base",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 492,
+    "triangles": 980,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.6177,
+      3.6177,
+      1.1801
+    ],
+    "file": "fbx/VFX_14_RocciaOnda.fbx"
+  },
+  {
+    "name": "VFX_15_GeloLance",
+    "group": "Gelo",
+    "use": "Proiettile di cinque lance; avanti lungo Y",
+    "pivot": "centro",
+    "animation": "traslazione lungo Y + rotazione",
+    "vertices": 120,
+    "triangles": 240,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      1.214,
+      2.4237,
+      1.1921
+    ],
+    "file": "fbx/VFX_15_GeloLance.fbx"
+  },
+  {
+    "name": "VFX_16_GeloEruzione",
+    "group": "Gelo",
+    "use": "Ventaglio di ghiaccio dal terreno",
+    "pivot": "base",
+    "animation": "crescita dal basso + dissolvenza",
+    "vertices": 216,
+    "triangles": 432,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      2.4803,
+      2.6887,
+      2.1796
+    ],
+    "file": "fbx/VFX_16_GeloEruzione.fbx"
+  },
+  {
+    "name": "VFX_17_CosmicoNucleo",
+    "group": "Cosmico",
+    "use": "Nucleo aperto con orbite inclinate",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 1396,
+    "triangles": 2760,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      2.9777,
+      2.5165,
+      2.9596
+    ],
+    "file": "fbx/VFX_17_CosmicoNucleo.fbx"
+  },
+  {
+    "name": "VFX_18_CosmicoPortale",
+    "group": "Cosmico",
+    "use": "Portale verticale a orbite e raggi",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 1040,
+    "triangles": 2032,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.9038,
+      0.1392,
+      3.9038
+    ],
+    "file": "fbx/VFX_18_CosmicoPortale.fbx"
+  },
+  {
+    "name": "VFX_19_TempestaLame",
+    "group": "Tempesta",
+    "use": "Girandola di cinque lame di vento",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 360,
+    "triangles": 700,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.0082,
+      2.9856,
+      0.7804
+    ],
+    "file": "fbx/VFX_19_TempestaLame.fbx"
+  },
+  {
+    "name": "VFX_20_TempestaTornado",
+    "group": "Tempesta",
+    "use": "Tromba di vento allargata in alto",
+    "pivot": "base",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 1412,
+    "triangles": 2788,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.6594,
+      3.6072,
+      3.1045
+    ],
+    "file": "fbx/VFX_20_TempestaTornado.fbx"
+  },
+  {
+    "name": "VFX_21_EclissiCorona",
+    "group": "Eclissi",
+    "use": "Sfera aperta con corona di eclissi dentata",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 1240,
+    "triangles": 2416,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.5892,
+      2.1087,
+      3.5416
+    ],
+    "file": "fbx/VFX_21_EclissiCorona.fbx"
+  },
+  {
+    "name": "VFX_22_EclissiFalce",
+    "group": "Eclissi",
+    "use": "Falce larga con quattro denti esterni",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 376,
+    "triangles": 744,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.6065,
+      0.2965,
+      2.9243
+    ],
+    "file": "fbx/VFX_22_EclissiFalce.fbx"
+  },
+  {
+    "name": "VFX_23_FulmineDardo",
+    "group": "Fulmine",
+    "use": "Saetta ramificata; avanti lungo X",
+    "pivot": "centro",
+    "animation": "flash breve + traslazione lungo X",
+    "vertices": 88,
+    "triangles": 132,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.7708,
+      0.014,
+      2.6205
+    ],
+    "file": "fbx/VFX_23_FulmineDardo.fbx"
+  },
+  {
+    "name": "VFX_24_FulmineGabbia",
+    "group": "Fulmine",
+    "use": "Gabbia di sette archi elettrici",
+    "pivot": "base",
+    "animation": "flash intermittente + dissolvenza",
+    "vertices": 392,
+    "triangles": 588,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.12,
+      3.2003,
+      2.9922
+    ],
+    "file": "fbx/VFX_24_FulmineGabbia.fbx"
+  },
+  {
+    "name": "VFX_25_OssaSpina",
+    "group": "Ossa",
+    "use": "Proiettile a vertebre e costole; avanti lungo Y",
+    "pivot": "centro",
+    "animation": "traslazione lungo Y + rotazione",
+    "vertices": 624,
+    "triangles": 1224,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      0.9409,
+      2.9508,
+      0.8626
+    ],
+    "file": "fbx/VFX_25_OssaSpina.fbx"
+  },
+  {
+    "name": "VFX_26_OssaMorso",
+    "group": "Ossa",
+    "use": "Doppia arcata con zanne, attacco di morso",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 504,
+    "triangles": 1000,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      2.4639,
+      0.2452,
+      3.2361
+    ],
+    "file": "fbx/VFX_26_OssaMorso.fbx"
+  },
+  {
+    "name": "VFX_27_GasNube",
+    "group": "Gas",
+    "use": "Nube cava di sette volute; ciano e magenta",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 1960,
+    "triangles": 3864,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      2.2711,
+      2.4543,
+      1.8279
+    ],
+    "file": "fbx/VFX_27_GasNube.fbx"
+  },
+  {
+    "name": "VFX_28_GasGetto",
+    "group": "Gas",
+    "use": "Soffio spiraliforme che si allarga; avanti Y",
+    "pivot": "emettitore",
+    "animation": "scala lungo Y + rotazione + dissolvenza",
+    "vertices": 1024,
+    "triangles": 2032,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      1.6808,
+      3.6084,
+      1.6808
+    ],
+    "file": "fbx/VFX_28_GasGetto.fbx"
+  },
+  {
+    "name": "VFX_29_YetiArtigli",
+    "group": "Mostri",
+    "use": "Cinque strisciate ricurve da artiglio",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 540,
+    "triangles": 1060,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.8532,
+      0.494,
+      2.4561
+    ],
+    "file": "fbx/VFX_29_YetiArtigli.fbx"
+  },
+  {
+    "name": "VFX_30_YetiPugno",
+    "group": "Mostri",
+    "use": "Impatto a schegge di neve e anello centrale",
+    "pivot": "base",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 476,
+    "triangles": 948,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.212,
+      3.1376,
+      1.3867
+    ],
+    "file": "fbx/VFX_30_YetiPugno.fbx"
+  },
+  {
+    "name": "VFX_31_GolemFrattura",
+    "group": "Mostri",
+    "use": "Crepe radiali ramificate sul terreno",
+    "pivot": "base",
+    "animation": "comparsa istantanea + dissolvenza",
+    "vertices": 336,
+    "triangles": 504,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      4.0774,
+      4.0939,
+      0.014
+    ],
+    "file": "fbx/VFX_31_GolemFrattura.fbx"
+  },
+  {
+    "name": "VFX_32_GolemStalagmiti",
+    "group": "Mostri",
+    "use": "Fila di sei punte massicce di ghiaccio",
+    "pivot": "base",
+    "animation": "crescita progressiva dal terreno",
+    "vertices": 120,
+    "triangles": 240,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      2.8806,
+      0.6133,
+      2.1284
+    ],
+    "file": "fbx/VFX_32_GolemStalagmiti.fbx"
+  },
+  {
+    "name": "VFX_33_GuardianoRespiro",
+    "group": "Mostri",
+    "use": "Grande cono di soffio aperto; avanti Y",
+    "pivot": "emettitore",
+    "animation": "espansione lungo Y + rotazione",
+    "vertices": 1740,
+    "triangles": 3444,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      2.6018,
+      4.2038,
+      2.3847
+    ],
+    "file": "fbx/VFX_33_GuardianoRespiro.fbx"
+  },
+  {
+    "name": "VFX_34_GuardianoOnda",
+    "group": "Mostri",
+    "use": "Onda doppia a sedici raggi",
+    "pivot": "base",
+    "animation": "espansione molto ampia + dissolvenza",
+    "vertices": 760,
+    "triangles": 1512,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      4.5996,
+      4.5996,
+      0.1988
+    ],
+    "file": "fbx/VFX_34_GuardianoOnda.fbx"
+  },
+  {
+    "name": "VFX_35_MostroMorso",
+    "group": "Mostri",
+    "use": "Impronta di morso con dieci triangoli acuminati",
+    "pivot": "centro",
+    "animation": "rotazione + espansione + dissolvenza",
+    "vertices": 168,
+    "triangles": 312,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      2.5319,
+      0.347,
+      2.29
+    ],
+    "file": "fbx/VFX_35_MostroMorso.fbx"
+  },
+  {
+    "name": "VFX_36_MostroCoda",
+    "group": "Mostri",
+    "use": "Spazzata orizzontale curva con punte",
+    "pivot": "base",
+    "animation": "rotazione orizzontale rapida + dissolvenza",
+    "vertices": 644,
+    "triangles": 1276,
+    "degenerate": 0,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "uv_ok": true,
+    "finite": true,
+    "dimensions": [
+      3.5622,
+      3.0443,
+      0.724
+    ],
+    "file": "fbx/VFX_36_MostroCoda.fbx"
+  }
+]
