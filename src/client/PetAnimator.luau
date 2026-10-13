@@ -51,6 +51,9 @@ type Pet = {
 	-- animazioni fatte nell'Animation Editor (volo, camminata, fermo): se ci sono, sostituiscono
 	-- il movimento procedurale delle ossa
 	tracks: { fly: AnimationTrack, walk: AnimationTrack, idle: AnimationTrack }?,
+	seat: Vector3?, -- dove si siede chi monta (spazio del corpo: -Z muso, +Y su)
+	saddle: { BasePart }?,
+	saddleCheck: number?,
 }
 
 local pets: { [Model]: Pet } = {}
@@ -244,6 +247,54 @@ local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationT
 	return tracks
 end
 
+-- Sella di cuoio sul drago adulto (parti dentro il modello: si muovono con PivotTo). Si vede
+-- quando il padrone ha la Sella (Gear_Sella) e il drago e' adulto e al primo posto.
+local function saddleFor(pet: Pet, on: boolean)
+	if not on then
+		for _, p in pet.saddle or {} do
+			p.Transparency = 1
+		end
+		return
+	end
+	if pet.saddle then
+		for _, p in pet.saddle do
+			p.Transparency = p:GetAttribute("Alpha") or 0
+		end
+		return
+	end
+	local model = pet.model
+	local body = model:GetPivot() * pet.fix:Inverse()
+	local seat = body * CFrame.new(pet.seat or Vector3.zero)
+	local k = math.clamp(pet.size / 30, 0.7, 1.6)
+	local LEATHER = Color3.fromRGB(110, 62, 34)
+	local list: { BasePart } = {}
+	local function piece(size: Vector3, at: CFrame, color: Color3, material: Enum.Material, shape: Enum.PartType?): Part
+		local p = Instance.new("Part")
+		p.Name = "Sella"
+		p.Size = size * k
+		p.CFrame = seat * CFrame.new(at.Position * k) * at.Rotation
+		p.Color = color
+		p.Material = material
+		if shape then
+			p.Shape = shape
+		end
+		p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+		p.Massless = true
+		p.Parent = model
+		table.insert(list, p)
+		return p
+	end
+	piece(Vector3.new(4.6, 0.25, 5.2), CFrame.new(0, -0.15, 0), Color3.fromRGB(150, 32, 38), Enum.Material.Fabric) -- coperta
+	piece(Vector3.new(3.2, 0.7, 3.8), CFrame.new(0, 0.3, 0), LEATHER, Enum.Material.Leather) -- seduta
+	piece(Vector3.new(3.2, 1.3, 0.6), CFrame.new(0, 0.9, 1.7), LEATHER, Enum.Material.Leather) -- schienale
+	piece(Vector3.new(0.9, 1.1, 0.9), CFrame.new(0, 0.9, -1.8), Color3.fromRGB(205, 160, 70), Enum.Material.Metal, Enum.PartType.Cylinder) -- pomo
+	for _, side in { -1, 1 } do
+		piece(Vector3.new(0.25, 2.4, 0.45), CFrame.new(side * 1.85, -0.9, -0.2), LEATHER, Enum.Material.Leather) -- cinghia
+		piece(Vector3.new(0.8, 0.2, 0.8), CFrame.new(side * 1.95, -2.1, -0.2), Color3.fromRGB(190, 190, 196), Enum.Material.Metal) -- staffa
+	end
+	pet.saddle = list
+end
+
 local function setup(model: Model)
 	local ownerId = model:GetAttribute("Owner")
 	if type(ownerId) ~= "number" or pets[model] then
@@ -289,6 +340,13 @@ local function setup(model: Model)
 		if dir.Magnitude > 0.05 then
 			pet.fix = CFrame.lookAt(Vector3.zero, dir.Unit):Inverse()
 		end
+	end
+
+	-- la sella: sulla schiena, un po' sopra il centro del corpo (vedi saddleFor)
+	do
+		local bcf, bsize = model:GetBoundingBox()
+		local body = pivot0 * pet.fix:Inverse()
+		pet.seat = body:PointToObjectSpace(bcf.Position + Vector3.new(0, bsize.Y * 0.16, 0))
 	end
 
 	for _, d in model:GetDescendants() do
@@ -502,6 +560,8 @@ function PetAnimator.start()
 
 	RunService.RenderStepped:Connect(function(dt)
 		local t = os.clock()
+		local snap = ClientState.petSnap
+		ClientState.petSnap = false
 		local camera = workspace.CurrentCamera
 		for model, pet in pets do
 			if not model.Parent then
@@ -575,6 +635,9 @@ function PetAnimator.start()
 			if anchored then
 				target = CFrame.new((ClientState.petAnchor :: Vector3) + Vector3.new(0, bob, 0))
 			end
+			if owner == Players.LocalPlayer and snap then
+				pet.cf = nil -- uscito dall'arena: niente volo attraverso la mappa
+			end
 			local current = pet.cf or target
 			-- se la posizione si e' guastata (NaN o lontanissima, es. dopo un esercizio in palestra
 			-- il drago finiva a -1000000) si riparte dal padrone
@@ -588,6 +651,13 @@ function PetAnimator.start()
 			local vel = r.AssemblyLinearVelocity
 			local flat = Vector3.new(vel.X, 0, vel.Z)
 			local look = if flat.Magnitude > 2 then flat.Unit else Vector3.new(r.CFrame.LookVector.X, 0, r.CFrame.LookVector.Z)
+			-- il drago guarda dove va lui: quando il padrone si gira il suo posto passa dall'altra parte
+			-- e prima ci andava camminando all'indietro
+			local own = (pos - current.Position) / math.max(dt, 1 / 240)
+			local ownFlat = Vector3.new(own.X, 0, own.Z)
+			if ownFlat.Magnitude > math.max(6, flat.Magnitude * 0.6) then
+				look = ownFlat.Unit
+			end
 			if owner == Players.LocalPlayer and ClientState.petLook then
 				look = ClientState.petLook :: Vector3 -- nell'arena il drago si gira dove spari
 			end
@@ -608,7 +678,25 @@ function PetAnimator.start()
 			local bank = math.clamp(-lateral * 0.02, -0.45, 0.45)
 			local pitch = math.clamp(vel.Y * 0.015, -0.35, 0.35) + math.sin(flapT) * 0.05
 			local cf = CFrame.new(pos) * rotated
+			-- in groppa (server/Riding): il drago sta sotto chi lo monta e guarda dove va lui
+			local riding = owner ~= nil and owner:GetAttribute("Riding") == true and pet.slot == 1 and not anchored and pet.seat ~= nil
+			if riding then
+				local face = Vector3.new(r.CFrame.LookVector.X, 0, r.CFrame.LookVector.Z)
+				if face.Magnitude < 0.05 then
+					face = -Vector3.zAxis
+				end
+				local hips = r.Position - Vector3.new(0, 1.4, 0)
+				cf = CFrame.lookAt(hips, hips + face.Unit) * CFrame.new(-(pet.seat :: Vector3))
+				pet.airBlend = 1
+				pitch *= 0.3
+				bank *= 0.5
+			end
 			pet.cf = cf
+			if not pet.saddleCheck or t > pet.saddleCheck then
+				pet.saddleCheck = t + 1
+				local want = owner ~= nil and owner:GetAttribute("Gear_Sella") == true and pet.slot == 1 and (model:GetAttribute("Stage") or 1) >= 3
+				saddleFor(pet, want)
+			end
 
 			if pet.quad or pet.tracks then
 				pitch *= pet.airBlend

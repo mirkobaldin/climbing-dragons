@@ -93,13 +93,76 @@ local function start()
 	end
 end
 
--- vela sopra i giocatori che planano (anche il tuo)
+-- vela sopra i giocatori che planano (anche il tuo): i modelli di Codex in
+-- ReplicatedStorage.Vele (AlpineParaglider; DragonWings e AncientStormWyvern con le ali che
+-- battono). Quale: attributo "GliderSkin" del giocatore (comando admin "vela").
 local canopies: { [Player]: Model } = {}
+local GLIDER_SCALE = 2.8
+type Wing = { weld: Weld, rest: CFrame, head: Vector3, side: number, tip: boolean }
+local wings: { [Model]: { Wing } } = {}
+
+local function modelCanopy(owner: Player, root: BasePart): Model?
+	local vele = ReplicatedStorage:FindFirstChild("Vele")
+	if not vele then
+		return nil
+	end
+	local skin = owner:GetAttribute("GliderSkin")
+	local tpl = (type(skin) == "string" and vele:FindFirstChild(skin)) or vele:FindFirstChild("AlpineParaglider")
+	if not tpl or not tpl:IsA("Model") then
+		return nil
+	end
+	local m = tpl:Clone()
+	m.Name = "Vela"
+	local col = m:FindFirstChild("Collisione")
+	if col then
+		col:Destroy()
+	end
+	m:ScaleTo(GLIDER_SCALE)
+	-- il punto dell'imbragatura (ATTACH_Player) sul bacino; il modello guarda +Z: si gira
+	local attach = m:FindFirstChild("ATTACH_Player", true)
+	local up = if attach and attach:IsA("Attachment") then attach.Position.Y else 0.95 * GLIDER_SCALE
+	m:PivotTo(root.CFrame * CFrame.Angles(0, math.pi, 0) * CFrame.new(0, -up, 0))
+	local list: { Wing } = {}
+	for _, p in m:GetDescendants() do
+		if p:IsA("BasePart") then
+			p.Anchored = false
+			p.CanCollide = false
+			p.CanQuery = false
+			p.CanTouch = false
+			p.Massless = true
+			local w = Instance.new("Weld")
+			w.Part0 = root
+			w.Part1 = p
+			w.C0 = root.CFrame:ToObjectSpace(p.CFrame)
+			w.Parent = p
+			local bone = p:GetAttribute("Bone")
+			if type(bone) == "string" and string.find(bone, "WING", 1, true) then
+				local rootBone = string.gsub(string.gsub(bone, "_TIP$", ""), "_ROOT$", "")
+				local headM = m:GetAttribute("BoneHead_" .. rootBone .. (if m:GetAttribute("BoneHead_" .. rootBone .. "_ROOT") then "_ROOT" else ""))
+				if typeof(headM) == "Vector3" then
+					-- l'osso in metri nello spazio del modello -> spazio del bacino
+					local head = root.CFrame:PointToObjectSpace(m:GetPivot():PointToWorldSpace(headM * GLIDER_SCALE))
+					table.insert(list, { weld = w, rest = w.C0, head = head, side = if head.X >= 0 then 1 else -1, tip = string.find(bone, "TIP", 1, true) ~= nil })
+				end
+			end
+		end
+	end
+	if #list > 0 then
+		wings[m] = list
+	end
+	m.Parent = root.Parent
+	return m
+end
+
 local function canopy(owner: Player): Model?
 	local character = owner.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not root then
 		return nil
+	end
+	local made = modelCanopy(owner, root)
+	if made then
+		return made
 	end
 	local m = Instance.new("Model")
 	m.Name = "Vela"
@@ -170,7 +233,7 @@ function Glider.start()
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-			if not root or not humanoid or humanoid.Health <= 0 or humanoid.FloorMaterial ~= Enum.Material.Air or ClientState.climbing then
+			if not root or not humanoid or humanoid.Health <= 0 or humanoid.FloorMaterial ~= Enum.Material.Air or ClientState.climbing or ClientState.grappling then
 				stop()
 			elseif mover then
 				local look = workspace.CurrentCamera.CFrame.LookVector
@@ -184,6 +247,19 @@ function Glider.start()
 				;(mover :: LinearVelocity).VectorVelocity = current:Lerp(want, math.min(1, dt * 2.5))
 				root.CFrame = CFrame.lookAt(root.Position, root.Position + flat)
 				ClientState.noFallUntil = os.clock() + 0.5 -- planando non ci si fa male
+			end
+		end
+		-- ali dei glider di drago: battono piano mentre plani
+		local t = os.clock()
+		for m, list in wings do
+			if not m.Parent then
+				wings[m] = nil
+				continue
+			end
+			local a = math.sin(t * 2.4) * 0.16 + 0.05
+			for _, w in list do
+				local rot = CFrame.new(w.head) * CFrame.Angles(0, 0, w.side * a * (if w.tip then 1.5 else 1)) * CFrame.new(-w.head)
+				w.weld.C0 = rot * w.rest
 			end
 		end
 		-- vele di tutti

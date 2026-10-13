@@ -44,8 +44,8 @@ end
 
 local function aimRay(root: BasePart): RaycastResult?
 	local camera = workspace.CurrentCamera
-	local mouse = UserInputService:GetMouseLocation()
-	local ray = camera:ViewportPointToRay(mouse.X, mouse.Y)
+	local aim = ClientState.aimPoint()
+	local ray = camera:ViewportPointToRay(aim.X, aim.Y)
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 	params.FilterDescendantsInstances = { player.Character :: Instance, camera }
@@ -74,6 +74,7 @@ local function fire()
 		return
 	end
 	busy = true
+	ClientState.grappling = true -- chiude il parapendio (le due spinte si annullavano: restavi fermo in aria)
 	lastUse = os.clock()
 	Climbing.release()
 
@@ -101,20 +102,33 @@ local function fire()
 		a1 = Instance.new("Attachment")
 		a1.Parent = root
 	end
-	local rope = Instance.new("RopeConstraint")
-	rope.Visible = true
-	rope.Color = BrickColor.new("Brick yellow")
-	rope.Thickness = 0.15
+	-- corda dritta (prima una RopeConstraint piu' lunga della distanza: si incurvava)
+	local rope = Instance.new("Beam")
 	rope.Attachment0 = a0
 	rope.Attachment1 = a1
-	rope.Length = (hit.Position - root.Position).Magnitude + 2
+	rope.Segments = 1
+	rope.CurveSize0, rope.CurveSize1 = 0, 0
+	rope.Width0, rope.Width1 = 0.18, 0.18
+	rope.FaceCamera = true
+	rope.Color = ColorSequence.new(Color3.fromRGB(200, 170, 110))
+	rope.LightInfluence = 1
 	rope.Parent = anchor
+	-- il personaggio si gira verso l'uncino e ci resta girato mentre vola
+	humanoid.AutoRotate = false
+	local function face(p: Vector3)
+		local d = Vector3.new(p.X - root.Position.X, 0, p.Z - root.Position.Z)
+		if d.Magnitude > 0.5 then
+			root.CFrame = CFrame.lookAt(root.Position, root.Position + d.Unit)
+		end
+	end
+	face(hit.Position)
 	-- prima l'uncino vola fino alla parete, poi la corda tira
 	local flyTime = math.clamp((hit.Position - from).Magnitude / Gear.GRAPPLE_SPEED * 0.35, 0.08, 0.45)
 	local flight = os.clock()
 	while os.clock() - flight < flyTime do
 		local a = (os.clock() - flight) / flyTime
 		anchor.CFrame = CFrame.lookAt(from:Lerp(hit.Position, a), hit.Position)
+		face(hit.Position)
 		RunService.Heartbeat:Wait()
 	end
 	anchor.CFrame = CFrame.new(hit.Position)
@@ -150,6 +164,8 @@ local function fire()
 			conn:Disconnect()
 			pull:Destroy()
 			anchor:Destroy()
+			humanoid.AutoRotate = true
+			ClientState.grappling = false
 			if a1.Name ~= "Bocca" then
 				a1:Destroy()
 			end
@@ -164,7 +180,7 @@ local function fire()
 			return
 		end
 		pull.Velocity = offset.Unit * Gear.GRAPPLE_SPEED
-		rope.Length = math.max(2, offset.Magnitude + 1)
+		face(target)
 	end)
 end
 

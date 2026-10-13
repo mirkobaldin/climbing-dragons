@@ -42,7 +42,10 @@ weather <Clear|Cloudy|Rain|Thunderstorm|Storm|Snow>
 give <minerale|all> <n>   es. give Ferro 20
 gear <all|Ramponi|Tuta|Rampino|PiccoRinforzato>
 egg <elemento> [rarita']  uovo davanti a te
-dragon <elemento> [rarita'] [stadio]
+dragon <elemento> [rarita'] [stadio]   (stadio 3 = adulto)
+adulto <elemento> [rarita']   drago gia' adulto (Leggendario se non dici la rarita')
+sella                  la Sella del drago (H per salire su un drago adulto)
+nosave                 prove: fino all'uscita non si salva niente
 hatch                  tutte le uova del nido pronte
 coins <n>              monete (anche negative)
 house                  compra/migliora la casa gratis
@@ -327,6 +330,24 @@ local function exec(player: Player, args: { string }): (boolean, string, string?
 	elseif cmd == "stones" then
 		Dragons.addStones(player, tonumber(args[2]) or 3)
 		return true, "Pietre dell'evoluzione aggiunte", nil
+	elseif cmd == "adulto" or cmd == "adult" then
+		-- drago gia' adulto (Leggendario se non dici la rarita'): adulto Gelo [Epico]
+		local element = findElement(args[2]) or "Gelo"
+		local rarity = if args[3] then findRarity(args[3]) else "Leggendario"
+		local d = Dragons.give(player, element, rarity, #DragonConfig.STAGES)
+		return d ~= nil, if d then "Drago adulto " .. element .. " aggiunto (G per farlo seguire)" else "Collezione piena", nil
+	elseif cmd == "sella" or cmd == "saddle" then
+		player:SetAttribute("Gear_Sella", true)
+		return true, "Sella data: con un drago adulto al seguito premi H per salire", nil
+	elseif cmd == "vela" or cmd == "glider" then
+		local skins = { alpine = "AlpineParaglider", dragon = "DragonWings", drago = "DragonWings", storm = "AncientStormWyvern", tempesta = "AncientStormWyvern" }
+		local skin = skins[string.lower(args[2] or "")]
+		if not skin then
+			return false, "vela <alpine|dragon|storm>", nil
+		end
+		player:SetAttribute("GliderSkin", skin)
+		player:SetAttribute("Gear_Parapendio", true)
+		return true, "Parapendio: " .. skin .. " (Spazio mentre cadi)", nil
 	elseif cmd == "nosave" then
 		player:SetAttribute("NoSave", true)
 		return true, "Salvataggio spento fino all'uscita (prove)", nil

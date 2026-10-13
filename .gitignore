@@ -16,3 +16,11 @@ textures/
 # output generati da Blender (si rifanno con tools/blender/borghi.py)
 /tools/blender/out/
 __pycache__/
+
+# modelli di Codex importati (sorgenti Blender/FBX: stanno nel place, ServerStorage.CaseCodex)
+/Campfire/
+/Gliders/
+/MegaChalet/
+/ModernChalet/
+/StoneCabin/
+/Tent/

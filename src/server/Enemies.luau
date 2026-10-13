@@ -16,6 +16,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local KeyframeSequenceProvider = game:GetService("KeyframeSequenceProvider")
 
 local EnemyConfig = require(ReplicatedStorage.Shared.EnemyConfig)
+local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 local ClimbConfig = require(ReplicatedStorage.Shared.ClimbConfig)
 local Dragons = require(script.Parent.Dragons)
 local Drops = require(script.Parent.Drops)
@@ -685,6 +686,18 @@ function Enemies.setup()
 
 	-- colpi dei giocatori: il server controlla attrezzo, distanza e ritmo
 	local lastHit: { [Player]: number } = {}
+	-- combo della piccozza: colpi entro COMBO_WINDOW s contano 1, 2, 3 (il terzo picchia forte e
+	-- stordisce); la conta la fa il server
+	local combo: { [Player]: number } = {}
+	local function strike(player: Player, base: number, now: number): (number, number, boolean)
+		local n = if now - (lastHit[player] or 0) < EnemyConfig.COMBO_WINDOW then (combo[player] or 0) % 3 + 1 else 1
+		combo[player] = n
+		local crit = math.random() < EnemyConfig.CRIT_CHANCE
+		local dmg = base * EnemyConfig.COMBO_MULT[n] * (if crit then 1.8 else 1)
+		player:SetAttribute("AxeCombo", n)
+		player:SetAttribute("AxeComboT", now)
+		return dmg, n, crit
+	end
 	hitEvent.OnServerEvent:Connect(function(player, model)
 		if typeof(model) ~= "Instance" then
 			return
@@ -697,8 +710,9 @@ function Enemies.setup()
 			local tool = player.Character and player.Character:FindFirstChildWhichIsA("Tool")
 			local dmg = tool and EnemyConfig.PLAYER_DAMAGE[tool.Name]
 			if root and dmg and now - (lastHit[player] or 0) >= EnemyConfig.PLAYER_COOLDOWN and (Flyers.position(flyer) - (root :: BasePart).Position).Magnitude <= EnemyConfig.PLAYER_REACH + flyer.hitRadius + 4 then
+				local hit = strike(player, dmg * (1 + ((player:GetAttribute("Forza") or 0) :: number) * 0.02), now)
 				lastHit[player] = now
-				Flyers.damage(flyer, player, dmg * (1 + ((player:GetAttribute("Forza") or 0) :: number) * 0.02))
+				Flyers.damage(flyer, player, hit)
 			end
 			return
 		end
@@ -723,8 +737,13 @@ function Enemies.setup()
 			if enemy.model == model then
 				local reach = EnemyConfig.PLAYER_REACH + enemy.root.Size.X * 0.5
 				if (enemy.root.Position - (root :: BasePart).Position).Magnitude <= reach then
+					local hit, n, crit = strike(player, dmg, now)
 					lastHit[player] = now
-					damageEnemy(enemy, player, dmg)
+					damageEnemy(enemy, player, hit)
+					if n == 3 then
+						enemy.stunUntil = math.max(enemy.stunUntil or 0, now + 0.6)
+					end
+					fxEvent:FireAllClients("axeHit", enemy.root.Position, n, crit)
 				end
 				break
 			end
@@ -933,7 +952,9 @@ function Enemies.setup()
 		local at = (root :: BasePart).Position
 		local e = d.element
 		local radius = SP.RADIUS * (if e == "Tempesta" or e == "Fulmine" then 1.4 else 1)
+		-- anche lo speciale cresce con lo stadio e le statistiche del drago
 		local damage = (SP.DAMAGE + 2 * level) * (if e == "Ombra" or e == "Eclissi" or e == "Cosmico" then 1.3 else 1)
+			* DragonConfig.STAGE_POWER[math.clamp(d.stage or 1, 1, 3)] * (d.atk or 1)
 		fxEvent:FireAllClients("special", at, radius, e, player.UserId)
 		local trainingFxRef = ReplicatedStorage.Remotes:FindFirstChild("TrainingFX") :: RemoteEvent?
 		hitAround(player, at, radius, damage, function(enemy)
@@ -984,7 +1005,7 @@ function Enemies.setup()
 							if trainingFx then
 								trainingFx:FireAllClients("hit", player.UserId, enemy.root.Position, d.element, 0)
 							end
-							damageEnemy(enemy, player, EnemyConfig.DRAGON_DAMAGE + 0.15 * (d.level or 1))
+							damageEnemy(enemy, player, Dragons.hitDamage(d))
 						end
 					end
 				end
@@ -1000,7 +1021,7 @@ function Enemies.setup()
 							if trainingFx then
 								trainingFx:FireAllClients("hit", player.UserId, Flyers.position(f), d.element, 0)
 							end
-							Flyers.damage(f, player, (EnemyConfig.DRAGON_DAMAGE + 0.15 * (d.level or 1)) * 1.5)
+							Flyers.damage(f, player, Dragons.hitDamage(d) * 1.5)
 						end
 					end
 				end

@@ -101,7 +101,18 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 				.. Names.t(d.rarity)
 				.. " · "
 				.. Names.t(stage.name)
-			c.Ability.Text = if e then e.ability else ""
+			-- statistiche del drago (ogni uovo ne da' di diverse) e la sua abilita'
+			local grade = DragonConfig.grade(d)
+			local gradeColor = ({ S = "#ffd75e", A = "#7fe08a", B = "#8fc8ff", C = "#c9c9c9" })[grade]
+			c.Ability.RichText = true
+			c.Ability.Text = string.format(
+				'<font color="%s"><b>Grade %s</b></font> · ATK <b>%d</b> · CRIT <b>%d%%</b>\n%s',
+				gradeColor,
+				grade,
+				math.floor(DragonConfig.attack(d) + 0.5),
+				math.floor((d.crit or 0.05) * 100 + 0.5),
+				if e then e.ability else ""
+			)
 			local level = d.level or 1
 			local maxed = level >= DragonConfig.MAX_LEVEL
 			local need = DragonConfig.xpForLevel(level)

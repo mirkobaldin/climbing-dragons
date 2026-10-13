@@ -155,6 +155,96 @@ local function island(rng: Random, parent: Instance, at: Vector3, kind: string, 
 	return m
 end
 
+-- Terreni di livello 4 (Sky Chalet, server/Economy): grandi isole sopra la piana attorno al campo
+-- base, con il terreno (tag "Plot", Level 4, Zone "Cielo") al centro. Si rifanno da sole:
+--   require(game.ServerStorage.MapGen:Clone().Isole).skyPlots()
+function Isole.skyPlots(): string
+	local root = workspace:FindFirstChild("IsoleVolanti")
+	if not root then
+		root = Instance.new("Folder")
+		root.Name = "IsoleVolanti"
+		root.Parent = workspace
+	end
+	local old = root:FindFirstChild("TerreniCielo")
+	if old then
+		old:Destroy()
+	end
+	local markers = workspace:FindFirstChild("MapMarkers")
+	local hub = markers and markers:FindFirstChild("HubSpawn")
+	if not hub or not hub:IsA("BasePart") or not kit("IsolaGrande") then
+		return "[Isole] manca HubSpawn o BorghiKit.IsolaGrande"
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = "TerreniCielo"
+	folder.Parent = root
+	local rng = Random.new(20261014)
+	local made = 0
+	for k = 0, 11 do
+		if made >= 4 then
+			break
+		end
+		local a = k / 12 * math.pi * 2 + rng:NextNumber(-0.2, 0.2)
+		local d = rng:NextNumber(420, 640)
+		local p = hub.Position + Vector3.new(math.cos(a) * d, 0, math.sin(a) * d)
+		local ground = workspace:Raycast(p + Vector3.new(0, 2000, 0), Vector3.new(0, -4000, 0), terrainOnly)
+		local at = Vector3.new(p.X, (if ground then ground.Position.Y else hub.Position.Y) + rng:NextNumber(230, 300), p.Z)
+		local isl = island(rng, folder, at, "IsolaGrande", 3.2, "Cielo")
+		if isl then
+			-- il terreno al centro della cima, con l'ingresso (-Z) verso il campo base
+			local top = onTop(isl, 0, 0)
+			if top then
+				local toHub = Vector3.new(hub.Position.X - at.X, 0, hub.Position.Z - at.Z).Unit
+				local cf = CFrame.lookAt(top.Position, top.Position + toHub)
+				local plot = Instance.new("Model")
+				plot.Name = "TerrenoCielo" .. (made + 1)
+				plot:SetAttribute("Level", 4)
+				plot:SetAttribute("Zone", "Cielo")
+				local function block(size: Vector3, c: CFrame, name: string): Part
+					local b = Instance.new("Part")
+					b.Name = name
+					b.Size = size
+					b.CFrame = c
+					b.Anchored = true
+					b.Color = Color3.fromRGB(150, 110, 70)
+					b.Material = Enum.Material.WoodPlanks
+					b.Parent = plot
+					return b
+				end
+				local post = block(Vector3.new(0.6, 5, 0.6), cf * CFrame.new(38, 2.5, -52), "PlotPost")
+				local board = block(Vector3.new(6, 3, 0.3), cf * CFrame.new(38, 5, -52.2), "PlotSign")
+				local gui = Instance.new("SurfaceGui")
+				gui.Face = Enum.NormalId.Front
+				gui.PixelsPerStud = 40
+				gui.Parent = board
+				local text = Instance.new("TextLabel")
+				text.Name = "Owner"
+				text.Size = UDim2.fromScale(1, 1)
+				text.BackgroundTransparency = 1
+				text.Font = Enum.Font.GothamBold
+				text.TextScaled = true
+				text.TextColor3 = Color3.fromRGB(50, 34, 20)
+				text.Text = "Free plot"
+				text.Parent = gui
+				local anchor = block(Vector3.one, cf, "HouseAnchor")
+				anchor.Transparency = 1
+				anchor.CanCollide = false
+				anchor.CanQuery = false
+				local _ = post
+				plot.WorldPivot = cf
+				plot.Parent = folder
+				game:GetService("CollectionService"):AddTag(plot, "Plot")
+				made += 1
+			else
+				isl:Destroy()
+			end
+		end
+		task.wait()
+	end
+	local msg = "[Isole] terreni del Sky Chalet: " .. made
+	print(msg)
+	return msg
+end
+
 function Isole.build(): string
 	local old = workspace:FindFirstChild("IsoleVolanti")
 	if old then
@@ -222,6 +312,7 @@ function Isole.build(): string
 		end
 		table.insert(report, "montagna " .. made)
 	end
+	table.insert(report, Isole.skyPlots()) -- (la cartella si rifa' da capo: anche i terreni del cielo)
 	local msg = "[Isole] " .. table.concat(report, ", ")
 	print(msg)
 	return msg

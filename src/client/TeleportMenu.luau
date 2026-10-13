@@ -103,11 +103,13 @@ function TeleportMenu.start()
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local here = player:GetAttribute("AtWaypoint") == true
-		panel.Title.Text = if here then "Teleport" else "Teleport (go to a base camp, your camp, the arena or the gym)"
+		panel.Title.Text = if here then "Teleport" else "Teleport · from here only Home"
 		for i, name in NAMES do
 			local b = panel["Destination" .. i]
 			local locked = i == 3 and ((player:GetAttribute("DragonCount") or 0) :: number) < 1
-			b.Title.Text = name .. (if locked then "\nFirst dragon required" else "")
+			local homeFar = name == "My camp" and not here
+			b.Title.Text = (if name == "My camp" then "Home" else name)
+				.. (if locked then "\nFirst dragon required" elseif homeFar then "\nfrom anywhere · 60 s" elseif not here then "\nfrom a travel point" else "")
 			Ui.asset(b.Icon, if locked then "icon_lock" else "icon_teleport")
 			local pos = destination(i)
 			b.Distance.Text = if root and pos

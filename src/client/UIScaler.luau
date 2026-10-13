@@ -9,7 +9,9 @@ local Players = game:GetService("Players")
 local UIScaler = {}
 
 -- solo le nostre interfacce: sulla chat di Roblox il UIScale mandava in loop il ridimensionamento
-local ONLY = { ClimbHUD = true, MainMenu = true, Teletrasporto = true, AdminButtons = true, AdminBar = true, TargetRush = true, NomeZona = true, Mirino = true, CombatHUD = true }
+-- HUD, menu, pulsanti admin e speciale si adattano da soli (UiView.fitScale): qui
+-- rimpicciolivano una seconda volta e sul telefono tutto finiva storto e minuscolo
+local ONLY = { Teletrasporto = true, AdminBar = true, TargetRush = true, NomeZona = true, Mirino = true }
 local scales: { UIScale } = {}
 
 local function factor(): number

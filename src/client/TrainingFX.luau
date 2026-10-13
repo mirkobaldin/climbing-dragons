@@ -496,6 +496,7 @@ end
 
 local function startAim(event: RemoteEvent)
 	local on = false
+	local leftAt = -math.huge -- quando hai premuto Q (esci subito, senza aspettare il server)
 	local yaw, pitch = 0, -0.12
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "MiraDrago"
@@ -700,7 +701,14 @@ local function startAim(event: RemoteEvent)
 	RunService.RenderStepped:Connect(function()
 		local camera = workspace.CurrentCamera
 		local pet = myPet()
-		local want = player:GetAttribute("Training") == true and pet ~= nil and not player.PlayerGui:FindFirstChild("Trailer")
+		-- appena premi Q si esce subito (prima si aspettava il controllo del server, una volta al
+		-- secondo, e intanto il drago restava in aria e la camera dentro l'arena)
+		local leaving = os.clock() < leftAt + 3
+		if leaving and player:GetAttribute("Training") ~= true then
+			leftAt = -math.huge
+			leaving = false
+		end
+		local want = player:GetAttribute("Training") == true and pet ~= nil and not leaving and not player.PlayerGui:FindFirstChild("Trailer")
 		if want and not on then
 			-- si parte guardando il centro dell'arena (i cristalli), un po' in giu'
 			local c0 = workspace:GetAttribute("TrainingCenter")
@@ -800,9 +808,15 @@ local function startAim(event: RemoteEvent)
 		local pad = workspace:GetAttribute("TrainingPad")
 		local c = workspace:GetAttribute("TrainingCenter")
 		if on and root and typeof(pad) == "Vector3" and typeof(c) == "Vector3" then
+			leftAt = os.clock()
 			root.Anchored = false
+			-- fuori dalla pedana, girato verso la piana; il drago torna subito accanto a te
 			local away = Vector3.new(pad.X - c.X, 0, pad.Z - c.Z).Unit
-			player.Character:PivotTo(CFrame.new(pad + away * 14 + Vector3.new(0, 4, 0)))
+			local at = pad + away * 14 + Vector3.new(0, 4, 0)
+			player.Character:PivotTo(CFrame.lookAt(at, at + away))
+			root.AssemblyLinearVelocity = Vector3.zero
+			ClientState.petSnap = true
+			event:FireServer("leave")
 		end
 	end
 	UserInputService.InputBegan:Connect(function(input, processed)

@@ -227,7 +227,7 @@ end
 -- Forgia dello Chalet: il banco da lavoro di Mirko (ServerStorage.Modelli.Banco_Crafting) accanto
 -- al punto d'arrivo; apre il crafting come il banco del campo base (tag Workbench). Prima era un
 -- banco fatto di blocchi (incudine e braciere)
-local function buildForge(plot: Model, at: Vector3)
+local function buildForge(plot: Model, at: Vector3, deckY: number?)
 	local old = plot:FindFirstChild("Forgia")
 	if old then
 		old:Destroy()
@@ -237,7 +237,7 @@ local function buildForge(plot: Model, at: Vector3)
 	local center = plot:GetPivot()
 	local side = center.RightVector
 	local base = at + side * 9
-	base = Vector3.new(base.X, groundY(base), base.Z)
+	base = Vector3.new(base.X, deckY or groundY(base), base.Z)
 	local look = CFrame.lookAt(base, base - side)
 	local store = ServerStorage:FindFirstChild("Modelli")
 	local t = store and store:FindFirstChild("Banco_Crafting", true)
@@ -275,6 +275,122 @@ local function buildForge(plot: Model, at: Vector3)
 	forge.Parent = plot
 end
 
+------------------------------------------------------------------------------------------
+-- Case nuove di Codex (ServerStorage.CaseCodex: Tent, StoneCabin, ModernChalet, MegaChalet,
+-- caricate da tools/modelli): in metri, si ingrandiscono di HOUSE_SCALE e si girano (il loro
+-- ingresso guarda +Z, quello dei terreni -Z). Sotto c'e' una pedana di legno grande abbastanza
+-- per casa, nido, banco e punto d'arrivo (prima nido e banco finivano fuori, sul terreno).
+local CODEX_HOUSE = { Tenda = "Tent", Baita = "StoneCabin", Chalet = "ModernChalet", MegaChalet = "MegaChalet" }
+local HOUSE_SCALE = 3.2
+local WARM = Color3.fromRGB(255, 196, 130)
+
+-- luci della casa: quelle dei marcatori (in metri) piu' una d'ambiente al centro di ogni piano
+local function houseLights(m: Model, scale: number)
+	for _, l in m:GetDescendants() do
+		if l:IsA("PointLight") then
+			l.Range = math.min(40, ((l:GetAttribute("RangeM") or 7) :: number) * scale * 0.9)
+			l.Brightness = 1.3
+		end
+	end
+	local holder = m:FindFirstChild("Luci")
+	local mesh = m:FindFirstChild("Mesh")
+	if not holder or not holder:IsA("BasePart") or not mesh then
+		return
+	end
+	local lo, hi = Vector3.one * math.huge, -Vector3.one * math.huge
+	for _, p in mesh:GetChildren() do
+		if p:IsA("BasePart") then
+			lo = lo:Min(p.Position - p.Size / 2)
+			hi = hi:Max(p.Position + p.Size / 2)
+		end
+	end
+	if lo.X == math.huge then
+		return
+	end
+	local floors = math.clamp(math.floor((hi.Y - lo.Y) / 16), 1, 3)
+	for k = 1, floors do
+		local att = Instance.new("Attachment")
+		att.Name = "LuceAmbiente" .. k
+		att.WorldPosition = Vector3.new((lo.X + hi.X) / 2, lo.Y + (k - 0.45) * (hi.Y - lo.Y) / (floors + 0.6), (lo.Z + hi.Z) / 2)
+		att.Parent = holder
+		local pl = Instance.new("PointLight")
+		pl.Color = WARM
+		pl.Range = math.min(48, math.max(hi.X - lo.X, hi.Z - lo.Z) * 0.55)
+		pl.Brightness = 0.9
+		pl.Shadows = false
+		pl.Parent = att
+	end
+end
+
+-- pedana sotto la casa: rettangolo nello spazio del terreno (x0..x1, z0..z1) con i pali fino al
+-- terreno; restituisce i punti per nido, banco e arrivo (nello spazio del terreno)
+local function buildDeck(plot: Model, c: Vector3, s: Vector3, nestW: number): (Vector3, Vector3, Vector3)
+	local old = plot:FindFirstChild("Pedana")
+	if old then
+		old:Destroy()
+	end
+	local pivot = plot:GetPivot()
+	local x0, x1 = c.X - s.X / 2 - nestW - 10, c.X + s.X / 2 + 16
+	local z0, z1 = c.Z - s.Z / 2 - 18, c.Z + s.Z / 2 + 4
+	local deck = Instance.new("Model")
+	deck.Name = "Pedana"
+	local WOOD = Color3.fromRGB(118, 82, 52)
+	local function part(size: Vector3, cf: CFrame, color: Color3, material: Enum.Material, shape: Enum.PartType?): Part
+		local p = Instance.new("Part")
+		p.Size = size
+		p.CFrame = cf
+		p.Color = color
+		p.Material = material
+		if shape then
+			p.Shape = shape
+		end
+		p.Anchored = true
+		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
+		p.Parent = deck
+		return p
+	end
+	local w, d = x1 - x0, z1 - z0
+	local center = pivot * CFrame.new((x0 + x1) / 2, -0.55, (z0 + z1) / 2)
+	-- sui costoni la mappa ha gia' un piano sotto il terreno: si allarga quello (prima la pedana
+	-- nuova ne spuntava fuori da un lato)
+	local under = workspace:GetPartBoundsInRadius(pivot.Position - Vector3.new(0, 0.8, 0), 2)
+	for _, b in under do
+		if b.Parent and b.Parent.Name == "Costone" and b.Size.X > 40 then
+			local need = math.max(w, d) + 6
+			if b.Size.X < need then
+				b.Size = Vector3.new(need, b.Size.Y, need)
+				b.CFrame = CFrame.new(center.Position.X, b.Position.Y, center.Position.Z) * b.CFrame.Rotation
+			end
+			deck.Parent = plot
+			local nestAt0 = Vector3.new(c.X - s.X / 2 - nestW / 2 - 5, 0, c.Z + s.Z / 4)
+			return nestAt0, Vector3.new(c.X + s.X / 2 + 8, 0, c.Z - s.Z / 4), Vector3.new(c.X, 3, c.Z - s.Z / 2 - 9)
+		end
+	end
+	part(Vector3.new(w, 1, d), center, WOOD, Enum.Material.WoodPlanks).Name = "Piano"
+	-- bordo e pali dove il terreno sta sotto la pedana
+	local down = RaycastParams.new()
+	down.FilterType = Enum.RaycastFilterType.Include
+	down.FilterDescendantsInstances = { workspace.Terrain }
+	local nx, nz = math.max(2, math.ceil(w / 18)), math.max(2, math.ceil(d / 18))
+	for i = 0, nx do
+		for j = 0, nz do
+			if i == 0 or j == 0 or i == nx or j == nz then
+				local p = pivot * Vector3.new(x0 + w * i / nx, -1, z0 + d * j / nz)
+				local hit = workspace:Raycast(p, Vector3.new(0, -80, 0), down)
+				local len = if hit then hit.Distance + 1 else 0
+				if len > 1.5 then
+					part(Vector3.new(len, 1.4, 1.4), CFrame.new(p - Vector3.new(0, len / 2 - 0.5, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(86, 60, 40), Enum.Material.Wood, Enum.PartType.Cylinder).Name = "Palo"
+				end
+			end
+		end
+	end
+	deck.Parent = plot
+	local nestAt = Vector3.new(c.X - s.X / 2 - nestW / 2 - 5, 0, c.Z + s.Z / 4)
+	local forgeAt = Vector3.new(c.X + s.X / 2 + 8, 0, c.Z - s.Z / 4)
+	local spawnAt = Vector3.new(c.X, 3, c.Z - s.Z / 2 - 9)
+	return nestAt, forgeAt, spawnAt
+end
+
 local function buildHouse(player: Player)
 	local s = state(player)
 	local plot = s.plot
@@ -285,6 +401,14 @@ local function buildHouse(player: Player)
 	if old then
 		old:Destroy()
 	end
+	for _, name in { "Pedana", "Forgia" } do
+		local o = plot:FindFirstChild(name)
+		if o then
+			o:Destroy()
+		end
+	end
+	plot:SetAttribute("DeckSpawn", nil)
+	plot:SetAttribute("ForgeAt", nil)
 	local house = EconomyConfig.HOUSES[s.house]
 	local sign = plotSign(plot)
 	if sign then
@@ -296,14 +420,36 @@ local function buildHouse(player: Player)
 		return
 	end
 	local templates = ServerStorage:FindFirstChild("PlotBuildings")
-	local template = templates and templates:FindFirstChild(house.name)
+	-- il Mega Chalet non ha un modello vecchio: il nido lo prende da quello dello Chalet
+	local template = templates and (templates:FindFirstChild(house.name) or templates:FindFirstChild("Chalet"))
 	if not template then
 		warn("[Economy] Manca ServerStorage.PlotBuildings." .. house.name .. ": rigenera la mappa")
 		return
 	end
-	local model = template:Clone() :: Model
-	model.Name = "House"
-	model:PivotTo(plot:GetPivot())
+	local codex = ServerStorage:FindFirstChild("CaseCodex")
+	local newHouse = codex and codex:FindFirstChild(CODEX_HOUSE[house.name] or "")
+	local model: Model
+	if newHouse and newHouse:IsA("Model") then
+		-- casa nuova (modello di Codex) + il nido del modello vecchio
+		model = Instance.new("Model")
+		model.Name = "House"
+		local m = newHouse:Clone()
+		m:ScaleTo(HOUSE_SCALE)
+		m:PivotTo(plot:GetPivot() * CFrame.Angles(0, math.pi, 0))
+		m.Parent = model
+		houseLights(m, HOUSE_SCALE)
+		local oldNest = template:FindFirstChild("Nido")
+		if oldNest then
+			local n = oldNest:Clone()
+			n:PivotTo(plot:GetPivot() * template:GetPivot():ToObjectSpace(oldNest:GetPivot()))
+			n.Parent = model
+		end
+		model.WorldPivot = plot:GetPivot()
+	else
+		model = template:Clone() :: Model
+		model.Name = "House"
+		model:PivotTo(plot:GetPivot())
+	end
 	-- il nido sta di lato alla casa, appoggiato a terra (nei modelli stava dentro i muri)
 	local nest = model:FindFirstChild("Nido")
 	if nest and nest:IsA("Model") then
@@ -312,19 +458,40 @@ local function buildHouse(player: Player)
 		local bestSize = 0
 		for _, c in model:GetChildren() do
 			if c:IsA("Model") and c ~= nest and c.Name ~= "Campfire" then
-				local cf, sz = c:GetBoundingBox()
-				if sz.Magnitude > bestSize then
+				-- ingombro nello spazio del terreno (GetBoundingBox e' girato come il modello: con
+				-- la casa nuova girata di 180 gradi le misure venivano storte)
+				local lo, hi = Vector3.one * math.huge, -Vector3.one * math.huge
+				for _, p in c:GetDescendants() do
+					if p:IsA("BasePart") and p.Transparency < 1 then
+						local h = p.Size / 2
+						for _, k in { Vector3.new(1, 1, 1), Vector3.new(-1, 1, 1), Vector3.new(1, -1, 1), Vector3.new(1, 1, -1), Vector3.new(-1, -1, 1), Vector3.new(-1, 1, -1), Vector3.new(1, -1, -1), Vector3.new(-1, -1, -1) } do
+							local q = pivot:PointToObjectSpace(p.CFrame:PointToWorldSpace(h * k))
+							lo, hi = lo:Min(q), hi:Max(q)
+						end
+					end
+				end
+				local sz = hi - lo
+				if lo.X < math.huge and sz.Magnitude > bestSize then
 					bestSize = sz.Magnitude
-					bodyCenter, bodySize = pivot:PointToObjectSpace(cf.Position), sz
+					bodyCenter, bodySize = (lo + hi) / 2, sz
 				end
 			end
 		end
 		local _, nestSize = nest:GetBoundingBox()
-		local side = bodySize.X / 2 + nestSize.X / 2 + 5
-		local at = pivot * Vector3.new(bodyCenter.X - side, 0, bodyCenter.Z)
+		-- il terreno che sale sopra il pavimento entrava in casa: via dal pavimento in su, nel
+		-- recinto della casa (solo per le case nuove, che hanno il loro pavimento)
+		if newHouse then
+			local clear = pivot * CFrame.new(bodyCenter.X, bodySize.Y / 2 + 0.2, bodyCenter.Z)
+			workspace.Terrain:FillBlock(clear, Vector3.new(bodySize.X + 6, bodySize.Y + 0.4, bodySize.Z + 6), Enum.Material.Air)
+		end
+		-- la pedana sotto casa, nido e banco: il nido ci sta sopra
+		local nestLocal, forgeLocal, spawnLocal = buildDeck(plot, bodyCenter, bodySize, nestSize.X)
+		local at = pivot * nestLocal
 		local nestCf, nestBox = nest:GetBoundingBox()
 		local lift = nest:GetPivot().Position.Y - (nestCf.Position.Y - nestBox.Y / 2)
-		nest:PivotTo(CFrame.new(at.X, groundY(at) + lift, at.Z) * pivot.Rotation)
+		nest:PivotTo(CFrame.new(at.X, pivot.Position.Y + lift, at.Z) * pivot.Rotation)
+		plot:SetAttribute("ForgeAt", pivot * forgeLocal)
+		plot:SetAttribute("DeckSpawn", pivot * spawnLocal)
 	end
 	for _, d in model:GetDescendants() do
 		if CollectionService:HasTag(d, "Incubator") and d:IsA("BasePart") then
@@ -337,12 +504,19 @@ local function buildHouse(player: Player)
 		end
 	end
 	model.Parent = plot
-	-- dove arriva il teletrasporto "My camp" (e il tutorial)
-	local spawnAt = plotSpawn(plot)
+	-- dove arriva il teletrasporto "My camp" (e il tutorial): davanti alla porta, sulla pedana
+	local deckSpawn = plot:GetAttribute("DeckSpawn")
+	local spawnAt = if typeof(deckSpawn) == "Vector3" then deckSpawn else plotSpawn(plot)
 	player:SetAttribute("PlotSpawn", spawnAt)
 	local forge = plot:FindFirstChild("Forgia")
 	if s.house >= 3 then
-		buildForge(plot, spawnAt)
+		-- il banco sulla pedana, accanto alla casa (prima finiva fuori sul terreno)
+		local forgeAt = plot:GetAttribute("ForgeAt")
+		if typeof(forgeAt) == "Vector3" then
+			buildForge(plot, forgeAt - plot:GetPivot().RightVector * 13, plot:GetPivot().Position.Y) -- (buildForge aggiunge 9 verso destra)
+		else
+			buildForge(plot, spawnAt)
+		end
 	elseif forge then
 		forge:Destroy()
 	end
@@ -383,7 +557,7 @@ releasePlot = function(player: Player)
 	local plot = s and s.plot
 	if plot then
 		plotOwner[plot] = nil
-		for _, name in { "House", "Roost" } do
+		for _, name in { "House", "Roost", "Pedana", "Forgia" } do
 			local c = plot:FindFirstChild(name)
 			if c then
 				c:Destroy()
@@ -421,6 +595,8 @@ local function upgradeHouse(player: Player)
 			notice(player, "Your Cabin is in the village around the dragon ribs!")
 		elseif zone == "Costone" then
 			notice(player, "Your Chalet hangs on a cliff of the mountain: enjoy the view!")
+		elseif zone == "Cielo" then
+			notice(player, "Your Sky Chalet floats above the valley! Use Home (T) or fly there on your dragon")
 		end
 	else
 		buildHouse(player)

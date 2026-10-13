@@ -31,6 +31,7 @@ local Upgrades = require(script.Upgrades)
 local Flyers = require(script.Flyers)
 local WorldEvents = require(script.WorldEvents)
 local VFXMeshes = require(script.VFXMeshes)
+local Riding = require(script.Riding)
 
 local remotes = Remotes.setup()
 Unstuck.setup() -- per primo: non deve dipendere da quello che viene dopo
@@ -236,4 +237,5 @@ Shop.setup(remotes)
 task.spawn(Flyers.setup) -- drago selvatico e guardiano della vetta (aspettano EnemyFX)
 task.spawn(WorldEvents.setup) -- meteore, drago selvatico, grande valanga
 task.spawn(VFXMeshes.setup) -- mesh VFX mancanti nel place: si ricreano dagli ID
+Riding.setup() -- monta del drago adulto (Sella)
 Preflight.setup()

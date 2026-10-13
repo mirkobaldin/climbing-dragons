@@ -881,19 +881,22 @@ function ThemeZones.crystals(seed: number?): number
 			placeModel(extra, tpl, at, h, rng, normal, "Gelo")
 		end
 	end
-	local function floorSpot(c: Vector3, radius: number, fromY: number): RaycastResult?
+	-- clear: raggio del centro da lasciare libero (nelle sale dei boss ci sono i mostri: prima i
+	-- cristalli erano tutti ammucchiati in mezzo e non si vedeva niente)
+	local function floorSpot(c: Vector3, radius: number, fromY: number, clear: number?): RaycastResult?
 		local a = rng:NextNumber(0, 2 * math.pi)
-		local r = radius * math.sqrt(rng:NextNumber())
+		local m = math.clamp((clear or 0) / radius, 0, 0.95)
+		local r = radius * math.sqrt(m * m + (1 - m * m) * rng:NextNumber())
 		local hit = workspace:Raycast(Vector3.new(c.X + math.cos(a) * r, fromY, c.Z + math.sin(a) * r), Vector3.new(0, -fromY + c.Y - 60, 0), terrainOnly)
 		return if hit and hit.Normal.Y > 0.6 then hit else nil
 	end
-	local function iceFloor(c: Vector3, radius: number, n: number, fromY: number, giants: boolean)
+	local function iceFloor(c: Vector3, radius: number, n: number, fromY: number, giants: boolean, clear: number?)
 		local placed = 0
 		for _ = 1, n * 6 do
 			if placed >= n then
 				break
 			end
-			local hit = floorSpot(c, radius, fromY)
+			local hit = floorSpot(c, radius, fromY, clear)
 			local tpl = iceModel()
 			if hit and tpl then
 				placeIce(tpl, hit.Position, iceSize(giants), hit.Normal)
@@ -902,9 +905,9 @@ function ThemeZones.crystals(seed: number?): number
 		end
 	end
 	-- ciuffi: un cristallo grande e qualche piccolo attorno, inclinati verso l'esterno
-	local function iceClusters(c: Vector3, radius: number, n: number, fromY: number)
+	local function iceClusters(c: Vector3, radius: number, n: number, fromY: number, clear: number?)
 		for _ = 1, n do
-			local hit = floorSpot(c, radius, fromY)
+			local hit = floorSpot(c, radius, fromY, clear)
 			if hit then
 				local center = hit.Position
 				local big = iceModel()
@@ -958,9 +961,11 @@ function ThemeZones.crystals(seed: number?): number
 		if typeof(den) == "CFrame" then
 			-- dentro la sala: i raggi partono poco sopra il pavimento (sopra c'e' il soffitto)
 			local c = den.Position
-			iceFloor(c, 150, 110, c.Y + 25, true)
-			iceClusters(c, 140, 25, c.Y + 25)
-			iceWalls(c + Vector3.new(0, 18, 0), 170, 70, false)
+			-- meno cristalli (prima 110 + 25 ciuffi + 70 sulle pareti) e il centro libero per i mostri
+			iceFloor(c, 150, 45, c.Y + 25, false, 55)
+			iceFloor(c, 160, 8, c.Y + 25, true, 95) -- i giganti solo verso le pareti
+			iceClusters(c, 150, 10, c.Y + 25, 70)
+			iceWalls(c + Vector3.new(0, 18, 0), 170, 36, false)
 		end
 		task.wait()
 	end

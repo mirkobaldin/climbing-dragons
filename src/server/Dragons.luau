@@ -22,7 +22,7 @@ local DragonModels = require(script.Parent.DragonModels)
 
 local Dragons = {}
 
-export type DragonData = { id: number, element: string, rarity: string, stage: number, level: number?, xp: number?, shiny: boolean? }
+export type DragonData = { id: number, element: string, rarity: string, stage: number, level: number?, xp: number?, shiny: boolean?, atk: number?, crit: number? }
 export type NestEgg = { element: string, rarity: string, readyAt: number }
 export type State = {
 	dragons: { DragonData },
@@ -139,6 +139,7 @@ local function refreshPets(player: Player)
 			model:SetAttribute("DragonId", d.id)
 			model:SetAttribute("Level", d.level or 1)
 			model:SetAttribute("Slot", slot)
+			model:SetAttribute("Stage", d.stage or 1) -- client/PetAnimator: la sella va solo sull'adulto
 			if d.shiny then
 				model:SetAttribute("Shiny", true)
 			end
@@ -162,6 +163,15 @@ local function changed(player: Player, petsToo: boolean)
 	if Dragons.onChanged then
 		(Dragons.onChanged :: any)(player)
 	end
+end
+
+-- danno di un colpo del drago (stadio, livello, statistiche e critico)
+function Dragons.hitDamage(d: DragonData): number
+	local dmg = DragonConfig.attack(d)
+	if math.random() < (d.crit or 0.05) then
+		dmg *= 2
+	end
+	return dmg
 end
 
 -- Draghi che ti seguono adesso
@@ -233,7 +243,8 @@ function Dragons.give(player: Player, element: string, rarity: string, stage: nu
 	if #s.dragons >= DragonConfig.MAX_DRAGONS then
 		return nil
 	end
-	local d: DragonData = { id = s.nextId, element = element, rarity = rarity, stage = stage or 1, shiny = if shiny then true else nil }
+	local atk, crit = DragonConfig.rollStats(rarity)
+	local d: DragonData = { id = s.nextId, element = element, rarity = rarity, stage = stage or 1, shiny = if shiny then true else nil, atk = atk, crit = crit }
 	s.nextId += 1
 	table.insert(s.dragons, d)
 	local pets = false
@@ -396,6 +407,12 @@ function Dragons.load(player: Player, data: any)
 		s.stones = data.stones or 0
 		s.nextId = data.nextId or (#s.dragons + 1)
 		s.starter = data.starter
+	end
+	-- i draghi nati prima delle statistiche le ricevono adesso (una volta, poi si salvano)
+	for _, d in s.dragons do
+		if d.atk == nil then
+			d.atk, d.crit = DragonConfig.rollStats(d.rarity)
+		end
 	end
 	states[player] = s
 	checkPasses(player)

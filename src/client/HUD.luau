@@ -262,7 +262,8 @@ function HUD.start()
 		local stage = DragonConfig.STAGES[math.clamp(d.stage or 1, 1, #DragonConfig.STAGES)]
 		local stageName = Names.t(stage.name)
 		petName.Text = string.format('%s <font color="#ffc86a">%s</font>', Names.t(d.element), Names.t(d.rarity))
-		petLevel.Text = string.format("Lv %d · %s · ATK %.1f", lv, stageName, 8 + 0.15 * lv)
+		local grade = DragonConfig.grade(d)
+		petLevel.Text = string.format("Lv %d · %s · ATK %d · %s", lv, stageName, math.floor(DragonConfig.attack(d) + 0.5), grade)
 		petXpFill.Size = UDim2.fromScale(math.clamp((d.xp or 0) / need, 0, 1), 1)
 		petXpText.Text = string.format("%d / %d XP", math.floor(d.xp or 0), need)
 		petStats.Text = string.format(

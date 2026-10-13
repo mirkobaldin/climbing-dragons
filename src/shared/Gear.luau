@@ -63,6 +63,13 @@ local RECIPES: { Recipe } = {
 		cost = { Ferro = 10, Cristallo = 4, Carbone = 8 },
 		station = "Banco",
 	},
+	{
+		id = "Sella",
+		name = "Dragon Saddle",
+		description = "Ride your adult dragon: press H (or Ride) and fly anywhere.",
+		cost = { Ferro = 12, Oro = 6, Cristallo = 6, Rubino = 2 },
+		station = "Banco",
+	},
 	-- Da costruire ovunque, al volo, con quello che hai nello zaino
 	{
 		id = "Chiodi",

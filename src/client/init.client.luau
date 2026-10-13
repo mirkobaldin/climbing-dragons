@@ -31,6 +31,8 @@ local Culling = require(script.Culling)
 local Combat = require(script.Combat)
 local Glider = require(script.Glider)
 local OreFX = require(script.OreFX)
+local DragonRide = require(script.DragonRide)
+local IndoorLight = require(script.IndoorLight)
 
 HUD.start()
 ClimbFeel.start()
@@ -62,3 +64,5 @@ Culling.start() -- luci e particelle lontane spente (meno lag)
 Combat.start() -- attacco del drago (Z), draghi volanti, scudo, discesa, eventi
 Glider.start() -- parapendio (Spazio mentre cadi)
 OreFX.start() -- minerali: contorno luminoso, suono e "+1" quando estrai
+DragonRide.start() -- in groppa al drago adulto (Sella, tasto H)
+IndoorLight.start() -- al chiuso una luce calda attorno a te (le case erano buie)

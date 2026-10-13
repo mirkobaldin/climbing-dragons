@@ -16,6 +16,8 @@ local ClimbConfig = require(Shared:WaitForChild("ClimbConfig"))
 local EnemyConfig = require(Shared:WaitForChild("EnemyConfig"))
 local Climbing = require(script.Parent.Climbing)
 local MeshFX = require(script.Parent.MeshFX)
+local VFXKit = require(script.Parent.VFXKit)
+local Sfx = require(script.Parent.Sfx)
 
 local player = Players.LocalPlayer
 
@@ -68,6 +70,7 @@ local function floatText(at: Vector3, text: string, color: Color3, size: number)
 end
 
 local shake = 0
+local lastSwing, swingCombo = 0, 0
 local function onFx(kind: string, a: any, b: any, c: any)
 	if kind == "hurt" then
 		local model = a :: Model
@@ -160,6 +163,20 @@ local function onFx(kind: string, a: any, b: any, c: any)
 			me.AssemblyLinearVelocity = a :: Vector3
 			shake = math.max(shake, 0.8)
 		end
+	elseif kind == "axeHit" then
+		-- colpo di piccozza andato a segno: stella d'impatto, suono, scossa (forte al terzo)
+		local at = a :: Vector3
+		local n = (b or 1) :: number
+		VFXKit.play("VFX_11_StellaImpatto", CFrame.lookAt(at, workspace.CurrentCamera.CFrame.Position), { from = 2, to = if n == 3 then 9 else 5.5, time = 0.25, hold = 0.3, color = ICE, glow = Color3.fromRGB(120, 200, 255), spin = 0.15, axis = Vector3.zAxis })
+		Sfx.play(if n == 3 then "Roccia" else "Ghiaccio", at, if n == 3 then 1 else 0.6)
+		if c then
+			floatText(at + Vector3.new(0, 6, 0), "CRIT!", Color3.fromRGB(255, 220, 90), 30)
+		end
+		local character = player.Character
+		local me = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if me and (me.Position - at).Magnitude < 30 then
+			shake = math.max(shake, if n == 3 then 0.9 else 0.3)
+		end
 	elseif kind == "reward" then
 		floatText((a :: Vector3) + Vector3.new(0, 6, 0), string.format("+%d coins  +%d XP", b, c), Color3.fromRGB(255, 220, 110), 34)
 	end
@@ -219,19 +236,50 @@ function EnemyClient.start()
 		tool.Activated:Connect(function()
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-			if not root or not hit then
+			if not root or not hit or Climbing.isClimbing() then
+				return
+			end
+			local now = os.clock()
+			if now - lastSwing < EnemyConfig.PLAYER_COOLDOWN then
 				return
 			end
 			local target = enemyInReach(root :: BasePart)
-			if target then
-				(hit :: RemoteEvent):FireServer(target)
-				-- fendente (lo fa lo script Animate standard quando trova "toolanim")
-				local anim = Instance.new("StringValue")
-				anim.Name = "toolanim"
-				anim.Value = "Slash"
-				anim.Parent = tool
-				Debris:AddItem(anim, 0.3)
+			if not target then
+				return -- senza nemici il click resta all'arrampicata (aggancio alla parete)
 			end
+			swingCombo = if now - lastSwing < EnemyConfig.COMBO_WINDOW then swingCombo % 3 + 1 else 1
+			lastSwing = now
+			local r = root :: BasePart
+			-- ti giri verso il nemico e fai un piccolo scatto se e' un po' lontano
+			local tr = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("Hitbox")
+			local tp = if tr and tr:IsA("BasePart") then tr.Position else target:GetPivot().Position
+			local to = Vector3.new(tp.X - r.Position.X, 0, tp.Z - r.Position.Z)
+			if to.Magnitude > 0.5 then
+				r.CFrame = CFrame.lookAt(r.Position, r.Position + to.Unit)
+				if to.Magnitude > 6 then
+					r.AssemblyLinearVelocity += to.Unit * math.min(40, to.Magnitude * 3)
+				end
+			end
+			(hit :: RemoteEvent):FireServer(target)
+			-- fendente (lo fa lo script Animate standard quando trova "toolanim") e la scia
+			local anim = Instance.new("StringValue")
+			anim.Name = "toolanim"
+			anim.Value = "Slash"
+			anim.Parent = tool
+			Debris:AddItem(anim, 0.3)
+			local front = r.CFrame * CFrame.new(0, 0.6, -3.2)
+			local tilt = ({ -0.7, 0.7, 0 })[swingCombo]
+			VFXKit.play(if swingCombo == 3 then "VFX_08_FendenteTriplo" else "VFX_07_Fendente", front * CFrame.Angles(0, 0, tilt), {
+				from = 3,
+				to = if swingCombo == 3 then 9 else 6.5,
+				time = 0.22,
+				hold = 0.35,
+				color = Color3.fromRGB(220, 245, 255),
+				glow = Color3.fromRGB(110, 190, 255),
+				spin = if swingCombo == 3 then 0 else 0.12,
+				axis = Vector3.zAxis,
+			})
+			Sfx.play("Lancio", r.Position, 0.5)
 		end)
 	end
 	local function onCharacter(character: Model)

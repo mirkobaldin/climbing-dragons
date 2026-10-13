@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Teleports = {}
 
 local COOLDOWN = 20
+local HOME_COOLDOWN = 60 -- "My camp" da lontano
 
 local terrainOnly = RaycastParams.new()
 terrainOnly.FilterType = Enum.RaycastFilterType.Include
@@ -96,12 +97,20 @@ function Teleports.setup()
 			player:SetAttribute("NoticeTime", os.clock())
 			return
 		end
-		if not player:GetAttribute("AtWaypoint") then
+		-- a casa si torna da qualunque posto (prima trovarla era quasi impossibile), con una
+		-- ricarica piu' lunga e non durante la discesa a tempo; il resto solo dai punti di viaggio
+		local home = name == "My camp"
+		if home and player:GetAttribute("DescentStart") then
+			player:SetAttribute("Notice", "Finish your timed descent first")
+			player:SetAttribute("NoticeTime", os.clock())
+			return
+		end
+		if not home and not player:GetAttribute("AtWaypoint") then
 			player:SetAttribute("Notice", "Teleport only from a base camp, your camp, the arena or the gym")
 			player:SetAttribute("NoticeTime", os.clock())
 			return
 		end
-		local wait = COOLDOWN - (os.clock() - (last[player] or -math.huge))
+		local wait = (if home and not player:GetAttribute("AtWaypoint") then HOME_COOLDOWN else COOLDOWN) - (os.clock() - (last[player] or -math.huge))
 		if wait > 0 then
 			player:SetAttribute("Notice", string.format("Teleport ready in %d s", math.ceil(wait)))
 			player:SetAttribute("NoticeTime", os.clock())

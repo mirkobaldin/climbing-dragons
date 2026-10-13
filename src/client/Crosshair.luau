@@ -126,7 +126,7 @@ function Crosshair.start()
 			return
 		end
 		local camera = workspace.CurrentCamera
-		local at = if UserInputService.MouseEnabled then UserInputService:GetMouseLocation() else camera.ViewportSize / 2
+		local at = ClientState.aimPoint()
 		holder.Position = UDim2.fromOffset(at.X, at.Y)
 		label.Text = ""
 		do

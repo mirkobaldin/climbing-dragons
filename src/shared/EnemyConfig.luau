@@ -85,8 +85,12 @@ EnemyConfig.BOSSES = {
 -- (per nome del Tool: prima erano "Piccozza"/"Piccone" e dopo i nomi in inglese i colpi non
 -- facevano piu' danno)
 EnemyConfig.PLAYER_DAMAGE = { [ClimbConfig.TOOL_NAME] = 22, [ClimbConfig.PICKAXE_NAME] = 16 } :: { [string]: number }
-EnemyConfig.PLAYER_REACH = 11
-EnemyConfig.PLAYER_COOLDOWN = 0.55
+EnemyConfig.PLAYER_REACH = 13
+EnemyConfig.PLAYER_COOLDOWN = 0.38
+-- combo della piccozza (server/Enemies): 1-2-3 entro COMBO_WINDOW secondi, il terzo stordisce
+EnemyConfig.COMBO_WINDOW = 1.1
+EnemyConfig.COMBO_MULT = { 1, 1.2, 1.9 }
+EnemyConfig.CRIT_CHANCE = 0.12
 -- Il drago al seguito aiuta: un colpo ogni DRAGON_EVERY secondi (danno + 0.15 per livello)
 EnemyConfig.DRAGON_EVERY = 2
 EnemyConfig.DRAGON_DAMAGE = 8

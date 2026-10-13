@@ -37,15 +37,9 @@ local function polish(b: Instance)
 		if tween then
 			tween:Cancel()
 		end
-		local target = position + UDim2.fromOffset(0, if pressed then 2 else 0)
-		moving = true
-		tween = TweenService:Create(b, TweenInfo.new(0.1), { Position = target })
-		tween:Play()
-		tween.Completed:Once(function()
-			if generation == version then
-				moving = false
-			end
-		end)
+		-- (niente piu' spostamento di 2 px alla pressione: se intanto l'impaginazione spostava il
+		-- pulsante, il tween lo rimetteva nel posto vecchio e restava storto)
+		local _ = version
 		if base ~= "" and base ~= key then
 			Ui.skin(b, base .. (if pressed then "_pressed" elseif hover then "_hover" else "_normal"))
 		end

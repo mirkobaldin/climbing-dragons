@@ -212,10 +212,12 @@ export type PlayOptions = {
 	ease: string?, -- "out" (default), "back" (scatta oltre e torna), "linear"
 	material: Enum.Material?,
 	light: number?, -- raggio di una luce del colore dell'effetto
+	glow: Color3?, -- alone: una copia al neon un po' piu' grande di questo colore (si vede di notte)
 }
 
 type Live = {
 	m: MeshPart,
+	shell: MeshPart?,
 	name: string,
 	base: Vector3,
 	cf: CFrame,
@@ -229,8 +231,8 @@ local live: { Live } = {}
 local driver: RBXScriptConnection? = nil
 local POOL_MAX = 6
 
-local function take(name: string): MeshPart?
-	local list = pool[name]
+local function take(name: string, key: string?): MeshPart?
+	local list = pool[key or name]
 	if list and #list > 0 then
 		return table.remove(list)
 	end
@@ -241,6 +243,11 @@ local function take(name: string): MeshPart?
 	end
 	local m = src:Clone()
 	m.Anchored, m.CanCollide, m.CanQuery, m.CanTouch, m.CastShadow = true, false, false, false, false
+	if key then
+		-- alone: senza palette, tutto al neon
+		m.TextureID = ""
+		m.Material = Enum.Material.Neon
+	end
 	return m
 end
 
@@ -290,14 +297,23 @@ local function step()
 			size *= Vector3.one:Lerp(o.squash, eased(o.ease, a))
 		end
 		e.m.Size = size
+		if e.shell then
+			e.shell.Size = size * 1.07
+		end
 		if o.spin then
 			cf *= CFrame.fromAxisAngle(o.axis or Vector3.yAxis, o.spin * math.pi * 2 * a)
 		end
 		e.m.CFrame = cf
+		if e.shell then
+			e.shell.CFrame = cf
+		end
 		local full = o.transparency or 0
 		local fadeIn, hold = o.fadeIn or 0.08, o.hold or 0.5
 		local tr = if a < fadeIn then 1 - (1 - full) * (a / fadeIn) elseif a < hold then full else full + (1 - full) * ((a - hold) / (1 - hold))
 		e.m.Transparency = tr
+		if e.shell then
+			e.shell.Transparency = 1 - (1 - tr) * 0.4
+		end
 		if e.light then
 			e.light.Brightness = 3 * (1 - tr)
 		end
@@ -306,6 +322,9 @@ local function step()
 				e.light:Destroy()
 			end
 			give(e.name, e.m)
+			if e.shell then
+				give(e.name .. "#alone", e.shell)
+			end
 			live[i] = live[#live]
 			live[#live] = nil
 		else
@@ -343,7 +362,19 @@ function VFXKit.play(name: string, cf: CFrame, opts: PlayOptions?): MeshPart?
 		pl.Parent = m
 		l = pl
 	end
-	table.insert(live, { m = m, name = name, base = base, cf = cf, t0 = os.clock(), o = o, light = l })
+	local shell: MeshPart? = nil
+	if o.glow then
+		local sh = take(name, name .. "#alone")
+		if sh then
+			sh.Color = o.glow
+			sh.Transparency = 1
+			sh.Size = m.Size * 1.07
+			sh.CFrame = cf
+			sh.Parent = workspace
+			shell = sh
+		end
+	end
+	table.insert(live, { m = m, shell = shell, name = name, base = base, cf = cf, t0 = os.clock(), o = o, light = l })
 	if not driver then
 		driver = game:GetService("RunService").RenderStepped:Connect(step)
 	end

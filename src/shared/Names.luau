@@ -37,6 +37,7 @@ local MAP: { [string]: string } = {
 	Tenda = "Tent",
 	Baita = "Cabin",
 	Chalet = "Chalet",
+	MegaChalet = "Sky Chalet",
 	-- dove si costruisce
 	Banco = "Workbench",
 	Ovunque = "Anywhere",

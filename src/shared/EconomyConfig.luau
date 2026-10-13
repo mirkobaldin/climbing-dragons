@@ -18,6 +18,9 @@ EconomyConfig.HOUSES = {
 	{ name = "Tenda", cost = 100, roost = 1, nest = 1 },
 	{ name = "Baita", cost = 1500, roost = 3, nest = 3 },
 	{ name = "Chalet", cost = 8000, roost = 6, nest = 5 },
+	-- sulle isole volanti (mapgen/Isole: terreni di livello 4): ci si arriva con "Home" o in
+	-- groppa al drago
+	{ name = "MegaChalet", cost = 30000, roost = 10, nest = 8 },
 }
 
 -- Monete al minuto di un drago posato in casa (x lo stadio)

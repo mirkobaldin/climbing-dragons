@@ -186,6 +186,46 @@ function DragonConfig.xpForLevel(level: number): number
 	return 25 + level * 4
 end
 
+-- Statistiche di ogni drago, tirate a sorte quando nasce (ogni uovo da' un drago diverso):
+--   atk   moltiplicatore dell'attacco (le rarita' alte partono piu' in alto)
+--   crit  probabilita' di colpo critico (danno x2)
+-- Voto: C, B, A, S secondo quanto e' venuto bene il tiro rispetto alla sua rarita'.
+DragonConfig.STAT_RANGES = {
+	Comune = { atk = { 0.85, 1.10 }, crit = { 0.03, 0.08 } },
+	Raro = { atk = { 0.95, 1.22 }, crit = { 0.05, 0.11 } },
+	Epico = { atk = { 1.05, 1.35 }, crit = { 0.07, 0.14 } },
+	Leggendario = { atk = { 1.18, 1.50 }, crit = { 0.10, 0.18 } },
+}
+-- l'adulto picchia molto piu' del cucciolo (prima facevano lo stesso danno)
+DragonConfig.STAGE_POWER = { 1, 1.9, 3.2 }
+DragonConfig.BASE_DAMAGE = 8
+
+function DragonConfig.rollStats(rarity: string): (number, number)
+	local r = DragonConfig.STAT_RANGES[rarity] or DragonConfig.STAT_RANGES.Comune
+	local function roll(range: { number }): number
+		-- due tiri, si tiene la media: i valori estremi sono piu' rari
+		local a = (math.random() + math.random()) / 2
+		return math.floor((range[1] + (range[2] - range[1]) * a) * 1000 + 0.5) / 1000
+	end
+	return roll(r.atk), roll(r.crit)
+end
+
+-- voto del drago (C/B/A/S) e quanto vale il tiro da 0 a 1
+function DragonConfig.grade(d: any): (string, number)
+	local r = DragonConfig.STAT_RANGES[d.rarity] or DragonConfig.STAT_RANGES.Comune
+	local a = ((d.atk or 1) - r.atk[1]) / (r.atk[2] - r.atk[1])
+	local c = ((d.crit or 0.05) - r.crit[1]) / (r.crit[2] - r.crit[1])
+	local q = math.clamp(a * 0.7 + c * 0.3, 0, 1)
+	return (if q >= 0.8 then "S" elseif q >= 0.6 then "A" elseif q >= 0.35 then "B" else "C"), q
+end
+
+-- attacco del drago: base x stadio x livello x statistica
+function DragonConfig.attack(d: any): number
+	local stage = DragonConfig.STAGE_POWER[math.clamp(d.stage or 1, 1, #DragonConfig.STAGE_POWER)]
+	local lv = math.clamp(d.level or 1, 1, DragonConfig.MAX_LEVEL)
+	return DragonConfig.BASE_DAMAGE * stage * (1 + 0.012 * (lv - 1)) * (d.atk or 1)
+end
+
 -- Grandezza del drago a un certo stadio e livello (studs)
 function DragonConfig.dragonSize(stage: number, level: number?): number
 	local st = DragonConfig.STAGES[math.clamp(stage, 1, #DragonConfig.STAGES)]

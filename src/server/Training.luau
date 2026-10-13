@@ -628,7 +628,14 @@ function Training.setup()
 		-- colpi mirati: il client dice da dove e verso dove ha sparato; il server cerca il cristallo
 		-- su quella linea (dove si trova adesso e un attimo fa, per il ritardo della rete)
 		local lastHit: { [Player]: number } = {}
+		local leftAt: { [Player]: number } = {}
 		fx.OnServerEvent:Connect(function(player: Player, action: any, origin: any, dir: any)
+			if action == "leave" then
+				-- Q: fuori subito; per 2 secondi il cerchio non ti riprende
+				leftAt[player] = os.clock()
+				player:SetAttribute("Training", false)
+				return
+			end
 			if action ~= "shoot" or typeof(origin) ~= "Vector3" or typeof(dir) ~= "Vector3" or dir.Magnitude < 0.5 then
 				return
 			end
@@ -726,6 +733,9 @@ function Training.setup()
 					local d = root.Position - (if typeof(padAt) == "Vector3" then padAt else center)
 					local r = if typeof(padAt) == "Vector3" then 7 else T.CIRCLE_RADIUS
 					inside = Vector3.new(d.X, 0, d.Z).Magnitude <= r and math.abs(d.Y) < 12
+				end
+				if os.clock() - (leftAt[player] or -math.huge) < 2 then
+					inside = false
 				end
 				local list = if inside then Dragons.equippedDragons(player) else {}
 				player:SetAttribute("Training", #list > 0)
