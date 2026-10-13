@@ -192,6 +192,169 @@ function VFXKit.mesh(name: string, cf: CFrame, opts: MeshOptions?): MeshPart?
 	return m
 end
 
+------------------------------------------------------------------------------------------
+-- Mesh VFX_01..66 (Codex, caricate in VFXLib.Mesh): animate da un solo ciclo per frame, con le
+-- copie che tornano in un deposito a fine vita invece di essere distrutte. Le 30 elementali
+-- (37-66) hanno la palette nella texture: restano bianche, le altre (01-36) prendono il colore.
+
+export type PlayOptions = {
+	color: Color3?, -- solo per le mesh bianche senza palette
+	from: number?, -- lato piu' lungo all'inizio (studs)
+	to: number?, -- lato piu' lungo alla fine
+	time: number?,
+	spin: number?, -- giri attorno ad "axis" durante la vita
+	axis: Vector3?, -- asse locale della rotazione (default Y)
+	transparency: number?, -- trasparenza quando e' piena (default 0)
+	fadeIn: number?, -- frazione della vita per comparire (default 0.08)
+	hold: number?, -- frazione della vita dopo cui sparisce (default 0.5)
+	squash: Vector3?, -- moltiplica la grandezza per asse alla fine (es. morso che si chiude)
+	follow: (() -> CFrame?)?, -- la posizione la da' questa funzione (bocca, proiettile)
+	ease: string?, -- "out" (default), "back" (scatta oltre e torna), "linear"
+	material: Enum.Material?,
+	light: number?, -- raggio di una luce del colore dell'effetto
+}
+
+type Live = {
+	m: MeshPart,
+	name: string,
+	base: Vector3,
+	cf: CFrame,
+	t0: number,
+	o: PlayOptions,
+	light: PointLight?,
+}
+
+local pool: { [string]: { MeshPart } } = {}
+local live: { Live } = {}
+local driver: RBXScriptConnection? = nil
+local POOL_MAX = 6
+
+local function take(name: string): MeshPart?
+	local list = pool[name]
+	if list and #list > 0 then
+		return table.remove(list)
+	end
+	local folder = library("Mesh")
+	local src = folder and folder:FindFirstChild(name)
+	if not src or not src:IsA("MeshPart") then
+		return nil
+	end
+	local m = src:Clone()
+	m.Anchored, m.CanCollide, m.CanQuery, m.CanTouch, m.CastShadow = true, false, false, false, false
+	return m
+end
+
+local function give(name: string, m: MeshPart)
+	m.Parent = nil
+	local list = pool[name]
+	if not list then
+		list = {}
+		pool[name] = list
+	end
+	if #list < POOL_MAX then
+		table.insert(list, m)
+	else
+		m:Destroy()
+	end
+end
+
+local function eased(kind: string?, a: number): number
+	if kind == "linear" then
+		return a
+	elseif kind == "back" then
+		local c = 1.70158
+		return 1 + (c + 1) * (a - 1) ^ 3 + c * (a - 1) ^ 2
+	end
+	return 1 - (1 - a) ^ 3
+end
+
+local function step()
+	local now = os.clock()
+	local i = 1
+	while i <= #live do
+		local e = live[i]
+		local o = e.o
+		local time = o.time or 0.5
+		local a = math.clamp((now - e.t0) / time, 0, 1)
+		local cf = e.cf
+		if o.follow then
+			local f = o.follow()
+			if f then
+				e.cf = f
+				cf = f
+			end
+		end
+		local k = (o.from or 2) + ((o.to or 8) - (o.from or 2)) * eased(o.ease, a)
+		local size = e.base * k
+		if o.squash then
+			size *= Vector3.one:Lerp(o.squash, eased(o.ease, a))
+		end
+		e.m.Size = size
+		if o.spin then
+			cf *= CFrame.fromAxisAngle(o.axis or Vector3.yAxis, o.spin * math.pi * 2 * a)
+		end
+		e.m.CFrame = cf
+		local full = o.transparency or 0
+		local fadeIn, hold = o.fadeIn or 0.08, o.hold or 0.5
+		local tr = if a < fadeIn then 1 - (1 - full) * (a / fadeIn) elseif a < hold then full else full + (1 - full) * ((a - hold) / (1 - hold))
+		e.m.Transparency = tr
+		if e.light then
+			e.light.Brightness = 3 * (1 - tr)
+		end
+		if a >= 1 then
+			if e.light then
+				e.light:Destroy()
+			end
+			give(e.name, e.m)
+			live[i] = live[#live]
+			live[#live] = nil
+		else
+			i += 1
+		end
+	end
+	if #live == 0 and driver then
+		driver:Disconnect()
+		driver = nil
+	end
+end
+
+-- mesh VFX_xx: compare, cresce/gira e sparisce; restituisce la parte (o nil se manca)
+function VFXKit.play(name: string, cf: CFrame, opts: PlayOptions?): MeshPart?
+	local m = take(name)
+	if not m then
+		return nil
+	end
+	local o = opts or {}
+	local src = (library("Mesh") :: Instance):FindFirstChild(name) :: MeshPart
+	local base = src.Size / math.max(src.Size.X, src.Size.Y, src.Size.Z)
+	local textured = src.TextureID ~= ""
+	m.Color = if textured or not o.color then Color3.new(1, 1, 1) else o.color
+	m.Material = o.material or (if textured then Enum.Material.SmoothPlastic else Enum.Material.Neon)
+	m.Transparency = 1
+	m.Size = base * (o.from or 2)
+	m.CFrame = cf
+	m.Parent = workspace
+	local l: PointLight? = nil
+	if o.light then
+		local pl = Instance.new("PointLight")
+		pl.Color = o.color or Color3.new(1, 1, 1)
+		pl.Range = o.light
+		pl.Shadows = false
+		pl.Parent = m
+		l = pl
+	end
+	table.insert(live, { m = m, name = name, base = base, cf = cf, t0 = os.clock(), o = o, light = l })
+	if not driver then
+		driver = game:GetService("RunService").RenderStepped:Connect(step)
+	end
+	return m
+end
+
+-- quante mesh VFX sono in giro adesso (per le prove)
+function VFXKit.liveCount(): number
+	return #live
+end
+
 -- il terreno sotto un punto (per crepe e anelli a terra): CFrame con Y lungo la normale
 function VFXKit.ground(at: Vector3, depth: number?): CFrame?
 	local params = RaycastParams.new()

@@ -200,7 +200,7 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> ()): () 
 	refresh = function()
 		Ui.clear(list)
 		for _, name in { "Upgrades", "Bounties", "Rebirth" } do
-			Ui.node(container, "Tabs/" .. name).BackgroundColor3 = if name == page then Theme.ACCENT else Theme.CARD
+			Ui.selected(Ui.node(container, "Tabs/" .. name), name == page, Theme.ACCENT, Theme.CARD)
 		end
 		if page == "Upgrades" then
 			upgrades()

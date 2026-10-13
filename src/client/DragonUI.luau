@@ -11,6 +11,10 @@ local Ui = require(Shared:WaitForChild("UiView"))
 local Theme = require(script.Parent.Theme)
 local player = Players.LocalPlayer
 local DragonUI = {}
+-- uova nel nido: il conto alla rovescia si aggiorna da solo ogni secondo (DragonUI.tick), senza
+-- ricostruire la lista (prima la lista si rifaceva ogni secondo e tornava in cima)
+type Timer = { label: TextLabel, hatch: GuiObject, readyAt: number }
+local timers: { Timer } = {}
 local RARITY = {
 	Comune = "common",
 	NonComune = "common",
@@ -35,6 +39,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		status(message or "", ok)
 	end
 	render = function()
+		table.clear(timers)
 		Ui.clear(nestList)
 		Ui.clear(dragonList)
 		local raw = player:GetAttribute("DragonData")
@@ -64,6 +69,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 				then "Ready to hatch"
 				else string.format("Ready in %d:%02d", left // 60, left % 60)
 			c.Hatch.Visible = left <= 0
+			c.Time.Visible = left > 0
+			table.insert(timers, { label = c.Time, hatch = c.Hatch, readyAt = egg.readyAt })
 			c.Hatch.Activated:Connect(function()
 				act("hatch", index)
 			end)
@@ -115,6 +122,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			end)
 			local price = (EconomyConfig.DRAGON_PRICES[d.rarity] or 20) * d.stage
 			c.Sell.Text = if confirmSell == d.id then "Sure?" else "Sell " .. price
+			Ui.row({ c.Follow, c.Evolve, c.Sell }, 142, 96, 34)
 			c.Sell.Activated:Connect(function()
 				if confirmSell == d.id then
 					confirmSell = nil
@@ -128,4 +136,19 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	end
 	return render
 end
+
+-- ogni secondo dal menu: aggiorna i timer; true se un uovo e' appena pronto (serve rifare la lista)
+function DragonUI.tick(): boolean
+	local now = os.time()
+	local ready = false
+	for _, t in timers do
+		local left = math.max(0, t.readyAt - now)
+		if left <= 0 and not t.hatch.Visible then
+			ready = true
+		end
+		t.label.Text = if left <= 0 then "Ready to hatch" else string.format("Ready in %d:%02d", left // 60, left % 60)
+	end
+	return ready
+end
+
 return DragonUI

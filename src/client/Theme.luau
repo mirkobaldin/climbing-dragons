@@ -160,9 +160,10 @@ function Theme.viewport(parent: Instance, object: Instance?, size: UDim2, spin: 
 	local vf = Instance.new("ViewportFrame")
 	vf.BackgroundTransparency = 1
 	vf.Size = size
-	vf.Ambient = Color3.fromRGB(170, 170, 180)
-	vf.LightColor = Color3.fromRGB(255, 250, 240)
-	vf.LightDirection = Vector3.new(-1, -1.5, -0.8)
+	-- piu' luce: i draghi scuri (Eclissi, Fulmine) nelle schede sembravano macchie nere
+	vf.Ambient = Color3.fromRGB(205, 205, 215)
+	vf.LightColor = Color3.fromRGB(255, 252, 245)
+	vf.LightDirection = Vector3.new(-0.6, -1, -0.9)
 	vf.Parent = parent
 	if not object then
 		return vf
@@ -177,7 +178,8 @@ function Theme.viewport(parent: Instance, object: Instance?, size: UDim2, spin: 
 	local center, radius = bounds(clone)
 	local camera = Instance.new("Camera")
 	camera.FieldOfView = 35
-	local dist = radius / math.tan(math.rad(17.5)) * 1.05
+	-- inquadratura stretta: il modello riempie il riquadro (prima stava piccolo in mezzo)
+	local dist = radius / math.tan(math.rad(17.5)) * 0.82
 	local dir = Vector3.new(0.9, 0.55, -1).Unit
 	camera.CFrame = CFrame.lookAt(center + dir * dist, center)
 	camera.Parent = vf
@@ -292,6 +294,30 @@ function Theme.itemModel(id: string, color: Color3): Model
 		part(Vector3.new(2, 2, 2), CFrame.new(), color, Enum.PartType.Ball)
 	end
 	return m
+end
+
+-- Icone degli oggetti del negozio e degli attrezzi: le immagini del set dell'interfaccia (stesso
+-- stile delle altre) invece dei modellini fatti di Part. Le "act_" sono bianche: si colorano.
+Theme.ITEM_ICONS = {
+	Pitons = "icon_piton",
+	Chiodi = "icon_piton",
+	Medkit = "icon_health",
+	Bende = "icon_health",
+	Thermos = "icon_warmth",
+	Tuta = "icon_cold",
+	Torcia = "weather_clear",
+	Parapendio = "icon_altitude",
+	Ramponi = "act_climb",
+	Rampino = "act_grapple",
+	PiccoRinforzato = "act_mine",
+	MysteryEgg = "icon_egg",
+	RareEgg = "icon_egg",
+} :: { [string]: string }
+
+function Theme.itemIcon(image: ImageLabel, id: string, fallback: Instance?)
+	local asset = Theme.ITEM_ICONS[id] or ""
+	Theme.assetPreview(image, asset, fallback)
+	image.ImageColor3 = if string.sub(asset, 1, 4) == "act_" then Color3.fromRGB(255, 205, 110) else Color3.new(1, 1, 1)
 end
 
 -- L'immagine sostituisce l'anteprima 3D solo dopo l'inserimento del suo ID.

@@ -141,7 +141,7 @@ DragonConfig.RARITIES = {
 DragonConfig.STAGES = {
 	{ name = "Cucciolo", size = 8.6, stones = 0 }, -- scala del modello ~0.6 (prima 5.5 = 0.383)
 	{ name = "Giovane", size = 14, stones = 0 },
-	{ name = "Adulto", size = 22, stones = 0 },
+	{ name = "Adulto", size = 33, stones = 0 }, -- prima 22: Mirko lo trovava troppo piccolo
 }
 
 -- Livelli e addestramento (zona delle costole del drago, vedi server/Training)

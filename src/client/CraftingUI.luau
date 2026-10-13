@@ -20,12 +20,13 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 	for k, recipe in Gear.RECIPES do
 		local card = Ui.template("RecipeCard", list)
 		card.LayoutOrder = k
-		Theme.viewport(
-			card.Preview,
-			Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT),
-			UDim2.fromScale(1, 1),
-			false
-		)
+		-- icona dell'attrezzo (stesse immagini dello zaino); il modellino 3D solo se manca
+		local icon = Instance.new("ImageLabel")
+		icon.Name = "Icona"
+		icon.BackgroundTransparency = 1
+		icon.Size = UDim2.fromScale(1, 1)
+		icon.Parent = card.Preview
+		Theme.itemIcon(icon, recipe.id, Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT))
 		card.Title.Text = recipe.name
 		card.Description.Text = recipe.description
 			.. (if recipe.station == "Ovunque" then " · Craft anywhere" else " · At a workbench")
@@ -37,8 +38,14 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 		table.sort(ores)
 		for i, ore in ores do
 			local row = Ui.template("Material", card.Materials)
-			row.Size = UDim2.fromScale(1, 1 / math.max(1, #ores))
-			row.Position = UDim2.fromScale(0, (i - 1) / math.max(1, #ores))
+			-- materiali in fila sotto la descrizione (icona + "Ferro 2/5")
+			row.Size = UDim2.new(1 / math.max(1, #ores), -6, 1, 0)
+			row.Position = UDim2.fromScale((i - 1) / math.max(1, #ores), 0)
+			row.BackgroundTransparency = 1
+			local surface = row:FindFirstChild("AssetSurface")
+			if surface then
+				surface:Destroy() -- niente cornice attorno a ogni materiale
+			end
 			row.SizeLimit.MinSize = Vector2.zero
 			row.SizeLimit.MaxSize = Vector2.new(10000, 10000)
 			Theme.assetPreview(row.Icon, "ore_" .. ore, Theme.oreModel(ore))

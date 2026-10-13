@@ -22,6 +22,7 @@ local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
 local FlyerPath = require(Shared:WaitForChild("FlyerPath"))
 local KfsPlayer = require(script.Parent.KfsPlayer)
 local DragonVFX = require(script.Parent.DragonVFX)
+local MeshFX = require(script.Parent.MeshFX)
 local ClientState = require(script.Parent.ClientState)
 local Sfx = require(script.Parent.Sfx)
 local Theme = require(script.Parent.Theme)
@@ -250,6 +251,11 @@ local function animateFlyer(m: Model)
 			if m:GetAttribute("Act") == "Roar" then
 				Sfx.play("Ruggito", m:GetPivot().Position, 2)
 			end
+			-- morso, soffio e ruggito a terra con le mesh VFX
+			local actName = m:GetAttribute("Act")
+			if type(actName) == "string" then
+				MeshFX.flyer(m, actName, DragonVFX.mouth(m))
+			end
 		end
 	end
 	local acting = a.actTrack ~= nil and os.clock() < a.actUntil
@@ -465,8 +471,13 @@ function Combat.start()
 			if kind == "special" then
 				-- onda dell'elemento del drago
 				local color = elementColor(c)
-				shockwave(a, b, color, 0.6)
-				task.delay(0.12, shockwave, a, b * 0.7, Color3.new(1, 1, 1), 0.4)
+				-- forme dell'elemento grandi quanto l'area del colpo (senza mesh: le onde di prima)
+				if MeshFX.special(c, a, b) then
+					shockwave(a, b * 0.8, color, 0.45)
+				else
+					shockwave(a, b, color, 0.6)
+					task.delay(0.12, shockwave, a, b * 0.7, Color3.new(1, 1, 1), 0.4)
+				end
 				Sfx.play("Ruggito", a)
 				petGesture(d, "Breath")
 				if d == player.UserId then
@@ -526,12 +537,15 @@ function Combat.start()
 	Ui.viewportChanged(function(vp)
 		local logical = Ui.fitScale(gui, vp)
 		if UserInputService.TouchEnabled then
-			Ui.px(spBtn, 1, -120, 1, -170, 72, 72, 1, 1)
+			-- a sinistra della fila dei comandi touch (MobileControls: 212 px a destra, alta 54, a
+			-- 170 px dal fondo), lontano dal salto e dal meteo
+			local k = logical.X / vp.X
+			Ui.px(spBtn, 1, -232 * k, 1, -170 * k, 64, 64, 1, 1)
 		else
 			Ui.px(spBtn, 1, -24, 1, -24, 76, 76, 1, 1)
 		end
-		Ui.px(timer, 0.5, 0, 0, 190, math.min(520, logical.X - 32), 34, 0.5, 0)
-		Ui.px(eventLabel, 0.5, 0, 0, 228, math.min(620, logical.X - 32), 28, 0.5, 0)
+		Ui.px(timer, 0.5, 0, 0, if Ui.compact(vp) then 206 else 190, math.min(520, logical.X - 32), 34, 0.5, 0)
+		Ui.px(eventLabel, 0.5, 0, 0, if Ui.compact(vp) then 240 else 228, math.min(620, logical.X - 32), 28, 0.5, 0)
 	end)
 
 	local accum = 0

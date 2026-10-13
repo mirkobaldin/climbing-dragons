@@ -6,6 +6,7 @@ Quando il branch e' unito in `main`, togli la riga.
 
 | Chi | Branch | Compito | File toccati |
 |---|---|---|---|
+| Codex | codex/oggetti-20261010 | Riferimenti Meshy, sprite sheet VFX e icone nuove di Climbing & Dragons | artifacts/oggetti-20261010/**; nessun file src |
 | Claude | main | borghi cinesi/giapponesi, testi in inglese (Names), VFX e suoni dei draghi | src/mapgen/{Borghi,Tutorial,Village,init}.luau, src/shared/{Names,Gear,ShopConfig,DragonConfig,ClimbConfig}.luau, quasi tutti i file di src/client e src/server (testi) |
 | Codex | codex/drago-cosmico-blender | Modellazione Blender del Drago Cosmico dalla reference; blockout e verifiche progressive | Solo RObloxGame-codex/artifacts/drago-cosmico/*; nessun file src |
 | Codex | codex/cuccioli-elementali-20261005 | Revisione cuccioli: ali piegate e separate per reference Meshy; adulti gia esportati | artifacts/cuccioli-elementali-20261005/*; export C:/Users/mirko/Pictures/drago*.png |

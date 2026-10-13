@@ -15,6 +15,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local ClimbConfig = require(Shared:WaitForChild("ClimbConfig"))
 local EnemyConfig = require(Shared:WaitForChild("EnemyConfig"))
 local Climbing = require(script.Parent.Climbing)
+local MeshFX = require(script.Parent.MeshFX)
 
 local player = Players.LocalPlayer
 
@@ -98,6 +99,9 @@ local function onFx(kind: string, a: any, b: any, c: any)
 		end
 		local _, size = model:GetBoundingBox()
 		local feet = root.Position - Vector3.new(0, size.Y * 0.45, 0) + root.CFrame.LookVector * size.Z * 0.4
+		-- artigli e pugno dello yeti, crepe e stalagmiti del golem (i boss in grande)
+		local enemyKind = tostring(model:GetAttribute("Enemy") or model.Name)
+		MeshFX.monster(if string.find(enemyKind, "Golem") then "Golem" else "Yeti", feet, root.CFrame.LookVector, size.Y / 10)
 		local ring = fxPart(Enum.PartType.Cylinder, Vector3.new(0.3, 2, 2), ICE, CFrame.new(feet) * CFrame.Angles(0, 0, math.pi / 2))
 		ring.Transparency = 0.2
 		TweenService:Create(ring, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = Vector3.new(0.1, size.Y * 1.6, size.Y * 1.6), Transparency = 1 }):Play()

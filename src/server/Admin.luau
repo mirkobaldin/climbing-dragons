@@ -327,6 +327,9 @@ local function exec(player: Player, args: { string }): (boolean, string, string?
 	elseif cmd == "stones" then
 		Dragons.addStones(player, tonumber(args[2]) or 3)
 		return true, "Pietre dell'evoluzione aggiunte", nil
+	elseif cmd == "nosave" then
+		player:SetAttribute("NoSave", true)
+		return true, "Salvataggio spento fino all'uscita (prove)", nil
 	elseif cmd == "pass" then
 		local name = args[2] or ""
 		if DragonConfig.GAMEPASSES[name] == nil then

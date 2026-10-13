@@ -79,91 +79,165 @@ function HUD.start()
 	-- e i testi minuscoli uscivano dai riquadri.
 	local P = Ui.px
 	local shieldOn = false
+	local compact = false
+	local logical = Vector2.new(1280, 680)
+	-- colonna di sinistra: giocatore, subito sotto il drago (prima stava sotto le monete), poi
+	-- le monete. Sul telefono tutto piu' stretto e basso (UiView.compact).
 	local function layoutPlayer()
-		local h = if shieldOn then 132 else 114
-		P(me, 0, 16, 0, 16, 340, h)
-		P(Ui.node(me, "Name"), 0, 62, 0, 14, 262, 22)
-		P(me.HealthIcon, 0, 22, 0, 42, 30, 30)
-		P(me.Health, 0, 62, 0, 44, 258, 26)
-		P(me.StaminaIcon, 0, 24, 0, 76, 26, 26)
-		P(me.Stamina, 0, 62, 0, 78, 258, 20)
-		P(me.Shield, 0, 62, 0, 104, 258, 14)
-		local y = 16 + h + 8
-		P(coins, 0, 16, 0, y, 340, 50)
-		P(pet, 0, 16, 0, y + 58, 340, 96)
-		gui:SetAttribute("LeftBottom", y + 58 + (if pet.Visible then 96 else 0) + 10)
+		local x, w = if compact then 10 else 16, if compact then 250 else 340
+		local y0 = if compact then 8 else 16
+		local h
+		if compact then
+			h = if shieldOn then 88 else 76
+			P(me, 0, x, 0, y0, w, h)
+			P(Ui.node(me, "Name"), 0, 46, 0, 6, 192, 20)
+			P(me.HealthIcon, 0, 14, 0, 30, 24, 24)
+			P(me.Health, 0, 46, 0, 32, 192, 20)
+			P(me.StaminaIcon, 0, 16, 0, 55, 20, 20)
+			P(me.Stamina, 0, 46, 0, 58, 192, 12)
+			P(me.Shield, 0, 46, 0, 74, 192, 10)
+		else
+			h = if shieldOn then 132 else 114
+			P(me, 0, x, 0, y0, w, h)
+			P(Ui.node(me, "Name"), 0, 62, 0, 14, 262, 22)
+			P(me.HealthIcon, 0, 22, 0, 42, 30, 30)
+			P(me.Health, 0, 62, 0, 44, 258, 26)
+			P(me.StaminaIcon, 0, 24, 0, 76, 26, 26)
+			P(me.Stamina, 0, 62, 0, 78, 258, 20)
+			P(me.Shield, 0, 62, 0, 104, 258, 14)
+		end
+		local y = y0 + h + 6
+		if pet.Visible then
+			local ph = if compact then 58 else 92
+			P(pet, 0, x, 0, y, w, ph)
+			if compact then
+				P(pet.Element, 0, 10, 0, 9, 40, 40)
+				P(petName, 0, 58, 0, 5, 184, 20)
+				P(petLevel, 0, 58, 0, 25, 184, 16)
+				P(pet.XP, 0, 58, 0, 43, 180, 9)
+			else
+				P(pet.Element, 0, 16, 0, 12, 44, 44)
+				P(petName, 0, 70, 0, 10, 254, 22)
+				P(petLevel, 0, 70, 0, 34, 254, 20)
+				P(pet.XP, 0, 18, 0, 62, 304, 18)
+			end
+			y += ph + 6
+		end
+		local ch = if compact then 34 else 50
+		P(coins, 0, x, 0, y, w, ch)
+		if compact then
+			P(coins.Icon, 0, 10, 0, 5, 24, 24)
+			P(coinText, 0, 40, 0, 0, 90, 34)
+			P(coins.PitonIcon, 0, 136, 0, 5, 24, 24)
+			P(pitonText, 0, 166, 0, 0, 76, 34)
+		else
+			P(coins.Icon, 0, 14, 0, 8, 34, 34)
+			P(coinText, 0, 56, 0, 0, 120, 50)
+			P(coins.PitonIcon, 0, 186, 0, 8, 34, 34)
+			P(pitonText, 0, 226, 0, 0, 100, 50)
+		end
+		gui:SetAttribute("LeftBottom", y + ch + 10)
 	end
 	shieldLayout = function(on: boolean)
 		shieldOn = on
 		shieldBack.Visible = on
 		layoutPlayer()
 	end
-	-- testi: grandi e dentro i riquadri
-	Ui.text(Ui.node(me, "Name"), 18, true)
-	Ui.text(healthText, 15, true)
-	Ui.text(staminaText, 13, true)
-	Ui.text(shieldText, 10, true)
-	Ui.text(coinText, 24, true)
-	Ui.text(pitonText, 24, true)
-	P(coins.Icon, 0, 14, 0, 8, 34, 34)
-	P(coinText, 0, 56, 0, 0, 120, 50)
-	P(coins.PitonIcon, 0, 186, 0, 8, 34, 34)
-	P(pitonText, 0, 226, 0, 0, 100, 50)
-	Ui.text(petName, 17, true)
-	Ui.text(petLevel, 14)
-	Ui.text(petXpText, 12, true)
-	petStats.Visible = false -- l'attacco va nella riga del livello
-	P(pet.Element, 0, 16, 0, 12, 44, 44)
-	P(petName, 0, 70, 0, 10, 254, 22)
-	P(petLevel, 0, 70, 0, 34, 254, 20)
-	P(pet.XP, 0, 18, 0, 62, 304, 18)
-	Ui.text(weatherFallback, 30)
-	Ui.text(timeBig, 32, true)
-	Ui.text(clock, 16)
-	Ui.text(altitude, 17, true)
-	Ui.text(warmthText, 13, true)
-	Ui.text(finder, 13, true)
-	gearLabel.Visible = false -- l'elenco degli attrezzi era illeggibile: sta nello zaino
-	for _, l in { timeBig, clock, altitude } do
-		(l :: TextLabel).TextXAlignment = Enum.TextXAlignment.Left
+	local function texts()
+		local k = if compact then 0.8 else 1
+		Ui.text(Ui.node(me, "Name"), math.floor(18 * k), true)
+		Ui.text(healthText, math.floor(15 * k), true)
+		Ui.text(staminaText, if compact then 10 else 13, true)
+		Ui.text(shieldText, if compact then 8 else 10, true)
+		Ui.text(coinText, math.floor(24 * k), true)
+		Ui.text(pitonText, math.floor(24 * k), true)
+		Ui.text(petName, if compact then 14 else 17, true)
+		Ui.text(petLevel, if compact then 12 else 14)
+		Ui.text(petXpText, if compact then 8 else 12, true)
+		Ui.text(weatherFallback, if compact then 24 else 30)
+		Ui.text(timeBig, if compact then 22 else 32, true)
+		Ui.text(clock, if compact then 12 else 16)
+		Ui.text(altitude, if compact then 13 else 17, true)
+		Ui.text(warmthText, if compact then 10 else 13, true)
+		Ui.text(finder, if compact then 11 else 13, true)
+		Ui.text(questTitle, if compact then 15 else 19, true)
+		Ui.text(questText, if compact then 13 else 15)
+		Ui.text(skip, if compact then 11 else 13, true)
+		Ui.text(noticePanel.Text, if compact then 14 else 17, true)
+		Ui.text(hint, if compact then 15 else 19, true)
+		for _, l in { timeBig, clock, altitude, petName, petLevel, Ui.node(me, "Name"), questTitle, questText } do
+			(l :: TextLabel).TextXAlignment = Enum.TextXAlignment.Left
+		end
+		questText.TextTruncate = Enum.TextTruncate.AtEnd
+		petName.TextTruncate = Enum.TextTruncate.AtEnd
+		petLevel.TextTruncate = Enum.TextTruncate.AtEnd
 	end
-	Ui.text(questTitle, 19, true)
-	Ui.text(questText, 15)
-	Ui.text(skip, 13, true)
-	Ui.text(noticePanel.Text, 17, true)
-	Ui.text(hint, 19, true)
+	petStats.Visible = false -- l'attacco va nella riga del livello
+	gearLabel.Visible = false -- l'elenco degli attrezzi era illeggibile: sta nello zaino
 	local function layoutWeather()
-		local h = if finder.Visible then 186 else 148
-		P(info, 1, -16, 0, 16, 252, h, 1, 0)
-		P(weatherIcon, 0, 16, 0, 16, 58, 58)
-		P(weatherFallback, 0, 16, 0, 16, 58, 58)
-		P(timeBig, 0, 88, 0, 14, 148, 34)
-		P(clock, 0, 88, 0, 50, 148, 20)
-		P(altitude, 0, 20, 0, 84, 212, 22)
-		P(warmthBack, 0, 20, 0, 114, 212, 18)
-		P(finder, 0, 20, 0, 140, 212, 36)
+		if compact then
+			local h = 76 + (if warmthBack.Visible then 22 else 0) + (if finder.Visible then 34 else 0)
+			P(info, 1, -10, 0, 8, 214, h, 1, 0)
+			P(weatherIcon, 0, 10, 0, 10, 44, 44)
+			P(weatherFallback, 0, 10, 0, 10, 44, 44)
+			P(timeBig, 0, 62, 0, 6, 142, 26)
+			P(clock, 0, 62, 0, 32, 142, 16)
+			P(altitude, 0, 62, 0, 50, 142, 18)
+			P(warmthBack, 0, 12, 0, 76, 190, 14)
+			P(finder, 0, 12, 0, h - 34, 190, 28)
+		else
+			local h = 122 + (if warmthBack.Visible then 30 else 0) + (if finder.Visible then 42 else 0)
+			P(info, 1, -16, 0, 16, 252, h, 1, 0)
+			P(weatherIcon, 0, 16, 0, 16, 58, 58)
+			P(weatherFallback, 0, 16, 0, 16, 58, 58)
+			P(timeBig, 0, 88, 0, 14, 148, 34)
+			P(clock, 0, 88, 0, 50, 148, 20)
+			P(altitude, 0, 20, 0, 84, 212, 22)
+			P(warmthBack, 0, 20, 0, 118, 212, 18)
+			P(finder, 0, 20, 0, h - 42, 212, 36)
+		end
 	end
 	finder:GetPropertyChangedSignal("Visible"):Connect(layoutWeather)
-	Ui.viewportChanged(function(vp)
-		local logical = Ui.fitScale(gui, vp)
-		local portrait = logical.X < 340 + 470 + 252 + 64
+	warmthBack:GetPropertyChangedSignal("Visible"):Connect(layoutWeather)
+	local function layoutAll()
+		texts()
 		layoutPlayer()
 		layoutWeather()
-		if portrait then
-			-- schermo stretto: la missione sotto la colonna di sinistra
-			local below = (gui:GetAttribute("LeftBottom") or 300) :: number
-			P(quest, 0, 16, 0, below, math.min(470, logical.X - 32), 100)
+		if compact then
+			-- missione sotto la fila delle icone del menu, fra la colonna e il meteo
+			local x = 272
+			local w = math.clamp(logical.X - x - 234, 260, 470)
+			P(quest, 0, x, 0, 82, w, 66)
+			P(quest.Icon, 0, 10, 0, 10, 30, 30)
+			P(questTitle, 0, 48, 0, 6, w - 170, 20)
+			P(skip, 1, -8, 0, 6, 112, 26, 1, 0)
+			P(questText, 0, 48, 0, 28, w - 58, 34)
+			P(noticePanel, 0, x, 0, 154, w, 46)
+			P(noticePanel.Text, 0, 14, 0, 4, w - 28, 38)
+			P(hint, 0.5, 0, 1, -150, math.min(560, logical.X - 32), 26, 0.5, 1)
 		else
-			P(quest, 0.5, 0, 0, 16, 470, 100, 0.5, 0)
+			local portrait = logical.X < 340 + 470 + 252 + 64
+			if portrait then
+				-- schermo stretto: la missione sotto la colonna di sinistra
+				local below = (gui:GetAttribute("LeftBottom") or 300) :: number
+				P(quest, 0, 16, 0, below, math.min(470, logical.X - 32), 100)
+			else
+				P(quest, 0.5, 0, 0, 16, 470, 100, 0.5, 0)
+			end
+			P(quest.Icon, 0, 16, 0, 16, 40, 40)
+			P(questTitle, 0, 66, 0, 12, 250, 24)
+			P(skip, 1, -16, 0, 12, 130, 32, 1, 0)
+			P(questText, 0, 66, 0, 40, 388, 50)
+			P(noticePanel, 0.5, 0, 0, if portrait then 16 else 124, math.min(520, logical.X - 32), 58, 0.5, 0)
+			P(noticePanel.Text, 0, 22, 0, 6, math.min(520, logical.X - 32) - 44, 46)
+			P(hint, 0.5, 0, 1, -120, math.min(640, logical.X - 32), 32, 0.5, 1)
 		end
-		P(quest.Icon, 0, 16, 0, 16, 40, 40)
-		P(questTitle, 0, 66, 0, 12, 250, 24)
-		P(skip, 1, -16, 0, 12, 130, 32, 1, 0)
-		P(questText, 0, 66, 0, 40, 388, 50)
-		P(noticePanel, 0.5, 0, 0, if portrait then 16 else 124, math.min(520, logical.X - 32), 58, 0.5, 0)
 		noticePosition = noticePanel.Position
-		P(noticePanel.Text, 0, 22, 0, 6, math.min(520, logical.X - 32) - 44, 46)
-		P(hint, 0.5, 0, 1, -120, math.min(640, logical.X - 32), 32, 0.5, 1)
+	end
+	Ui.viewportChanged(function(vp)
+		logical = Ui.fitScale(gui, vp)
+		compact = Ui.compact(vp)
+		layoutAll()
 	end)
 	pet:GetPropertyChangedSignal("Visible"):Connect(layoutPlayer)
 	local function refreshPet()
@@ -320,7 +394,10 @@ function HUD.start()
 		-- tutorial, poi le missioni (stesso riquadro)
 		local tutorialLine = player:GetAttribute("TutorialText")
 		local questLine = if type(tutorialLine) == "string" then tutorialLine else player:GetAttribute("MissionText")
-		quest.Visible = type(questLine) == "string"
+		local menu = player.PlayerGui:FindFirstChild("MainMenu")
+		local menuOpen = menu ~= nil and menu:GetAttribute("MenuOpen") == true
+		info.Visible = not menuOpen
+		quest.Visible = type(questLine) == "string" and not menuOpen
 		questText.Text = if type(questLine) == "string" then questLine else ""
 		local inTutorial = type(tutorialLine) == "string"
 		questTitle.Text = if inTutorial then "Tutorial" else "Mission"

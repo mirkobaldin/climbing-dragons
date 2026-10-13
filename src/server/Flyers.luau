@@ -17,6 +17,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
+local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 local FlyerPath = require(ReplicatedStorage.Shared.FlyerPath)
 local DragonModels = require(script.Parent.DragonModels)
 local Dragons = require(script.Parent.Dragons)
@@ -486,7 +487,8 @@ local function spawn(def: UpgradeConfig.Flyer, home: Vector3, guardian: boolean,
 		return nil
 	end
 	local m = model :: Model
-	m:ScaleTo(m:GetScale() * def.scale)
+	-- l'adulto del giocatore e' passato da 22 a 33 studs: i volanti restano grandi come prima
+	m:ScaleTo(m:GetScale() * def.scale * 22 / DragonConfig.STAGES[3].size)
 	for _, d in m:GetDescendants() do
 		if d:IsA("BasePart") then
 			d.Anchored = true
@@ -512,6 +514,8 @@ local function spawn(def: UpgradeConfig.Flyer, home: Vector3, guardian: boolean,
 	hb.CanQuery = true
 	hb.Parent = m
 	m:SetAttribute("Flyer", true)
+	m:SetAttribute("Element", def.element) -- client/MeshFX: colori e forme dei morsi e dei soffi
+	m:SetAttribute("Guardian", guardian)
 	m:SetAttribute("AnimRange", 900) -- KfsPlayer: si anima anche da lontano (e' enorme)
 	m.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 	-- barra della vita

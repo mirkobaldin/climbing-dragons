@@ -123,6 +123,11 @@ local function save(player: Player)
 	if typeof(cp) == "Vector3" then
 		data.checkpoint = { cp.X, cp.Y, cp.Z }
 	end
+	-- prove in Studio (comando admin "nosave"): il Play scrive nel DataStore vero, cosi' i draghi
+	-- e le monete di prova non finiscono nel salvataggio
+	if player:GetAttribute("NoSave") then
+		return
+	end
 	local ok, err = pcall(function()
 		(store :: DataStore):SetAsync("player_" .. player.UserId, data)
 	end)

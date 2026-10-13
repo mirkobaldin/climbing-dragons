@@ -30,25 +30,50 @@ local function preview(kind: string, element: string): Instance?
 	local sub = f and f:FindFirstChild(kind)
 	return sub and sub:FindFirstChild(element)
 end
-local function grid(list: ScrollingFrame)
-	local old = list:FindFirstChildOfClass("UIListLayout")
-	if old then
-		old:Destroy()
+-- lista a righe: schede alte in pixel (UiView), spazio in fondo per arrivare all'ultima
+local function rows(list: ScrollingFrame)
+	local layout = list:FindFirstChildOfClass("UIListLayout")
+	if not layout then
+		layout = Instance.new("UIListLayout")
+		layout.Parent = list
 	end
-	local layout = Instance.new("UIGridLayout")
-	layout.CellPadding = UDim2.fromScale(0.02, 0.025)
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Parent = list
-	local function resize()
-		layout.CellSize =
-			UDim2.fromScale(if list.AbsoluteSize.X >= 540 then 0.48 else 0.97, 180 / math.max(1, list.AbsoluteSize.Y))
+	local l = layout :: UIListLayout
+	l.Padding = UDim.new(0, 8)
+	l.SortOrder = Enum.SortOrder.LayoutOrder
+	l.HorizontalAlignment = Enum.HorizontalAlignment.Left
+	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	list.CanvasSize = UDim2.new()
+	list.ScrollBarThickness = 6
+	list.ScrollingDirection = Enum.ScrollingDirection.Y
+	list.ElasticBehavior = Enum.ElasticBehavior.Always
+	if not list:FindFirstChild("Margine") then
+		local pad = Instance.new("UIPadding")
+		pad.Name = "Margine"
+		pad.PaddingTop = UDim.new(0, 2)
+		pad.PaddingBottom = UDim.new(0, 24)
+		pad.PaddingRight = UDim.new(0, 4)
+		pad.Parent = list
 	end
-	list:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
-	resize()
+end
+-- riquadro a tessere dentro una lista (zaino): griglia a celle fisse, alta quanto serve
+local function tiles(parent: Instance, order: number): Frame
+	local f = Instance.new("Frame")
+	f.Name = "Tessere"
+	f.BackgroundTransparency = 1
+	f.Size = UDim2.new(1, -12, 0, 0)
+	f.AutomaticSize = Enum.AutomaticSize.Y
+	f.LayoutOrder = order
+	local g = Instance.new("UIGridLayout")
+	g.CellSize = UDim2.fromOffset(136, 148)
+	g.CellPadding = UDim2.fromOffset(10, 10)
+	g.SortOrder = Enum.SortOrder.LayoutOrder
+	g.Parent = f
+	f.Parent = parent
+	return f
 end
 local function mountShop(container: Frame, status: (string, boolean) -> ()): () -> ()
 	local list = Ui.node(container, "List")
-	grid(list)
+	rows(list)
 	local sub = "Buy"
 	local render: () -> ()
 	local function call(action: string, id: string?, amount: any?)
@@ -66,17 +91,13 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 	render = function()
 		Ui.clear(list)
 		for _, name in { "Buy", "Sell", "Robux" } do
-			Ui.node(container, "Tabs/" .. name).BackgroundColor3 = if name == sub then Theme.ACCENT else Theme.CARD
+			Ui.selected(Ui.node(container, "Tabs/" .. name), name == sub, Theme.ACCENT, Theme.CARD)
 		end
 		if sub == "Buy" then
 			for k, item in ShopConfig.ITEMS do
 				local c = card(k)
 				local egg = item.id == "MysteryEgg" or item.id == "RareEgg"
-				Theme.assetPreview(
-					c.Icon,
-					if egg then "icon_egg" elseif item.id == "Pitons" then "icon_piton" else "",
-					if egg then preview("Eggs", "Cosmico") else Theme.itemModel(item.id, item.color)
-				)
+				Theme.itemIcon(c.Icon, item.id, if egg then preview("Eggs", "Cosmico") else Theme.itemModel(item.id, item.color))
 				c.Title.Text, c.Description.Text = item.name, item.description
 				c.Cost.Text = string.format("%d coins", item.price)
 				Ui.asset(c.Coin, "icon_coin")
@@ -154,13 +175,12 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 end
 local function mountInventory(container: Frame): () -> ()
 	local list = Ui.node(container, "List")
-	grid(list)
+	rows(list)
 	return function()
 		Ui.clear(list)
 		local summary = Ui.template("TextCard", list)
 		summary.LayoutOrder = 0
-		summary.SizeLimit.MinSize = Vector2.new(0, 142)
-		summary.SizeLimit.MaxSize = Vector2.new(10000, 142)
+		local grid = tiles(list, 1)
 		local house = EconomyConfig.HOUSES[(player:GetAttribute("HouseLevel") or 0) :: number]
 		summary.Text.Text = string.format(
 			"%d coins\nHouse: %s\nDragons at home: %d coins/min\nPitons: %d · Warmth: %d%%",
@@ -171,15 +191,20 @@ local function mountInventory(container: Frame): () -> ()
 			math.floor((player:GetAttribute("Warmth") or 100) :: number)
 		)
 		local order = 0
-		local function item(title: string, count: string, asset: string, model: Instance?)
+		local function item(title: string, count: string, asset: string, model: Instance?, id: string?): any
 			order += 1
-			local c = Ui.template("InventoryCard", list)
+			local c = Ui.template("InventoryCard", grid)
 			c.LayoutOrder = order
 			c.Title.Text, c.Count.Text = title, count
-			Theme.assetPreview(c.Icon, asset, model)
+			if asset == "" and Theme.ITEM_ICONS[id or ""] then
+				Theme.itemIcon(c.Icon, id :: string, model)
+			else
+				Theme.assetPreview(c.Icon, asset, model)
+			end
+			return c
 		end
 		for _, ore in ORES do
-			item(Names.t(ore), tostring(oreCount(ore)), "ore_" .. ore, Theme.oreModel(ore))
+			item(Names.t(ore), "x" .. oreCount(ore), "ore_" .. ore, Theme.oreModel(ore))
 		end
 		local mats = player:FindFirstChild("Materiali")
 		local icons = RS:FindFirstChild("DropIcone")
@@ -193,19 +218,25 @@ local function mountInventory(container: Frame): () -> ()
 				local shown = names and names:GetAttribute(v.Name)
 				item(
 					if type(shown) == "string" then shown else Names.t(v.Name),
-					tostring(v.Value),
+					"x" .. v.Value,
 					"",
 					icons and icons:FindFirstChild(v.Name)
 				)
 			end
 		end
 		for _, recipe in Gear.RECIPES do
-			item(
+			local owned = Gear.has(player, recipe.id)
+			local c = item(
 				recipe.name,
-				if Gear.has(player, recipe.id) then "Owned" else "Not owned",
+				if owned then "Owned" else "",
 				"",
-				Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT)
+				Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT),
+				recipe.id
 			)
+			-- attrezzi che non hai ancora: sbiaditi (si fanno al banco, scheda Crafting)
+			c.Count.TextColor3 = Theme.GOOD
+			c.Icon.ImageTransparency = if owned then 0 else 0.6
+			c.Title.TextTransparency = if owned then 0 else 0.4
 		end
 	end
 end
@@ -229,7 +260,12 @@ function MainMenu.start()
 	for k, n in { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" } do
 		column[n].LayoutOrder = k
 	end
-	column.NascondiIcone.Visible = false
+	-- Hide/Show: fuori dalla griglia, sopra le icone (sul telefono a sinistra della fila)
+	local toggle = column.NascondiIcone
+	toggle.Parent = gui
+	toggle.Visible = true
+	Ui.text(toggle, 14, true)
+	toggle.TextColor3 = Color3.fromRGB(240, 240, 242)
 	if not column.Teleport:FindFirstChild("Icon") then
 		local icon = column.Store.Icon:Clone()
 		icon.Parent = column.Teleport
@@ -262,6 +298,58 @@ function MainMenu.start()
 	end
 	column.Teleport.Text = if UIS.TouchEnabled then "Travel" else "Travel (T)"
 	local content = window.Content
+	-- la finestra sopra l'HUD (prima il meteo le restava disegnato sopra)
+	local hudGui = player.PlayerGui:FindFirstChild("ClimbHUD")
+	if hudGui and hudGui:IsA("ScreenGui") then
+		gui.DisplayOrder = math.max(gui.DisplayOrder, hudGui.DisplayOrder + 1)
+	end
+	-- impaginazione interna in pixel: titolo, chiusura, contenuto, stato
+	Ui.px(window.Title, 0.5, 0, 0, 12, 420, 46, 0.5, 0)
+	window.Title.TextXAlignment = Enum.TextXAlignment.Center
+	Ui.px(window.Close, 1, -12, 0, 10, 50, 50, 1, 0)
+	local closeLimit = window.Close:FindFirstChild("SizeLimit")
+	if closeLimit then
+		closeLimit:Destroy()
+	end
+	Ui.px(window.Status, 0, 18, 1, -8, 600, 28, 0, 1)
+	window.Status.Size = UDim2.new(1, -36, 0, 28)
+	Ui.text(window.Status, 15, true)
+	content.Position = UDim2.fromOffset(18, 70)
+	content.Size = UDim2.new(1, -36, 1, -110)
+	local windowLimit = window:FindFirstChild("SizeLimit")
+	if windowLimit then
+		windowLimit:Destroy()
+	end
+	for _, tabbed in { content.Store, content.Upgrades } do
+		tabbed.Tabs.Size = UDim2.new(1, 0, 0, 44)
+		for _, b in tabbed.Tabs:GetChildren() do
+			if b:IsA("GuiObject") then
+				b.Size = UDim2.new(1 / 3, -8, 1, 0)
+				local lim = b:FindFirstChild("SizeLimit")
+				if lim then
+					lim:Destroy()
+				end
+			end
+		end
+		tabbed.List.Position = UDim2.fromOffset(0, 54)
+		tabbed.List.Size = UDim2.new(1, 0, 1, -54)
+	end
+	local dragonsTab = content.Dragons
+	dragonsTab.Header.Size = UDim2.new(1, 0, 0, 24)
+	Ui.text(dragonsTab.Header, 14, true)
+	dragonsTab.Header.TextXAlignment = Enum.TextXAlignment.Left
+	dragonsTab.Body.Position = UDim2.fromOffset(0, 30)
+	dragonsTab.Body.Size = UDim2.new(1, 0, 1, -30)
+	for _, side in { dragonsTab.Body.Nest, dragonsTab.Body.Dragons } do
+		side.Title.Size = UDim2.new(1, 0, 0, 26)
+		Ui.text(side.Title, 17, true)
+		side.Title.TextXAlignment = Enum.TextXAlignment.Left
+		side.List.Position = UDim2.fromOffset(0, 30)
+		side.List.Size = UDim2.new(1, 0, 1, -30)
+		rows(side.List)
+	end
+	rows(content.Crafting.List)
+	rows(content.Upgrades.List)
 	-- pulsanti delle sotto-schede (Buy / Sell, Upgrades / Bounties...) con testo leggibile
 	for _, d in content:GetDescendants() do
 		if d:IsA("TextButton") and d.Parent and d.Parent.Name == "Tabs" then
@@ -270,6 +358,10 @@ function MainMenu.start()
 	end
 	Ui.text(window.Title, 24, true)
 	Ui.skin(window.Title, "panel_header")
+	local caption = window.Title:FindFirstChild("AssetCaption")
+	if caption and caption:IsA("TextLabel") then
+		caption.TextXAlignment = Enum.TextXAlignment.Center
+	end
 	local function status(message: string, ok: boolean)
 		window.Status.Text = message
 		window.Status.TextColor3 = if ok then Theme.GOOD else Theme.BAD
@@ -282,9 +374,11 @@ function MainMenu.start()
 		if not name or current == name then
 			window.Visible = false
 			current = nil
+			gui:SetAttribute("MenuOpen", false)
 			return
 		end
 		current = name
+		gui:SetAttribute("MenuOpen", true)
 		window.Title.Text = if name == "Store" then "Shop" else name
 		window.Status.Text = ""
 		for _, n in names do
@@ -327,37 +421,69 @@ function MainMenu.start()
 		end
 	end)
 	local expanded = true
-	column.NascondiIcone.Activated:Connect(function()
+	local function showIcons()
+		column.Visible = expanded
+		toggle.Text = if expanded then "Hide" else "Menu"
+	end
+	toggle.Activated:Connect(function()
 		expanded = not expanded
-		for _, n in names do
-			column[n].Visible = expanded
-		end
-		column.Teleport.Visible = expanded
-		column.NascondiIcone.Text = if expanded then "Hide" else "Show"
+		showIcons()
 	end)
+	showIcons()
+	local logical, compact = Vector2.new(1280, 680), false
 	Ui.viewportChanged(function(vp)
-		local portrait = vp.X < vp.Y
-		window.Position = UDim2.fromScale(if portrait then 0.5 else 0.56, 0.5)
-		window.Size = UDim2.fromScale(if portrait then 0.97 else 0.83, 0.9)
-		-- stessa scala dell'HUD; la colonna sotto il pannello del drago (attributo LeftBottom)
-		local logical = Ui.fitScale(gui, vp)
+		-- stessa scala dell'HUD (pixel logici). Computer: icone in colonna sotto il pannello del
+		-- drago (attributo LeftBottom dell'HUD), finestra a destra della colonna. Telefono: icone
+		-- in fila in alto fra i pannelli di sinistra e il meteo (in basso ci sono joystick e salto),
+		-- finestra a tutto schermo.
+		logical = Ui.fitScale(gui, vp)
+		compact = Ui.compact(vp)
 		local hud = player.PlayerGui:FindFirstChild("ClimbHUD")
 		local function place()
-			local top = ((hud and hud:GetAttribute("LeftBottom")) or 300) :: number
-			local rows = math.clamp(math.floor((logical.Y - top - 16 + 8) / 86), 1, 6)
-			local cols = math.ceil(6 / rows)
-			Ui.px(column, 0, 16, 0, top, cols * 86, math.ceil(6 / cols) * 86)
+			local cell = if compact then 58 else 78
+			local step = cell + 8
+			grid.CellSize = UDim2.fromOffset(cell, cell)
+			for _, n in { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" } do
+				column[n].Size = UDim2.fromOffset(cell, cell)
+				local cap = column[n]:FindFirstChild("AssetCaption")
+				if cap and cap:IsA("TextLabel") then
+					cap.TextSize = if compact then 11 else 13
+				end
+			end
+			local wx, wy, ww, wh
+			if compact then
+				local x0 = 272
+				local room = logical.X - 230 - (x0 + 66)
+				local cols = math.clamp(math.floor(room / step), 3, 6)
+				Ui.px(toggle, 0, x0, 0, 8, 58, 28)
+				Ui.px(column, 0, x0 + 66, 0, 8, cols * step, math.ceil(6 / cols) * step)
+				wx, wy, ww, wh = 8, 8, logical.X - 16, logical.Y - 16
+			else
+				local top = ((hud and hud:GetAttribute("LeftBottom")) or 300) :: number
+				Ui.px(toggle, 0, 16, 0, top, 96, 30)
+				local rowsFit = math.clamp(math.floor((logical.Y - top - 40 - 16 + 8) / step), 1, 6)
+				local cols = math.ceil(6 / rowsFit)
+				Ui.px(column, 0, 16, 0, top + 38, cols * step, math.ceil(6 / cols) * step)
+				local x = math.max(356, 16 + cols * step) + 14
+				ww = math.min(logical.X - x - 16, 1060)
+				wx, wy, wh = x + (logical.X - x - 16 - ww) / 2, 16, logical.Y - 32
+			end
+			window.AnchorPoint = Vector2.zero
+			window.Position = UDim2.fromOffset(wx, wy)
+			window.Size = UDim2.fromOffset(ww, wh)
+			-- draghi: nido e collezione affiancati, uno sopra l'altro se la finestra e' stretta
+			local narrow = ww < 720
+			local body = content.Dragons.Body
+			body.Nest.Position = UDim2.fromScale(0, 0)
+			body.Nest.Size = UDim2.fromScale(if narrow then 1 else 0.34, if narrow then 0.36 else 1)
+			body.Dragons.Position = UDim2.fromScale(if narrow then 0 else 0.36, if narrow then 0.39 else 0)
+			body.Dragons.Size = UDim2.fromScale(if narrow then 1 else 0.64, if narrow then 0.61 else 1)
 		end
 		place()
 		if hud and not hud:GetAttribute("MenuBound") then
 			hud:SetAttribute("MenuBound", true)
 			hud:GetAttributeChangedSignal("LeftBottom"):Connect(place)
 		end
-		local body = content.Dragons.Body
-		body.Nest.Position = UDim2.fromScale(0, 0)
-		body.Nest.Size = UDim2.fromScale(if portrait then 1 else 0.36, if portrait then 0.4 else 1)
-		body.Dragons.Position = UDim2.fromScale(if portrait then 0 else 0.38, if portrait then 0.43 else 0)
-		body.Dragons.Size = UDim2.fromScale(if portrait then 1 else 0.62, if portrait then 0.57 else 1)
 	end)
 	for eventName, tabName in { OpenShop = "Store", OpenCrafting = "Crafting", OpenDragons = "Dragons" } do
 		(remotes:WaitForChild(eventName) :: RemoteEvent).OnClientEvent:Connect(function()
@@ -401,8 +527,8 @@ function MainMenu.start()
 	task.spawn(function()
 		while gui.Parent do
 			task.wait(1)
-			if current == "Dragons" then
-				refreshOpen()
+			if current == "Dragons" and DragonUI.tick() then
+				refreshOpen() -- un uovo e' pronto: compare il pulsante Hatch
 			end
 		end
 	end)

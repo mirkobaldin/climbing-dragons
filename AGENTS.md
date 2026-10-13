@@ -58,6 +58,12 @@ uova e draghi familiari. Il codice e' sincronizzato in Studio con **Rojo** (`def
 - Suoni: tutti gli id in `src/shared/SoundConfig.luau`, si suonano per nome con `client/Sfx`.
 - Effetti visivi: libreria `ReplicatedStorage.VFXLib` (emitter flipbook e mesh copiati in Studio dai
   pacchetti di Mirko, ora in `ServerStorage.VFXSorgente`), usata da `client/VFXKit` (draghi, cristalli).
+  Le 66 mesh di Codex `VFX_01..66` stanno in `VFXLib.Mesh` (ID in `server/VFXMeshes`, che ricrea quelle
+  mancanti; come caricarne altre: `tools/vfx/LEGGIMI.md`). Elemento -> carica/colpo/impatto/speciale,
+  mostri e draghi volanti: `client/MeshFX`; animazione e riuso delle copie: `VFXKit.play`.
+- Interfaccia sul telefono: `UiView.compact` (schermi bassi) impagina HUD e menu in modo compatto; per
+  provarla dal computer metti al giocatore l'attributo `SimViewport = Vector2.new(844, 354)`.
+  Prove in Play senza toccare il salvataggio vero: comando admin `nosave`.
 - Prima di pubblicare: comando admin `uscita` (o l'Output del Play in Studio, righe `[Uscita]`).
 - Animazioni: salvate in `ServerStorage.RBX_ANIMSAVES` (Rig del personaggio e `Drago_Ombra_Rig`); in Studio il loader le usa direttamente, nel gioco pubblicato servono gli ID in `ClimbConfig` / `DragonConfig`.
 

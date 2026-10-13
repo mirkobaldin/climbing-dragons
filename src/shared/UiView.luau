@@ -201,15 +201,17 @@ function UiView.screen(name: string): ScreenGui
 	return made
 end
 
--- Stile delle schede del menu: righe compatte con testi grandi e il pulsante a destra (prima
--- riquadri alti mezza finestra con scritte minuscole). Le schede in griglia (negozio, zaino,
--- draghi) tengono la cella della griglia: si ingrandiscono solo i testi.
+-- Stile delle schede del menu, tutto in pixel logici (la ScreenGui ha una scala unica, vedi
+-- fitScale). Prima le schede erano alte in percentuale della lista (0.5 = mezza finestra):
+-- enormi, con i testi minuscoli e, nella lista a scorrimento automatico, gli ultimi elementi
+-- non si raggiungevano. Righe: immagine a sinistra, testi al centro, pulsanti a destra.
 local U = UDim2.new
 local function sized(o: Instance?, size: number, bold: boolean?)
 	if o and (o:IsA("TextLabel") or o:IsA("TextButton")) then
 		o.TextScaled = false
 		o.TextSize = size
 		o.TextWrapped = true
+		o.TextTruncate = Enum.TextTruncate.AtEnd
 		if bold ~= nil then
 			o.Font = if bold then Enum.Font.GothamBlack else Enum.Font.GothamBold
 		end
@@ -222,80 +224,210 @@ local function place(o: Instance?, pos: UDim2, size: UDim2, anchor: Vector2?)
 		o.Size = size
 	end
 end
+local function left(o: Instance?)
+	if o and (o:IsA("TextLabel") or o:IsA("TextButton")) then
+		o.TextXAlignment = Enum.TextXAlignment.Left
+		o.TextYAlignment = Enum.TextYAlignment.Center
+	end
+end
 local RIGHT = Vector2.new(1, 0.5)
+local BUTTONS = 172 -- spazio a destra per i pulsanti
 local CARD_STYLE: { [string]: (any) -> () } = {
 	UpgradeCard = function(c)
-		c.Size = U(1, -10, 0, 124)
-		place(c.Icon, U(0, 16, 0, 16), U(0, 60, 0, 60))
+		c.Size = U(1, -12, 0, 118)
+		place(c.Icon, U(0, 14, 0, 14), U(0, 64, 0, 64))
 		sized(c.Icon, 36)
-		place(c.Title, U(0, 90, 0, 12), U(1, -270, 0, 24))
+		place(c.Title, U(0, 92, 0, 10), U(1, -92 - BUTTONS, 0, 24))
 		sized(c.Title, 18, true)
-		place(c.Description, U(0, 90, 0, 38), U(1, -270, 0, 22))
+		place(c.Description, U(0, 92, 0, 34), U(1, -92 - BUTTONS, 0, 20))
 		sized(c.Description, 14)
-		place(c.Effect, U(0, 90, 0, 62), U(1, -270, 0, 22))
+		place(c.Effect, U(0, 92, 0, 56), U(1, -92 - BUTTONS, 0, 20))
 		sized(c.Effect, 14, true)
-		place(c.Cost, U(0, 90, 0, 88), U(1, -270, 0, 24))
+		place(c.Cost, U(0, 92, 0, 82), U(1, -92 - BUTTONS, 0, 22))
 		sized(c.Cost, 14, true)
-		place(c.Action, U(1, -18, 0.5, 0), U(0, 160, 0, 48), RIGHT)
-		sized(c.Action, 17, true)
+		for _, o in { c.Title, c.Description, c.Effect, c.Cost } do
+			left(o)
+		end
+		place(c.Action, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 46), RIGHT)
+		sized(c.Action, 16, true)
 	end,
 	BountyCard = function(c)
-		c.Size = U(1, -10, 0, 104)
-		place(c.Title, U(0, 18, 0, 12), U(1, -220, 0, 24))
+		c.Size = U(1, -12, 0, 96)
+		place(c.Title, U(0, 16, 0, 10), U(1, -16 - BUTTONS, 0, 24))
 		sized(c.Title, 17, true)
-		place(c.Progress, U(0, 18, 0, 44), U(1, -220, 0, 14))
-		place(c.Reward, U(0, 18, 0, 64), U(1, -220, 0, 28))
+		place(c.Progress, U(0, 16, 0, 40), U(1, -16 - BUTTONS, 0, 16))
+		place(c.Reward, U(0, 16, 0, 62), U(1, -16 - BUTTONS, 0, 24))
 		sized(c.Reward, 14)
-		place(c.Claim, U(1, -18, 0.5, 0), U(0, 160, 0, 48), RIGHT)
+		left(c.Title)
+		left(c.Reward)
+		place(c.Claim, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 46), RIGHT)
 		sized(c.Claim, 16, true)
 	end,
 	RebirthCard = function(c)
-		c.Size = U(1, -10, 0, 240)
-		sized(c.Title, 26, true)
-		sized(c.Description, 16)
-		sized(c.Cost, 16, true)
-		sized(c.Action, 18, true)
+		c.Size = U(1, -12, 0, 230)
+		place(c.Title, U(0, 16, 0, 12), U(1, -32, 0, 30))
+		sized(c.Title, 24, true)
+		place(c.Description, U(0, 16, 0, 48), U(1, -32, 0, 96))
+		sized(c.Description, 15)
+		c.Description.TextTruncate = Enum.TextTruncate.None
+		place(c.Cost, U(0, 16, 0, 148), U(1, -32, 0, 22))
+		sized(c.Cost, 15, true)
+		place(c.Action, U(0.5, 0, 1, -14), U(0, 240, 0, 46), Vector2.new(0.5, 1))
+		sized(c.Action, 17, true)
 	end,
 	TextCard = function(c)
-		sized(c.Text, 16)
+		-- alta quanto il testo (AutomaticSize dentro la lista non contava le righe a capo)
+		local label = c.Text :: TextLabel
+		c.Size = U(1, -12, 0, 60)
+		place(label, U(0, 16, 0, 12), U(1, -32, 0, 36))
+		sized(label, 15)
+		label.TextTruncate = Enum.TextTruncate.None
+		left(label)
+		label.TextYAlignment = Enum.TextYAlignment.Top
+		local function fit()
+			-- larghezza vera senza la scala della schermata (UIScale), poi l'altezza del testo a capo
+			local scale = 1
+			local gui = c:FindFirstAncestorWhichIsA("ScreenGui")
+			local u = gui and gui:FindFirstChild("ScalaUI")
+			if u and u:IsA("UIScale") then
+				scale = u.Scale
+			end
+			local width = label.AbsoluteSize.X / scale
+			if width < 10 then
+				return
+			end
+			local size = game:GetService("TextService"):GetTextSize(label.Text, label.TextSize, label.Font, Vector2.new(width, 10000))
+			local h = math.max(20, size.Y + 4)
+			label.Size = U(1, -32, 0, h)
+			c.Size = U(1, -12, 0, h + 26)
+		end
+		label:GetPropertyChangedSignal("Text"):Connect(fit)
+		label:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+		task.defer(fit)
 	end,
 	Heading = function(c)
 		if c:IsA("TextLabel") then
-			c.Size = U(1, -10, 0, 34)
-			sized(c, 20, true)
+			c.Size = U(1, -12, 0, 32)
+			sized(c, 19, true)
+			left(c)
 		end
 	end,
 	ItemCard = function(c)
+		c.Size = U(1, -12, 0, 104)
+		place(c.Icon, U(0, 12, 0.5, 0), U(0, 80, 0, 80), Vector2.new(0, 0.5))
+		place(c.Title, U(0, 104, 0, 10), U(1, -104 - BUTTONS, 0, 24))
 		sized(c.Title, 17, true)
+		place(c.Description, U(0, 104, 0, 34), U(1, -104 - BUTTONS, 0, 32))
 		sized(c.Description, 14)
-		sized(c.Cost, 16, true)
+		c.Description.TextYAlignment = Enum.TextYAlignment.Top
+		place(c.Coin, U(0, 104, 0, 68), U(0, 22, 0, 22))
+		place(c.Cost, U(0, 132, 0, 67), U(1, -132 - BUTTONS, 0, 24))
+		sized(c.Cost, 15, true)
+		for _, o in { c.Title, c.Description, c.Cost } do
+			left(o)
+		end
+		c.Description.TextYAlignment = Enum.TextYAlignment.Top
+		place(c.Buy, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 46), RIGHT)
 		sized(c.Buy, 16, true)
+		place(c.SellActions, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 88), RIGHT)
+		place(c.SellActions.One, U(0, 0, 0, 0), U(1, 0, 0, 40))
+		place(c.SellActions.All, U(0, 0, 1, 0), U(1, 0, 0, 40), Vector2.new(0, 1))
+		sized(c.SellActions.One, 15, true)
+		sized(c.SellActions.All, 15, true)
 	end,
 	RecipeCard = function(c)
+		c.Size = U(1, -12, 0, 118)
+		place(c.Preview, U(0, 12, 0.5, 0), U(0, 92, 0, 92), Vector2.new(0, 0.5))
+		place(c.Title, U(0, 116, 0, 10), U(1, -116 - BUTTONS, 0, 24))
 		sized(c.Title, 17, true)
-		sized(c.Description, 14)
+		place(c.Description, U(0, 116, 0, 34), U(1, -116 - BUTTONS, 0, 36))
+		sized(c.Description, 13)
+		c.Description.TextYAlignment = Enum.TextYAlignment.Top
+		place(c.Materials, U(0, 116, 0, 76), U(1, -116 - BUTTONS, 0, 30))
+		left(c.Title)
+		left(c.Description)
+		c.Description.TextYAlignment = Enum.TextYAlignment.Top
+		place(c.Craft, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 46), RIGHT)
 		sized(c.Craft, 16, true)
 	end,
+	Material = function(c)
+		place(c.Icon, U(0, 0, 0.5, 0), U(0, 28, 0, 28), Vector2.new(0, 0.5))
+		place(c.Text, U(0, 32, 0, 0), U(1, -32, 1, 0))
+		sized(c.Text, 14, true)
+		left(c.Text)
+	end,
+	-- zaino: tessere quadrate in griglia (cella fissa, vedi MainMenu)
 	InventoryCard = function(c)
-		sized(c.Title, 15, true)
-		sized(c.Count, 16, true)
+		place(c.Icon, U(0.5, 0, 0, 10), U(0, 84, 0, 84), Vector2.new(0.5, 0))
+		place(c.Title, U(0, 8, 1, -34), U(1, -16, 0, 22))
+		sized(c.Title, 14, true)
+		c.Title.TextXAlignment = Enum.TextXAlignment.Center
+		place(c.Count, U(1, -12, 0, 12), U(0, 70, 0, 20), Vector2.new(1, 0))
+		sized(c.Count, 15, true)
+		c.Count.TextXAlignment = Enum.TextXAlignment.Right
+		c.Count.TextStrokeTransparency = 0.3
+		c.Count.ZIndex = 5
 	end,
 	EggCard = function(c)
+		c.Size = U(1, -10, 0, 104)
+		place(c.Icon, U(0, 10, 0.5, 0), U(0, 76, 0, 76), Vector2.new(0, 0.5))
+		place(c.Title, U(0, 94, 0, 8), U(1, -102, 0, 40))
 		sized(c.Title, 15, true)
-		sized(c.Time, 15)
-		sized(c.Hatch, 16, true)
+		place(c.Time, U(0, 94, 0, 50), U(1, -102, 0, 18))
+		sized(c.Time, 13)
+		place(c.Hatch, U(0, 94, 1, -8), U(1, -102, 0, 32), Vector2.new(0, 1))
+		sized(c.Hatch, 15, true)
+		left(c.Title)
+		left(c.Time)
 	end,
+	-- draghi: anteprima grande a sinistra, testi, barra XP e una riga di pulsanti (DragonUI li
+	-- distribuisce secondo quelli visibili)
 	DragonCard = function(c)
+		c.Size = U(1, -12, 0, 140)
+		place(c.Preview, U(0, 10, 0.5, 0), U(0, 120, 0, 120), Vector2.new(0, 0.5))
+		place(c.Element, U(0, 12, 0, 12), U(0, 30, 0, 30))
+		c.Element.ZIndex = 5
+		place(c.Title, U(0, 142, 0, 10), U(1, -154, 0, 22))
 		sized(c.Title, 16, true)
+		place(c.Ability, U(0, 142, 0, 34), U(1, -154, 0, 32))
 		sized(c.Ability, 13)
-		sized(c.Follow, 15, true)
-		sized(c.Evolve, 15, true)
-		sized(c.Sell, 15, true)
-	end,
-	Material = function(c)
-		sized(c.Text, 14, true)
+		left(c.Title)
+		left(c.Ability)
+		c.Ability.TextYAlignment = Enum.TextYAlignment.Top
+		place(c.XP, U(0, 142, 0, 70), U(1, -154, 0, 18))
+		sized(c.XP.Text, 12, true)
+		for _, b in { c.Follow, c.Evolve, c.Sell } do
+			sized(b, 14, true)
+		end
 	end,
 }
+
+-- scheda scelta (Buy/Sell/Robux, Upgrades/Bounties...): con l'immagine il colore di fondo non
+-- si vede, quindi le altre si scuriscono
+function UiView.selected(button: GuiObject, on: boolean, onColor: Color3, offColor: Color3)
+	button.BackgroundColor3 = if on then onColor else offColor
+	local surface = button:FindFirstChild("AssetSurface")
+	if surface and surface:IsA("ImageLabel") then
+		surface.ImageColor3 = if on then Color3.new(1, 1, 1) else Color3.fromRGB(110, 120, 140)
+	end
+end
+
+-- distribuisce in una riga i pulsanti visibili (da x a destra, alti h, alla quota y)
+function UiView.row(buttons: { GuiObject }, x: number, y: number, h: number, gap: number?)
+	local shown = {}
+	for _, b in buttons do
+		if b.Visible then
+			table.insert(shown, b)
+		end
+	end
+	local n = #shown
+	local g = gap or 8
+	for i, b in shown do
+		b.AnchorPoint = Vector2.zero
+		b.Position = UDim2.new((i - 1) / n, x - (i - 1) * (x + 12) / n + (i - 1) * g / n, 0, y)
+		b.Size = UDim2.new(1 / n, -(x + 12) / n - g * (n - 1) / n, 0, h)
+	end
+end
 
 function UiView.template(name: string, parent: Instance): any
 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -309,6 +441,7 @@ function UiView.template(name: string, parent: Instance): any
 		local limit = copy:FindFirstChild("SizeLimit")
 		if limit and limit:IsA("UISizeConstraint") then
 			limit.MinSize = Vector2.zero
+			limit.MaxSize = Vector2.new(math.huge, math.huge)
 		end
 		pcall(style, copy)
 	end
@@ -321,6 +454,19 @@ function UiView.clear(root: Instance)
 	for _, child in root:GetChildren() do
 		if child:IsA("GuiObject") then
 			child:Destroy()
+		end
+	end
+	-- le liste si ricostruiscono spesso (monete, draghi, minerali): si resta dove si era
+	-- arrivati scorrendo invece di tornare in cima
+	if root:IsA("ScrollingFrame") then
+		local at = root.CanvasPosition
+		if at.Y > 0 then
+			task.defer(function()
+				root.CanvasPosition = at
+				task.delay(0.05, function()
+					root.CanvasPosition = at
+				end)
+			end)
 		end
 	end
 end
@@ -355,8 +501,25 @@ end
 -- Scala unica di una schermata: tutto si disegna in pixel "logici" per uno schermo di
 -- 1280x680 e un UIScale sulla ScreenGui lo adatta (telefono piu' piccolo, monitor grande piu'
 -- grande). Restituisce la grandezza logica dello schermo.
+-- Schermi bassi (telefono, 844x390 meno la barra di Roblox) usano l'impaginazione compatta,
+-- pensata per 1000x430 logici: con la scala del computer i testi diventavano di 7 pixel.
+function UiView.compact(vp: Vector2): boolean
+	return vp.Y < 560 or (game:GetService("UserInputService").TouchEnabled and vp.Y < 760)
+end
+
+-- Prova del telefono dal computer: attributo SimViewport (Vector2, es. 844x354) sul giocatore.
+-- Le schermate si impaginano come su quello schermo, ingrandite fino alla larghezza vera (in
+-- basso resta un po' di spazio in piu').
+local simReal: Vector2? = nil
+
 function UiView.fitScale(gui: ScreenGui, vp: Vector2): Vector2
-	local s = math.clamp(math.min(vp.X / 1280, vp.Y / 680), 0.55, 1.6)
+	local s = if UiView.compact(vp)
+		then math.clamp(math.min(vp.X / 960, vp.Y / 430), 0.6, 1.2)
+		else math.clamp(math.min(vp.X / 1280, vp.Y / 680), 0.55, 1.6)
+	local logical = vp / s
+	if simReal then
+		s = simReal.X / logical.X
+	end
 	local u = gui:FindFirstChild("ScalaUI") :: UIScale?
 	if not u then
 		local nu = Instance.new("UIScale")
@@ -365,7 +528,7 @@ function UiView.fitScale(gui: ScreenGui, vp: Vector2): Vector2
 		u = nu
 	end
 	(u :: UIScale).Scale = s
-	return vp / s
+	return logical
 end
 
 -- posiziona in pixel logici: (ax, x) e (ay, y) come UDim, w e h in pixel; anchor opzionale
@@ -402,10 +565,18 @@ function UiView.viewportChanged(callback: (Vector2) -> ())
 		local function update()
 			local topLeft, bottomRight = GuiService:GetGuiInset()
 			local size = camera.ViewportSize - topLeft - bottomRight
+			local sim = Players.LocalPlayer:GetAttribute("SimViewport")
+			if typeof(sim) == "Vector2" then
+				simReal = size
+				size = sim
+			else
+				simReal = nil
+			end
 			callback(Vector2.new(math.max(1, size.X), math.max(1, size.Y)))
 		end
 		connection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(update)
 		update()
+		Players.LocalPlayer:GetAttributeChangedSignal("SimViewport"):Connect(update)
 	end
 	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bind)
 	bind()

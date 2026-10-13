@@ -48,12 +48,17 @@ local function petOf(userId: number, dragonId: number?): Model?
 	if not folder then
 		return nil
 	end
+	-- senza id: il drago del posto 1 (quello che si addestra e attacca; il server usa lo stesso)
+	local first: Model? = nil
 	for _, m in folder:GetChildren() do
 		if m:IsA("Model") and (not dragonId or m:GetAttribute("DragonId") == dragonId) then
-			return m
+			if dragonId or (m:GetAttribute("Slot") or 1) == 1 then
+				return m
+			end
+			first = first or m
 		end
 	end
-	return nil
+	return first
 end
 
 -- punto da cui parte il colpo: la testa (osso o parte), se no il centro un po' in alto
@@ -773,7 +778,12 @@ local function startAim(event: RemoteEvent)
 			camera.CameraType = Enum.CameraType.Scriptable
 			-- piu' indietro e piu' in alto, campo largo: prima si vedeva troppo poco
 			camera.FieldOfView = 88
-			local cf = CFrame.lookAt(head - look * 16 + Vector3.new(0, 6, 0), head + look * 60)
+			-- dietro e sopra in proporzione al drago (l'adulto e' grande: prima la camera gli
+			-- finiva dentro)
+			local _, petSize = pet:GetBoundingBox()
+			local big = math.max(petSize.X, petSize.Y, petSize.Z)
+			local back, up = math.max(16, big * 0.95), math.max(6, big * 0.35)
+			local cf = CFrame.lookAt(head - look * back + Vector3.new(0, up, 0), head + look * 60)
 			if DragonVFX.shake > 0 then
 				local s = DragonVFX.shake
 				cf *= CFrame.Angles((math.random() - 0.5) * 0.04 * s, (math.random() - 0.5) * 0.04 * s, 0)

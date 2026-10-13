@@ -474,6 +474,32 @@ function PetAnimator.start()
 		scan(d)
 	end
 
+	-- camera piu' lontana col drago grande (l'adulto e' 33 studs: da vicino copriva tutto). Quando
+	-- arriva un drago piu' grande la visuale si allontana una volta; poi la rotella resta libera.
+	task.spawn(function()
+		local me = Players.LocalPlayer
+		local baseMax = me.CameraMaxZoomDistance
+		local lastBig = 0
+		while true do
+			task.wait(1)
+			local big = 0
+			for model, pet in pets do
+				if model.Parent and pet.ownerId == me.UserId and model:GetAttribute("Benched") ~= true then
+					big = math.max(big, pet.size)
+				end
+			end
+			me.CameraMaxZoomDistance = math.max(baseMax, big * 6)
+			local want = if big >= 24 then big * 1.35 elseif big >= 13 then big * 1.6 else 0
+			if want > 0 and big > lastBig + 1 and not ClientState.dragonMode then
+				local oldMin = me.CameraMinZoomDistance
+				me.CameraMinZoomDistance = math.min(want, me.CameraMaxZoomDistance)
+				task.wait(1) -- la camera arriva alla distanza con una molla: serve tempo
+				me.CameraMinZoomDistance = oldMin
+			end
+			lastBig = big
+		end
+	end)
+
 	RunService.RenderStepped:Connect(function(dt)
 		local t = os.clock()
 		local camera = workspace.CurrentCamera
@@ -503,6 +529,22 @@ function PetAnimator.start()
 			-- ogni tanto fa un giro intorno al padrone (3 secondi)
 			-- addestramento: il tuo drago vola fermo nel punto indicato (centro dell'arena)
 			local anchored = owner == Players.LocalPlayer and ClientState.petAnchor ~= nil
+			-- nell'arena entra solo il drago del posto 1 (quello che si addestra): col gamepass
+			-- ExtraDragon il secondo prima volava nello stesso punto e si incastravano
+			local benched = anchored and pet.slot ~= 1
+			if benched ~= (model:GetAttribute("Benched") == true) then
+				model:SetAttribute("Benched", benched)
+				for _, d in model:GetDescendants() do
+					if d:IsA("BasePart") or d:IsA("Decal") then
+						(d :: any).LocalTransparencyModifier = if benched then 1 else 0
+					elseif d:IsA("BillboardGui") then
+						d.Enabled = not benched
+					end
+				end
+			end
+			if benched then
+				continue
+			end
 			local orbiting = not anchored and t >= pet.nextOrbit and t < pet.nextOrbit + 3
 			if orbiting then
 				local a = (t - pet.nextOrbit) / 3 * math.pi * 2
