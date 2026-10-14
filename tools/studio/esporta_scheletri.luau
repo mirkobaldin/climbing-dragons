@@ -4,9 +4,10 @@
 -- ServerStorage. Per ogni modello: ossa (nome, genitore, posizione e assi nello spazio del perno
 -- del modello), mesh (grandezza), attributi utili (Seat, AnimBaseScale) e cosa riconosce
 -- MapGen.AnimDraghi.analizza (zampe, ali, collo, coda), se il modulo c'e'.
--- Risultato: ModuleScript ServerStorage.ScheletriDraghi con il JSON nel Source.
--- Per salvarlo: tasto destro su ScheletriDraghi -> "Save to File..." e mettilo nel repo come
--- docs/scheletri_draghi.json (poi commit e push). Non modifica nessun modello.
+-- Risultato: cartella ServerStorage.ScheletriDraghi con il JSON diviso in ModuleScript (Parte001...,
+-- 150.000 caratteri l'uno: il Source ha un limite di 200.000).
+-- Per salvarlo: tasto destro sulla CARTELLA ScheletriDraghi -> "Save to File..." (file .rbxmx) e
+-- mettilo nel repo come docs/scheletri_draghi.rbxmx (poi commit e push). Non modifica nessun modello.
 
 local SS = game:GetService("ServerStorage")
 local HS = game:GetService("HttpService")
@@ -116,13 +117,27 @@ for _, m in SS:GetChildren() do
 end
 
 local json = HS:JSONEncode({ data = os.date("!%Y-%m-%dT%H:%M:%SZ"), modelli = risultati })
-local out = SS:FindFirstChild("ScheletriDraghi") or Instance.new("ModuleScript")
-out.Name = "ScheletriDraghi"
-out.Source = json
-out.Parent = SS
+-- il Source di uno script tiene al massimo 200.000 caratteri: il JSON va diviso in pezzi
+-- (Parte001, Parte002, ...) dentro la cartella; si ricompongono uniti in ordine di nome.
+local old = SS:FindFirstChild("ScheletriDraghi")
+if old then
+	old:Destroy()
+end
+local folder = Instance.new("Folder")
+folder.Name = "ScheletriDraghi"
+local PEZZO = 150000
+local n = 0
+for i = 1, #json, PEZZO do
+	n += 1
+	local part = Instance.new("ModuleScript")
+	part.Name = string.format("Parte%03d", n)
+	part.Source = string.sub(json, i, i + PEZZO - 1)
+	part.Parent = folder
+end
+folder.Parent = SS
 local nOssa = 0
 for _, r in risultati do
 	nOssa += #r.ossa
 end
-print(string.format("[Scheletri] %d modelli, %d ossa, %d caratteri -> ServerStorage.ScheletriDraghi (tasto destro -> Save to File...)",
-	#risultati, nOssa, #json))
+print(string.format("[Scheletri] %d modelli, %d ossa, %d caratteri in %d pezzi -> ServerStorage.ScheletriDraghi (tasto destro sulla cartella -> Save to File...)",
+	#risultati, nOssa, #json, n))
