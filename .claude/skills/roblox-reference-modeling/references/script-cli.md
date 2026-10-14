@@ -54,8 +54,9 @@ unchanged-input skip), `--no-save` (default: save in background, never in intera
 | `prepare_uv_materials.py` | uv_pbr | `[--groups Bone] [--keep-uv] [--no-bake] [--device CPU\|GPU] [--estimate-color VIEW [--apply-estimate]]` | `groups[], device, textures, per_group{objects, baked[]}, estimate` |
 | `export_handoff.py` | handoff | `[--allow-warnings] [--allow-errors]` | `ready, checkpoint, warnings[], report, next` or `blockers[]` |
 | `visual_hull.py` (optional) | visual_hull | `[--views] [--resolution 96] [--allowed-misses 0] [--pad 0.1] [--remesh]` | `views, voxel_size_m, grid, occupied_voxels, volume_m3, faces, object` |
-| `image_to_3d_backend.py` (optional, stdlib) | image_to_3d | `check\|run --manifest P [--config F] [--image F]` | check: `problems[]`; run: `mesh, log, backend` |
-| `import_init_mesh.py` (optional) | — | `[--file F] [--rotate-deg x,y,z] [--no-fit]` | `object, verts, fit{scale}` |
+| `setup_image_to_3d.ps1` (Windows, once) | — | `-Project DIR [-Root C:\ai] [-InstallPrereqs]` | writes `config/image_to_3d_backend.json` |
+| `image_to_3d_backend.py` (mandatory, stdlib) | image_to_3d | `check\|run --manifest P [--config F] [--image F]` | check: `problems[]`; run: `mesh, log, backend, commit, seconds, vram_base_gb, vram_peak_gb[, warning]` |
+| `import_init_mesh.py` | — | `[--file F] [--rotate-deg x,y,z] [--no-fit] [--as-model [--scale-m M]]` | `object, verts, tris, materials, images, fit` |
 
 ## Files written per stage
 
