@@ -13,27 +13,32 @@ end
 local Enum=setmetatable({}, {__index=function(t,k) local v=setmetatable({}, {__index=function(_,n) return n end});rawset(t,k,v);return v end})
 local Vector2={new=function(x,y) return {X=x,Y=y} end}
 local Color3={new=function(r,g,b) return {R=r,G=g,B=b} end,fromRGB=function(r,g,b) return {R=r/255,G=g/255,B=b/255} end}
-local Rect={new=function(a,b,c,d) return {a,b,c,d} end}
+local Rect={new=function(a,b,c,d) return {Min={X=a,Y=b},Max={X=c,Y=d}} end}
 local UDim={new=function(s,o) return {Scale=s,Offset=o} end}
 local UDim2={new=function(x,xo,y,yo) return {X={Scale=x,Offset=xo},Y={Scale=y,Offset=yo}} end}
 UDim2.fromScale=function(x,y) return UDim2.new(x,0,y,0) end
+UDim2.fromOffset=function(x,y) return UDim2.new(0,x,0,y) end
+Vector2.zero=Vector2.new(0,0)
 local Instance={}
 local stores={}
 Instance.new=function(class)
- local props={ClassName=class,Name=class,BackgroundTransparency=0,Text='',TextColor3=Color3.new(1,1,1),AbsoluteSize=Vector2.new(128,64)}
+ local props={ClassName=class,Name=class,ZIndex=1,BackgroundTransparency=0,Text='',TextColor3=Color3.new(1,1,1),AbsoluteSize=Vector2.new(128,64)}
  local kids,attrs,events={},{},{}
  local methods={}
  local obj
- methods.IsA=function(_,c) return class==c or c=='Instance' or c=='GuiObject' and table.find({'Frame','TextLabel','TextButton','ImageLabel','ScrollingFrame'},class)~=nil end
+ methods.IsA=function(_,c) return class==c or c=='Instance' or c=='GuiButton' and table.find({'TextButton','ImageButton'},class)~=nil or c=='GuiObject' and table.find({'Frame','TextLabel','TextButton','ImageLabel','ScrollingFrame'},class)~=nil end
  methods.GetChildren=function() return table.clone(kids) end
  methods.GetDescendants=function() local out={};local function visit(p) for _,c in p:GetChildren() do table.insert(out,c);visit(c) end end;visit(obj);return out end
  methods.FindFirstChild=function(_,n) for _,c in kids do if c.Name==n then return c end end;return nil end
  methods.WaitForChild=methods.FindFirstChild
+ methods.FindFirstChildOfClass=function(_,n) for _,c in kids do if c.ClassName==n then return c end end;return nil end
+ methods.FindFirstAncestorWhichIsA=function(_,n) local p=props.Parent;while p do if p:IsA(n) then return p end;p=p.Parent end end
+ methods.Destroying=signal()
  methods.SetAttribute=function(_,k,v) attrs[k]=v end
  methods.GetAttribute=function(_,k) return attrs[k] end
  methods.GetPropertyChangedSignal=function(_,k) if not events[k] then events[k]=signal() end;return events[k] end
  methods.FindFirstAncestor=function(_,n) local p=props.Parent;while p do if p.Name==n then return p end;p=p.Parent end;return nil end
- methods.Destroy=function() obj.Parent=nil end
+ methods.Destroy=function() methods.Destroying:Fire();obj.Parent=nil end
  methods.Clone=function()
   local copy=Instance.new(class)
   for k,v in props do if k~='Parent' then copy[k]=v end end
@@ -57,7 +62,7 @@ Instance.new=function(class)
  stores[obj]=kids
  return obj
 end
-local env=setmetatable({Enum=Enum,Vector2=Vector2,Color3=Color3,Rect=Rect,UDim=UDim,UDim2=UDim2,Instance=Instance},{__index=getfenv()})
+local env=setmetatable({Enum=Enum,Vector2=Vector2,Color3=Color3,Rect=Rect,UDim=UDim,UDim2=UDim2,Instance=Instance,task={spawn=function() end,defer=function(f) f() end}},{__index=getfenv()})
 local function run(source,extra)
  local f=assert(loadstring(source));local e=setmetatable(extra or {},{__index=env});setfenv(f,e);return f()
 end
@@ -78,23 +83,32 @@ assert(late.Parent==nil,'La copia tardiva di StarterGui deve essere rimossa')
 for _,name in {'Caricamento','ClimbHUD','CombatHUD','DeathScreen','Teletrasporto'} do
  local gui=ui.screen(name);assert(gui.Parent==pg and gui.ResetOnSpawn==false)
 end
-assert(assets.get('icon_coin')==nil and assets.get('inesistente')==nil,'ID vuoti e sconosciuti devono dare nil')
+assert(assets.get('item_Sella')==nil and assets.get('inesistente')==nil,'ID vuoti e sconosciuti devono dare nil')
 assets.ids.panel_card='rbxassetid://1'
 ui.apply(main)
 assert(ui.node(main,'Templates/ItemCard'):FindFirstChild('AssetSurface')==nil,'Non applicare immagini ai modelli sorgente')
 local card=ui.template('ItemCard',main.Window.Content.Store.List)
-assert(card.Visible and card:FindFirstChild('AssetSurface'),'La carta clonata deve avere la propria superficie')
+assert(card.Visible and not card:FindFirstChild('AssetSurface'),'Il pannello usa il nuovo ripiego nativo')
 local b=card.Buy
-assets.ids.btn_primary_normal='rbxassetid://2'
-ui.skin(b,'btn_primary_normal')
+assets.ids.btn_alt_v3_normal='rbxassetid://2'
+ui.skin(b,'btn_alt_v3_normal')
 b.Text='New caption'
 assert(b.AssetCaption.Text=='New caption','La didascalia deve seguire il testo del controller')
-ui.skin(b,'btn_primary_normal')
+ui.skin(b,'btn_alt_v3_normal')
 local count=0;for _,c in b:GetChildren() do if c.Name=='AssetSurface' then count+=1 end end
 assert(count==1,'Superfici duplicate')
-assert(ui.asset(card.Icon,'icon_coin')==false and not card.Icon.Visible,'Ripiego icona vuota errato')
-assets.ids.icon_coin='rbxassetid://3'
-assert(ui.asset(card.Icon,'icon_coin') and card.Icon.Visible,'ID icona non applicato')
+assert(ui.asset(card.Icon,'item_Sella')==false and not card.Icon.Visible,'Ripiego icona vuota errato')
+assets.ids.item_Sella='rbxassetid://3'
+assert(ui.asset(card.Icon,'item_Sella') and card.Icon.Visible,'ID icona non applicato')
+ui.skin(b,'btn_sell_v3_normal')
+assert(b.TextTransparency==0 and not b:FindFirstChild('AssetSurface') and not b:FindFirstChild('AssetCaption'),'Il cambio verso ID vuoto deve ripristinare testo e sfondo')
+b:SetAttribute('ButtonKind','buy')
+assets.ids.btn_buy_v3_hover='rbxassetid://4'
+ui.skin(b,'btn_primary_hover')
+assert(b:GetAttribute('UiAsset')=='btn_buy_v3_hover' and b.AssetCaption.Text=='New caption','Il cambio di ruolo deve scegliere la famiglia nuova')
+ui.skin(b,'btn_buy_v3_hover')
+local captions=0;for _,c in b:GetChildren() do if c.Name=='AssetCaption' then captions+=1 end end
+assert(captions==1,'Didascalie duplicate dopo hover ripetuto')
 assert(main.Window.Visible==false,'Le finestre partono chiuse')
 ui.open(main.Window)
 assert(main.Window.Visible and main.Window.OpeningScale.Scale==1,'Apertura finestra non completata')

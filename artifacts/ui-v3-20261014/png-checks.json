@@ -1,0 +1,452 @@
+﻿[
+    {
+        "name":  "item_Ramponi",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  32017,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Tuta",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  40554,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Rampino",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  37894,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_PiccoRinforzato",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  49019,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Parapendio",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  43226,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Sella",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  31268,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Chiodi",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  37221,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Torcia",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  47266,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Bende",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  31106,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Pitons",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  36594,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Medkit",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  22730,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Thermos",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  41596,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_MysteryEgg",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  31365,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_RareEgg",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  32194,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Piccozza",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  52083,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_Piccone",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  48343,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_TravelHub",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  31411,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_TravelHome",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  27040,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_TravelArena",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  29458,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_TravelGym",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  25780,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_TravelIsland",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  36516,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_TravelCamp",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  36343,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_UpgradeRampino",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  47550,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_UpgradeUncino",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  37705,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_UpgradeLancio",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  44461,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_UpgradeEsoscheletro",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  27554,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_UpgradeScudo",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  34303,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_UpgradeStivali",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  34024,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "item_UpgradePicchiata",
+        "check":  {
+                      "width":  256,
+                      "height":  256,
+                      "transparentPixels":  36291,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_buy_v3_normal",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  7704,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_buy_v3_hover",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  7210,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_buy_v3_pressed",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  6615,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_sell_v3_normal",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  7086,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_sell_v3_hover",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  7122,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_sell_v3_pressed",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  6879,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_main_v3_normal",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  6776,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_main_v3_hover",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  7570,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_main_v3_pressed",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  6443,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_alt_v3_normal",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  7359,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_alt_v3_hover",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  7009,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_alt_v3_pressed",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  6652,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_off_v3_normal",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  7294,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_off_v3_hover",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  7019,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "btn_off_v3_pressed",
+        "check":  {
+                      "width":  512,
+                      "height":  160,
+                      "transparentPixels":  6432,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "tab_on_v3_normal",
+        "check":  {
+                      "width":  384,
+                      "height":  112,
+                      "transparentPixels":  4899,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "tab_on_v3_hover",
+        "check":  {
+                      "width":  384,
+                      "height":  112,
+                      "transparentPixels":  4491,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "tab_on_v3_pressed",
+        "check":  {
+                      "width":  384,
+                      "height":  112,
+                      "transparentPixels":  4896,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "tab_off_v3_normal",
+        "check":  {
+                      "width":  384,
+                      "height":  112,
+                      "transparentPixels":  4722,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "tab_off_v3_hover",
+        "check":  {
+                      "width":  384,
+                      "height":  112,
+                      "transparentPixels":  4770,
+                      "edgePixels":  0
+                  }
+    },
+    {
+        "name":  "tab_off_v3_pressed",
+        "check":  {
+                      "width":  384,
+                      "height":  112,
+                      "transparentPixels":  4487,
+                      "edgePixels":  0
+                  }
+    }
+]

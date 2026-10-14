@@ -1,0 +1,202 @@
+﻿[
+  {
+    "name": "item_Tuta",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-6c991f69-6b65-40ce-9ba4-64d7996ade1b.png"
+  },
+  {
+    "name": "item_Ramponi",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-036e3b84-3bdc-4826-9baa-95190980ac91.png"
+  },
+  {
+    "name": "item_Rampino",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-642be005-897a-41eb-b9e4-0f98ecb43236.png"
+  },
+  {
+    "name": "item_PiccoRinforzato",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-3fe643b0-d5ac-439d-b924-58722383f09a.png"
+  },
+  {
+    "name": "item_Parapendio",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-6cf8005a-71da-42dc-ba72-be5d85e1ef0d.png"
+  },
+  {
+    "name": "item_Sella",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-449028fb-ccb5-4a2e-a7d9-c41ddb2572e4.png"
+  },
+  {
+    "name": "item_Chiodi",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-69ce49a7-c697-40f5-8f89-8a7f2405deda.png"
+  },
+  {
+    "name": "item_Torcia",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-ca2e3e09-ebb3-432e-9816-d908da7c84b2.png"
+  },
+  {
+    "name": "item_Pitons",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-cd4154af-3b04-47cb-a86e-261721b1d1da.png"
+  },
+  {
+    "name": "item_Bende",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-32358f62-e17e-4e31-b883-017a714ae697.png"
+  },
+  {
+    "name": "item_Medkit",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-70d5c09a-343e-4577-9c52-f3bd57a9455b.png"
+  },
+  {
+    "name": "item_Thermos",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-a11b3bb3-5bb1-4d4a-b189-509f385760f1.png"
+  },
+  {
+    "name": "item_MysteryEgg",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-7447eefb-692c-4776-9bf7-b896bb71e52a.png"
+  },
+  {
+    "name": "item_RareEgg",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-445987a8-fb1f-4ece-8d25-2835858c0b77.png"
+  },
+  {
+    "name": "item_Piccozza",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-a8d50560-dc82-46dc-91c1-cbc6911e23d1.png"
+  },
+  {
+    "name": "item_Piccone",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-50a234bb-1f71-40e1-bb30-14bf3d1b412f.png"
+  },
+  {
+    "name": "item_TravelHub",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-97aedf1c-ee9e-4eda-88b1-1af08161922c.png"
+  },
+  {
+    "name": "item_TravelHome",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-44810431-e427-4f15-95fe-ea00a26aad45.png"
+  },
+  {
+    "name": "item_TravelArena",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-d89c5b3b-0efa-4edb-bbde-d961eade735c.png"
+  },
+  {
+    "name": "item_TravelGym",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-6a54a5f3-3886-4e6b-b81d-2a1d73c92ec6.png"
+  },
+  {
+    "name": "item_TravelIsland",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-f68322dd-d19f-42b5-9b26-c60a2ace6a76.png"
+  },
+  {
+    "name": "item_TravelCamp",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-6230d0f7-403e-45d7-bb82-7da42f983fe3.png"
+  },
+  {
+    "name": "item_UpgradeRampino",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-a71ee473-cce8-4995-b8c5-62a35c241bef.png"
+  },
+  {
+    "name": "item_UpgradeUncino",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-3d39388e-e74a-4a45-985d-9031d6984c5a.png"
+  },
+  {
+    "name": "item_UpgradeLancio",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-0c72e612-a8cc-4818-85f4-d826703d8fd4.png"
+  },
+  {
+    "name": "item_UpgradeEsoscheletro",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-47c275f8-41ac-4975-ad7c-6e37aebfdf17.png"
+  },
+  {
+    "name": "item_UpgradeScudo",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-d1fa6b3e-b847-4649-b9d4-17d4706a4a14.png"
+  },
+  {
+    "name": "item_UpgradeStivali",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-bf39e8d3-d8e6-41a3-a1c6-a8a845f24218.png"
+  },
+  {
+    "name": "item_UpgradePicchiata",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-94dba761-f770-44a0-99c2-676c182d1883.png"
+  },
+  {
+    "name": "btn_buy_v3_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-171b676b-129c-4a20-85b9-1c6e7b5f68a9.png"
+  },
+  {
+    "name": "btn_buy_v3_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-dc15d9b6-a1be-4a20-85c0-eaaf7f933bfa.png"
+  },
+  {
+    "name": "btn_buy_v3_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-af293884-5557-41d0-b78c-d99a66086614.png"
+  },
+  {
+    "name": "btn_sell_v3_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-db1703d7-f86f-4872-b934-f2bc2722b551.png"
+  },
+  {
+    "name": "btn_sell_v3_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-b0b6e096-f24a-4a25-805d-07f2e6c396e3.png"
+  },
+  {
+    "name": "btn_sell_v3_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-a771517d-796a-4db1-a23a-896443bd8d52.png"
+  },
+  {
+    "name": "btn_main_v3_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-5850c929-e418-46a8-88a6-01b7fe2432ae.png"
+  },
+  {
+    "name": "btn_main_v3_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-f319dd62-bb6d-4a6a-b8b7-48cba6ffad0f.png"
+  },
+  {
+    "name": "btn_main_v3_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-1e4fafa8-6701-4493-a026-bbb25e186750.png"
+  },
+  {
+    "name": "btn_alt_v3_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-8332baea-8084-4ad2-8915-95e6aa6f3bba.png"
+  },
+  {
+    "name": "btn_alt_v3_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-0e89df61-78e5-47d4-aadf-991feb423614.png"
+  },
+  {
+    "name": "btn_alt_v3_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-9362ceff-94dc-47af-bc79-6c842ce07211.png"
+  },
+  {
+    "name": "btn_off_v3_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-b7994f8d-7d7a-4874-b1ac-24f8b867380b.png"
+  },
+  {
+    "name": "btn_off_v3_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-9769b913-a7ef-4bd7-8560-d8ba6bf9f605.png"
+  },
+  {
+    "name": "btn_off_v3_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-1f517e01-2594-4d7d-882c-d1b4b35ba035.png"
+  },
+  {
+    "name": "tab_on_v3_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-7fcf7c5c-5226-478f-8678-be0483fe33f1.png"
+  },
+  {
+    "name": "tab_on_v3_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-9aa69400-31ea-429d-8be2-42598847a725.png"
+  },
+  {
+    "name": "tab_on_v3_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-0ab9693a-5473-459b-b95f-7ea26aa2e9ac.png"
+  },
+  {
+    "name": "tab_off_v3_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-12bb8503-6dfb-4c30-8244-b3c1ba3f03b8.png"
+  },
+  {
+    "name": "tab_off_v3_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-54d9fd6f-7386-4b09-8a21-2214b09693ae.png"
+  },
+  {
+    "name": "tab_off_v3_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-420b6148-e671-4ba8-b070-b83f44f2e8a1.png"
+  }
+]

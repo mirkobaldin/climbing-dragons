@@ -188,7 +188,7 @@ function HUD.start()
 		local version = noticeVersion
 		noticePanel.Text.Text = message
 		local goal = noticePosition
-		noticePanel.Position = UDim2.fromScale(goal.X.Scale, goal.Y.Scale - 0.04)
+		noticePanel.Position = goal - UDim2.fromOffset(0, 8)
 		Ui.open(noticePanel)
 		game:GetService("TweenService"):Create(noticePanel, TweenInfo.new(0.18), { Position = goal }):Play()
 		task.delay(4, function()
@@ -395,8 +395,8 @@ function HUD.start()
   P(questTitle, 0, 46, 0, 8, w - 58, 28)
   P(questText, 0, 10, 0, 42, w - 20, 44)
   P(skip, 1, -10, 1, -6, math.min(150, w - 20), 44, 1, 1)
-  P(noticePanel, 0, x, 0, y + 144, w, 60)
-  P(noticePanel.Text, 0, 8, 0, 6, w - 16, 48)
+  P(noticePanel, 0, x, 0, y + 144, w, 44)
+  P(noticePanel.Text, 0, 8, 0, 6, w - 16, 32)
   P(hint, 0.5, 0, 1, -90, math.min(560, logical.X - 32), 40, 0.5, 1)
   if portrait then
    me.Size = UDim2.fromOffset(logical.X - 20, me.Size.Y.Offset)
@@ -613,6 +613,7 @@ function HUD.start()
 		hint.Text = if os.clock() - hintTime < 4 then lastHint else ""
 		local combat = gui.Parent and gui.Parent:FindFirstChild("CombatHUD")
 		hint.Visible = not combat or (Ui.node(combat, "Timer").Text == "" and Ui.node(combat, "Event").Text == "")
+		if compact and (quest.Visible or noticePanel.Visible) then hint.Visible = false end
 	end)
 end
 
