@@ -736,6 +736,10 @@ function PetAnimator.start()
 					local idleW = (1 - air) * (1 - moving)
 					tracks.fly:AdjustWeight(math.max(air - dive, 0.001), 0.1)
 					tracks.walk:AdjustWeight(math.max((1 - air) * moving * (1 - runK), 0.001), 0.1)
+					-- passo alla velocita' vera (un passo lungo ~mezzo drago): i piedi non scivolano
+					if (tracks.walk :: any).AdjustSpeed then
+						(tracks.walk :: any):AdjustSpeed(math.clamp(flat.Magnitude / math.max(pet.size * 0.55, 2), 0.6, 2.2))
+					end
 					if tx.run then
 						tx.run:AdjustWeight(math.max((1 - air) * moving * runK, 0.001), 0.15)
 					end
