@@ -153,6 +153,13 @@ local function step(dt: number)
 				tr.weight += (tr.target - tr.weight) * k
 			end
 		end
+		-- le pose sono in studs del rig su cui sono state fatte (Workspace.RigDraghi): sui draghi
+		-- rimpiccioliti gli spostamenti vanno ridotti come fa l'Animator di Roblox. L'attributo
+		-- AnimBaseScale e' la scala del modello quando era grande come il rig (DragonModels: 1).
+		-- Prima un drago del recinto a scala 0.2 scendeva di 19 studs (la posa "dorme"
+		-- dell'adulto) e spariva sotto la pedana
+		local base = model:GetAttribute("AnimBaseScale")
+		local scale = if type(base) == "number" and base > 0 then model:GetScale() / base else 1
 		-- per ogni osso, media pesata delle pose delle tracce
 		for name, bone in rig.bones do
 			local acc: CFrame? = nil
@@ -166,7 +173,11 @@ local function step(dt: number)
 				end
 			end
 			if acc then
-				bone.Transform = if total < 1 then CFrame.identity:Lerp(acc :: CFrame, total) else acc :: CFrame
+				local cf = if total < 1 then CFrame.identity:Lerp(acc :: CFrame, total) else acc :: CFrame
+				if scale ~= 1 then
+					cf = cf.Rotation + cf.Position * scale
+				end
+				bone.Transform = cf
 			end
 		end
 	end

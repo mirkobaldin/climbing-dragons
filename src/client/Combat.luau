@@ -392,30 +392,8 @@ end
 -- Draghi a riposo attorno alla casa (tag "Riposo", server/Economy): dormono, si siedono,
 -- ogni tanto si svegliano e si guardano attorno. Solo quelli vicini alla camera.
 
-type Resting = { tracks: { [string]: any }, state: string, nextChange: number, base: CFrame, bones: { Bone }, lift: number }
+type Resting = { tracks: { [string]: any }, state: string, nextChange: number }
 local resting: { [Model]: Resting } = {}
-
--- Le pose Sit/Sleep spostano lo scheletro in basso (negli adulti scalati il corpo finiva 17 studs
--- sotto la paglia): a ogni frame si alza il modello di quanto l'osso piu' basso animato sta sotto
--- quello piu' basso a riposo, cosi' zampe e pancia restano sul terreno
-local function groundResting(dt: number)
-	local camPos = workspace.CurrentCamera.CFrame.Position
-	for m, r in resting do
-		if not m.Parent or (r.base.Position - camPos).Magnitude > 250 then
-			continue
-		end
-		local bind, low = math.huge, math.huge
-		for _, b in r.bones do
-			bind = math.min(bind, b.WorldPosition.Y)
-			low = math.min(low, b.TransformedWorldCFrame.Y)
-		end
-		if low == math.huge then
-			continue
-		end
-		r.lift += (bind - low - r.lift) * math.min(1, dt * 6)
-		m:PivotTo(r.base + Vector3.new(0, r.lift, 0))
-	end
-end
 
 local function restStep()
 	local camPos = workspace.CurrentCamera.CFrame.Position
@@ -442,13 +420,7 @@ local function restStep()
 					tracks[name] = tr
 				end
 			end
-			local bones = {}
-			for _, b in m:GetDescendants() do
-				if b:IsA("Bone") then
-					table.insert(bones, b)
-				end
-			end
-			r = { tracks = tracks, state = "", nextChange = 0, base = m:GetPivot(), bones = bones, lift = 0 }
+			r = { tracks = tracks, state = "", nextChange = 0 }
 			resting[m] = r
 		end
 		local rr = r :: Resting
@@ -489,7 +461,6 @@ function Combat.start()
 			pcall(restStep)
 		end
 	end)
-	RunService.RenderStepped:Connect(groundResting)
 	local remotes = ReplicatedStorage:WaitForChild("Remotes")
 	task.spawn(function()
 		local fx = remotes:WaitForChild("EnemyFX", 60) :: RemoteEvent?

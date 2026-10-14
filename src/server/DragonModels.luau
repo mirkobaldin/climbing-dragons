@@ -497,6 +497,9 @@ function DragonModels.dragon(elementId: string, rarityId: string, stage: number,
 	-- quali animazioni usa (le cartelle di RBX_ANIMSAVES hanno il nome del modello)
 	if t and (t :: any).name then
 		model:SetAttribute("AnimKey", (t :: any).name)
+		-- il modello pulito (clean) e' grande come il rig delle animazioni a scala 1:
+		-- client/KfsPlayer riduce gli spostamenti delle pose con GetScale() / 1
+		model:SetAttribute("AnimBaseScale", 1)
 	end
 	model:SetAttribute("Element", element.id)
 	model:SetAttribute("Rarity", rarity.id)

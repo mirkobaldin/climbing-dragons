@@ -55,8 +55,6 @@ type Pet = {
 	yaw: number?, -- direzione dell'ultimo fotogramma (per le virate in monta)
 	turn: number, -- velocita' di virata filtrata (rad/s, + a sinistra)
 	wasRidden: boolean?,
-	skeleton: { Bone }, -- tutte le ossa (per tenere a terra le pose seduto/dorme)
-	lift: number, -- quanto si alza il modello perche' la posa non vada sotto terra
 }
 
 local pets: { [Model]: Pet } = {}
@@ -281,8 +279,6 @@ local function setup(model: Model)
 		walkPhase = 0,
 		airBlend = 1,
 		turn = 0,
-		skeleton = {},
-		lift = 0,
 	}
 	local _, size = model:GetBoundingBox()
 	pet.size = math.max(size.X, size.Y, size.Z)
@@ -400,13 +396,6 @@ local function setup(model: Model)
 	end
 	-- animazioni fatte nell'editor (o generate): per tutti i modelli che le hanno
 	pet.tracks = loadTracks(model)
-	if pet.tracks then
-		for _, d in model:GetDescendants() do
-			if d:IsA("Bone") then
-				table.insert(pet.skeleton, d)
-			end
-		end
-	end
 	if pet.tracks and not pet.quad then
 		pet.footDrop = size.Y / 2 -- il pivot e' al centro del modello
 	end
@@ -708,18 +697,7 @@ function PetAnimator.start()
 			else
 				-- corpo intero (mesh, ossa); "respiro" leggero dei modelli a mesh unica
 				local breathe = if pet.rig == "mesh" then CFrame.Angles(math.sin(t * 5 + pet.phase) * 0.06, 0, 0) else CFrame.identity
-				-- pose a terra (seduto, dorme): l'osso piu' basso non scende sotto quello a riposo
-				local lift = 0
-				if pet.tracks and pet.airBlend < 1 and #pet.skeleton > 0 then
-					local bind, low = math.huge, math.huge
-					for _, b in pet.skeleton do
-						bind = math.min(bind, b.WorldPosition.Y)
-						low = math.min(low, b.TransformedWorldCFrame.Y)
-					end
-					lift = math.max(0, bind - low) * (1 - pet.airBlend)
-				end
-				pet.lift += (lift - pet.lift) * math.min(1, dt * 6)
-				model:PivotTo(pivot * breathe + Vector3.new(0, pet.lift, 0))
+				model:PivotTo(pivot * breathe)
 				if pet.tracks then
 					-- pesi: in aria il volo, a terra camminata o fermo secondo la velocita'
 					local tracks = pet.tracks

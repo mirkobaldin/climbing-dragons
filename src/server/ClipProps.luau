@@ -55,6 +55,7 @@ local function adult(element: string): Model?
 	local m = t:Clone()
 	still(m)
 	m:SetAttribute("AnimKey", t.Name)
+	m:SetAttribute("AnimBaseScale", t:GetScale()) -- grande come il rig (client/KfsPlayer)
 	return m
 end
 
