@@ -20,6 +20,13 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 	for k, recipe in Gear.RECIPES do
 		local card = Ui.template("RecipeCard", list)
 		card.LayoutOrder = k
+		-- carte colorate a turno (prima tutte uguali)
+		local tones = { Color3.fromRGB(215, 90, 50), Color3.fromRGB(60, 130, 230), Color3.fromRGB(150, 80, 220), Color3.fromRGB(50, 170, 110) }
+		Ui.tint(card, tones[(k - 1) % #tones + 1], false, 0.03)
+		local fill = card:FindFirstChild("Tinta") :: Frame?
+		if fill then
+			fill.BackgroundTransparency = 0.25
+		end
 		-- icona dell'attrezzo (stesse immagini dello zaino); il modellino 3D solo se manca
 		local icon = Instance.new("ImageLabel")
 		icon.Name = "Icona"
@@ -29,7 +36,6 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 		Theme.itemIcon(icon, recipe.id, Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT))
 		card.Title.Text = recipe.name
 		card.Description.Text = recipe.description
-			.. (if recipe.station == "Ovunque" then " · Craft anywhere" else " · At a workbench")
 		local materialRows = {}
 		local ores = {}
 		for ore in recipe.cost do
@@ -56,7 +62,8 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 			for ore, amount in recipe.cost do
 				local have = count(ore)
 				affordable = affordable and have >= amount
-				materialRows[ore].Text.Text = string.format("%s %d/%d", Names.t(ore), have, amount)
+				-- carta stretta: l'icona dice il minerale, il testo solo quanti
+				materialRows[ore].Text.Text = string.format("%d/%d", have, amount)
 				materialRows[ore].Text.TextColor3 = if have >= amount then Theme.GOOD else Theme.BAD
 			end
 			local owned = not recipe.consumable and Gear.has(player, recipe.id)

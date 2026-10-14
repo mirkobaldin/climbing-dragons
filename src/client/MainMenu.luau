@@ -55,6 +55,41 @@ local function rows(list: ScrollingFrame)
 		pad.Parent = list
 	end
 end
+-- lista a carte (negozio, crafting): griglia con 2-6 colonne secondo la larghezza, celle alte h
+-- (pixel logici, prima della scala della schermata). Prima erano righe larghe tutto lo schermo
+local function cards(list: ScrollingFrame, minW: number, h: number)
+	rows(list)
+	local old = list:FindFirstChildOfClass("UIListLayout")
+	if old then
+		old:Destroy()
+	end
+	local g = list:FindFirstChildOfClass("UIGridLayout") or Instance.new("UIGridLayout")
+	g.SortOrder = Enum.SortOrder.LayoutOrder
+	g.CellPadding = UDim2.fromOffset(10, 10)
+	g.Parent = list
+	local function size()
+		local scale = 1
+		local gui = list:FindFirstAncestorWhichIsA("ScreenGui")
+		local u = gui and gui:FindFirstChild("ScalaUI")
+		if u and u:IsA("UIScale") and u.Scale > 0 then
+			scale = u.Scale
+		end
+		local w = list.AbsoluteSize.X / scale - 14
+		if w < 50 then
+			return
+		end
+		local cols = math.clamp(math.floor(w / minW), 2, 6)
+		g.CellSize = UDim2.fromOffset(math.floor((w - (cols - 1) * 10) / cols), h)
+	end
+	list:GetPropertyChangedSignal("AbsoluteSize"):Connect(size)
+	size()
+end
+-- colori delle carte (a turno): prima erano tutte blu scuro uguali
+local CARD_TONES = {
+	Color3.fromRGB(60, 130, 230), Color3.fromRGB(150, 80, 220), Color3.fromRGB(230, 140, 40),
+	Color3.fromRGB(50, 170, 110), Color3.fromRGB(220, 70, 80), Color3.fromRGB(40, 170, 200),
+}
+
 -- riquadro a tessere dentro una lista (zaino): griglia a celle fisse, alta quanto serve
 local function tiles(parent: Instance, order: number): Frame
 	local f = Instance.new("Frame")
@@ -73,7 +108,7 @@ local function tiles(parent: Instance, order: number): Frame
 end
 local function mountShop(container: Frame, status: (string, boolean) -> ()): () -> ()
 	local list = Ui.node(container, "List")
-	rows(list)
+	cards(list, 200, 250)
 	local sub = "Buy"
 	local render: () -> ()
 	local function call(action: string, id: string?, amount: any?)
@@ -86,6 +121,12 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 		c.LayoutOrder = order
 		c.SellActions.Visible, c.Buy.Visible = false, false
 		c.Coin.Visible = false
+		Ui.tint(c, CARD_TONES[(order - 1) % #CARD_TONES + 1], false, 0.03)
+		local fill = c:FindFirstChild("Tinta") :: Frame?
+		if fill then
+			fill.BackgroundTransparency = 0.25
+		end
+		Ui.tint(c.Buy, Color3.fromRGB(60, 180, 80), false)
 		return c
 	end
 	render = function()
@@ -366,7 +407,7 @@ function MainMenu.start()
 		side.List.Size = UDim2.new(1, 0, 1, -30)
 		rows(side.List)
 	end
-	rows(content.Crafting.List)
+	cards(content.Crafting.List, 220, 280)
 	rows(content.Upgrades.List)
 	-- pulsanti delle sotto-schede (Buy / Sell, Upgrades / Bounties...) con testo leggibile
 	for _, d in content:GetDescendants() do

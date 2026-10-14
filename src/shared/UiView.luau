@@ -365,42 +365,46 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 			left(c)
 		end
 	end,
+	-- negozio: carta verticale in griglia (MainMenu.cards). Prima era una riga larga tutto lo
+	-- schermo con un grande vuoto in mezzo (Mirko: "UI incompleta, piena di spazi vuoti")
 	ItemCard = function(c)
-		c.Size = U(1, -12, 0, 104)
-		place(c.Icon, U(0, 12, 0.5, 0), U(0, 80, 0, 80), Vector2.new(0, 0.5))
-		place(c.Title, U(0, 104, 0, 10), U(1, -104 - BUTTONS, 0, 24))
-		sized(c.Title, 17, true)
-		place(c.Description, U(0, 104, 0, 34), U(1, -104 - BUTTONS, 0, 32))
-		sized(c.Description, 14)
-		c.Description.TextYAlignment = Enum.TextYAlignment.Top
-		place(c.Coin, U(0, 104, 0, 68), U(0, 22, 0, 22))
-		place(c.Cost, U(0, 132, 0, 67), U(1, -132 - BUTTONS, 0, 24))
-		sized(c.Cost, 15, true)
-		for _, o in { c.Title, c.Description, c.Cost } do
-			left(o)
+		local center = function(o: any)
+			if o then
+				o.TextXAlignment = Enum.TextXAlignment.Center
+			end
 		end
+		place(c.Icon, U(0.5, 0, 0, 10), U(0.62, 0, 0.38, 0), Vector2.new(0.5, 0))
+		place(c.Title, U(0, 8, 0.42, 4), U(1, -16, 0, 24))
+		sized(c.Title, 17, true)
+		center(c.Title)
+		place(c.Description, U(0, 10, 0.42, 30), U(1, -20, 0, 32))
+		sized(c.Description, 12)
+		center(c.Description)
 		c.Description.TextYAlignment = Enum.TextYAlignment.Top
-		place(c.Buy, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 46), RIGHT)
+		place(c.Coin, U(0.5, -44, 1, -66), U(0, 20, 0, 20))
+		place(c.Cost, U(0.5, -20, 1, -67), U(0.5, 10, 0, 22))
+		sized(c.Cost, 15, true)
+		left(c.Cost)
+		place(c.Buy, U(0.5, 0, 1, -8), U(1, -16, 0, 38), Vector2.new(0.5, 1))
 		sized(c.Buy, 16, true)
-		place(c.SellActions, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 88), RIGHT)
-		place(c.SellActions.One, U(0, 0, 0, 0), U(1, 0, 0, 40))
-		place(c.SellActions.All, U(0, 0, 1, 0), U(1, 0, 0, 40), Vector2.new(0, 1))
+		place(c.SellActions, U(0.5, 0, 1, -8), U(1, -16, 0, 38), Vector2.new(0.5, 1))
+		place(c.SellActions.One, U(0, 0, 0, 0), U(0.5, -3, 1, 0))
+		place(c.SellActions.All, U(1, 0, 0, 0), U(0.5, -3, 1, 0), Vector2.new(1, 0))
 		sized(c.SellActions.One, 15, true)
 		sized(c.SellActions.All, 15, true)
 	end,
+	-- crafting: carta verticale in griglia (anteprima, nome, materiali, pulsante)
 	RecipeCard = function(c)
-		c.Size = U(1, -12, 0, 118)
-		place(c.Preview, U(0, 12, 0.5, 0), U(0, 92, 0, 92), Vector2.new(0, 0.5))
-		place(c.Title, U(0, 116, 0, 10), U(1, -116 - BUTTONS, 0, 24))
+		place(c.Preview, U(0.5, 0, 0, 8), U(0.6, 0, 0.34, 0), Vector2.new(0.5, 0))
+		place(c.Title, U(0, 8, 0.36, 4), U(1, -16, 0, 24))
 		sized(c.Title, 17, true)
-		place(c.Description, U(0, 116, 0, 34), U(1, -116 - BUTTONS, 0, 36))
-		sized(c.Description, 13)
+		c.Title.TextXAlignment = Enum.TextXAlignment.Center
+		place(c.Description, U(0, 10, 0.36, 30), U(1, -20, 0, 34))
+		sized(c.Description, 12)
+		c.Description.TextXAlignment = Enum.TextXAlignment.Center
 		c.Description.TextYAlignment = Enum.TextYAlignment.Top
-		place(c.Materials, U(0, 116, 0, 76), U(1, -116 - BUTTONS, 0, 30))
-		left(c.Title)
-		left(c.Description)
-		c.Description.TextYAlignment = Enum.TextYAlignment.Top
-		place(c.Craft, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 46), RIGHT)
+		place(c.Materials, U(0, 10, 1, -86), U(1, -20, 0, 30))
+		place(c.Craft, U(0.5, 0, 1, -8), U(1, -16, 0, 38), Vector2.new(0.5, 1))
 		sized(c.Craft, 16, true)
 	end,
 	Material = function(c)
