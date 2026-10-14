@@ -1,0 +1,152 @@
+[
+  {
+    "name": "btn_buy_v2_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-3c13f285-3574-433b-a9e6-28522d0167ae.png",
+    "prompt": "Use case: stylized-concept. Production game UI sprite for Climbing & Dragons. ONE empty horizontal BUY button, normal state. Canvas exact 512x160 RGBA transparent. Front view perfectly aligned straight rectangle spanning x6..506, y6..152, shallow clipped chamfered corners. Premium hand-painted fantasy dark slate outer rim, thin worn antique gold bevel, four tiny emerald diamond gemstones confined to corner boxes x<60 or x>452 AND y<44 or y>116. Deep emerald green enamel inner face with only an extremely soft vertical gradient, top #13513c bottom #0b3029, COMPLETELY EMPTY clean dark center. Top-left softly lit, crisp silhouette, restrained painted bevels and tiny metal nicks on outer rim. Border thickness only 12px; maximize readable face. MUST nine-slice: region x64..448 y48..112 perfectly flat horizontally, no marks/no texture/no reflections/no decorations. Straight top/bottom edges uniform between corners, side edges straight uniform between corners. Dark face for white text contrast. No text, lettering, symbols in center, icons, watermark, backdrop, floor shadow, glow beyond outline or other objects. Transparent exterior. Match polished warm illustrated fantasy mountain game UI. NOT bright yellow fill. Single asset fills almost entire canvas."
+  },
+  {
+    "name": "btn_sell_v2_normal",
+    "prompt": "Edit target: the supplied empty green button sprite. Create btn_sell_v2_normal. Keep EXACT same silhouette, proportions, aligned corner positions and border thickness. Change ONLY colors to deep ruby red enamel top #682532 bottom #361721; ruby red corner gems, normal state. No lettering. Transparent background. Target 512x160. Painterly slate and antique metal outer border with four tiny gems, premium illustrated fantasy. Essential: empty inset is a clean smooth uniform vertical gradient with NO texture, NO blotches, NO diagonal lighting, NO shading varying horizontally. Restrained vertical gradient only for reliable nine-slice x64 y48 to x448 y112. Entire center must stay dark enough for white text. No text, numbers, icons or scene.",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-77f0543a-9a03-4b65-bfc4-950c6a2cb608.png"
+  },
+  {
+    "name": "btn_main_v2_normal",
+    "prompt": "Edit target: the supplied empty green button sprite. Create btn_main_v2_normal. Keep EXACT same silhouette, proportions, aligned corner positions and border thickness. Change ONLY colors to dark amber gold enamel top #755018 bottom #3c280f, amber corner gems, NORMAL state, readable DARK bronze amber center not bright yellow. No lettering. Transparent background. Target 512x160. Painterly slate and antique metal outer border with four tiny gems, premium illustrated fantasy. Essential: empty inset is a clean smooth uniform vertical gradient with NO texture, NO blotches, NO diagonal lighting, NO shading varying horizontally. Restrained vertical gradient only for reliable nine-slice x64 y48 to x448 y112. Entire center must stay dark enough for white text. No text, numbers, icons or scene.",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-5f1de13a-a1c7-4afc-9e54-f5062f797b84.png"
+  },
+  {
+    "name": "btn_alt_v2_normal",
+    "prompt": "Edit target: the supplied empty green button sprite. Create btn_alt_v2_normal. Keep EXACT same silhouette, proportions, aligned corner positions and border thickness. Change ONLY colors to midnight sapphire blue enamel top #203e64 bottom #122338; sapphire corner gems, normal state. No lettering. Transparent background. Target 512x160. Painterly slate and antique metal outer border with four tiny gems, premium illustrated fantasy. Essential: empty inset is a clean smooth uniform vertical gradient with NO texture, NO blotches, NO diagonal lighting, NO shading varying horizontally. Restrained vertical gradient only for reliable nine-slice x64 y48 to x448 y112. Entire center must stay dark enough for white text. No text, numbers, icons or scene.",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-4e4807f7-3dbb-4a2e-95c1-35e20348ff6e.png"
+  },
+  {
+    "name": "btn_off_v2_normal",
+    "prompt": "Edit target: the supplied empty green button sprite. Create btn_off_v2_normal. Keep EXACT same silhouette, proportions, aligned corner positions and border thickness. Change ONLY colors to slate gray enamel top #3d444d bottom #232831; desaturated gray gems, all gold on frame becomes dull gunmetal gray, unlit and disabled NORMAL state. No lettering. Transparent background. Target 512x160. Painterly slate and antique metal outer border with four tiny gems, premium illustrated fantasy. Essential: empty inset is a clean smooth uniform vertical gradient with NO texture, NO blotches, NO diagonal lighting, NO shading varying horizontally. Restrained vertical gradient only for reliable nine-slice x64 y48 to x448 y112. Entire center must stay dark enough for white text. No text, numbers, icons or scene.",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-8e6f0baa-119b-455e-bd16-eaeba5d0f907.png"
+  },
+  {
+    "name": "btn_buy_v2_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-5e054a0b-446a-4d4f-9c5e-9329bb53a94e.png",
+    "prompt": "Precise UI state edit. Target btn_buy_v2_hover. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, colors, transparent exterior, empty text-free center. Create hover state by making gold rim and corner gems brighter and crisper with a restrained warm highlight (gray rim if disabled). Center only 5% brighter than reference and remains very dark, smooth vertical gradient with no texture at all. DO NOT change shape, dimensions, position, gem size or ornamentation. No text or new objects. Fully transparent exterior. Production nine-slice 512x160, center rect64,48,448,112, no pattern or marks in center."
+  },
+  {
+    "name": "btn_sell_v2_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-ce3eb4cd-1ebc-4353-bbb8-ada2dc802a7d.png",
+    "prompt": "Precise UI state edit. Target btn_sell_v2_hover. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, colors, transparent exterior, empty text-free center. Create hover state by making gold rim and corner gems brighter and crisper with a restrained warm highlight (gray rim if disabled). Center only 5% brighter than reference and remains very dark, smooth vertical gradient with no texture at all. DO NOT change shape, dimensions, position, gem size or ornamentation. No text or new objects. Fully transparent exterior. Production nine-slice 512x160, center rect64,48,448,112, no pattern or marks in center."
+  },
+  {
+    "name": "btn_main_v2_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-022a541e-a9f3-487b-9042-653eab41b9e7.png",
+    "prompt": "Precise UI state edit. Target btn_main_v2_hover. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, colors, transparent exterior, empty text-free center. Create hover state by making gold rim and corner gems brighter and crisper with a restrained warm highlight (gray rim if disabled). Center only 5% brighter than reference and remains very dark, smooth vertical gradient with no texture at all. DO NOT change shape, dimensions, position, gem size or ornamentation. No text or new objects. Fully transparent exterior. Production nine-slice 512x160, center rect64,48,448,112, no pattern or marks in center."
+  },
+  {
+    "name": "btn_alt_v2_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-a82d27d0-c4e6-4ed0-8262-111a34cbc036.png",
+    "prompt": "Precise UI state edit. Target btn_alt_v2_hover. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, colors, transparent exterior, empty text-free center. Create hover state by making gold rim and corner gems brighter and crisper with a restrained warm highlight (gray rim if disabled). Center only 5% brighter than reference and remains very dark, smooth vertical gradient with no texture at all. DO NOT change shape, dimensions, position, gem size or ornamentation. No text or new objects. Fully transparent exterior. Production nine-slice 512x160, center rect64,48,448,112, no pattern or marks in center."
+  },
+  {
+    "name": "btn_off_v2_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-2daa0e23-4e21-499d-b565-ca6b10a076b8.png",
+    "prompt": "Precise UI state edit. Target btn_off_v2_hover. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, colors, transparent exterior, empty text-free center. Create hover state by making gold rim and corner gems brighter and crisper with a restrained warm highlight (gray rim if disabled). Center only 5% brighter than reference and remains very dark, smooth vertical gradient with no texture at all. DO NOT change shape, dimensions, position, gem size or ornamentation. No text or new objects. Fully transparent exterior. Production nine-slice 512x160, center rect64,48,448,112, no pattern or marks in center."
+  },
+  {
+    "name": "btn_buy_v2_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-f61331c2-779e-4482-a156-4a7627f9cff0.png",
+    "prompt": "Precise UI state edit. Target btn_buy_v2_pressed. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, hue, transparent exterior, empty text-free center. Create PRESSED state: center is 20% darker than normal with subtle inset upper edge shadow; dim the upper gold bevel to antique bronze (gray for disabled), preserve lower bevel. Face appears inset/down by 2 pixels at target 512x160. DO NOT change shape, gems or ornamentation. Center plain clean vertical gradient, no texture or pattern, no symbols. Frame aligned in same canvas as reference. Fully transparent exterior. Production nine-slice 512x160 center rect64,48,448,112, dark readable face for white lettering added later. Absolutely no text."
+  },
+  {
+    "name": "btn_sell_v2_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-1cdf8087-9dbd-4417-bbdc-a30a82dc6919.png",
+    "prompt": "Precise UI state edit. Target btn_sell_v2_pressed. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, hue, transparent exterior, empty text-free center. Create PRESSED state: center is 20% darker than normal with subtle inset upper edge shadow; dim the upper gold bevel to antique bronze (gray for disabled), preserve lower bevel. Face appears inset/down by 2 pixels at target 512x160. DO NOT change shape, gems or ornamentation. Center plain clean vertical gradient, no texture or pattern, no symbols. Frame aligned in same canvas as reference. Fully transparent exterior. Production nine-slice 512x160 center rect64,48,448,112, dark readable face for white lettering added later. Absolutely no text."
+  },
+  {
+    "name": "btn_main_v2_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-15345852-4ed3-4c0e-a0e2-714a910194dd.png",
+    "prompt": "Precise UI state edit. Target btn_main_v2_pressed. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, hue, transparent exterior, empty text-free center. Create PRESSED state: center is 20% darker than normal with subtle inset upper edge shadow; dim the upper gold bevel to antique bronze (gray for disabled), preserve lower bevel. Face appears inset/down by 2 pixels at target 512x160. DO NOT change shape, gems or ornamentation. Center plain clean vertical gradient, no texture or pattern, no symbols. Frame aligned in same canvas as reference. Fully transparent exterior. Production nine-slice 512x160 center rect64,48,448,112, dark readable face for white lettering added later. Absolutely no text."
+  },
+  {
+    "name": "btn_alt_v2_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-a0f4ff49-ac4e-4c8c-9481-75940b49f105.png",
+    "prompt": "Precise UI state edit. Target btn_alt_v2_pressed. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, hue, transparent exterior, empty text-free center. Create PRESSED state: center is 20% darker than normal with subtle inset upper edge shadow; dim the upper gold bevel to antique bronze (gray for disabled), preserve lower bevel. Face appears inset/down by 2 pixels at target 512x160. DO NOT change shape, gems or ornamentation. Center plain clean vertical gradient, no texture or pattern, no symbols. Frame aligned in same canvas as reference. Fully transparent exterior. Production nine-slice 512x160 center rect64,48,448,112, dark readable face for white lettering added later. Absolutely no text."
+  },
+  {
+    "name": "btn_off_v2_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-d1ef0a1d-a70c-4ca0-8ef3-79a28864f3fd.png",
+    "prompt": "Precise UI state edit. Target btn_off_v2_pressed. Preserve supplied button EXACTLY: same canvas, same geometry, silhouette, hue, transparent exterior, empty text-free center. Create PRESSED state: center is 20% darker than normal with subtle inset upper edge shadow; dim the upper gold bevel to antique bronze (gray for disabled), preserve lower bevel. Face appears inset/down by 2 pixels at target 512x160. DO NOT change shape, gems or ornamentation. Center plain clean vertical gradient, no texture or pattern, no symbols. Frame aligned in same canvas as reference. Fully transparent exterior. Production nine-slice 512x160 center rect64,48,448,112, dark readable face for white lettering added later. Absolutely no text."
+  },
+  {
+    "name": "tab_on_v2_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-b8e40052-37b6-4626-8224-c13bc3bd529f.png",
+    "prompt": "Production game UI asset, ONE empty SELECTED TAB, target384x112 transparentRGBA, front view horizontal short wide rectangle with very slightly clipped corners. Thin dark slate frame with bright antique GOLD metal top and bottom bevels, two tiny amber gemstones ONLY at left/right corner regions outside x56..328 and y36..76. Center dark amber #654114 to #38260f smooth VERTICAL gradient only, no texture, keeping white text readable. Selected state evident from warm bright gold border, NOT bright central fill. Clean straight stretchable middle edges, no decorations in center. Premium hand-painted illustrated fantasy mountain dragon game, restrained aged metal scratches onlyonframe. No text, symbols, watermark, scene, shadow outside outline. Full transparent exterior, assetfillsalmostcanvas. Compatible visuallywithpreviousgemcornerbuttonseries."
+  },
+  {
+    "name": "tab_off_v2_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-db91b485-e7cb-4f92-8636-9fc1713d4929.png",
+    "prompt": "Production game UI asset, ONE empty UNSELECTED TAB, target384x112 transparentRGBA, front view horizontal short wide rectangle with very slightly clipped corners. Thin dark slate frame with muted bronze metal top and bottom bevels, two tiny blue gemstones ONLY at left/right corner regions outside x56..328 and y36..76. Center midnight blue #1d3553 to #102034 smooth VERTICAL gradient only, no texture, keeping white text readable. Clean straight stretchable middle edges, no decorations in center. Premium hand-painted illustrated fantasy mountain dragon game, restrained aged metal scratches onlyonframe. No text, symbols, watermark, scene, shadow outside outline. Full transparent exterior, assetfillsalmostcanvas. Compatible visuallywithpreviousgemcornerbuttonseries."
+  },
+  {
+    "name": "card_glass_v2",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-b88ce4ae-99dd-420d-b854-262f0ae11997.png",
+    "prompt": "Production UI PNG RGBA sprite. ONE square dark smoky glass panel frame256x256 for a Rebirth menu over a mountain illustration. Face-on, perfectly square, clipped chamfer corners, THIN antique gold outer frame 5px with restrained carved metal details confined to cornersfirstlast50px. Absolutely empty center. Center fill dark navy charcoal RGB16,24,34 with ACTUAL 75% opacity / alpha191 outof255 so image behind shows through. This MUST be actual semi-transparent alpha in PNG, not opaque darkfill and not fake checkerboard pattern. Exterior completely transparent. Smooth uniform flat glass no lights, no pattern, no reflection, no vignette. Border crisp thin worn gold softly lit top-left, no gem needed. Nine-slice rect72,72,184,184. Premium polished handpainted warm fantasy UI style. No text, no scene, no objects."
+  },
+  {
+    "name": "card_item_v2",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-61235f03-d55f-40d5-95d1-14c698e27b2f.png",
+    "prompt": "Production game UI frame sprite, 256x256 RGBA transparent background. ONE square dark slate and worn antique gold card frame, front view, slightly clipped corners, thin elegant border 8px. Four small neutral pale blue diamond gemstones placed only in thecornersfirstlast45px, finely carved bronze tiny angular dragonclaw prongs holding them. Center entirely EMPTY with actual ALPHA ZERO transparency allthewaythrough. No opaque or colored fill inside, no translucent glass, no fakecheckerboard. Exterior also completelytransparent. Stretchable topbottom andleftright straight plain edges. Nine-slice rect72,72,184,184. Match warm illustrated fantasy game UI, top-left lighting, premium crisp handpainted beveled metal edge with a few tasteful scratches. No text, symbols, shadowoutside, scene, objectincenter."
+  },
+  {
+    "name": "pedestal_v2",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-a143f3e0-48ed-4e0d-a4af-48ff4ebe5380.png",
+    "prompt": "Production fantasy dragon game UI sprite. ONE empty dark stone round display pedestal, seen in elevated three-quarter perspective, targetPNG512x256 RGBA with completely transparent exterior. Wide elliptical top, low cylindrical base, dark blue-gray slate stone, thin worn bronze rims, short elegant octagonal supports subtly carved like dragonclaws aroundbase. Premium beautifully handpainted fantasy art, warmbronzehighlightsandcoolstoneshadows, clean readable shape. Top surface EMPTY fordragonavatar, outertopcircumference carries a delicate empty elliptical ring and 12 simple fantasy rune strokes, NEUTRAL WHITE ONLY with 50%opacity / alpha128 for runtime element tinting. Ring thin subtle, no coloredglow. No dragon, no item, no text, no letters/numbers, no scene, no floor, no shadow outside outline. Entirepedestalcenteredwithtransparentpadding."
+  },
+  {
+    "name": "tab_off_v2_normal",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-8ee60455-fbca-4b72-98c6-cf9e687ae505.png",
+    "prompt": "Change ONLY the color of the provided gold tab to its UNSELECTED version: midnight navy blue dark smooth enamel (#1d3553 top to #102034 bottom), tiny gemstones sapphire blue, gold border slightly dimmer antique bronze. Preserve EXACT same silhouette, all 4 corners, gem positions, dimensions, alignment, canvas, margins. No glow outside, fully transparent exterior, no text, no texture/figures inside, perfectly straight stretchable middle edges. Center dark flat vertical gradient only. Target384x112, nine-slice center rect56,36,328,76. NO gem on middle of side edge; only cornergems asreference."
+  },
+  {
+    "name": "card_glass_v2",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-4b6596ba-f52f-4209-aaed-0a410c7c8ba9.png",
+    "prompt": "Correct the actual alpha of this game UI panel. Preserve gold frame EXACTLY and exterior fully transparent. ONLY CHANGE CENTER glass to ACTUAL semi-transparent RGBA: straight color RGB(16,24,34), opacity75% (alpha191/255) throughout the interior. Need MORE TRANSPARENT than reference, so an illustration behind can show through. No checkerboard painted in. No texture/reflections. Uniform dark navy glass entireinterior. Target256x256, nine-slice center72,72,184,184. Frame stays opaque gold. No text or new details."
+  },
+  {
+    "name": "tab_on_v2_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-2be33e23-2cb0-4991-a3fa-4a832d0664e9.png",
+    "prompt": "Create HOVER state of supplied gold selected tab. Preserve EXACT shape, proportions, borders, gems, cornerpositions, transparentbackground. Make ONLY goldrim and gems brighter with soft golden sheen, keepcenter dark amber verticalgradient. No exterior glow, no text, noaddedmarks. Target384x112. Every centerpixel dark, no horizontalpattern."
+  },
+  {
+    "name": "tab_on_v2_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-046ed6f0-ca7a-4b5d-8935-6ca1962b5c93.png",
+    "prompt": "Create PRESSED state of supplied gold selected tab. Preserve EXACT shape, proportions, borders, gems, cornerpositions, transparentbackground. Darken empty amber center20%, deepen innerupper shadow and dim uppermetalrim. Topface subtly sunk2pixels. No exterior glow, no text, noaddedmarks. Target384x112. Center smoothdarkverticalgradientonly."
+  },
+  {
+    "name": "tab_off_v2_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-22bdf18b-a696-40db-854e-f256286d0e87.png",
+    "prompt": "Edit provided tab to tab_off_v2_hover. HOVER state: brighten antique gold frame and bluecornergems slightly. Keep center dark navy, smooth empty verticalgradient. Preserve EXACT geometry, colors, silhouette, canvas, alignment,gempositionsandscale. Full transparent exterior, no glow outside. Target384x112. Centerrect56,36,328,76 plain dark with no designs/texture/symbols. Premium fantasy handpainted slateandbronze UI. Absolutely no text."
+  },
+  {
+    "name": "tab_off_v2_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-ac5f8bf8-b157-4b9d-b0de-4210626dbd48.png",
+    "prompt": "Edit provided tab to tab_off_v2_pressed. PRESSED state: darken center20%, deepen upper inset shadow, upper bronzeedge darker and loweredge highlighted. Face subtlydown2px. Preserve EXACT geometry, colors, silhouette, canvas, alignment,gempositionsandscale. Full transparent exterior, no glow outside. Target384x112. Centerrect56,36,328,76 plain dark with no designs/texture/symbols. Premium fantasy handpainted slateandbronze UI. Absolutely no text."
+  },
+  {
+    "name": "pedestal_base_v2",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-83969161-d484-44ec-bf2d-dd04ad3375dc.png",
+    "prompt": "Edit supplied pedestal: REMOVE ONLY the white elliptical ring and white rune strokes from stone top, reconstruct darkslate texture underneath. Preserve ALL pedestal geometry, every carved support, bronze rim, perspective, lighting, entire object position, transparent canvas and margins EXACTLY. No new objects or text. This is the cleanbase for a separately colored rune overlay. Same canvas aspect2:1, exact same scale and placement."
+  },
+  {
+    "name": "pedestal_runes_v2",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-854a696b-0fc5-4783-9c4d-0af6ddaa4d1d.png",
+    "prompt": "Extract ONLY white elliptical ring and its 12 rune strokes from supplied pedestal, at EXACT same pixel positions and perspective in SAME canvas. Remove EVERYTHING ELSE: stone top, supports, bronzeedges, shading, background allfully transparentalpha0. Ringandrunesshouldbe pure neutral white with 50% opacity, oncompletelytransparentcanvas. Preserve original entirecanvasaspect2:1, margins, positionsand scale precisely. Do NOT crop to ring or enlargeit. No blackorgraybackground, no ground, no pedestalvisible, no newmarks. Output matching white rune overlay, target512x256, withlowerhalfmostlyempty transparent. Sameexactellipticalringplacementasreference."
+  },
+  {
+    "name": "btn_off_v2_hover",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-d65093c1-f7e1-4185-a4b7-3ad5989faae5.png",
+    "prompt": "Color correction only to the supplied DISABLED button hover. The entirebutton must be COMPLETELY ACHROMATIC: gray slate face, dull GRAY GUNMETAL frame and neutral smoky diamond corner gems. Remove ALL warm bronze, gold, yellow, brown or orange hues. Preserve exactshading,geometry,canvas,transparentbackground,position, tinygemdetails, and hover state. Subtlybrighter grayframe only, no brightgold glow. Target512x160 nine-slice. No text ornewartwork. Clean empty dark center withsmoothverticalgradient and nopattern."
+  },
+  {
+    "name": "btn_off_v2_pressed",
+    "source": "C:\\Users\\mirko\\.codex\\generated_images\\01a125fa-6621-7323-a62b-5fa3c5406d16\\exec-94ebff3f-f746-40e2-9c74-752968a180bb.png",
+    "prompt": "Color correction only to the supplied DISABLED button pressed. The entirebutton must be COMPLETELY ACHROMATIC: gray slate face, dull GRAY GUNMETAL frame and neutral smoky diamond corner gems. Remove ALL warm bronze, gold, yellow, brown or orange hues. Preserve exactshading,geometry,canvas,transparentbackground,position, tinygemdetails, and pressed state. Darkface and dimgrayupperbevel, subtlyinset. Target512x160 nine-slice. No text ornewartwork. Clean empty dark center withsmoothverticalgradient and nopattern."
+  }
+]
