@@ -531,6 +531,35 @@ def symbol_mask(el, s, lw=0.3):
     return np.clip(m, 0, 1)
 
 
+def m_osso(seed):
+    """osso antico: avorio caldo, crepe sottili, sporco scuro nelle pieghe"""
+    n = TEX
+    nz = noise(n, 2.2, seed)
+    fine = noise(n, 1.0, seed + 1)
+    fib = noise(n, 1.6, seed + 2, (1.0, 7.0))
+    d1, d2 = worley(n, 30, seed + 3)
+    crack = (1 - smooth(0.0, 0.03, d2)) * smooth(0.45, 0.6, noise(n, 2.4, seed + 4))
+    c = col((0.80, 0.73, 0.58)) * (0.8 + 0.3 * nz[..., None]) * (0.9 + 0.15 * fib[..., None])
+    c = mix(c, col((0.42, 0.34, 0.24)), smooth(0.55, 0.85, noise(n, 2.8, seed + 5)) * 0.55)
+    c = mix(c, col((0.20, 0.15, 0.10)), crack * 0.8)
+    h = 0.5 * nz + 0.25 * fib + 0.15 * fine - 0.3 * crack
+    return c, h, 0.6 + 0.25 * fine + 0.15 * crack
+
+
+def m_membrana(seed):
+    """membrana delle ali: cuoio scuro rosso bruno con vene"""
+    n = TEX
+    nz = noise(n, 2.4, seed)
+    fine = noise(n, 1.2, seed + 1)
+    d1, d2 = worley(n, 18, seed + 2)
+    vein = 1 - smooth(0.0, 0.025, d2)
+    c = col((0.30, 0.09, 0.07)) * (0.75 + 0.45 * nz[..., None]) * (0.9 + 0.15 * fine[..., None])
+    c = mix(c, col((0.14, 0.04, 0.035)), vein * 0.75)
+    c = mix(c, col((0.45, 0.20, 0.12)), smooth(0.65, 0.9, noise(n, 2.0, seed + 3)) * 0.4)
+    h = 0.5 * nz + 0.3 * vein + 0.2 * fine
+    return c, h, 0.7 + 0.15 * fine
+
+
 # registro: nome del materiale -> (funzione, metri per ripetizione della texture)
 MATERIALI = {
     "PietraScura": (lambda: m_pietra(11, (0.37, 0.33, 0.29), rows=5, moss=0.25), 6.0),
@@ -551,6 +580,8 @@ MATERIALI = {
     "LamieraRossa": (lambda: m_lamiera(26), 2.0),
     "AghiPino": (lambda: m_aghi(27), 2.0),
     "Bronzo": (lambda: m_bronzo(28), 1.5),
+    "OssoDrago": (lambda: m_osso(32), 3.0),
+    "MembranaDrago": (lambda: m_membrana(33), 6.0),
     "PietraChiara": (lambda: m_pietra(29, (0.60, 0.57, 0.52), rows=4, wear=0.7), 3.0),
     "TelaRossa": (lambda: m_stoffa(30, (0.55, 0.10, 0.07)), 2.0),
     "TelaGrigia": (lambda: m_stoffa(31, (0.40, 0.42, 0.40)), 2.0),
@@ -560,7 +591,7 @@ for _i, _el in enumerate(ELEMENTI):
 
 # materiali senza texture (tools/modelli/carica_modelli.luau: PLAIN) e colore per le anteprime
 PIANI = {
-    "MAT_Ember": ((1.0, 0.30, 0.06), 2.2),       # rune luminose, braci (Neon)
+    "MAT_Ember": ((1.0, 0.28, 0.05), 0.9),       # rune luminose, braci (Neon)
     "MAT_WarmLight": ((1.0, 0.75, 0.45), 4.0),   # lanterne
     "MAT_Gold": ((0.84, 0.69, 0.27), 0.0),
     "MAT_Glass": ((0.66, 0.80, 0.90), 0.0),
@@ -1545,3 +1576,39 @@ def drago_seduto(p_body, p_detail, M, el=None, p_gold=None, p_eye=None, res=0.07
         for k in range(4):
             q = Vector((0, -0.35, 1.7 + 0.22 * k))
             torus(pa, M @ q, (0.62 - 0.04 * k) * sc, 0.035 * sc, normal=(0, 0, 1), nR=16, nr=4, scale=(1.0, 0.7))
+
+
+# ---------------------------------------------------------------------------------------
+# anatomia procedurale della skill roblox-reference-modeling (.claude/skills/.../anatomy_lib.py):
+# cranio, mascella, denti, corna, vertebre, costole, ossa delle ali, membrane.
+
+SKILL_SCRIPTS = os.path.join(REPO, ".claude", "skills", "roblox-reference-modeling", "scripts")
+
+
+def anatomia(cfg, M, pick, detail=1.0, smooth=True, mirror=False):
+    """genera i componenti di cfg (formato dragon_anatomy.json) e li aggiunge alle Parti.
+    pick(key, role, name) -> Parte (o None per scartare). M: trasformazione (scala e posizione)."""
+    if SKILL_SCRIPTS not in sys.path:
+        sys.path.insert(0, SKILL_SCRIPTS)
+    import anatomy_lib as al
+    lm = al.Landmarks(cfg.get("landmarks", {}))
+    joints, chains = al.resolve_joints(cfg.get("joints", {}), lm)
+    ctx = {"detail": detail, "chains": chains, "components": cfg["components"],
+           "name": lambda base, side: "A_" + base + ("_" + side if side else "")}
+    count = 0
+    for key, spec in cfg["components"].items():
+        if spec.get("enabled", True) is False:
+            continue
+        for part in al.generate_component(key, spec, lm, ctx):
+            p = pick(key, part["role"], part["name"])
+            if p is None:
+                continue
+            base = len(p.v)
+            for v in part["verts"]:
+                w = M @ Vector(v)
+                p.v.append((-w.x, w.y, w.z) if mirror else tuple(w))
+            for f in part["faces"]:
+                fc = [base + i for i in f]
+                p.f.append((fc[::-1] if mirror else fc, smooth, None))
+            count += 1
+    return count

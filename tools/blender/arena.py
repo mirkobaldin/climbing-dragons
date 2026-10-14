@@ -270,7 +270,7 @@ def mura(k):
             box(pc, M @ Vector((x, -R_OUT - 0.4, z0 + 0.4)), (2.2, 0.9, 0.8), rot=M.to_3x3(), bev=0.08)          # piedistallo
             lathe(pc, [(r * 1.25, z0 + 0.8), (r * 1.25, z0 + 1.05), (r * 1.05, z0 + 1.25), (r, z0 + 1.5), (r, z1 - 1.2),
                        (r * 1.08, z1 - 1.0), (r * 1.3, z1 - 0.55), (r * 1.45, z1 - 0.3), (r * 1.45, z1)],
-                  10, (0, 0, 0), math.pi, 2 * math.pi, M=M @ Matrix.Translation((x, -R_OUT, 0)))
+                  6, (0, 0, 0), math.pi, 2 * math.pi, M=M @ Matrix.Translation((x, -R_OUT, 0)))
     for x in bays:
         L.arch_ring(pc, x, 6.0, 7.5, -R_OUT - 0.3, -R_OUT + 0.05, band=0.75, segs=12, M=M)
         L.arch_ring(pc, x, 5.2, 17.9, -R_OUT - 0.25, -R_OUT + 0.05, band=0.6, segs=12, M=M)
@@ -470,54 +470,195 @@ def stendardo(j, M, w=4.0, h=12.0):
 
 
 # ---------------------------------------------------------------------------------------------
-# testa di drago scolpita (portale): muso verso -Y locale, collo che esce dal muro a y = 0
+# i due draghi scheletrici avvolti sulle mura (generatori anatomici della skill
+# roblox-reference-modeling): crani a fauci aperte sui piloni del portale, spina dorsale sopra le
+# mura con le costole drappeggiate dentro e fuori, zampe che artigliano i merli, ali alzate,
+# code intrecciate in una guglia dietro il palco. Qui il drago di sinistra (x < 0); quello di
+# destra e' lo specchio (x -> -x).
 
-def testa_drago(M, ps, ph, pt, pe):
-    E = []
-    neck = L.smooth_path([(0, 3.0, -2.2), (0, 0.5, -1.0), (0, -1.6, 0.0), (0, -2.6, 0.5)], 3)
-    E += L._chain_balls(neck, [2.7, 2.5, 2.2, 2.0])
-    E.append(("ELLIPSOID", (0, -3.2, 1.0), 2.1, (0.95, 1.05, 0.8)))                 # cranio
-    E.append(("ELLIPSOID", (0, -5.8, 0.75), 1.55, (0.72, 1.65, 0.5), (0.04, 0, 0)))   # muso
-    E.append(("ELLIPSOID", (0, -7.5, 0.85), 0.85, (0.95, 0.9, 0.72)))               # punta del muso
+SKILL_ASSETS = os.path.join(L.SKILL_SCRIPTS, "..", "assets")
+JAW_TIP = {}
+HEAD_SCALE = 22.0
+WING_SCALE = 13.0
+Z_SPINE = 36.0
+R_SPINE = 88.0
+
+
+def P(th, r=R_SPINE, z=Z_SPINE):
+    a = math.radians(th)
+    return [round(r * math.cos(a), 3), round(r * math.sin(a), 3), z]
+
+
+def draghi():
+    import json
+    ex = json.load(open(os.path.join(SKILL_ASSETS, "dragon_anatomy.example.json"), encoding="utf-8"))
+    exl = ex["landmarks"]
+    exc = ex["components"]
+    pb = {}
+
+    def part(nm, mat, mirror):
+        side = "Dx" if mirror else "Sx"
+        return m.part("Arena_Drago%s_%s" % (side, nm), mat)
+
+    # --- testa (coordinate dell'esempio, poi scala e posizione) -------------------------------
+    hb = Vector(exl["head_base"])
+    hinge = (Vector(exl["jaw_hinge_L"]) + Vector((-exl["jaw_hinge_L"][0], exl["jaw_hinge_L"][1], exl["jaw_hinge_L"][2]))) / 2
+    Rj = Matrix.Rotation(math.radians(30), 3, "X")       # fauci spalancate
+    hl = {k: list(v) for k, v in exl.items()}
+    for k in ("jaw_hinge_L", "jaw_mid_L", "jaw_tip"):
+        hl["u" + k] = list(exl[k])
+        hl[k] = list(hinge + Rj @ (Vector(exl[k]) - hinge))
+    hc = {k: dict(exc[k]) for k in ("skull", "horn", "jaw", "teeth_lower", "teeth_upper")}
+    hc["teeth_upper"]["points"] = [{"lm": "ujaw_hinge_L", "offset": [0, -0.05, 0.06]}, {"lm": "ujaw_mid_L", "offset": [0.01, 0, 0.07]},
+                                   {"lm": "ujaw_tip", "offset": [0, -0.03, 0.07]}, {"lm": "ujaw_mid_R", "offset": [-0.01, 0, 0.07]},
+                                   {"lm": "ujaw_hinge_R", "offset": [0, -0.05, 0.06]}]
+    hc["skull"]["sections"] = [[0, 0.17, 0.15, 0.0], [0.2, 0.21, 0.17, 0.02], [0.42, 0.15, 0.12, 0.0], [0.7, 0.095, 0.07, -0.02],
+                               [0.9, 0.075, 0.06, -0.02], [1, 0.04, 0.045, -0.03]]
+    hc["skull"]["stations"] = 18
+    hc["horn"] = dict(hc["horn"], length=0.75, radius=0.055, curve_deg=45)
+    hc["crest"] = {"type": "spike_row", "role": "horn", "bone": "head", "name": "Crest",
+                   "points": [{"lm": "head_base", "offset": [0, 0.04, 0.15]}, {"lm": "skull_mid", "offset": [0, 0, 0.16]}, {"lm": "skull_tip", "offset": [0, 0.12, 0.1]}],
+                   "count": 7, "t_range": [0.0, 0.7], "length": [0.16, 0.1, 0.05], "radius": [0.03], "direction": [0, 0.7, 1], "curve_deg": 25, "segments": 6}
+    hc["horn2"] = dict(exc["horn"], base={"lm": "horn_base_{S}", "offset": [0.06, 0.08, -0.12]}, direction=[0.7, 0.5, 0.15], length=0.28, radius=0.028, name="Horn2")
+    hc["horn3"] = dict(exc["horn"], base={"lm": "jaw_hinge_{S}", "offset": [0.05, 0.03, 0.02]}, direction=[0.5, 0.75, -0.25], length=0.2, radius=0.022, name="Horn3", curve_deg=20)
+    head_base_w = Vector((-18.0, -101.2, 37.6))
+    Mh = (Matrix.Translation(head_base_w) @ Matrix.Rotation(math.radians(-15), 4, "Z") @ Matrix.Rotation(math.radians(6), 4, "X")
+          @ Matrix.Diagonal((HEAD_SCALE, HEAD_SCALE, HEAD_SCALE, 1)) @ Matrix.Translation(-hb))
+    hcfg = {"landmarks": hl, "joints": {"head": ex["joints"]["head"] | {"parent": None}, "jaw": ex["joints"]["jaw"] | {"parent": "head"}}, "components": hc}
+    jt = Mh @ Vector(hl["jaw_tip"])
+    JAW_TIP[-1] = jt + Vector((0, 0, -0.6))
+    JAW_TIP[1] = Vector((-jt.x, jt.y, jt.z - 0.6))
+
+    # --- corpo in coordinate dell'arena -----------------------------------------------------
+    lm = {}
+    neck_pts = [P(-108), [-24.5, -93.0, 40.5], [-20.0, -98.5, 39.0], list(head_base_w)]
+    lm.update({"n0": neck_pts[0], "n1": neck_pts[1], "n2": neck_pts[2], "n3": neck_pts[3]})
+    sp = [P(-172, z=Z_SPINE - 0.5), P(-155, z=Z_SPINE + 1.0), P(-135, z=Z_SPINE + 1.5), P(-118, z=Z_SPINE + 0.8), P(-108)]
+    for i, q in enumerate(sp):
+        lm["s%d" % i] = q
+    tail = [P(-172, z=Z_SPINE - 0.5), P(-195, z=Z_SPINE - 1.0), P(-220, z=Z_SPINE - 1.5), P(-243, 87.0, Z_SPINE - 1.0),
+            [-14.0, 92.5, 40.0], [-4.0, 97.5, 49.0], [4.0, 96.5, 58.0], [1.0, 93.0, 66.0], [-2.0, 95.5, 72.0]]
+    for i, q in enumerate(tail):
+        lm["t%d" % i] = q
+    # ali: il disegno dell'esempio girato sul fianco del drago e alzato
+    th_w = -121.0
+    a = math.radians(th_w)
+    o = Vector((math.cos(a), math.sin(a), 0))                       # verso fuori
+    f = Vector((-math.sin(a), math.cos(a), 0))                      # verso la testa
+    z = Vector((0, 0, 1))
+    r0 = Vector(exl["wing_root_L"])
+    for side, out, tilt in (("L", o, 52.0), ("R", -o, 84.0)):
+        lat = (out * math.cos(math.radians(tilt)) + z * math.sin(math.radians(tilt))).normalized()
+        up2 = lat.cross(f).normalized()
+        if up2.z < 0:
+            up2 = -up2
+        root = Vector(P(th_w, R_SPINE + (2.4 if side == "L" else -2.4), Z_SPINE + 1.5))
+        for k in ("wing_root", "wing_elbow", "wing_wrist", "d1_tip", "d2_1", "d2_2", "d2_tip", "d3_1", "d3_tip", "d4_1", "d4_tip", "d5_1", "d5_tip"):
+            q = Vector(exl[k + "_L"]) - r0
+            w = root + WING_SCALE * (q.x * lat + (-q.y) * f + q.z * up2)
+            lm["%s_%s" % (k, side)] = list(w)
+        rr = R_SPINE + (2.2 if side == "L" else -2.2)
+        lm["flank_" + side] = P(-133, rr, Z_SPINE + 0.5)
+        lm["hip_attach_" + side] = P(-150, rr, Z_SPINE)
+    # zampe: L artiglia i merli fuori, R il camminamento dentro
+    for (th, pre) in ((-124.0, "f"), (-163.0, "h")):
+        lm[pre + "sh_L"] = P(th, 90.0, 33.5)
+        lm[pre + "el_L"] = P(th - 3, 97.5, 35.0)
+        lm[pre + "wr_L"] = P(th + 1, 96.2, 28.6)
+        lm[pre + "ba_L"] = P(th + 1, 94.6, 27.7)
+        lm[pre + "to_L"] = P(th + 1, 91.8, 27.7)
+        lm[pre + "sh_R"] = P(th, 86.0, 33.5)
+        lm[pre + "el_R"] = P(th - 3, 80.0, 33.0)
+        lm[pre + "wr_R"] = P(th + 1, 84.6, 24.2)
+        lm[pre + "ba_R"] = P(th + 1, 86.4, 22.4)
+        lm[pre + "to_R"] = P(th + 1, 89.4, 22.2)
+    joints = {
+        "spine": {"type": "axial", "points": ["s0", "s1", "s2", "s3", "s4"], "bones": 6},
+        "neck": {"type": "axial", "points": ["n0", "n1", "n2", "n3"], "bones": 5, "parent": "spine:last"},
+        "tail": {"type": "axial", "points": ["t%d" % i for i in range(len(tail))], "bones": 12},
+    }
+    comps = {
+        "vert_neck": {"type": "vertebra_chain", "name": "VertNeck", "bone_chain": "neck", "points": ["n0", "n1", "n2", "n3"], "count": 7,
+                      "centrum_radius": [1.7, 1.25], "length_ratio": 0.78, "neural_spine_height": [2.2, 1.2], "neural_spine_tilt_deg": 20,
+                      "transverse_length": [1.6, 1.0], "segments": 10},
+        "vert_spine": {"type": "vertebra_chain", "name": "VertDorsal", "bone_chain": "spine", "points": ["s0", "s1", "s2", "s3", "s4"], "count": 15,
+                       "centrum_radius": [2.0, 2.3, 2.0], "length_ratio": 0.78, "neural_spine_height": [4.0, 5.5, 3.5],
+                       "neural_spine_tilt_deg": 25, "transverse_length": [2.2, 2.6, 2.0], "segments": 10},
+        "vert_tail": {"type": "vertebra_chain", "name": "VertTail", "bone_chain": "tail", "points": ["t%d" % i for i in range(len(tail))], "count": 44,
+                      "centrum_radius": [2.0, 0.55], "length_ratio": 0.8, "neural_spine_height": [3.0, 0.0], "neural_spine_tilt_deg": -25,
+                      "transverse_length": [0.9, 0.0], "segments": 8},
+        "ribs": {"type": "rib_set", "name": "Rib", "vertebrae": "vert_spine", "range": [1, 13], "symmetry": False,
+                 "spread": [6.0, 8.5, 6.5], "drop": [12.0, 15.0, 12.0], "sweep": [2.0, 2.6, 2.0], "radius": [0.85, 0.32], "flatten": 0.6,
+                 "stations": 10, "segments": 7},
+        "fore_leg": {"type": "limb_chain", "side": "LR", "symmetry": False, "role": "limb_bone", "points": ["fsh_{S}", "fel_{S}", "fwr_{S}", "fba_{S}"],
+                     "names": ["Humerus", "Ulna", "Metacarpal"], "bones": ["a", "b", "c"], "radius": [1.15, 0.85, 0.6], "gap": 0.5, "stations": 7, "segments": 9},
+        "hind_leg": {"type": "limb_chain", "side": "LR", "symmetry": False, "role": "limb_bone", "points": ["hsh_{S}", "hel_{S}", "hwr_{S}", "hba_{S}"],
+                     "names": ["Femur", "Tibia", "Metatarsus"], "bones": ["a", "b", "c"], "radius": [1.3, 0.95, 0.65], "gap": 0.5, "stations": 7, "segments": 9},
+        "fore_toes": {"type": "digit_set", "side": "LR", "symmetry": False, "name": "ForeToe", "base": "fba_{S}", "toward": "fto_{S}", "digits": 4,
+                      "spread_deg": 70, "phalanx_length": 1.8, "phalanx_radius": 0.32, "claw_length": 1.6, "claw_radius": 0.3, "claw_curve_deg": 75, "bone": "c", "segments": 8},
+        "hind_toes": {"type": "digit_set", "side": "LR", "symmetry": False, "name": "HindToe", "base": "hba_{S}", "toward": "hto_{S}", "digits": 4,
+                      "spread_deg": 70, "phalanx_length": 2.0, "phalanx_radius": 0.35, "claw_length": 1.8, "claw_radius": 0.33, "claw_curve_deg": 75, "bone": "c", "segments": 8},
+    }
+    for k in ("wing_arm_bones", "wing_d2_bones", "wing_d3_bones", "wing_d4_bones", "wing_d5_bones", "wing_thumb_claw", "wing_membrane"):
+        c = json.loads(json.dumps(exc[k]))
+        c["symmetry"] = False
+        if "radius" in c:
+            c["radius"] = [r * WING_SCALE for r in c["radius"]] if isinstance(c["radius"], list) else c["radius"] * WING_SCALE
+        for key in ("gap", "length", "thickness"):
+            if key in c:
+                c[key] = c[key] * WING_SCALE
+        if k == "wing_thumb_claw":
+            c["base"] = "wing_wrist_{S}"
+        if k == "wing_membrane":
+            c["thickness"] = 0.25
+            c["sag"] = 0.18
+        comps[k] = c
+    cfg = {"landmarks": lm, "joints": joints, "components": comps}
+
+    # costole: niente costole dove passano le torri
+    if L.SKILL_SCRIPTS not in sys.path:
+        sys.path.insert(0, L.SKILL_SCRIPTS)
+    import anatomy_lib as al
+    lay, _ = al.vertebra_layout(comps["vert_spine"], al.Landmarks(lm))
+    torri = [-90 + 22.5 + 45 * j for j in range(8)]
+    skip = set()
+    for i, (c, _fr) in enumerate(lay):
+        th = math.degrees(math.atan2(c.y, c.x))
+        if any(abs(((th - t) + 180) % 360 - 180) < 7.5 for t in torri):
+            skip.add(i + 1)
+
+    for mirror in (False, True):
+        bone_h = part("Cranio", "OssoDrago", mirror)
+        bone_n = part("Collo", "OssoDrago", mirror)
+        bone_s = part("Schiena", "OssoDrago", mirror)
+        bone_t = part("Coda", "OssoDrago", mirror)
+        bone_r = part("Costole", "OssoDrago", mirror)
+        bone_l = part("Zampe", "OssoDrago", mirror)
+        bone_w = part("AliOssa", "OssoDrago", mirror)
+        mem = part("AliMembrana", "MembranaDrago", mirror)
+        L.anatomia(hcfg, Mh, lambda k, r, n: bone_h, mirror=mirror)
+
+        def pick(k, r, n):
+            if k == "ribs":
+                idx = int(n.split("_")[2])
+                return None if idx in skip else bone_r
+            return {"vert_neck": bone_n, "vert_spine": bone_s, "vert_tail": bone_t, "fore_leg": bone_l, "hind_leg": bone_l,
+                    "fore_toes": bone_l, "hind_toes": bone_l, "wing_membrane": mem}.get(k, bone_w)
+        L.anatomia(cfg, Matrix.Identity(4), pick, mirror=mirror)
+    # occhi di brace nelle orbite e marcatori
     for sx in (-1, 1):
-        E.append(("ELLIPSOID", (1.05 * sx, -3.7, 2.0), 0.85, (0.8, 1.5, 0.5), (0.0, 0, 0.12 * sx)))   # arcate
-        E.append(("ELLIPSOID", (1.45 * sx, -3.0, -0.2), 1.0, (0.7, 1.1, 0.9)))        # guance
-        E.append(("ELLIPSOID", (0.5 * sx, -7.7, 1.25), 0.35, (1, 1, 0.8)))            # narici
-        E.append(("ELLIPSOID", (1.1 * sx, -4.3, 1.3), 0.42, (1, 1, 1), None, True))   # orbite
-    # mascella spalancata: ruotata attorno alla cerniera
-    hinge = Vector((0, -2.6, -0.6))
-    Rj = Matrix.Rotation(math.radians(32), 3, "X")
-    for c, r, sz in (((0, -5.3, -1.0), 1.25, (0.72, 1.85, 0.36)), ((0, -7.2, -1.05), 0.7, (0.9, 0.9, 0.5))):
-        q = hinge + Rj @ (Vector(c) - hinge)
-        E.append(("ELLIPSOID", tuple(q), r, sz, (math.radians(32), 0, 0)))
-    E.append(("ELLIPSOID", (0, -5.6, -0.55), 1.15, (0.62, 1.7, 0.55), (0.25, 0, 0), True))    # bocca
-    tmp = L.Part("tmp", ps.mat)
-    L.meta(tmp, E, res=0.16, thresh=0.6)
-    if tmp.tris() > 7500:
-        L.decimate_part(tmp, 7500 / tmp.tris())
-    base = len(ps.v)
-    ps.v.extend([tuple(M @ Vector(v)) for v in tmp.v])
-    ps.f.extend([([base + i for i in f[0]], True, None) for f in tmp.f])
-    S = M.to_scale()[0]
+        for ex_ in (-1, 1):
+            q = Mh @ Vector((0.085 * ex_, -2.6, 2.74))
+            if sx > 0:
+                q = Vector((-q.x, q.y, q.z))
+            sphere(m.part("Arena_Draghi_Occhi", "MAT_Ember"), q, 0.9, seg=10, rings=6)
+        tipq = Vector(lm["t8"])
+        m.marker("FX_Light_Occhi%s" % ("Dx" if sx > 0 else "Sx"), Vector((sx * abs((Mh @ Vector((0, -2.6, 2.74))).x), (Mh @ Vector((0, -2.6, 2.74))).y, (Mh @ Vector((0, -2.6, 2.74))).z)))
+    m.marker("SPOT_GugliaCode", Vector((0.0, 95.0, 72.0)))
+    # collisioni dei crani (sopra i piloni)
     for sx in (-1, 1):
-        L.horn(ph, Vector((0.8 * sx, -2.8, 2.0)), [Vector((1.5 * sx, -1.4, 3.5)), Vector((2.0 * sx, 0.2, 4.4)), Vector((2.1 * sx, 1.6, 5.6)), Vector((1.8 * sx, 2.4, 7.0))], 0.6, M, n=10)
-        L.horn(ph, Vector((1.6 * sx, -2.6, 0.2)), [Vector((2.6 * sx, -1.6, 0.6)), Vector((3.3 * sx, -0.4, 1.3)), Vector((3.5 * sx, 0.4, 2.2))], 0.38, M, n=8)
-        L.horn(ph, Vector((1.2 * sx, -4.6, 2.2)), [Vector((1.6 * sx, -4.0, 2.9)), Vector((1.8 * sx, -3.4, 3.2))], 0.22, M, n=6)
-        sphere(pe, M @ Vector((1.12 * sx, -4.45, 1.32)), 0.3 * S, seg=10, rings=6)
-        # denti di sopra (verso il basso) e di sotto (verso l'alto)
-        for i in range(6):
-            t = i / 5
-            y = -4.2 - t * 3.0
-            x = sx * (0.95 - 0.35 * t)
-            ln = 0.75 if i in (4,) else 0.45
-            L.cyl(pt, M @ Vector((x, y, 0.15)), M @ Vector((x * 0.97, y - 0.05, 0.15 - ln)), 0.17 if i == 4 else 0.12, 0.0, n=6)
-            q = hinge + Rj @ (Vector((x * 0.95, y + 0.4, -0.75)) - hinge)
-            q2 = hinge + Rj @ (Vector((x * 0.95, y + 0.4, -0.75 + (0.7 if i == 4 else 0.42))) - hinge)
-            L.cyl(pt, M @ q, M @ q2, 0.16 if i == 4 else 0.11, 0.0, n=6)
-    # cresta di aculei sul collo
-    for i in range(6):
-        q = Vector((0, -2.6 + i * 0.95, 2.4 - i * 0.55))
-        L.cyl(ph, M @ q, M @ (q + Vector((0, 0.9, 1.3 - i * 0.12))), 0.35 * S, 0.0, n=6)
+        c = Mh @ Vector((0, -2.7, 2.62))
+        m.col("Cranio%s" % ("Dx" if sx > 0 else "Sx"), Vector((sx * abs(c.x), c.y, c.z)), (7.5, 13.0, 7.0), Matrix.Rotation(math.radians(15 * (1 if sx > 0 else -1)), 3, "Z"))
 
 
 # ---------------------------------------------------------------------------------------------
@@ -529,9 +670,6 @@ def portale():
     pf = m.part("Arena_Portale_Ferro", "FerroBattuto")
     pk = m.part("Arena_Portale_Catene", "FerroBattuto")
     pg = m.part("Arena_Portale_Oro", "OroAntico")
-    pt = m.part("Arena_Portale_Teste", "PietraCornice")
-    ph = m.part("Arena_Portale_Corna", "OroAntico")
-    pd = m.part("Arena_Portale_Denti", "PietraChiara")
     pe = m.part("Arena_Portale_Braci", "MAT_Ember")
     Y0, Y1 = -101.0, -72.0       # facciata esterna e interna
     YM = -86.0                   # fin qui il corpo alto; dentro le gradinate e' piu' stretto e basso
@@ -551,18 +689,8 @@ def portale():
             boxz(pc, sx * 14.2 if sx > 0 else -21.8, 21.8 if sx > 0 else -14.2, Y0 - 3.8, Y0 - 3.3, z0 - 0.4, z0 + 0.4, bev=0.12)
         boxz(pc, sx * 14.0 if sx > 0 else -22.0, 22.0 if sx > 0 else -14.0, Y0 - 4.0, Y0 + 0.4, 37.6, 38.6, bev=0.15)
         boxz(pc, sx * 14.2 if sx > 0 else -21.8, 21.8 if sx > 0 else -14.2, Y0 - 3.8, Y0 + 0.2, -6.0, 1.2, bev=0.15)
-        # pinnacolo con braciere sul pilone
-        q = Vector((sx * 18.0, Y0 - 1.6, 38.6))
-        lathe(pc, [(1.8, 0.0), (1.8, 0.6), (1.2, 1.0), (1.0, 2.6), (1.5, 2.9), (1.7, 3.1)], 14, q)
-        lathe(pf, [(1.2, 3.0), (2.0, 3.3), (2.4, 3.9), (2.5, 4.4), (2.2, 4.4), (1.9, 3.8), (0.4, 3.4)], 16, q, close=False)
-        lathe(pe, [(2.0, 4.0), (1.0, 4.25), (0.01, 4.35)], 12, q, close=False)
-        m.marker("FX_Fire_Portale%s" % ("Dx" if sx > 0 else "Sx"), q + Vector((0, 0, 4.5)))
-        m.marker("FX_Light_Portale%s" % ("Dx" if sx > 0 else "Sx"), q + Vector((0, 0, 5.5)))
-        # testa di drago: esce dal pilone, girata un po' verso la pedana e verso il basso
-        Mh = Matrix.Translation((sx * 18.0, Y0 - 3.4, 22.5)) @ Matrix.Rotation(math.radians(14 * sx), 4, "Z") @ Matrix.Rotation(math.radians(-8), 4, "X") @ Matrix.Diagonal((1.3, 1.3, 1.3, 1))
-        testa_drago(Mh, pt, ph, pd, pe)
-        # catena dalla mascella a un anello nel blocco a terra
-        jaw = Mh @ Vector((0, -6.4, -3.0))
+        # catena dalla mascella del cranio (draghi()) a un anello nel blocco a terra
+        jaw = JAW_TIP[sx]
         ring_at = Vector((sx * 19.5, Y0 - 13.0, 1.6))
         boxz(pc, ring_at.x - 1.0, ring_at.x + 1.0, ring_at.y - 1.0, ring_at.y + 1.0, -0.5, 1.4, bev=0.15)
         torus(pf, ring_at + Vector((0, 0, 0.1)), 0.55, 0.11, normal=(1, 0, 0), nR=14, nr=5)
@@ -735,7 +863,7 @@ def palco():
         B(x - 2.3, x + 2.3, y - 2.3, y + 2.3, 8.6, 9.3, pc, 0.12)
         B(x - 2.3, x + 2.3, y - 2.3, y + 2.3, -0.3, 0.7, pc, 0.12)
         Ms = Matrix.Translation(M @ Vector((x, y, 9.3))) @ (M @ Matrix.Rotation(math.pi + sx * 0.25, 4, "Z")).to_3x3().to_4x4() @ Matrix.Diagonal((1.05, 1.05, 1.05, 1))
-        L.drago_seduto(pst, psd, Ms, "Eclissi", pg, pe, res=0.08, target=7000)
+        L.drago_seduto(pst, psd, Ms, "Eclissi", pg, pe, res=0.08, target=3500)
         m.col("PalcoStatua%s" % ("Dx" if sx < 0 else "Sx"), q + Vector((0, 0, 4.5)), (4.6, 4.6, 9.6), R3)
     # posatoio 5 sul colmo
     posatoio("5", M @ Matrix.Translation((0, (YF + YB) / 2, 0)), ridge - 0.2, pc, pf, pg, h=6.0)
@@ -913,6 +1041,7 @@ def altare():
 # ---------------------------------------------------------------------------------------------
 
 def build():
+    draghi()
     for k in range(8):
         mura(k)
     for j in range(8):
