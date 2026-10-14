@@ -560,6 +560,23 @@ def m_membrana(seed):
     return c, h, 0.7 + 0.15 * fine
 
 
+def m_vulcanica(seed, base=(0.30, 0.28, 0.27)):
+    """pietra vulcanica senza giunti (i blocchi sono geometria): grana, pori, venature chiare"""
+    n = TEX
+    nz = noise(n, 2.0, seed)
+    fine = noise(n, 1.0, seed + 1)
+    big = noise(n, 3.0, seed + 2)
+    d1, d2 = worley(n, 400, seed + 3)
+    pores = 1 - smooth(0.0, 0.25, d1)
+    c = col(base) * (0.8 + 0.3 * nz[..., None]) * (0.9 + 0.18 * fine[..., None]) * (0.9 + 0.2 * big[..., None])
+    c = mix(c, col((0.12, 0.11, 0.10)), pores * 0.6)
+    vein = noise(n, 2.4, seed + 5, (1.0, 5.0))
+    v = smooth(0.48, 0.5, vein) * smooth(0.52, 0.5, vein)
+    c = mix(c, c * 1.5, v * 0.4)
+    h = 0.5 * nz + 0.3 * fine - 0.4 * pores
+    return c, h, 0.85 + 0.1 * fine - 0.1 * v
+
+
 # registro: nome del materiale -> (funzione, metri per ripetizione della texture)
 MATERIALI = {
     "PietraScura": (lambda: m_pietra(11, (0.37, 0.33, 0.29), rows=5, moss=0.25), 6.0),
@@ -582,6 +599,7 @@ MATERIALI = {
     "Bronzo": (lambda: m_bronzo(28), 1.5),
     "OssoDrago": (lambda: m_osso(32), 3.0),
     "MembranaDrago": (lambda: m_membrana(33), 6.0),
+    "PietraVulcanica": (lambda: m_vulcanica(34), 2.5),
     "PietraChiara": (lambda: m_pietra(29, (0.60, 0.57, 0.52), rows=4, wear=0.7), 3.0),
     "TelaRossa": (lambda: m_stoffa(30, (0.55, 0.10, 0.07)), 2.0),
     "TelaGrigia": (lambda: m_stoffa(31, (0.40, 0.42, 0.40)), 2.0),
@@ -1169,6 +1187,11 @@ def build_object(p, coll, texdir, sharp_deg=38):
     if len(sm) == len(me.polygons):
         me.polygons.foreach_set("use_smooth", sm)
     me.set_sharp_from_angle(angle=math.radians(sharp_deg))
+    # tinta per blocco (kit_pietra): attributo dei vertici "Tinta" (usato dalla cottura dei materiali)
+    tint = getattr(p, "tint", None)
+    if tint and len(tint) == len(me.vertices):
+        at = me.attributes.new("Tinta", "FLOAT", "POINT")
+        at.data.foreach_set("value", tint)
     # UV: proiezione a scatola (metri / ripetizione) oppure UV dell'atlante
     tile = MATERIALI.get(p.mat, (None, 4.0))[1] or 1.0
     uvl = me.uv_layers.new(name="UVMap")
