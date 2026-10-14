@@ -396,6 +396,11 @@ function MainMenu.start()
 			return
 		end
 		current = name
+		-- il tutorial vuole sapere quando apri il Crafting (server/Tutorial)
+		local opened = RS:FindFirstChild("Remotes") and RS.Remotes:FindFirstChild("MenuOpened")
+		if opened then
+			(opened :: RemoteEvent):FireServer(name)
+		end
 		-- finestra e titolo del colore della scheda (sfondo sfumato sotto la cornice)
 		local tone = MENU_COLORS[name] or Color3.fromRGB(60, 110, 220)
 		Ui.tint(window, tone, false, 0.012)

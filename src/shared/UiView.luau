@@ -566,6 +566,33 @@ function UiView.touch(): boolean
 	return game:GetService("UserInputService").TouchEnabled or Players.LocalPlayer:GetAttribute("SimTouch") == true
 end
 
+-- Testi del tutorial e delle missioni con i comandi giusti per il computer o il telefono: il
+-- server scrive {KEY1}, {CLIMB}... e qui diventano "press 1" o "tap the Ice Axe below" (prima sul
+-- telefono c'era scritto "press Space"). {UI:Nome} indica il pulsante del menu da evidenziare
+-- (client/TutorialHints) e sparisce dal testo.
+local HINTS: { [string]: { pc: string, touch: string } } = {
+	KEY1 = { pc = "(press 1)", touch = "(tap it in the bar below)" },
+	KEY2 = { pc = "(press 2)", touch = "(tap it in the bar below)" },
+	CLIMB = { pc = "(click the rock, hold W)", touch = "(tap Climb, push the stick up)" },
+	PITON = { pc = "(press F while climbing)", touch = "(tap Piton while climbing)" },
+	UNCLIP = { pc = "(press R)", touch = "(tap Unclip)" },
+	MINE = { pc = "(click the rock)", touch = "(tap Mine)" },
+	JUMP = { pc = "(Space)", touch = "(Jump button)" },
+}
+function UiView.hintText(text: string): string
+	local touch = UiView.touch()
+	local out = text:gsub("{UI:%w+}", ""):gsub("{(%w+)}", function(key: string)
+		local h = HINTS[key]
+		return if h then (if touch then h.touch else h.pc) else ""
+	end)
+	return (out:gsub("%s+$", ""):gsub("  +", " "))
+end
+
+-- il pulsante del menu che il testo chiede di premere ({UI:Store} -> "Store"), o nil
+function UiView.hintButton(text: string): string?
+	return text:match("{UI:(%w+)}")
+end
+
 -- Prova del telefono dal computer: attributo SimViewport (Vector2, es. 844x354) sul giocatore.
 -- Le schermate si impaginano come su quello schermo, ingrandite fino alla larghezza vera (in
 -- basso resta un po' di spazio in piu').

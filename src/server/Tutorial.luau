@@ -57,38 +57,45 @@ local function eggTarget(player: Player, memo: { [string]: any }): Vector3?
 	return memo.eggSpot
 end
 
+-- Testi corti (Mirko: "deve capirlo un bambino"). {KEY1}, {CLIMB}... diventano il comando del
+-- computer o del telefono (UiView.hintText); {UI:Store} fa lampeggiare quel pulsante del menu
 local STEPS: { Step } = {
 	{
-		text = "Go to the practice wall: follow the arrows",
+		text = "Follow the arrows to the climbing wall",
 		check = function(player, memo)
 			return near(player, memo.wallBase, 30)
 		end,
 		target = fixed("wallBase"),
 	},
 	{
-		text = "Take the Ice Axe (key 1), click near the rock and climb with W to the top",
+		text = "Take the Ice Axe {KEY1} and climb to the top {CLIMB}",
 		check = function(player, memo)
 			return near(player, memo.wallTop, 16)
 		end,
 		target = fixed("wallTop"),
 	},
 	{
-		text = "Pitons: grab the wall and press F to place a piton (the rope catches you if you fall)",
+		text = "Place a piton {PITON}: if you fall, the rope saves you!",
 		check = attributeAtLeast("PitonsPlaced", "pitons0"),
 		target = fixed("wallBase"),
 	},
 	{
-		text = "Mining: take the Pickaxe (key 2) and click the ores at the foot of the wall",
+		text = "Take the piton back: unclip next to it {UNCLIP}",
+		check = attributeAtLeast("PitonsRecovered", "recovered0"),
+		target = fixed("wallBase"),
+	},
+	{
+		text = "Take the Pickaxe {KEY2} and mine the shiny rock {MINE}",
 		check = attributeAtLeast("OresMined", "ores0"),
 		target = fixed("ore"),
 	},
 	{
-		text = "Money: open the store and sell your ores (Sell tab)",
+		text = "Sell your ores: open the Shop, tab Sell {UI:Store}",
 		check = attributeAtLeast("OresSold", "sold0"),
 		target = fixed("shop"),
 	},
 	{
-		text = "Home: this is your camp at the foot of the mountain. Buy the Tent (unlocks the nest)",
+		text = "This is your camp! Buy the Tent at the sign {UI:Store}",
 		arrive = "camp",
 		check = function(player)
 			return ((player:GetAttribute("HouseLevel") or 0) :: number) >= 1
@@ -96,20 +103,19 @@ local STEPS: { Step } = {
 		target = playerAttr("PlotPosition"),
 	},
 	{
-		text = "Crafting: open the Workbench next to the store (Crampons, Grappling Hook, Suit...)",
-		arrive = "hub",
+		text = "Open Crafting to see what you can build {UI:Crafting}",
 		check = function(player)
-			return player:GetAttribute("BenchOpened") == true
+			return player:GetAttribute("BenchOpened") == true or player:GetAttribute("CraftingSeen") == true
 		end,
 		target = fixed("bench"),
 	},
 	{
-		text = "Dragon eggs: pick up the egg near the wall and bring it to your tent's nest (T > My camp)",
+		text = "Pick up the dragon egg and bring it to your nest",
 		check = attributeAtLeast("EggsIncubated", "incubated0"),
 		target = eggTarget,
 	},
 	{
-		text = "Wait for it to hatch: press G (Dragons menu), then 'Hatch'",
+		text = "Hatch your dragon: open Dragons and tap Hatch {UI:Dragons}",
 		check = attributeAtLeast("EggsHatched", "hatched0"),
 		target = playerAttr("NestPosition"),
 	},
@@ -174,6 +180,17 @@ function Tutorial.setup()
 		warn("[Tutorial] workspace.Tutorial non trovato: rigenera la mappa con MapGen")
 	end
 
+	-- il client avvisa quando apri un menu (il Crafting conta anche aperto dal menu, non solo
+	-- dal banco: prima il tutorial diceva di andare al banco anche se c'era il pulsante)
+	local opened = Instance.new("RemoteEvent")
+	opened.Name = "MenuOpened"
+	opened.Parent = ReplicatedStorage:WaitForChild("Remotes")
+	opened.OnServerEvent:Connect(function(player, name)
+		if name == "Crafting" then
+			player:SetAttribute("CraftingSeen", true)
+		end
+	end)
+
 	-- Salta il tutorial (pulsante nell'interfaccia)
 	local skip = Instance.new("RemoteEvent")
 	skip.Name = "SkipTutorial"
@@ -216,7 +233,7 @@ function Tutorial.setup()
 				step += 1
 				memo = points()
 				publish(player, step)
-				if step == 3 then
+				if step == 3 or step == 4 then
 					Ropes.refill(player) -- chiodi pieni per provare
 				end
 				if step > #STEPS then

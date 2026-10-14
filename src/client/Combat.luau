@@ -416,7 +416,7 @@ end
 -- Draghi a riposo attorno alla casa (tag "Riposo", server/Economy): dormono, si siedono,
 -- ogni tanto si svegliano e si guardano attorno. Solo quelli vicini alla camera.
 
-type Resting = { tracks: { [string]: any }, state: string, nextChange: number }
+type Resting = { tracks: { [string]: any }, state: string, nextChange: number, base: CFrame, lift: number }
 local resting: { [Model]: Resting } = {}
 
 local function restStep()
@@ -444,7 +444,7 @@ local function restStep()
 					tracks[name] = tr
 				end
 			end
-			r = { tracks = tracks, state = "", nextChange = 0 }
+			r = { tracks = tracks, state = "", nextChange = 0, base = m:GetPivot(), lift = 0 }
 			resting[m] = r
 		end
 		local rr = r :: Resting
@@ -489,9 +489,12 @@ function Combat.start()
 	RunService.RenderStepped:Connect(function(dt)
 		local camPos = workspace.CurrentCamera.CFrame.Position
 		local now = os.clock()
-		for m in resting do
+		for m, r in resting do
 			if m.Parent and (m:GetPivot().Position - camPos).Magnitude < 200 then
 				DragonMotion.update(m, dt, { turn = 0, vy = 0, speed = 0, air = 0, walk = 0, t = now })
+				-- seduto o sdraiato: si alza quanto serve perche' la pancia non entri nella paglia
+				r.lift += (DragonMotion.groundLift(m) - r.lift) * math.min(1, dt * 4)
+				m:PivotTo(r.base + Vector3.new(0, r.lift, 0))
 			end
 		end
 	end)

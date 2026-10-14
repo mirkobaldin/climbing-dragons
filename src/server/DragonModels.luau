@@ -277,14 +277,7 @@ local function addGlow(model: Model, color: Color3, rarity: any)
 		e.LightEmission = 1
 		e.Parent = root
 	end
-	if rarity.id == "Leggendario" then
-		local h = Instance.new("Highlight")
-		h.FillTransparency = 1
-		h.OutlineColor = rarity.color
-		h.OutlineTransparency = 0.2
-		h.DepthMode = Enum.HighlightDepthMode.Occluded
-		h.Parent = model
-	end
+	-- niente Highlight sui leggendari: il contorno sembrava la selezione di Studio (Mirko)
 end
 
 ------------------------------------------------------------------------------------------

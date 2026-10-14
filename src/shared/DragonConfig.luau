@@ -288,11 +288,12 @@ DragonConfig.CARRY_CLIMB_FACTOR = 0.75
 
 -- Gamepass (crea i pass su create.roblox.com e metti qui gli ID; 0 = disattivato)
 DragonConfig.GAMEPASSES = {
-	FastIncubation = 0, -- cova in meta' tempo
-	EggFinder = 0, -- bussola verso l'uovo piu' vicino
-	ExtraDragon = 0, -- +1 drago che ti segue
-	ExtraIncubator = 0, -- +2 posti nel nido
-	TrainingX2 = 0, -- XP di addestramento x2 per sempre
+	-- ID creati da Mirko il 2026-10-14 (Creator Hub > Monetizzazione > Pass)
+	FastIncubation = 2034038497, -- cova in meta' tempo (299 Robux)
+	EggFinder = 2032484502, -- bussola verso l'uovo piu' vicino (1299)
+	ExtraDragon = 2032430530, -- +1 drago che ti segue (999)
+	ExtraIncubator = 2033720485, -- +2 posti nel nido (399)
+	TrainingX2 = 2035868268, -- XP di addestramento x2 per sempre (399)
 }
 
 -- Admin: UserId che possono usare i comandi (in Studio e il proprietario del gioco sempre)

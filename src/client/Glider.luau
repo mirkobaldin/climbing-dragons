@@ -226,7 +226,8 @@ function Glider.toggle(anyFall: boolean?): boolean
 		stop()
 		return true
 	end
-	if not root or not humanoid or not Gear.has(player, "Parapendio") or ClientState.climbing then
+	-- in groppa al drago niente vela (Spazio li' fa salire il drago)
+	if not root or not humanoid or not Gear.has(player, "Parapendio") or ClientState.climbing or ClientState.riding or player:GetAttribute("Riding") == true then
 		return false
 	end
 	local vy = root.AssemblyLinearVelocity.Y
@@ -256,7 +257,7 @@ function Glider.start()
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-			if not root or not humanoid or humanoid.Health <= 0 or humanoid.FloorMaterial ~= Enum.Material.Air or ClientState.climbing or ClientState.grappling then
+			if not root or not humanoid or humanoid.Health <= 0 or humanoid.FloorMaterial ~= Enum.Material.Air or ClientState.climbing or ClientState.grappling or ClientState.riding then
 				stop()
 			elseif mover then
 				local look = workspace.CurrentCamera.CFrame.LookVector

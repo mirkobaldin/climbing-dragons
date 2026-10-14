@@ -463,7 +463,8 @@ function HUD.start()
 		local menuOpen = menu ~= nil and menu:GetAttribute("MenuOpen") == true
 		info.Visible = not menuOpen
 		quest.Visible = type(questLine) == "string" and not menuOpen
-		questText.Text = if type(questLine) == "string" then questLine else ""
+		-- comandi giusti per computer o telefono (UiView.hintText)
+		questText.Text = if type(questLine) == "string" then Ui.hintText(questLine) else ""
 		local inTutorial = type(tutorialLine) == "string"
 		questTitle.Text = if inTutorial then "Tutorial" else "Mission"
 		if os.clock() - armedAt > 4 then

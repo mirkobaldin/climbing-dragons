@@ -31,6 +31,7 @@ local Culling = require(script.Culling)
 local Combat = require(script.Combat)
 local Glider = require(script.Glider)
 local Montepremi = require(script.Montepremi)
+local TutorialHints = require(script.TutorialHints)
 local OreFX = require(script.OreFX)
 local DragonRide = require(script.DragonRide)
 local IndoorLight = require(script.IndoorLight)
@@ -65,6 +66,7 @@ Culling.start() -- luci e particelle lontane spente (meno lag)
 Combat.start() -- attacco del drago (Z), draghi volanti, scudo, discesa, eventi
 Glider.start() -- parapendio (Spazio mentre cadi)
 Montepremi.start() -- montepremi stile Squid Game in alto al centro
+TutorialHints.start() -- il pulsante da premere lampeggia (tutorial per bambini)
 OreFX.start() -- minerali: contorno luminoso, suono e "+1" quando estrai
 DragonRide.start() -- in groppa al drago adulto (Sella, tasto H)
 IndoorLight.start() -- al chiuso una luce calda attorno a te (le case erano buie)
