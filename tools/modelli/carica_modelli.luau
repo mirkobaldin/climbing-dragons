@@ -18,6 +18,7 @@ local PLAIN = {
 	MAT_Glass = { Enum.Material.Glass, Color3.fromRGB(170, 205, 230), 0.55 },
 	MAT_Green = { Enum.Material.LeafyGrass, Color3.fromRGB(78, 122, 62), 0 },
 	MAT_Gold = { Enum.Material.Metal, Color3.fromRGB(214, 176, 70), 0 },
+	MAT_Water = { Enum.Material.Glass, Color3.fromRGB(40, 90, 100), 0.35 },
 	MAT_StormEnergy = { Enum.Material.Neon, Color3.fromRGB(110, 200, 255), 0 },
 	MAT_IceCrystal = { Enum.Material.Glass, Color3.fromRGB(190, 235, 255), 0.2 },
 	MAT_DragonWing_Lava = { Enum.Material.Neon, Color3.fromRGB(255, 100, 30), 0 },

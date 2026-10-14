@@ -74,7 +74,33 @@ l'osso dove il collo si divide; la mascella si distingue solo se in avanti ci so
 
 Parametri da ritoccare se serve (in `DragonProcedural.luau` / `DragonGait.luau`): lunghezza del
 passo (`stride` in `DragonGait.update`), durata (`stepDuration`), altezza dell'arco, rigidezza
-delle molle di collo e coda (pulsazione 7/5, smorzamento 0,45/0,35), inclinazione in curva (0,12).
+delle molle di collo e coda (pulsazione 6/5, smorzamento 0,65/0,5), inclinazione in curva (0,12).
+
+
+## Giro 2 (2026-10-14 sera): correzioni dopo la prova di Mirko
+Mirko: "il volo e' scattoso, le zampe dietro fanno su e giu' velocissime, camminando sembra che si
+siano spaccate le zampe e vanno in punta di piedi, le dita si torcono, le zampe davanti sembrano
+rotte tutte distese, la camminata non e' fluida". Cause trovate e cosa e' cambiato:
+
+| Difetto | Causa | Ora |
+|---|---|---|
+| zampe dietro su e giu' a raffica | il "passo d'emergenza" partiva quando il piede era oltre il 93% della zampa, ma a riposo le zampe dei draghi sono gia' al 71-90% (vedi sotto): passi forzati di continuo | niente piu' passi procedurali: il ritmo e' quello della camminata a keyframe |
+| zampe "spaccate", punta di piedi, davanti tutte distese | FABRIK su tutta la catena (5-6 ossa) raddrizzava insieme anca, ginocchio e caviglia; e i passi procedurali litigavano con la camminata animata | IK a due segmenti che **conserva la posa**: si piega solo il ginocchio dell'animazione, nel suo piano (mai al contrario), caviglia e dita restano come nell'animazione; il piede si stacca prima di arrivare al 93% della zampa |
+| dita che si torcono | "dita parallele al terreno" con la rotazione minima: con le dita quasi verticali sceglieva assi a caso | il piede tiene l'orientamento dell'animazione; su un pendio si inclina solo della differenza dal piano |
+| camminata non fluida, piedi che pattinano | due velocita' del passo impostate nello stesso frame in PetAnimator (una annullava l'altra) | resta solo quella a tempo con la velocita' vera; in appoggio il piede e' **bloccato nel mondo** e poi rientra morbido (0,18 s) |
+| volo a scatti | beccheggio, inclinazione e pesi delle animazioni di volo dalla velocita' **grezza** del giocatore (trema da un frame all'altro); sobbalzo a abs(sin) non a tempo col battito; anticipo del perno che si accendeva e spegneva di colpo; accelerazione derivata dal perno senza filtro | velocita' filtrata (`pet.velS`), niente sobbalzo finto sui draghi animati, anticipo che entra piano, accelerazione limitata e filtrata, collo e coda piu' smorzati |
+
+Zampe a riposo (distanza attacco-piede / lunghezza della catena): dietro 71-80%, davanti 87-90%.
+
+Test nuovo `test_procedurale.luau`: 4 draghi veri (Gelo, Eclissi adulto, Roccia, Fulmine) con una
+camminata finta come quella di AnimDraghi: fermo, cammina, corre, curva, gira sul posto, pendio.
+Risultati: piede bloccato che non scivola (0 in piano, un frame di 0,02 zampe sul pendio
+dell'Eclissi), mai sotto il terreno oltre 0,05 zampe, in appoggio a terra (non in punta di piedi),
+zampa mai tesa oltre il 98%, **0 ginocchia al contrario**, piede ruotato al massimo 2,2 gradi
+rispetto all'animazione in piano.
+
+`DragonGait.update` (passi procedurali) non e' piu' usato da DragonProcedural: resta nel modulo
+con i suoi test, se un giorno servisse per draghi senza camminata animata.
 
 ## Limiti noti
 - Solo i draghi animati da **KfsPlayer**. Con gli ID di animazione pubblicati (Animator di Roblox)

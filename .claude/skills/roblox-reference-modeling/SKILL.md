@@ -16,8 +16,10 @@ in every report until validation scenario 1 passes
 - Verify before assuming: list MCP tools with ToolSearch, read
   [references/verified-sources.md](references/verified-sources.md) only if an API
   fails or the facts look stale. Never invent an MCP tool or bpy API.
-- Default path = **procedural anatomy**. Visual hull and image-to-3D are optional
-  initialisations, never final anatomy. Never promise fidelity to references.
+- **Image-to-3D is mandatory** (decision of the user, 2026-10-14): every model starts
+  from the Stable Fast 3D backend run on the reference image. Never replace the
+  generator with procedural primitives; procedural generators (`build_dragon`) are
+  only for repairs or parts the user explicitly asks for. Never promise fidelity to references.
 - Preserve originals: scripts checkpoint before replacing geometry; never delete
   user objects; never merge separate bones or fill anatomical openings.
 - Ask before destructive scene changes the scripts do not already guard.
@@ -82,14 +84,22 @@ session with `status`; continue from the first stage not `done`/`approved`.
    approve the checkpoint: `manifest_tool.py approve --checkpoint handoff_NNN`.
    The rigging skill (`/roblox-creature-rig-animation`) is invoked by the user, not by you.
 
-## Optional reconstruction (only on explicit request)
+## Image-to-3D (mandatory)
 
-- Visual hull from ≥ 2 calibrated, pose-consistent views: `run_stage.py run visual_hull`.
-- External image-to-3D backend: `image_to_3d_backend.py check`, then `run`, then
-  `run_stage.py run import_init_mesh`. No backend is installed or verified.
-Read [references/optional-reconstruction.md](references/optional-reconstruction.md)
-first: preconditions, limits (no hidden concavities), license/VRAM verification
-(≤ 8 GB, separate venv, never Blender's Python).
+Backend: **Stable Fast 3D** (Stability AI), chosen 2026-10-14 for the RTX 4070 Laptop 8 GB
+(README ~6 GB VRAM; Stability AI Community License, free under US$1M annual revenue).
+1. Once per machine: `powershell -ExecutionPolicy Bypass -File SKILL/scripts/setup_image_to_3d.ps1 -Project <dir> [-InstallPrereqs]`
+   (repo + commit, own venv, PyTorch cu124, CUDA extensions, gated weights, writes `config/image_to_3d_backend.json`).
+2. `image_to_3d_backend.py check --manifest <dir>` → must return no problems (close Blender and other GPU apps).
+3. `image_to_3d_backend.py run --manifest <dir> --image refs/<image>` → GLB + peak VRAM in the result.
+4. `run_stage.py run import_init_mesh --manifest <dir> -- --as-model [--scale-m <m>] [--rotate-deg x,y,z]`
+   → `GEN_ImageTo3D` (textured, renderable). Then continue with mesh_audit / uv_pbr / handoff.
+CPU path (cloud container without GPU): `bash SKILL/scripts/setup_image_to_3d_cpu.sh <dir>` installs in
+`/opt/sf3d` (venv, CPU build of texture_baker/uv_unwrapper, u2net) and writes the config with
+`device: cpu` (`run.py --device cpu`, texture 512). Weights need huggingface.co + its CDNs and `$HF_TOKEN`.
+If the GPU, drivers or network block a step, report the concrete blocker; do not fall back to
+procedural geometry. Details and limits: [references/optional-reconstruction.md](references/optional-reconstruction.md).
+Visual hull (≥ 2 calibrated views) stays optional: `run_stage.py run visual_hull`.
 
 ## Shared data contract
 

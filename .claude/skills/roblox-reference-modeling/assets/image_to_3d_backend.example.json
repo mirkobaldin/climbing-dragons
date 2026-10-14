@@ -1,18 +1,44 @@
 {
   "enabled": false,
-  "status": "NOT INSTALLED, NOT TESTED. Candidate only.",
-  "name": "TripoSR",
-  "repository": "https://github.com/VAST-AI-Research/TripoSR",
-  "license": "MIT (README states code, pretrained models and demo are MIT)",
+  "required": true,
+  "status": "Template. setup_image_to_3d.ps1 writes the real config (enabled=true) after installing.",
+  "name": "StableFast3D",
+  "repository": "https://github.com/Stability-AI/stable-fast-3d",
+  "commit": "",
+  "license": "Stability AI Community License (code + weights): free for research, non-commercial and commercial use under US$1M annual revenue; weights gated on Hugging Face (accept terms + read token)",
   "license_verified_at": "",
+  "license_read_note": "LICENSE.md and README read on the official GitHub repo on 2026-10-14; Hugging Face model card not reachable from the cloud session",
   "vram_required_gb": 6.0,
-  "vram_source": "README: about 6 GB for a single image with default options (read 2026-10-13)",
+  "vram_source": "README: about 6 GB VRAM for a single image with default options (read 2026-10-14)",
   "max_vram_gb": 8.0,
-  "python": "C:/ai/triposr/.venv/Scripts/python.exe",
-  "workdir": "C:/ai/triposr/TripoSR",
-  "command": ["{python}", "run.py", "{image}", "--output-dir", "{output_dir}"],
-  "command_note": "Confirm flags with `python run.py --help` in your install before enabling; only --output-dir, --bake-texture and --texture-resolution were confirmed from the README.",
-  "output_globs": ["**/*.obj", "**/*.glb", "**/*.ply"],
+  "python": "C:/ai/stable-fast-3d/.venv/Scripts/python.exe",
+  "workdir": "C:/ai/stable-fast-3d",
+  "weights_dir": "C:/ai/stable-fast-3d/weights",
+  "command": [
+    "{python}",
+    "run.py",
+    "{image}",
+    "--output-dir",
+    "{output_dir}",
+    "--pretrained-model",
+    "{weights}",
+    "--texture-resolution",
+    "1024",
+    "--remesh_option",
+    "triangle",
+    "--target_vertex_count",
+    "9000"
+  ],
+  "command_note": "Flags read from run.py argparse on the official repo (2026-10-14): image, --device, --pretrained-model, --foreground-ratio, --output-dir, --texture-resolution, --remesh_option none|triangle|quad, --target_vertex_count, --batch_size.",
+  "output_globs": [
+    "**/*.glb"
+  ],
   "timeout_s": 900,
-  "expected_quality_note": "Single-image reconstruction guesses unseen geometry; thin rib/wing structures and gaps are typically lost. Use only as a proportion guide."
+  "rejected_candidates": {
+    "Hunyuan3D-2 / 2.1": "license excludes the European Union, UK and South Korea",
+    "TRELLIS": "README: NVIDIA GPU with at least 16 GB",
+    "TripoSG": "README: at least 8 GB VRAM (no margin on an 8 GB laptop GPU); its RMBG-1.4 background remover is non-commercial",
+    "TripoSR": "MIT, ~6 GB, but vertex colours and lower detail than Stable Fast 3D"
+  },
+  "expected_quality_note": "Single-image reconstruction guesses unseen sides; thin structures (ribs, banners) may merge or be lost. Output is one textured mesh with UVs."
 }

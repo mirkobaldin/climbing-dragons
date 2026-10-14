@@ -85,6 +85,13 @@ function C.Lerp(a, b, t)
 	local m = fromQ(w1 + (w2 - w1) * t, x1 + (x2 - x1) * t, y1 + (y2 - y1) * t, z1 + (z2 - z1) * t)
 	return setmetatable({ p = a.p:Lerp(b.p, t), m = m }, C)
 end
+function C.ToAxisAngle(cf)
+	local w, x, y, z = quat(cf.m)
+	if w < 0 then w, x, y, z = -w, -x, -y, -z end
+	local s = math.sqrt(math.max(0, 1 - w * w))
+	if s < 1e-8 then return Vector3.new(1, 0, 0), 0 end
+	return Vector3.new(x / s, y / s, z / s), 2 * math.acos(math.min(1, w))
+end
 local CFrame = {}
 function CFrame.new(x, y, z)
 	if type(x) == "table" then return mk(x.X, x.Y, x.Z, I) end

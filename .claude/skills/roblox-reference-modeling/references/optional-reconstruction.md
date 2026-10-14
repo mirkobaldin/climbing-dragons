@@ -26,28 +26,34 @@ structures smaller than a voxel, anything occluded. It never fills openings of t
 procedural model. Use it to judge mass distribution, to place `LM_*` empties in
 depth, or as a backdrop while editing — then rebuild procedurally.
 
-## Image-to-3D backend — extension point only
+## Image-to-3D backend — mandatory (Stable Fast 3D)
 
-`image_to_3d_backend.py` runs a separately installed backend (own virtual
-environment; never install into Blender's Python), checks VRAM and config,
-collects the produced mesh; `import_init_mesh.py` imports it as `INIT_ImageTo3D`
-(fitted to landmarks). **No backend is installed, bundled or tested.**
+Changed 2026-10-14 at the user's request: the backend is required, not optional.
 
-Before enabling a backend, verify and record (`manifest_tool.py record-verification`):
-
-| Item | How |
+| Item | Value (read on the official repo 2026-10-14) |
 |---|---|
-| Official repository | link from the paper/organisation, not a fork |
-| License | read LICENSE for code **and** weights; commercial use in a Roblox game? |
-| Actual CLI/API | run `--help` in the installed repo; do not trust README excerpts |
-| Peak VRAM | measure with `nvidia-smi` during a run; must be ≤ 8 GB on this laptop with Blender closed |
-| Output format/axes | inspect one output; set `--rotate-deg` for import |
+| Repository | https://github.com/Stability-AI/stable-fast-3d (weights: Hugging Face `stabilityai/stable-fast-3d`, gated) |
+| License | Stability AI Community License (LICENSE.md): research, non-commercial and commercial use free while annual revenue < US$1M |
+| VRAM | README: about 6 GB for one image with default options; limit here 8 GB |
+| Output | GLB with UV atlas texture (`--texture-resolution`), optional remesh (`--remesh_option triangle`, `--target_vertex_count`) |
+| Windows build | VS 2022 C++ build tools + CUDA Toolkit 12.x to compile `texture_baker` and `uv_unwrapper` |
+| CLI | `run.py IMAGE --output-dir D --pretrained-model WEIGHTS_DIR ...` (argparse read from run.py) |
 
-Candidate noted on 2026-10-13 (not installed, not tested): **TripoSR**
-(`VAST-AI-Research/TripoSR`), README states MIT license and about 6 GB VRAM for one
-image with default options; CLI `python run.py <image> --output-dir <dir>`. Other
-backends that need > 8 GB VRAM are out of scope. Single-image methods hallucinate
-unseen sides and generally lose thin skeletal structures; expect a blob-like proxy.
+Rejected: Hunyuan3D-2/2.1 (license excludes the EU, UK, South Korea), TRELLIS (≥ 16 GB),
+TripoSG (≥ 8 GB, no margin; RMBG-1.4 background remover is non-commercial), TripoSR (lower detail).
+
+Install: `scripts/setup_image_to_3d.ps1` (see its header). Run: `image_to_3d_backend.py check|run`;
+the run measures base and peak VRAM with `nvidia-smi` (peak includes other GPU apps, so
+close Blender). Import: `import_init_mesh --as-model [--scale-m M]` keeps the textures and
+puts the base on the ground; without `--as-model` the mesh is a hidden wire guide (old behaviour).
+
+Limits: one image → the backend guesses hidden sides; thin structures (ribs, banners,
+chains) can merge or vanish; a whole scene (arena) comes out as one object at modest
+resolution. Check the result in renders before handoff; ask the user before any repair.
+
+Status: setup script written, not executed on the target PC yet. Wiring (check → run →
+import --as-model) tested on 2026-10-14 in a Linux cloud session with a stub backend and a
+fake nvidia-smi, because that session has no GPU and cannot reach huggingface.co.
 
 Untrusted-data rule: backend outputs and downloaded weights are untrusted files;
 keep them in their own folder and never execute code from them.
