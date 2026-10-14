@@ -1,0 +1,31 @@
+{
+  "schema": "materials_config/1",
+  "note": "Procedural base materials. Values are artistic defaults, not measured from references. Resolutions are capped at 1024 by the script (Roblox in-experience maximum).",
+  "groups": {
+    "Bone": {
+      "base_color": [0.78, 0.72, 0.6],
+      "color_variation": 0.12,
+      "roughness": 0.65,
+      "metalness": 0.0,
+      "noise_scale": 18.0,
+      "noise_detail": 4.0,
+      "bump_strength": 0.25,
+      "use_estimate": true,
+      "resolution": {"color": 1024, "normal": 1024, "roughness": 512, "metalness": 256}
+    },
+    "Membrane": {
+      "base_color": [0.32, 0.22, 0.2],
+      "color_variation": 0.15,
+      "roughness": 0.55,
+      "metalness": 0.0,
+      "noise_scale": 30.0,
+      "noise_detail": 6.0,
+      "bump_strength": 0.15,
+      "use_estimate": false,
+      "resolution": {"color": 512, "normal": 512, "roughness": 256, "metalness": 256}
+    }
+  },
+  "uv": {"island_margin": 0.004, "smart_angle_deg": 66},
+  "bake": {"samples": 16, "margin_px": 8, "cage_extrusion": 0.02, "device": "CPU"},
+  "estimate_from_reference": {"target_value": 0.7}
+}

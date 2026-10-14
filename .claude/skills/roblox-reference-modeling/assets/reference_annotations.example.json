@@ -1,0 +1,69 @@
+{
+  "schema": "reference_annotations/1",
+  "note": "TEMPLATE. Replace image paths and pixel coordinates with your own. Pixel coords are (x right, y down) from the image's top-left corner. image_right/image_up = signed world axis shown along image +x / up. Viewer at +X: right +Y, up +Z. Viewer at -X: right -Y, up +Z. Viewer at -Y (front): right +X, up +Z. Viewer at +Z (top, head up): right -X, up -Y.",
+  "tolerances": {"axis_residual_m": 0.05, "axis_residual_ratio": 0.01, "parallel_deg": 2.0, "symmetry_ratio": 0.05},
+  "bilateral_segments": [["hip", "knee"], ["knee", "ankle"], ["wing_root", "wing_wrist"]],
+  "views": {
+    "side": {
+      "image": "refs/dragon_side.png",
+      "projection": "orthographic",
+      "image_right": "+Y",
+      "image_up": "+Z",
+      "px_per_m": 250,
+      "origin": {"px": [1100, 900], "world": [0, 0]},
+      "mask": "refs/dragon_side_mask.png",
+      "landmarks": {
+        "skull_tip": [325, 262.5],
+        "pelvis_center": [1100, 562.5],
+        "tail_tip": [2125, 687.5],
+        "knee_L": [1012.5, 700],
+        "wing_wrist_L": [800, 375],
+        "toe_tip_L": [1000, 900]
+      }
+    },
+    "top": {
+      "image": "refs/dragon_top.png",
+      "projection": "orthographic",
+      "image_right": "-X",
+      "image_up": "-Y",
+      "scale": {"p1": [200, 1850], "p2": [1200, 1850], "meters": 5.0},
+      "origin": {"px": [1000, 900], "world": [0, 0]},
+      "mask_from_image": {"mode": "dark_on_light", "threshold": 0.5},
+      "symmetry_axis": "u",
+      "landmarks": {
+        "skull_tip": [1000, 280],
+        "pelvis_center": [1000, 900],
+        "tail_tip": [1000, 1720],
+        "knee_L": [916, 830],
+        "knee_R": [1084, 830],
+        "wing_wrist_L": [590, 660],
+        "wing_wrist_R": [1410, 660]
+      }
+    },
+    "front": {
+      "image": "refs/dragon_front.png",
+      "projection": "orthographic",
+      "image_right": "+X",
+      "image_up": "+Z",
+      "px_per_m": 250,
+      "origin": {"px": [1000, 900], "world": [0, 0]},
+      "symmetry_axis": "u",
+      "parallel_sets": [[["knee_L", "knee_R"], ["toe_tip_L", "toe_tip_R"], ["wing_wrist_L", "wing_wrist_R"]]],
+      "landmarks": {
+        "skull_tip": [1000, 262.5],
+        "knee_L": [1105, 700],
+        "knee_R": [895, 700],
+        "toe_tip_L": [1105, 900],
+        "toe_tip_R": [895, 900],
+        "wing_wrist_L": [1512.5, 375],
+        "wing_wrist_R": [487.5, 375]
+      }
+    },
+    "concept_photo": {
+      "image": "refs/dragon_concept_3q.jpg",
+      "projection": "perspective",
+      "notes": "Visual-only unless a calibrated camera is added: \"camera\": {\"lens_mm\": 50, \"sensor_width_mm\": 36, \"location\": [x,y,z], \"rotation_euler_deg\": [rx,ry,rz]} in Blender world space.",
+      "landmarks": {}
+    }
+  }
+}

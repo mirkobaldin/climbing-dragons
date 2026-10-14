@@ -1,0 +1,121 @@
+{
+  "schema": "animation_config/1",
+  "note": "Degrees for rot_*, meters for loc_*, bone-local axes. Patterns use shell globs; {S} expands to L and R with rot_y/rot_z/loc_x mirrored. CTRL-foot_ik_* local axes: +Y = creature forward, +Z = up. Values are artistic starting points, not measured motion.",
+  "fps": 30,
+  "key_step": 2,
+  "cyclic_modifier": true,
+  "clips": {
+    "Idle": {
+      "frames": [1, 121], "loop": true,
+      "pose": {
+        "CTRL-wing_humerus_{S}": {"rot": [25, 0, 70]},
+        "CTRL-wing_forearm_{S}": {"rot": [0, 0, 140]},
+        "CTRL-wing_d*_01_{S}": {"rot": [0, 0, 55]},
+        "CTRL-wing_d*_02_{S}": {"rot": [0, 0, 15]}
+      },
+      "oscillators": [
+        {"bones": "CTRL-spine_*", "channel": "rot_x", "amp": 1.2, "cycles": 2, "lag": 0.04},
+        {"bones": "CTRL-torso", "channel": "loc_z", "amp": 0.01, "cycles": 2, "wave": "cos"},
+        {"bones": "CTRL-neck_*", "channel": "rot_x", "amp": 2.5, "cycles": 1, "lag": 0.06, "phase": 0.1},
+        {"bones": "CTRL-head", "channel": "rot_z", "amp": 8, "cycles": 1, "phase": 0.2},
+        {"bones": "CTRL-tail_*", "channel": "rot_z", "amp": 4, "cycles": 1, "lag": 0.06, "amp_growth": 1.12},
+        {"bones": "CTRL-jaw", "channel": "rot_x", "amp": 1.5, "offset": -1.5, "cycles": 2, "wave": "cos"},
+        {"bones": "CTRL-wing_humerus_{S}", "channel": "rot_x", "amp": 2, "cycles": 1, "phase": 0.3, "phase_R": 0.1}
+      ]
+    },
+    "Walk": {
+      "frames": [1, 41], "loop": true,
+      "gait": {
+        "stride_m": 1.1, "lift_m": 0.16, "duty": 0.62, "foot_pitch_deg": 20,
+        "feet": {"CTRL-foot_ik_leg_hind_L": 0.0, "CTRL-foot_ik_leg_fore_L": 0.25,
+                 "CTRL-foot_ik_leg_hind_R": 0.5, "CTRL-foot_ik_leg_fore_R": 0.75}
+      },
+      "pose": {
+        "CTRL-wing_humerus_{S}": {"rot": [25, 0, 70]},
+        "CTRL-wing_forearm_{S}": {"rot": [0, 0, 140]},
+        "CTRL-wing_d*_01_{S}": {"rot": [0, 0, 55]},
+        "CTRL-wing_d*_02_{S}": {"rot": [0, 0, 15]}
+      },
+      "oscillators": [
+        {"bones": "CTRL-torso", "channel": "loc_z", "amp": 0.025, "cycles": 2, "wave": "cos"},
+        {"bones": "CTRL-torso", "channel": "rot_z", "amp": 2.5, "cycles": 1},
+        {"bones": "CTRL-torso", "channel": "rot_y", "amp": 2.0, "cycles": 1, "phase": 0.25},
+        {"bones": "CTRL-spine_*", "channel": "rot_z", "amp": -1.5, "cycles": 1, "lag": 0.05},
+        {"bones": "CTRL-neck_*", "channel": "rot_x", "amp": 2, "cycles": 2, "lag": 0.05, "phase": 0.2},
+        {"bones": "CTRL-head", "channel": "rot_x", "amp": -2, "cycles": 2, "phase": 0.25},
+        {"bones": "CTRL-tail_*", "channel": "rot_z", "amp": 6, "cycles": 1, "lag": 0.07, "amp_growth": 1.12},
+        {"bones": "CTRL-tail_*", "channel": "rot_x", "amp": 2, "cycles": 2, "lag": 0.05}
+      ]
+    },
+    "Fly": {
+      "frames": [1, 25], "loop": true,
+      "pose": {
+        "CTRL-foot_ik_leg_hind_{S}": {"loc": [0, -0.4, 0.45], "rot": [30, 0, 0]},
+        "CTRL-foot_ik_leg_fore_{S}": {"loc": [0, 0.1, 0.5], "rot": [30, 0, 0]},
+        "CTRL-toe_{S}": {"rot": [-40, 0, 0]},
+        "CTRL-ftoe_{S}": {"rot": [-40, 0, 0]}
+      },
+      "oscillators": [
+        {"bones": "CTRL-wing_humerus_{S}", "channel": "rot_x", "amp": 50, "offset": 5, "wave": "stroke", "down": 0.55, "cycles": 1},
+        {"bones": "CTRL-wing_humerus_{S}", "channel": "rot_z", "amp": 10, "wave": "sine", "cycles": 1},
+        {"bones": "CTRL-wing_forearm_{S}", "channel": "rot_z", "amp": 45, "wave": "fold", "down": 0.55, "cycles": 1},
+        {"bones": "CTRL-wing_d*_01_{S}", "channel": "rot_z", "amp": 30, "wave": "fold", "down": 0.55, "phase": -0.05, "cycles": 1},
+        {"bones": "CTRL-wing_d*_01_{S}", "channel": "rot_x", "amp": 10, "wave": "stroke", "down": 0.55, "phase": -0.08, "cycles": 1},
+        {"bones": "CTRL-torso", "channel": "loc_z", "amp": 0.08, "wave": "sine", "phase": -0.05, "cycles": 1},
+        {"bones": "CTRL-torso", "channel": "rot_x", "amp": 3, "wave": "sine", "phase": 0.1, "cycles": 1},
+        {"bones": "CTRL-neck_*", "channel": "rot_x", "amp": -3, "wave": "sine", "phase": 0.1, "lag": 0.05, "cycles": 1},
+        {"bones": "CTRL-head", "channel": "rot_x", "amp": -2, "wave": "sine", "phase": 0.15, "cycles": 1},
+        {"bones": "CTRL-tail_*", "channel": "rot_x", "amp": 4, "wave": "sine", "phase": 0.2, "lag": 0.06, "amp_growth": 1.1, "cycles": 1},
+        {"bones": "CTRL-tail_*", "channel": "rot_z", "amp": 2, "wave": "sine", "lag": 0.06, "cycles": 1}
+      ]
+    },
+    "Takeoff": {
+      "frames": [1, 61], "loop": false, "lift_t": 0.5,
+      "keys": [
+        {"t": 0.0, "pose": {
+          "CTRL-wing_humerus_{S}": {"rot": [25, 0, 70]}, "CTRL-wing_forearm_{S}": {"rot": [0, 0, 140]},
+          "CTRL-wing_d*_01_{S}": {"rot": [0, 0, 55]}, "CTRL-wing_d*_02_{S}": {"rot": [0, 0, 15]}}},
+        {"t": 0.3, "ease": "smooth", "pose": {
+          "CTRL-torso": {"loc": [0, 0, -0.25], "rot": [-6, 0, 0]}, "CTRL-neck_*": {"rot": [-8, 0, 0]},
+          "CTRL-tail_*": {"rot": [8, 0, 0]},
+          "CTRL-wing_humerus_{S}": {"rot": [55, 0, 25]}, "CTRL-wing_forearm_{S}": {"rot": [0, 0, 60]},
+          "CTRL-wing_d*_01_{S}": {"rot": [0, 0, 25]}, "CTRL-wing_d*_02_{S}": {"rot": [0, 0, 5]}}},
+        {"t": 0.45, "ease": "in", "pose": {
+          "CTRL-torso": {"loc": [0, 0.25, 0.3], "rot": [12, 0, 0]}, "CTRL-neck_*": {"rot": [6, 0, 0]},
+          "CTRL-tail_*": {"rot": [-6, 0, 0]}, "CTRL-foot_ik_*": {"loc": [0, 0, 0]},
+          "CTRL-wing_humerus_{S}": {"rot": [-45, 0, 5]}, "CTRL-wing_forearm_{S}": {"rot": [0, 0, 0]},
+          "CTRL-wing_d*_01_{S}": {"rot": [0, 0, 0]}, "CTRL-wing_d*_02_{S}": {"rot": [0, 0, 0]}}},
+        {"t": 0.55, "ease": "out", "pose": {
+          "CTRL-torso": {"loc": [0, 0.15, 0.2], "rot": [6, 0, 0]},
+          "CTRL-foot_ik_leg_hind_{S}": {"loc": [0, -0.2, 0.35]}, "CTRL-foot_ik_leg_fore_{S}": {"loc": [0, 0.05, 0.35]},
+          "CTRL-wing_humerus_{S}": {"rot": [40, 0, 10]}, "CTRL-wing_forearm_{S}": {"rot": [0, 0, 35]}}},
+        {"t": 0.75, "ease": "smooth", "pose": {
+          "CTRL-torso": {"loc": [0, 0, 0.05]},
+          "CTRL-wing_humerus_{S}": {"rot": [-45, 0, 0]}, "CTRL-wing_forearm_{S}": {"rot": [0, 0, 0]}}},
+        {"t": 1.0, "ease": "smooth", "pose": "@Fly:0.0"}
+      ]
+    },
+    "Land": {
+      "enabled": false,
+      "note": "Optional extension, untested. Enable and tune when needed.",
+      "frames": [1, 61], "loop": false,
+      "keys": [
+        {"t": 0.0, "pose": "@Fly:0.0"},
+        {"t": 0.35, "ease": "smooth", "pose": {
+          "CTRL-torso": {"rot": [15, 0, 0]},
+          "CTRL-wing_humerus_{S}": {"rot": [60, 0, -15]}, "CTRL-wing_forearm_{S}": {"rot": [0, 0, 10]},
+          "CTRL-foot_ik_leg_hind_{S}": {"loc": [0, 0.1, -0.05], "rot": [0, 0, 0]},
+          "CTRL-foot_ik_leg_fore_{S}": {"loc": [0, 0.1, -0.05], "rot": [0, 0, 0]}}},
+        {"t": 0.55, "ease": "in", "pose": {
+          "CTRL-torso": {"loc": [0, 0, -0.2], "rot": [0, 0, 0]}, "CTRL-foot_ik_*": {"loc": [0, 0, 0]},
+          "CTRL-wing_humerus_{S}": {"rot": [35, 0, 40]}}},
+        {"t": 0.8, "ease": "out", "pose": {"CTRL-torso": {"loc": [0, 0, -0.08]}}},
+        {"t": 1.0, "ease": "smooth", "pose": {
+          "CTRL-torso": {"loc": [0, 0, 0]},
+          "CTRL-wing_humerus_{S}": {"rot": [25, 0, 70]}, "CTRL-wing_forearm_{S}": {"rot": [0, 0, 140]},
+          "CTRL-wing_d*_01_{S}": {"rot": [0, 0, 55]}, "CTRL-wing_d*_02_{S}": {"rot": [0, 0, 15]},
+          "CTRL-toe_{S}": {"rot": [0, 0, 0]}, "CTRL-ftoe_{S}": {"rot": [0, 0, 0]}}}
+      ]
+    }
+  }
+}
