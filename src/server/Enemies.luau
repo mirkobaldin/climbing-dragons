@@ -755,7 +755,7 @@ function Enemies.setup()
 	throwEvent.Name = "PickaxeThrow"
 	throwEvent.Parent = ReplicatedStorage.Remotes
 	local lastThrow: { [Player]: number } = {}
-	throwEvent.OnServerEvent:Connect(function(player, dir)
+	throwEvent.OnServerEvent:Connect(function(player, dir, locked)
 		if typeof(dir) ~= "Vector3" or dir.Magnitude < 0.5 then
 			return
 		end
@@ -778,13 +778,29 @@ function Enemies.setup()
 		local from = (root :: BasePart).Position + Vector3.new(0, 1.5, 0)
 		local d = dir.Unit
 		local best, bestAlong = nil, math.huge
-		for _, enemy in enemies do
-			if not enemy.dead then
-				local v = enemy.root.Position - from
-				local along = v:Dot(d)
-				local off = (v - d * along).Magnitude
-				if along > 0 and along < range and off < 4 + enemy.root.Size.X * 0.5 and along < bestAlong then
-					best, bestAlong = enemy, along
+		-- nemico agganciato dal mirino (client/PickaxeThrow): vale se e' a tiro e piu' o meno
+		-- nella direzione del lancio (il client lo insegue in volo)
+		if typeof(locked) == "Instance" then
+			for _, enemy in enemies do
+				if not enemy.dead and enemy.model == locked then
+					local v = enemy.root.Position - from
+					if v.Magnitude < range + 8 and v.Magnitude > 0.1 and v.Unit:Dot(d) > 0.75 then
+						best, bestAlong = enemy, v.Magnitude
+					end
+				end
+			end
+		end
+		-- se no il primo sulla traiettoria (tubo largo 6 studs: prima 4 e la piccozza passava
+		-- accanto agli yeti senza colpirli)
+		if not best then
+			for _, enemy in enemies do
+				if not enemy.dead then
+					local v = enemy.root.Position - from
+					local along = v:Dot(d)
+					local off = (v - d * along).Magnitude
+					if along > 0 and along < range and off < 6 + enemy.root.Size.X * 0.5 and along < bestAlong then
+						best, bestAlong = enemy, along
+					end
 				end
 			end
 		end

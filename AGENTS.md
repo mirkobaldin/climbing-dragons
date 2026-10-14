@@ -101,3 +101,15 @@ Codex lavora SOLO nella sua copia `../RObloxGame-codex` (git worktree), su un br
 Compiti adatti a Codex: interfacce (HUD, menu, DragonUI, CraftingUI), dati e bilanciamento
 (`src/shared/*Config`), revisione del codice, testi, documentazione, prompt per generare modelli 3D.
 Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, animazioni, cinematica).
+
+## Aggiunte del 2026-10-14
+- Animazioni dei draghi: `client/KfsPlayer` scala gli spostamenti delle pose con `GetScale() / AnimBaseScale`
+  (attributo messo da DragonModels = 1 e da ClipProps): senza, i draghi rimpiccioliti finivano sotto terra.
+  Sopra le animazioni `client/DragonMotion` (collo in virata, busto che si torce, coda, collo disteso in
+  picchiata): usa gli attributi Ruolo/Indice/AsseSu/AsseDx/AsseAv che `DragonModels.markBones` scrive sulle ossa.
+- Monta: si sceglie il drago dalla scheda (pulsante Ride, `Dragons.setLead`). Colpi: `UpgradeConfig.RIDE_ELEMENT`
+  (un comportamento per elemento), grandezza degli effetti `DragonVFX.shot(..., scale)` / `DragonVFX.scaleFor`.
+- Telefono: comandi ad arco attorno al salto (`client/MobileControls`, con Glide/Ride/Fire); prova dal computer
+  con gli attributi `SimTouch = true` e `SimViewport`. Colori dei pulsanti e riquadri: `UiView.tint`.
+- Montepremi stile Squid Game: `server/Montepremi` + `client/Montepremi`, valori in `EconomyConfig.JACKPOT`.
+- Sessione cloud (modelli Blender, arena nuova): `docs/CLOUD_SESSIONE.md`, branch `cloud/*`, file in `cloud/`.

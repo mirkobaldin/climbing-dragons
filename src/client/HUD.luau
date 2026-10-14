@@ -36,6 +36,14 @@ function HUD.start()
 		Ui.node(gui, "Pet"),
 		Ui.node(gui, "Quest")
 	local coinText, pitonText = coins.Text, coins.Pitons
+	-- un colore per riquadro (prima tutti blu scuro uguali): sfumatura leggera sotto la cornice
+	for panel, tone in { [me] = Color3.fromRGB(200, 60, 60), [coins] = Color3.fromRGB(225, 165, 40), [pet] = Color3.fromRGB(140, 70, 210), [info] = Color3.fromRGB(50, 140, 220) } do
+		Ui.tint(panel, tone, false, 0.03)
+		local fill = panel:FindFirstChild("Tinta") :: Frame?
+		if fill then
+			fill.BackgroundTransparency = 0.45
+		end
+	end
 	local weatherIcon, weatherFallback, timeBig, clock, altitude =
 		info.Icon, info.Fallback, info.Time, info.Clock, info.Altitude
 	local warmthBack, warmthFill, warmthText = info.Warmth, info.Warmth.Fill, info.Warmth.Text

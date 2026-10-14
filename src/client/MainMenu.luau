@@ -240,6 +240,16 @@ local function mountInventory(container: Frame): () -> ()
 		end
 	end
 end
+-- colori delle schede del menu (pulsanti della colonna e sfondo della finestra)
+local MENU_COLORS: { [string]: Color3 } = {
+	Store = Color3.fromRGB(230, 170, 40),
+	Backpack = Color3.fromRGB(205, 110, 50),
+	Dragons = Color3.fromRGB(150, 70, 220),
+	Crafting = Color3.fromRGB(215, 65, 55),
+	Upgrades = Color3.fromRGB(60, 175, 90),
+	Teleport = Color3.fromRGB(40, 170, 220),
+}
+
 function MainMenu.start()
 	local gui = Ui.screen("MainMenu")
 	local column, window = Ui.node(gui, "Column"), Ui.node(gui, "Window")
@@ -275,6 +285,8 @@ function MainMenu.start()
 		local btn = column[n]
 		btn:SetAttribute("UiAsset", "btn_round_normal")
 		Ui.skin(btn, "btn_round_normal")
+		-- un colore per pulsante: prima erano tutti blu scuro uguali
+		Ui.tint(btn, MENU_COLORS[n], true)
 		btn.TextSize = 12
 		btn.TextScaled = false
 		btn.Size = UDim2.fromOffset(78, 78)
@@ -384,6 +396,14 @@ function MainMenu.start()
 			return
 		end
 		current = name
+		-- finestra e titolo del colore della scheda (sfondo sfumato sotto la cornice)
+		local tone = MENU_COLORS[name] or Color3.fromRGB(60, 110, 220)
+		Ui.tint(window, tone, false, 0.012)
+		local fill = window:FindFirstChild("Tinta") :: Frame?
+		if fill then
+			fill.BackgroundTransparency = 0.5
+		end
+		Ui.tint(window.Title, tone, false, 0.1)
 		gui:SetAttribute("MenuOpen", true)
 		window.Title.Text = if name == "Store" then "Shop" else name
 		window.Status.Text = ""

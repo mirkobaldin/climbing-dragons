@@ -41,6 +41,9 @@ local states: { [Player]: State } = {}
 local recordStore: OrderedDataStore? = nil
 local top: { { name: string, seconds: number } } = {}
 
+-- chi arriva in vetta (lo imposta init: il montepremi)
+Upgrades.onSummit = nil :: ((Player) -> ())?
+
 local function notice(player: Player, text: string)
 	player:SetAttribute("Notice", text)
 	player:SetAttribute("NoticeTime", os.clock())
@@ -440,6 +443,9 @@ local function tick(player: Player, dt: number)
 			s.atSummit = true
 			Upgrades.addStat(player, "Summits")
 			player:SetAttribute("SummitsSinceRebirth", ((player:GetAttribute("SummitsSinceRebirth") or 0) :: number) + 1)
+			if Upgrades.onSummit then
+				task.spawn(Upgrades.onSummit :: any, player) -- montepremi (server/Montepremi)
+			end
 			notice(player, "You reached the summit! Glide down to the base camp for a timed descent")
 			if s.descentStart then
 				s.descentStart = nil

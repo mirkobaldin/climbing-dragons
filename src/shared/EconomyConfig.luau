@@ -29,4 +29,10 @@ EconomyConfig.ROOST_RATE = { Comune = 1, Raro = 3, Epico = 8, Leggendario = 20 }
 EconomyConfig.OFFLINE_FACTOR = 0.5
 EconomyConfig.OFFLINE_HOURS = 8
 
+-- Montepremi stile Squid Game (server/Montepremi): sfera dorata in mezzo alla mappa e numero in
+-- alto sullo schermo. Cresce a ogni giocatore caduto (morto) e un poco ogni minuto; lo vince
+-- tutto il primo che arriva in vetta, poi riparte da START. Una morte conta al massimo ogni
+-- DEATH_GAP secondi per giocatore (niente morti apposta a raffica)
+EconomyConfig.JACKPOT = { START = 500, PER_DEATH = 50, PER_MINUTE = 10, DEATH_GAP = 30, MAX = 50000 }
+
 return EconomyConfig
