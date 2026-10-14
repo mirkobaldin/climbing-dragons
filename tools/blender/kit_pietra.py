@@ -14,14 +14,33 @@ from mathutils import Matrix, Vector
 import cloud_lib as L
 
 
-def _block(p, c, s, rot, bev, tint, chip=0.0, rng=None):
-    """un concio: scatola smussata; chip > 0 smussa di piu' uno spigolo a caso (pietra scheggiata)"""
+VIS_FRONT = ((0, -1, 0),)
+DROP_BACK = ((0, 1, 0),)
+
+
+def _block(p, c, s, rot, bev, tint, chip=0.0, rng=None, vis=None, drop=None):
+    """un concio: scatola smussata; chip > 0 smussa di piu' uno spigolo a caso (pietra scheggiata).
+    vis: direzioni (locali) delle facce che si vedono: si smussano solo i loro spigoli;
+    drop: direzioni delle facce che non si vedono mai (si tolgono). Risparmia triangoli nei muri."""
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0)
     bm.transform(Matrix.Diagonal((s[0], s[1], s[2], 1)))
     b = min(bev, min(s) * 0.3)
     if b > 0:
-        bmesh.ops.bevel(bm, geom=bm.edges[:] + bm.verts[:], offset=b, segments=1, affect="EDGES", profile=0.5)
+        if vis:
+            vd = [Vector(d) for d in vis]
+            edges = [e for e in bm.edges if any(any(f.normal.dot(d) > 0.9 for d in vd) for f in e.link_faces)]
+            bmesh.ops.bevel(bm, geom=edges, offset=b, segments=1, affect="EDGES", profile=0.5)
+        else:
+            bmesh.ops.bevel(bm, geom=bm.edges[:] + bm.verts[:], offset=b, segments=1, affect="EDGES", profile=0.5)
+    if drop:
+        dd = [Vector(d) for d in drop]
+        kill = [f for f in bm.faces if any(f.normal.dot(d) > 0.99 for d in dd)]
+        if kill:
+            bmesh.ops.delete(bm, geom=kill, context="FACES_ONLY")
+            lone = [v for v in bm.verts if not v.link_faces]
+            if lone:
+                bmesh.ops.delete(bm, geom=lone, context="VERTS")
     if chip > 0 and rng is not None:
         # sposta verso l'interno i vertici vicini a un angolo a caso (scheggiatura)
         corner = Vector((rng.choice((-1, 1)) * s[0] / 2, rng.choice((-1, 1)) * s[1] / 2, rng.choice((-1, 1)) * s[2] / 2))
@@ -78,7 +97,7 @@ def ashlar(p, M, x0, x1, z0, z1, rng, course=1.0, depth=0.5, bev=0.06, jitter=0.
             tilt = Matrix.Rotation(rng.uniform(-0.012, 0.012), 3, "Y") @ Matrix.Rotation(rng.uniform(-0.008, 0.008), 3, "Z")
             c = M @ Vector((cx, face_y + depth / 2 - out, zc))
             _block(p, c, (b - a - 0.02, depth, h - 0.02), R3 @ tilt, bev, rng.random(),
-                   chip=chip if rng.random() < 0.35 else 0.0, rng=rng)
+                   chip=chip if rng.random() < 0.35 else 0.0, rng=rng, vis=VIS_FRONT, drop=DROP_BACK)
 
 
 def hull_block(p, pts, M, bev, tint):
@@ -121,7 +140,7 @@ def arch(p, M, cx, zs, r_in, r_out, y0, y1, rng, n=13, bev=0.06, key=1.25):
         hull_block(p, pts, M, bev, rng.random())
 
 
-def half_column(p, M, x, y, z0, z1, r, seg=10):
+def half_column(p, M, x, y, z0, z1, r, seg=7):
     """semicolonna addossata (verso -Y) con base e capitello"""
     tint_fill(p)
     prof = [(r * 1.35, z0), (r * 1.35, z0 + 0.25), (r * 1.15, z0 + 0.4), (r * 1.22, z0 + 0.55), (r, z0 + 0.75),
@@ -157,3 +176,53 @@ def merlons(p, M, x0, x1, z, rng, w=1.6, gap=1.1, h=2.2, depth=1.6, y=0.0, broke
         x += w + gap
 
 
+def ring_ashlar(p, M, r0, r1, z0, z1, rng, course=1.6, depth=0.8, bev=0.06, lmin=1.4, lmax=2.4, clip=None,
+                missing=0.0, chip=0.25):
+    """muro tondo di conci (torri), faccia verso fuori; r0 raggio in basso, r1 in alto (scarpa).
+    clip(angolo, z) -> False per saltare un concio (feritoie, porte); angolo nel sistema M"""
+    tint_fill(p)
+    rows = max(1, round((z1 - z0) / course))
+    h = (z1 - z0) / rows
+    R3 = M.to_3x3()
+    for r in range(rows):
+        zc = z0 + (r + 0.5) * h
+        rad = r0 + (r1 - r0) * (zc - z0) / (z1 - z0)
+        circ = 2 * math.pi * rad
+        phi = rng.uniform(0, 2 * math.pi)
+        acc = 0.0
+        while acc < circ - 0.3:
+            ln = min(rng.uniform(lmin, lmax) * h, circ - acc)
+            if circ - acc - ln < 0.5 * h:
+                ln = circ - acc
+            a = phi + (acc + ln / 2) / rad
+            acc += ln
+            if clip and not clip(math.atan2(math.sin(a), math.cos(a)), zc):
+                continue
+            if rng.random() < missing:
+                continue
+            chord = 2 * rad * math.sin(ln / (2 * rad))
+            rot = R3 @ Matrix.Rotation(a + math.pi / 2, 3, "Z")
+            out = rng.uniform(-0.03, 0.03)
+            c = M @ Vector(((rad - depth / 2 + out) * math.cos(a), (rad - depth / 2 + out) * math.sin(a), zc))
+            _block(p, c, (chord - 0.02, depth, h - 0.02), rot, bev, rng.random(),
+                   chip=chip if rng.random() < 0.35 else 0.0, rng=rng, vis=VIS_FRONT, drop=DROP_BACK)
+
+
+def slabs(p, M, x0, x1, y0, y1, z, rng, th=0.3, lmin=0.8, lmax=1.6, bev=0.04, jitter=0.02):
+    """lastricato: file di lastre nel piano XY di M (file lungo Y, lastre di larghezza casuale lungo X),
+    sopra a quota z; si vede solo la faccia di sopra"""
+    tint_fill(p)
+    y = y0
+    while y < y1 - 0.2:
+        ln = min(rng.uniform(lmin, lmax), y1 - y)
+        x = x0
+        while x < x1 - 0.2:
+            w = min(rng.uniform(lmin, lmax), x1 - x)
+            if x1 - x - w < 0.4:
+                w = x1 - x
+            c = M @ Vector((x + w / 2, y + ln / 2, z - th / 2 + rng.uniform(-jitter, jitter)))
+            tilt = Matrix.Rotation(rng.uniform(-0.01, 0.01), 3, "X") @ Matrix.Rotation(rng.uniform(-0.01, 0.01), 3, "Y")
+            _block(p, c, (w - 0.04, ln - 0.04, th), M.to_3x3() @ tilt, bev, rng.random(),
+                   chip=0.3 if rng.random() < 0.2 else 0.0, rng=rng, vis=((0, 0, 1),), drop=((0, 0, -1),))
+            x += w
+        y += ln

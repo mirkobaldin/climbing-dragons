@@ -325,6 +325,33 @@ def m_sabbia(seed):
     return c, height, rough
 
 
+def m_sabbia_duello(seed):
+    """sabbia battuta dell'arena: increspature, sassolini, impronte e graffi leggeri (niente macchie che si ripetono)"""
+    n = TEX
+    nz = noise(n, 2.0, seed)
+    fine = noise(n, 0.8, seed + 1)
+    big = noise(n, 3.2, seed + 2)
+    rip = noise(n, 1.6, seed + 3, (1.0, 4.0))
+    c = col((0.62, 0.52, 0.38)) * (0.9 + 0.12 * nz[..., None]) * (0.92 + 0.1 * big[..., None]) * (0.94 + 0.1 * fine[..., None])
+    c = mix(c, c * 0.86, smooth(0.45, 0.6, rip) * 0.6)
+    d1, _ = worley(n, 500, seed + 4)
+    peb = 1 - smooth(0.0, 0.18, d1)
+    c = mix(c, col((0.36, 0.32, 0.28)), peb * 0.6)
+    rng = np.random.default_rng(seed + 5)
+    scr = np.zeros((n, n))
+    for _ in range(4):
+        cx, cy = rng.uniform(80, n - 80), rng.uniform(80, n - 80)
+        a = rng.uniform(0, math.pi)
+        ln = rng.uniform(60, 120)
+        dx, dy = math.cos(a), math.sin(a)
+        for k in (-1, 0, 1):
+            ox, oy = -dy * k * 8, dx * k * 8
+            scr = np.maximum(scr, line(n, cx + ox - dx * ln / 2, cy + oy - dy * ln / 2, cx + ox + dx * ln / 2, cy + oy + dy * ln / 2, 2.5))
+    c = mix(c, c * 0.7, scr * 0.5)
+    h = 0.4 * rip + 0.3 * nz + 0.3 * peb - 0.3 * scr
+    return c, h, 0.95 - 0.05 * peb
+
+
 def m_tegole(seed, base=(0.22, 0.21, 0.24)):
     n = TEX
     rows = 10
@@ -435,7 +462,7 @@ def m_statua(seed, el):
 def m_spicchi(seed):
     """atlante: 8 bande verticali (una per elemento, nell'ordine di ELEMENTI), pietra poco satura"""
     n = TEX
-    c, h, r = m_pietra(seed, (0.5, 0.5, 0.5), rows=12, var=0.12, wear=0.8)
+    c, h, r = m_vulcanica(seed, base=(0.5, 0.5, 0.5))
     lum = c.mean(-1, keepdims=True)
     out = np.zeros_like(c)
     w = n // 8
@@ -445,7 +472,7 @@ def m_spicchi(seed):
             tint = np.array((0.22, 0.20, 0.18))
         g = tint.mean()
         tint = (tint - g) * 0.42 + 0.55 * g + 0.22      # poco saturo
-        out[:, k * w:(k + 1) * w] = lum[:, k * w:(k + 1) * w] * 1.9 * tint
+        out[:, k * w:(k + 1) * w] = lum[:, k * w:(k + 1) * w] * 1.6 * tint
     return out, h, r
 
 
@@ -560,7 +587,7 @@ def m_membrana(seed):
     return c, h, 0.7 + 0.15 * fine
 
 
-def m_vulcanica(seed, base=(0.30, 0.28, 0.27)):
+def m_vulcanica(seed, base=(0.34, 0.30, 0.27)):
     """pietra vulcanica senza giunti (i blocchi sono geometria): grana, pori, venature chiare"""
     n = TEX
     nz = noise(n, 2.0, seed)
@@ -575,6 +602,214 @@ def m_vulcanica(seed, base=(0.30, 0.28, 0.27)):
     c = mix(c, c * 1.5, v * 0.4)
     h = 0.5 * nz + 0.3 * fine - 0.4 * pores
     return c, h, 0.85 + 0.1 * fine - 0.1 * v
+
+
+def m_prato(seed):
+    """prato d'alta quota: ciuffi verdi e gialli, terra che affiora, sassolini"""
+    n = TEX
+    nz = noise(n, 1.4, seed)
+    big = noise(n, 3.0, seed + 1)
+    blade = noise(n, 0.5, seed + 2, (1.0, 3.0))
+    c = mix(col((0.24, 0.29, 0.12)), col((0.28, 0.32, 0.13)), smooth(0.2, 0.8, big))
+    c = c * (0.88 + 0.24 * blade[..., None]) * (0.96 + 0.06 * nz[..., None])
+    dirt = smooth(0.70, 0.80, noise(n, 2.2, seed + 3))
+    c = mix(c, col((0.26, 0.20, 0.14)), dirt * 0.8)
+    d1, _ = worley(n, 250, seed + 4)
+    peb = 1 - smooth(0.0, 0.12, d1)
+    c = mix(c, col((0.42, 0.40, 0.37)), peb * dirt)
+    h = 0.5 * blade + 0.3 * nz + 0.3 * peb * dirt
+    return c, h, 0.95 - 0.1 * peb
+
+
+def m_roccia(seed):
+    """roccia a strati dell'isola: bande orizzontali, crepe, colature scure"""
+    n = TEX
+    nz = noise(n, 1.8, seed)
+    big = noise(n, 3.0, seed + 1)
+    yy = np.mgrid[0:n, 0:n][0] / n
+    warp = noise(n, 3.0, seed + 2) * 0.08
+    band = 0.5 + 0.5 * np.sin((yy + warp) * 2 * math.pi * 9)
+    bnd = noise(n, 2.0, seed + 5, (6.0, 1.0))
+    c = mix(col((0.27, 0.24, 0.21)), col((0.38, 0.34, 0.29)), smooth(0.3, 0.8, band * 0.6 + bnd * 0.4))
+    c = c * (0.8 + 0.35 * nz[..., None]) * (0.85 + 0.25 * big[..., None])
+    d1, d2 = worley(n, 14, seed + 3)
+    crack = (1 - smooth(0.0, 0.015, d2 - d1)) * smooth(0.35, 0.6, noise(n, 2.5, seed + 7))
+    c = mix(c, col((0.08, 0.07, 0.06)), crack * 0.7)
+    streak = smooth(0.55, 0.8, noise(n, 2.0, seed + 6, (1.0, 8.0)))
+    c = mix(c, c * 0.55, streak * 0.5)
+    h = 0.4 * band + 0.4 * nz - 0.5 * crack
+    return c, h, 0.88 - 0.1 * band
+
+
+def m_taglio(seed):
+    """sezione di tronco tagliato: anelli concentrici, crepe radiali, bordo di corteccia (UV: centro 0,5)"""
+    n = TEX
+    yy, xx = np.mgrid[0:n, 0:n] / n - 0.5
+    r = np.sqrt(xx * xx + yy * yy) * 2
+    a = np.arctan2(yy, xx)
+    wob = noise(n, 2.0, seed) * 0.05
+    rings = 0.5 + 0.5 * np.sin((r + wob) * 2 * math.pi * 16)
+    c = mix(col((0.55, 0.42, 0.28)), col((0.70, 0.57, 0.40)), rings * 0.7)
+    crack = smooth(0.985, 1.0, np.cos(a * 5 + noise(n, 2.0, seed + 1) * 2)) * smooth(0.2, 0.6, r)
+    c = mix(c, col((0.15, 0.10, 0.06)), crack * 0.8)
+    bark = smooth(0.86, 0.92, r)
+    c = mix(c, col((0.22, 0.16, 0.11)), bark)
+    c = mix(c, c * 0.6, smooth(0.5, 1.0, r) * 0.5)     # grigio/scuro verso il bordo (legno vecchio)
+    h = 0.3 * rings - 0.6 * crack + 0.2 * bark
+    return c, h, 0.85 - 0.1 * rings
+
+
+def m_granito(seed):
+    """granito grigio (basi, massi): grana fine sale e pepe, macchie larghe, senza giunti"""
+    n = TEX
+    nz = noise(n, 2.0, seed)
+    big = noise(n, 3.2, seed + 1)
+    rnd = np.random.default_rng(seed)
+    salt = blur(rnd.random((n, n)), 1)
+    c = col((0.40, 0.38, 0.35)) * (0.85 + 0.25 * nz[..., None]) * (0.9 + 0.15 * big[..., None])
+    c = mix(c, col((0.16, 0.15, 0.14)), smooth(0.62, 0.72, salt) * 0.7)
+    c = mix(c, col((0.62, 0.60, 0.56)), smooth(0.38, 0.28, salt) * 0.5)
+    h = 0.6 * nz + 0.2 * salt + 0.2 * big
+    return c, h, 0.8 + 0.1 * nz
+
+
+def m_pesce(seed):
+    """pelle di pesce (UV: u lungo il corpo, v attorno): dorso scuro, ventre argento, squame"""
+    n = TEX
+    yy, xx = np.mgrid[0:n, 0:n] / n
+    belly = 0.5 + 0.5 * np.cos(yy * 2 * math.pi)            # v=0/1 di lato... il ventre e' a v=0,75
+    side = np.sin(yy * 2 * math.pi)                          # +1 dorso, -1 ventre
+    back = smooth(-0.2, 0.6, side)
+    c = mix(col((0.78, 0.80, 0.80)), col((0.20, 0.28, 0.30)), back)
+    c = mix(c, col((0.62, 0.45, 0.30)), smooth(0.25, 0.0, np.abs(side)) * 0.35)   # linea laterale calda
+    sc = (np.sin(xx * n * 0.35 + np.sin(yy * n * 0.35) ) * np.sin(yy * n * 0.35)) * 0.5 + 0.5
+    spots = smooth(0.7, 0.8, noise(n, 1.4, seed)) * back
+    c = c * (0.9 + 0.12 * sc[..., None])
+    c = mix(c, col((0.08, 0.10, 0.10)), spots * 0.6)
+    h = 0.3 * sc
+    return c, h, 0.35 + 0.2 * back
+
+
+def m_carne(seed):
+    """carne cruda: rosso scuro con venature di grasso chiaro, bordo asciutto"""
+    n = TEX
+    nz = noise(n, 1.6, seed)
+    vein = noise(n, 2.2, seed + 1, (1.0, 3.0))
+    fat = smooth(0.47, 0.5, vein) * smooth(0.53, 0.5, vein)
+    c = col((0.42, 0.07, 0.06)) * (0.8 + 0.4 * nz[..., None])
+    c = mix(c, col((0.86, 0.78, 0.64)), fat * 0.8)
+    c = mix(c, col((0.62, 0.30, 0.22)), smooth(0.7, 0.85, noise(n, 3.0, seed + 2)) * 0.5)
+    h = 0.4 * nz + 0.3 * fat
+    return c, h, 0.45 - 0.2 * nz * 0.5
+
+
+def m_targhe(seed):
+    """atlante: 8 colonne = 8 targhe di bronzo con il simbolo dell'elemento in rilievo dorato"""
+    n = TEX
+    w = n // 8
+    br, bh, brr = m_bronzo(seed)
+    c = br.copy()
+    h = bh * 0.3
+    for k, el in enumerate(ELEMENTI):
+        sym = symbol_mask(el, w, 0.30)
+        big = np.zeros((n, w))
+        y0 = n // 2 - w // 2
+        big[y0:y0 + w, :] = sym
+        yy, xx = np.mgrid[0:n, 0:w]
+        frame = ((xx < 6) | (xx > w - 7) | (yy < 10) | (yy > n - 11)).astype(float)
+        sl = slice(k * w, (k + 1) * w)
+        c[:, sl] = mix(c[:, sl], col((0.85, 0.66, 0.30))[:, :w], np.clip(big + frame, 0, 1) * 0.9)
+        c[:, sl] = mix(c[:, sl], col(COLORE[el])[:, :w], smooth(0.0, 0.3, big) * (1 - big) * 0.0)
+        h[:, sl] = h[:, sl] + big * 0.7 + frame * 0.5
+    return c, h, brr * 0.9
+
+
+def m_bandierine(seed):
+    """atlante: 5 colonne = bandierine di preghiera (blu, bianco, rosso, verde, giallo) con stampa
+    leggera (cavallo del vento stilizzato: cerchio e righe, niente scritte), stoffa consumata"""
+    n = TEX
+    w = n // 5
+    cols5 = [(0.12, 0.30, 0.65), (0.88, 0.88, 0.84), (0.70, 0.12, 0.10), (0.15, 0.50, 0.25), (0.90, 0.72, 0.15)]
+    weave = noise(n, 0.6, seed) * 0.4 + noise(n, 2.0, seed + 1) * 0.6
+    c = np.zeros((n, n, 3))
+    yy, xx = np.mgrid[0:n, 0:w]
+    for k, cc in enumerate(cols5):
+        sl = slice(k * w, (k + 1) * w)
+        base = col(cc)[:, :w] * (0.8 + 0.3 * weave[:, sl][..., None])
+        ring = np.abs(np.hypot(xx - w / 2, yy - n * 0.42) - w * 0.22) < w * 0.025
+        lines = ((yy > n * 0.7) & (yy < n * 0.9) & ((yy // 9) % 2 == 0) & (xx > w * 0.15) & (xx < w * 0.85))
+        ink = (ring | lines).astype(float)
+        base = mix(base, base * 0.35, ink * 0.8)
+        fade = smooth(0.55, 0.9, noise(n, 2.2, seed + 3 + k)[:, :w]) * 0.35
+        base = mix(base, col((0.75, 0.72, 0.65))[:, :w], fade)
+        c[:, sl] = base
+    return c, weave * 0.6, 0.9 + 0.0 * weave
+
+
+def m_scandole(seed):
+    """tetto di scandole di legno: file sfalsate, ogni scandola con la sua tinta, bordo scuro"""
+    c, h, r = m_tegole(seed, base=(0.36, 0.26, 0.17))
+    grain = noise(TEX, 1.4, seed + 5, (1.0, 10.0))
+    c = c * (0.85 + 0.3 * grain[..., None])
+    return c, h * 0.6 + grain * 0.3, 0.85 + 0.1 * grain
+
+
+def m_fieno(seed):
+    """paglia e fieno: fili chiari e scuri intrecciati"""
+    n = TEX
+    a = noise(n, 0.8, seed, (1.0, 10.0))
+    b = noise(n, 0.8, seed + 1, (10.0, 1.0))
+    st = np.maximum(smooth(0.55, 0.75, a), smooth(0.6, 0.8, b) * 0.6)
+    c = mix(col((0.55, 0.45, 0.22)), col((0.85, 0.74, 0.42)), st)
+    c = c * (0.85 + 0.25 * noise(n, 2.0, seed + 2)[..., None])
+    return c, st, 0.95
+
+
+def m_righe(seed):
+    """atlante tende: 3 colonne a righe verticali (rosso/crema, blu/crema, verde/crema)"""
+    n = TEX
+    w = n // 3
+    x = np.arange(n)[None, :] / n
+    stripe = ((x * 3 * 6) % 1.0 < 0.5).astype(float) * np.ones((n, 1))
+    cols3 = [(0.62, 0.10, 0.08), (0.12, 0.25, 0.52), (0.18, 0.42, 0.22)]
+    c = np.zeros((n, n, 3))
+    for k, cc in enumerate(cols3):
+        sl = slice(k * w, (k + 1) * w if k < 2 else n)
+        c[:, sl] = mix(col((0.88, 0.82, 0.68))[:, :c[:, sl].shape[1]], col(cc)[:, :c[:, sl].shape[1]], stripe[:, sl])
+    weave = 0.5 + 0.25 * np.sin(x * 2 * math.pi * 300) + 0.25 * np.sin(np.arange(n)[:, None] / n * 2 * math.pi * 300)
+    nz = noise(n, 2.4, seed)
+    c = c * (0.85 + 0.15 * weave[..., None]) * (0.85 + 0.25 * nz[..., None])
+    return c, weave * 0.3 + nz * 0.3, 0.92
+
+
+def m_ceramica(seed, base=(0.20, 0.32, 0.45)):
+    """terracotta smaltata: smalto lucido che cola, terra nuda in basso"""
+    n = TEX
+    nz = noise(n, 1.8, seed)
+    y = np.arange(n)[:, None] / n * np.ones((1, n))
+    drip = smooth(0.35, 0.3, y + 0.08 * noise(n, 2.0, seed + 1, (1.0, 6.0)))
+    c = mix(col((0.58, 0.36, 0.22)), col(base) * (0.85 + 0.3 * nz[..., None]), drip)
+    return c, nz * 0.2, 0.75 - 0.6 * drip
+
+
+def m_frutta(seed, base):
+    n = TEX
+    nz = noise(n, 1.2, seed)
+    sp = smooth(0.75, 0.85, noise(n, 0.6, seed + 1))
+    c = col(base) * (0.8 + 0.35 * nz[..., None])
+    c = mix(c, c * 1.4, sp * 0.3)
+    return c, nz * 0.3, 0.45
+
+
+def m_bambu(seed):
+    """canna di bambu' (UV: u lungo la canna): nodi ogni 0,4 di tile, verde-giallo secco"""
+    n = TEX
+    x = np.arange(n)[None, :] / n * np.ones((n, 1))
+    node = smooth(0.012, 0.0, np.abs(((x * 4) % 1.0) - 0.5) - 0.488)
+    fib = noise(n, 0.8, seed, (6.0, 1.0))
+    c = col((0.70, 0.60, 0.32)) * (0.85 + 0.25 * fib[..., None])
+    c = mix(c, col((0.40, 0.32, 0.16)), node)
+    return c, node * 0.8 + fib * 0.2, 0.6
 
 
 # registro: nome del materiale -> (funzione, metri per ripetizione della texture)
@@ -600,6 +835,27 @@ MATERIALI = {
     "OssoDrago": (lambda: m_osso(32), 3.0),
     "MembranaDrago": (lambda: m_membrana(33), 6.0),
     "PietraVulcanica": (lambda: m_vulcanica(34), 2.5),
+    "PratoAlto": (lambda: m_prato(35), 9.0),
+    "SabbiaDuello": (lambda: m_sabbia_duello(37), 7.0),
+    "LegnoTaglio": (lambda: m_taglio(38), 0),
+    "Granito": (lambda: m_granito(39), 2.5),
+    "Pesce": (lambda: m_pesce(40), 0),
+    "LegnoAsse": (lambda: m_legno(42, (0.34, 0.24, 0.15), planks=1), 2.0),
+    "Targhe": (lambda: m_targhe(43), 0),
+    "Scandole": (lambda: m_scandole(45), 3.0),
+    "Fieno": (lambda: m_fieno(46), 1.5),
+    "TendaRighe": (lambda: m_righe(47), 0),
+    "Ceramica": (lambda: m_ceramica(48), 1.0),
+    "CeramicaVerde": (lambda: m_ceramica(49, (0.25, 0.42, 0.30)), 1.0),
+    "FruttaRossa": (lambda: m_frutta(50, (0.62, 0.08, 0.06)), 0.4),
+    "FruttaArancio": (lambda: m_frutta(51, (0.85, 0.42, 0.06)), 0.4),
+    "FruttaVerde": (lambda: m_frutta(52, (0.42, 0.62, 0.16)), 0.4),
+    "Bambu": (lambda: m_bambu(53), 1.6),
+    "VelaGiunca": (lambda: m_stoffa(54, (0.58, 0.28, 0.13)), 2.0),
+    "TelaBlu": (lambda: m_stoffa(55, (0.14, 0.24, 0.45)), 2.0),
+    "Bandierine": (lambda: m_bandierine(44), 0),
+    "Carne": (lambda: m_carne(41), 0.6),
+    "RocciaIsola": (lambda: m_roccia(36), 14.0),
     "PietraChiara": (lambda: m_pietra(29, (0.60, 0.57, 0.52), rows=4, wear=0.7), 3.0),
     "TelaRossa": (lambda: m_stoffa(30, (0.55, 0.10, 0.07)), 2.0),
     "TelaGrigia": (lambda: m_stoffa(31, (0.40, 0.42, 0.40)), 2.0),
@@ -613,28 +869,47 @@ PIANI = {
     "MAT_WarmLight": ((1.0, 0.75, 0.45), 4.0),   # lanterne
     "MAT_Gold": ((0.84, 0.69, 0.27), 0.0),
     "MAT_Glass": ((0.66, 0.80, 0.90), 0.0),
+    "MAT_Water": ((0.10, 0.22, 0.24), 0.0),      # acqua (in Studio: Glass o trasparenza 0,3)
 }
 
 _texcache = {}
 
 
-def texture_files(name, outdir):
-    """scrive (una volta per sessione) le 3 PNG del materiale e le copia in outdir"""
+def texture_files(name, outdir=None):
+    """scrive (una volta) le 3 PNG del materiale ripetuto in cloud/_Texture (condivise da tutti i modelli)"""
+    outdir = os.path.join(CLOUD, "_Texture")
     os.makedirs(outdir, exist_ok=True)
     files = {k: os.path.join(outdir, "%s_%s.png" % (name, k)) for k in ("BaseColor", "Normal", "Roughness")}
     if name not in _texcache:
         t0 = time.time()
         c, h, r = MATERIALI[name][0]()
         r = np.broadcast_to(np.asarray(r, float), h.shape)
-        nrm = normal_from(h, 6.0)
+        nrm = normal_from(blur(h, 2), 6.0)       # sfocata di 2 px: stessa resa, PNG 4 volte piu' leggera
         data = {"BaseColor": np.clip(c, 0, 1), "Normal": nrm, "Roughness": np.clip(np.repeat(r[..., None], 3, -1), 0.02, 1)}
         _texcache[name] = data
         print("  texture %s (%.1fs)" % (name, time.time() - t0))
     for k, path in files.items():
         if not os.path.exists(path) or name not in _written:
-            _save_png(_texcache[name][k], path, k != "BaseColor")
+            # scrive accanto e poi sostituisce: un altro Blender che la sta leggendo non vede mai un file a meta'
+            tmp = path[:-4] + ".%d.tmp.png" % os.getpid()
+            _save_png(_texcache[name][k], tmp, k != "BaseColor")
+            png_leggera(tmp, gray=(k == "Roughness"), quant=2 if k == "Normal" else 1)
+            os.replace(tmp, path)
     _written.add(name)
     return files
+
+
+def png_leggera(path, gray=False, quant=1):
+    """ricomprime una PNG (zlib 9), in grigi se gray, quantizzata a passi di quant (normali)"""
+    try:
+        from PIL import Image
+    except ImportError:
+        return
+    im = Image.open(path)
+    im = im.convert("L" if gray else "RGB")
+    if quant > 1:
+        im = im.point(lambda v: v // quant * quant)
+    im.save(path, optimize=True, compress_level=9)
 
 
 _written = set()
@@ -1151,6 +1426,8 @@ def make_material(name, texdir):
         if name == "MAT_Gold":
             bsdf.inputs["Metallic"].default_value = 1.0
             bsdf.inputs["Roughness"].default_value = 0.35
+        if name == "MAT_Water":
+            bsdf.inputs["Roughness"].default_value = 0.05
         return m
     files = texture_files(name, texdir)
     img = nt.nodes.new("ShaderNodeTexImage")
@@ -1227,8 +1504,9 @@ def clear_scene():
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
 
-def export(model, quick=False):
-    """scrive cloud/<Nome>/<Nome>.fbx, _Collision.fbx, Markers.json, Materials.json, Textures/"""
+def export(model, quick=False, before_fbx=None):
+    """scrive cloud/<Nome>/<Nome>.fbx, _Collision.fbx, Markers.json, Materials.json, Textures/.
+    before_fbx(objs, texdir): chiamata prima di scrivere l'FBX (cottura dei materiali)"""
     out = os.path.join(CLOUD, model.name)
     texdir = os.path.join(out, "Textures")
     os.makedirs(out, exist_ok=True)
@@ -1268,6 +1546,9 @@ def export(model, quick=False):
                                  mesh_smooth_type="OFF", use_mesh_modifiers=True, path_mode="STRIP", add_leaf_bones=False,
                                  use_custom_props=False, bake_anim=False)
 
+    if before_fbx:
+        before_fbx(objs, texdir)
+        stats = [(s0, ob.data.materials[0].name, t, ob) for (s0, _m, t, ob) in stats]
     fbx(os.path.join(out, model.name + ".fbx"), objs + mk)
     if cobs:
         fbx(os.path.join(out, model.name + "_Collision.fbx"), cobs)
@@ -1275,12 +1556,23 @@ def export(model, quick=False):
     with open(os.path.join(out, "Markers.json"), "w", encoding="utf-8") as fh:
         json.dump(markers, fh, indent=1)
     mats = []
+    used = set()
     for m in sorted(set(s[1] for s in stats)):
         if m in PIANI:
             mats.append({"name": m, "plain": True})
         else:
-            mats.append({"name": m, "BaseColor": "Textures/%s_BaseColor.png" % m, "Normal": "Textures/%s_Normal.png" % m,
-                         "Roughness": "Textures/%s_Roughness.png" % m})
+            if os.path.exists(os.path.join(texdir, "%s_BaseColor.jpg" % m)):      # cotta: texture del modello
+                e = {"name": m, "BaseColor": "Textures/%s_BaseColor.jpg" % m, "Normal": "Textures/%s_Normal.png" % m,
+                     "Roughness": "Textures/%s_Roughness.png" % m}
+                used.update(os.path.basename(e[k]) for k in ("BaseColor", "Normal", "Roughness"))
+            else:                                                                 # ripetuta: cartella comune
+                e = {"name": m, "BaseColor": "../_Texture/%s_BaseColor.png" % m, "Normal": "../_Texture/%s_Normal.png" % m,
+                     "Roughness": "../_Texture/%s_Roughness.png" % m}
+            mats.append(e)
+    if os.path.isdir(texdir):
+        for f in os.listdir(texdir):           # texture cotte vecchie o non usate
+            if f not in used:
+                os.remove(os.path.join(texdir, f))
     with open(os.path.join(out, "Materials.json"), "w", encoding="utf-8") as fh:
         json.dump(mats, fh, indent=1)
     # controlli

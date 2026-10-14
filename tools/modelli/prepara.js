@@ -8,6 +8,9 @@ const DIRS = {
 	Tent: "Tent", Campfire: "Campfire", StoneCabin: "StoneCabin", ModernChalet: "ModernChalet", MegaChalet: "MegaChalet",
 	AlpineParaglider: "Gliders/AlpineParaglider", AncientStormWyvern: "Gliders/AncientStormWyvern", DragonWings: "Gliders/DragonWings",
 }
+// modelli della sessione cloud (cloud/<Nome>): si aggiungono quelli che hanno gia' index.json
+const CLOUD = process.env.CLOUD_MODELS ? process.env.CLOUD_MODELS.split(",") : []
+for (const m of CLOUD) DIRS[m] = "cloud/" + m
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 const len = (v) => Math.hypot(v[0], v[1], v[2])
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
@@ -45,11 +48,18 @@ for (const [model, dir] of Object.entries(DIRS)) {
 		for (const kind of ["BaseColor", "Normal", "Roughness"]) {
 			const key = mat.name + "|" + kind
 			if (textures[key]) continue
-			// per nome (in alcuni Materials.json il percorso e' rimasto vuoto)
-			const name = mat.name + "_" + kind + ".png"
-			for (const sub of ["Textures", path.basename(dir) + ".fbm"]) {
-				const full = path.join(repo, dir, sub, name)
-				if (!textures[key] && fs.existsSync(full)) textures[key] = path.relative(repo, full).split(path.sep).join("/")
+			// prima il percorso scritto in Materials.json (cloud: texture cotte in Textures/, quelle
+			// ripetute in ../_Texture/, BaseColor anche .jpg), poi per nome
+			if (mat[kind]) {
+				const full = path.join(repo, dir, mat[kind])
+				if (fs.existsSync(full)) textures[key] = path.relative(repo, full).split(path.sep).join("/")
+			}
+			for (const ext of [".png", ".jpg"]) {
+				const name = mat.name + "_" + kind + ext
+				for (const sub of ["Textures", path.basename(dir) + ".fbm"]) {
+					const full = path.join(repo, dir, sub, name)
+					if (!textures[key] && fs.existsSync(full)) textures[key] = path.relative(repo, full).split(path.sep).join("/")
+				}
 			}
 		}
 	}

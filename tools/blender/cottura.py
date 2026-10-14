@@ -58,8 +58,8 @@ def _source_material(ob, base_mat, texdir, look):
     attr = nodes.new("ShaderNodeAttribute")
     attr.attribute_name = "Tinta"
     tint = nodes.new("ShaderNodeMapRange")
-    tint.inputs["To Min"].default_value = 1.0 - look.get("tint", 0.18)
-    tint.inputs["To Max"].default_value = 1.0 + look.get("tint", 0.18)
+    tint.inputs["To Min"].default_value = 1.0 - look.get("tint", 0.25)
+    tint.inputs["To Max"].default_value = 1.0 + look.get("tint", 0.25)
     links.new(attr.outputs["Fac"], tint.inputs["Value"])
     hue = nodes.new("ShaderNodeHueSaturation")
     links.new(col.outputs["Color"], hue.inputs["Color"])
@@ -86,12 +86,19 @@ def _source_material(ob, base_mat, texdir, look):
     mao.inputs["Fac"].default_value = 1.0
     links.new(mul.outputs["Color"], mao.inputs["Color1"])
     links.new(aoc.outputs["Result"], mao.inputs["Color2"])
-    # spigoli consumati: pointiness alta -> piu' chiaro
+    # spigoli consumati: dove la normale smussata (nodo Bevel) si scosta dalla normale vera
     geo = nodes.new("ShaderNodeNewGeometry")
+    bev = nodes.new("ShaderNodeBevel")
+    bev.samples = 8
+    bev.inputs["Radius"].default_value = look.get("edge_r", 0.06)
+    dot = nodes.new("ShaderNodeVectorMath")
+    dot.operation = "DOT_PRODUCT"
+    links.new(bev.outputs["Normal"], dot.inputs[0])
+    links.new(geo.outputs["Normal"], dot.inputs[1])
     edge = nodes.new("ShaderNodeMapRange")
-    edge.inputs["From Min"].default_value = 0.52
-    edge.inputs["From Max"].default_value = 0.62
-    links.new(geo.outputs["Pointiness"], edge.inputs["Value"])
+    edge.inputs["From Min"].default_value = 0.99
+    edge.inputs["From Max"].default_value = 0.85
+    links.new(dot.outputs["Value"], edge.inputs["Value"])
     noise = nodes.new("ShaderNodeTexNoise")
     noise.inputs["Scale"].default_value = 0.8
     noise.inputs["Detail"].default_value = 6
@@ -103,7 +110,7 @@ def _source_material(ob, base_mat, texdir, look):
     wear.blend_type = "SCREEN"
     links.new(edgen.outputs[0], wear.inputs["Fac"])
     links.new(mao.outputs["Color"], wear.inputs["Color1"])
-    wear.inputs["Color2"].default_value = (*look.get("wear_col", (0.55, 0.5, 0.45)), 1)
+    wear.inputs["Color2"].default_value = (*look.get("wear_col", (0.20, 0.18, 0.16)), 1)
     # sporco e colature: piu' scuro in basso (quota nel pezzo) e a strisce verticali
     sep = nodes.new("ShaderNodeSeparateXYZ")
     links.new(geo.outputs["Position"], sep.inputs["Vector"])
@@ -138,7 +145,7 @@ def _source_material(ob, base_mat, texdir, look):
     dirt.blend_type = "MULTIPLY"
     links.new(dsum.outputs[0], dirt.inputs["Fac"])
     links.new(wear.outputs["Color"], dirt.inputs["Color1"])
-    dirt.inputs["Color2"].default_value = (*look.get("dirt_col", (0.30, 0.26, 0.20)), 1)
+    dirt.inputs["Color2"].default_value = (*look.get("dirt_col", (0.18, 0.15, 0.11)), 1)
     # muschio (o neve) sulle facce rivolte in su, a chiazze
     nz = nodes.new("ShaderNodeSeparateXYZ")
     links.new(geo.outputs["Normal"], nz.inputs["Vector"])
@@ -245,6 +252,7 @@ def bake_piece(ob, base_mat, texdir, outdir, name, res=1024, look=None, samples=
             im.filepath_raw = path
             im.file_format = "PNG"
             im.save()
+            L.png_leggera(path, gray=(kind == "Roughness"), quant=2 if kind == "Normal" else 1)
         imgs[kind] = path
     for o in hidden:
         o.hide_render = False
@@ -271,7 +279,7 @@ def bake_piece(ob, base_mat, texdir, outdir, name, res=1024, look=None, samples=
     ob.data.materials.clear()
     ob.data.materials.append(fin)
     _drop_tile(ob)
-    print("  cotto %s (%.0fs)" % (name, time.time() - t0))
+    print("  cotto %s (%.0fs)" % (name, time.time() - t0), flush=True)
     return fin, imgs
 
 
