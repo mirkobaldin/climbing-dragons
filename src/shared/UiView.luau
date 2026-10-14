@@ -9,6 +9,12 @@ local fallback = require(script.Parent:WaitForChild("UiFallback"))
 local UiView = {}
 local activeScreens: { [string]: ScreenGui } = {}
 local watchedPlayerGui = false
+local styler: ((Instance) -> ())? = nil
+local palette: any = nil
+function UiView.setStyler(callback: (Instance) -> (), colors: any)
+	styler = callback
+	palette = colors
+end
 
 function UiView.node(root: Instance, path: string): any
 	local current = root
@@ -32,7 +38,9 @@ local IMAGE_SIZE: { [string]: Vector2 } = {
 	rarity = Vector2.new(256, 256),
 }
 local function imageSize(name: string): Vector2
-	if IMAGE_SIZE[name] then
+	if name:find("_v3_", 1, true) or name:find("_v2_", 1, true) then
+		return if name:sub(1, 4) == "tab_" then Vector2.new(384, 112) else Vector2.new(512, 160)
+	elseif IMAGE_SIZE[name] then
 		return IMAGE_SIZE[name]
 	elseif string.find(name, "btn_round", 1, true) then
 		return IMAGE_SIZE.btn_round
@@ -84,83 +92,82 @@ function UiView.asset(target: ImageLabel, name: string): boolean
 end
 
 function UiView.skin(target: GuiObject, name: string)
-	target:SetAttribute("UiAsset", name)
-	local id = UiAssets.get(name)
-	if target:IsA("ImageLabel") then
-		UiView.asset(target, name)
-		return
-	end
-	if not id then
-		return
-	end
-	local image = target:FindFirstChild("AssetSurface") :: ImageLabel?
-	if not image then
-		image = Instance.new("ImageLabel")
-		image.Name = "AssetSurface"
-		image.Size = UDim2.fromScale(1, 1)
-		image.BackgroundTransparency = 1
-		image.ZIndex = 0
-		image.Parent = target
-		target.BackgroundTransparency = 1
-		for _, child in target:GetChildren() do
-			if child:IsA("UIStroke") then
-				child.Enabled = false
-			end
-		end
-		if target:IsA("TextButton") or target:IsA("TextLabel") then
-			local caption = Instance.new("TextLabel")
-			caption.Name = "AssetCaption"
-			caption.Size = UDim2.fromScale(1, 1)
-			caption.BackgroundTransparency = 1
-			caption.ZIndex = 2
-			caption.Parent = target
-			local function sync()
-				caption.Text = target.Text
-				caption.Font = target.Font
-				caption.TextSize = target.TextSize
-				caption.TextScaled = target.TextScaled
-				caption.TextWrapped = target.TextWrapped
-				caption.RichText = target.RichText
-				caption.TextXAlignment = target.TextXAlignment
-				caption.TextColor3 = Color3.fromRGB(240, 240, 242)
-				caption.TextStrokeTransparency = 0.6
-				if target:IsA("TextButton") and not string.find(name, "btn_round", 1, true) then
-					-- pulsanti a cornice (Buy, Sell, Unlock...): bianco su oro si leggeva male,
-					-- ora carattere pieno e bordo scuro marcato
-					caption.Font = Enum.Font.GothamBlack
-					caption.TextStrokeColor3 = Color3.fromRGB(45, 24, 4)
-					caption.TextStrokeTransparency = 0.05
-				end
-				if name == "btn_close" then
-					caption.Text = ""
-				elseif string.find(name, "btn_round", 1, true) then
-					-- sotto l'icona; senza icona (Glide, Ride del telefono) in mezzo e piu' grande
-					local icon = target:FindFirstChild("Icon")
-					if icon and icon:IsA("ImageLabel") and icon.Visible and icon.Image ~= "" then
-						caption.Position = UDim2.fromScale(0, 0.7)
-						caption.Size = UDim2.fromScale(1, 0.28)
-						caption.TextSize = 10
-					else
-						caption.Position = UDim2.fromScale(0.1, 0.3)
-						caption.Size = UDim2.fromScale(0.8, 0.4)
-						caption.TextScaled = true
-					end
-				end
-			end
-			sync()
-			target.TextTransparency = 1
-			for _, prop in { "Text", "Font", "TextSize", "TextScaled", "TextWrapped" } do
-				target:GetPropertyChangedSignal(prop):Connect(sync)
-			end
-		end
-	end
-	UiView.asset(image :: ImageLabel, name)
+ local state = name:match("_(%w+)$") or "normal"
+ if state ~= "hover" and state ~= "pressed" then state = "normal" end
+ if name:sub(1, 4) == "btn_" and name ~= "btn_close" and not name:find("_v3_", 1, true) then
+  local kind = target:GetAttribute("ButtonKind") or "alt"
+  name = "btn_" .. tostring(kind) .. "_v3_" .. state
+ end
+ target:SetAttribute("UiAsset", name)
+ if target:IsA("ImageLabel") then UiView.asset(target, name); return end
+ local id = UiAssets.get(name)
+ -- I pannelli nuovi sono nativi: nessuna vecchia cornice scura o alone.
+ if name:sub(1, 6) == "panel_" or target:GetAttribute("UiNative") then id = nil end
+ local image = target:FindFirstChild("AssetSurface") :: ImageLabel?
+ local oldCaption = target:FindFirstChild("AssetCaption")
+ if oldCaption then oldCaption:Destroy() end
+ if target:IsA("TextButton") or target:IsA("TextLabel") then target.TextTransparency = 0 end
+ if not id then
+  if image then image:Destroy() end
+  if target:IsA("GuiButton") or name:sub(1, 6) == "panel_" then target.BackgroundTransparency = 0 end
+  return
+ end
+ if not image then
+  image = Instance.new("ImageLabel")
+  image.Name = "AssetSurface"
+  image.Size = UDim2.fromScale(1, 1)
+  image.BackgroundTransparency = 1
+  image.ZIndex = 0
+  image.Parent = target
+ end
+ target.BackgroundTransparency = 1
+ UiView.asset(image :: ImageLabel, name)
+ if target:IsA("TextButton") or target:IsA("TextLabel") then
+  -- Una sola etichetta, aggiornata anche quando cambiano tipo o stato.
+  local caption = Instance.new("TextLabel")
+  caption.Name = "AssetCaption"
+  caption.BackgroundTransparency = 1
+  caption.Position = UDim2.fromOffset(6, 4)
+  caption.Size = UDim2.new(1, -12, 1, -8)
+  caption.ZIndex = target.ZIndex + 2
+  if target:IsA("TextButton") and target:FindFirstChild("Icon") and not target:FindFirstChild("NavTitle") then
+   caption.Position = UDim2.new(0, 4, 1, -26)
+   caption.Size = UDim2.new(1, -8, 0, 22)
+  end
+  caption.Parent = target
+  local function sync()
+   caption.Text = if name == "btn_close" then "" else target.Text
+   caption.Font = target.Font
+   caption.TextSize = target.TextSize
+   caption.TextScaled = true
+   caption.TextWrapped = not target:IsA("TextButton") and target.TextWrapped
+   caption.TextColor3 = target.TextColor3
+   caption.TextStrokeColor3 = target.TextStrokeColor3
+   caption.TextStrokeTransparency = target.TextStrokeTransparency
+   caption.TextXAlignment = target.TextXAlignment
+   caption.RichText = target.RichText
+  end
+  local connections = {}
+  for _, prop in {"Text", "TextColor3", "Font", "TextSize", "TextWrapped"} do
+   table.insert(connections, target:GetPropertyChangedSignal(prop):Connect(sync))
+  end
+  caption.Destroying:Connect(function() for _, c in connections do c:Disconnect() end end)
+  sync()
+  if styler then styler(caption) end
+  target.TextTransparency = 1
+ end
 end
 
 -- colore di un pulsante o riquadro con l'immagine (cornice dorata): un riempimento colorato con
 -- sfumatura dentro la cornice, fra l'immagine e il testo. Prima tutti i pulsanti erano dello
 -- stesso blu scuro e non si distinguevano. round = tondo; inset = margine della cornice (0..0.5)
 function UiView.tint(target: GuiObject, color: Color3, round: boolean?, inset: number?)
+	if target:IsA("TextButton") or target:IsA("TextLabel") then
+		target.BackgroundColor3 = color
+		local old = target:FindFirstChild("Tinta")
+		if old then old:Destroy() end
+		return
+	end
 	local fill = target:FindFirstChild("Tinta") :: Frame?
 	if not fill then
 		local f = Instance.new("Frame")
@@ -176,6 +183,7 @@ function UiView.tint(target: GuiObject, color: Color3, round: boolean?, inset: n
 		fill = f
 	end
 	local f = fill :: Frame
+	target.ClipsDescendants = true
 	local k = inset or (if round then 0.11 else 0.06)
 	f.AnchorPoint = Vector2.new(0.5, 0.5)
 	f.Position = UDim2.fromScale(0.5, 0.5)
@@ -186,7 +194,7 @@ function UiView.tint(target: GuiObject, color: Color3, round: boolean?, inset: n
 	corner.CornerRadius = if round then UDim.new(0.5, 0) else UDim.new(0, 8)
 	local h, s, v = color:ToHSV()
 	local light = Color3.fromHSV(h, math.max(0, s * 0.75), math.min(1, v * 1.25 + 0.08))
-	local dark = Color3.fromHSV(h, math.min(1, s * 1.1), v * 0.55)
+	local dark = Color3.fromHSV(h, math.min(1, s * 1.1), v * 0.85)
 	local grad = f:FindFirstChildOfClass("UIGradient") :: UIGradient
 	grad.Color = ColorSequence.new(light, dark)
 	f.Visible = true
@@ -216,6 +224,7 @@ function UiView.apply(root: Instance)
 			UiView.skin(item, key)
 		end
 	end
+	if styler then styler(root) end
 end
 
 function UiView.screen(name: string): ScreenGui
@@ -268,9 +277,9 @@ end
 local U = UDim2.new
 local function sized(o: Instance?, size: number, bold: boolean?)
 	if o and (o:IsA("TextLabel") or o:IsA("TextButton")) then
-		o.TextScaled = false
+		o.TextScaled = true
 		o.TextSize = size
-		o.TextWrapped = true
+		o.TextWrapped = not o:IsA("TextButton")
 		o.TextTruncate = Enum.TextTruncate.AtEnd
 		if bold ~= nil then
 			o.Font = if bold then Enum.Font.GothamBlack else Enum.Font.GothamBold
@@ -303,12 +312,12 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 		sized(c.Icon, 48)
 		c.Icon.TextXAlignment = Enum.TextXAlignment.Center
 		c.Icon.BackgroundTransparency = 0.25
-		c.Icon.BackgroundColor3 = Color3.fromRGB(40, 52, 84)
+		if palette then c.Icon.BackgroundColor3 = palette.CARD end
 		local ic = c.Icon:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 		ic.CornerRadius = UDim.new(0, 18)
 		ic.Parent = c.Icon
 		local is = c.Icon:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-		is.Color = Color3.fromRGB(255, 200, 90)
+		if palette then is.Color = palette.ACCENT end
 		is.Thickness = 2
 		is.Transparency = 0.35
 		is.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -317,7 +326,7 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 		sized(c.Title, 22, true)
 		place(c.Description, U(0, 132, 0, 48), U(1, -132 - W, 0, 22))
 		sized(c.Description, 16)
-		c.Description.TextColor3 = Color3.fromRGB(200, 206, 222)
+		if palette then c.Description.TextColor3 = palette.MUTED end
 		place(c.Effect, U(0, 132, 0, 76), U(1, -132 - W, 0, 24))
 		sized(c.Effect, 16, true)
 		c.Effect.RichText = true
@@ -391,7 +400,7 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 		place(c.Title, U(0, 8, 0.42, 4), U(1, -16, 0, 24))
 		sized(c.Title, 17, true)
 		center(c.Title)
-		place(c.Description, U(0, 10, 0.42, 30), U(1, -20, 0, 32))
+		place(c.Description, U(0, 10, 0.42, 30), U(1, -20, 0, 48))
 		sized(c.Description, 12)
 		center(c.Description)
 		c.Description.TextYAlignment = Enum.TextYAlignment.Top
@@ -414,7 +423,7 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 		place(c.Title, U(0, 8, 0.36, 4), U(1, -16, 0, 24))
 		sized(c.Title, 17, true)
 		c.Title.TextXAlignment = Enum.TextXAlignment.Center
-		place(c.Description, U(0, 10, 0.36, 30), U(1, -20, 0, 34))
+		place(c.Description, U(0, 10, 0.36, 30), U(1, -20, 0, 56))
 		sized(c.Description, 12)
 		c.Description.TextXAlignment = Enum.TextXAlignment.Center
 		c.Description.TextYAlignment = Enum.TextYAlignment.Top
@@ -431,7 +440,7 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 	-- zaino: tessere quadrate in griglia (cella fissa, vedi MainMenu)
 	InventoryCard = function(c)
 		place(c.Icon, U(0.5, 0, 0, 10), U(0, 84, 0, 84), Vector2.new(0.5, 0))
-		place(c.Title, U(0, 8, 1, -34), U(1, -16, 0, 22))
+		place(c.Title, U(0, 8, 1, -46), U(1, -16, 0, 40))
 		sized(c.Title, 14, true)
 		c.Title.TextXAlignment = Enum.TextXAlignment.Center
 		place(c.Count, U(1, -12, 0, 12), U(0, 70, 0, 20), Vector2.new(1, 0))
@@ -445,11 +454,12 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 -- scheda scelta (Buy/Sell/Robux, Upgrades/Bounties...): con l'immagine il colore di fondo non
 -- si vede, quindi le altre si scuriscono
 function UiView.selected(button: GuiObject, on: boolean, onColor: Color3, offColor: Color3)
-	button.BackgroundColor3 = if on then onColor else offColor
+	button.BackgroundColor3 = if palette then (if on then palette.ACCENT else palette.BLUE) else (if on then onColor else offColor)
 	local surface = button:FindFirstChild("AssetSurface")
 	if surface and surface:IsA("ImageLabel") then
-		surface.ImageColor3 = if on then Color3.new(1, 1, 1) else Color3.fromRGB(110, 120, 140)
+		surface.ImageColor3 = Color3.new(1, 1, 1)
 	end
+	UiView.skin(button, if on then "tab_on_v3_normal" else "tab_off_v3_normal")
 end
 
 -- distribuisce in una riga i pulsanti visibili (da x a destra, alti h, alla quota y)
@@ -487,7 +497,65 @@ function UiView.template(name: string, parent: Instance): any
 	end
 	copy.Parent = parent
 	UiView.apply(copy)
-	return copy
+ if name == "ItemCard" or name == "RecipeCard" then
+  local function arrangeCard()
+   local guiScale = gui:FindFirstChild("ScalaUI") :: UIScale?
+   local height = copy.AbsoluteSize.Y / (if guiScale then guiScale.Scale else 1)
+   if height <= 0 then return end
+   if height > 200 then
+    local cardStyle = CARD_STYLE[name]
+    cardStyle(copy)
+    if styler then styler(copy) end
+    return
+   end
+   local icon = if name == "ItemCard" then copy.Icon else copy.Preview
+   place(icon, U(0, 8, 0, 8), U(0, 56, 0, 56), Vector2.zero)
+   place(copy.Title, U(0, 68, 0, 6), U(1, -76, 0, 30))
+   place(copy.Description, U(0, 68, 0, 38), U(1, -76, 0, 48))
+   if name == "ItemCard" then
+    place(copy.Cost, U(0, 8, 0, 88), U(1, -16, 0, 22))
+    copy.Coin.Visible = false
+    place(copy.Buy, U(0, 8, 1, -8), U(1, -16, 0, 44), Vector2.new(0, 1))
+    place(copy.SellActions, U(0, 8, 1, -8), U(1, -16, 0, 44), Vector2.new(0, 1))
+   else
+    place(copy.Materials, U(0, 8, 0, 86), U(1, -16, 0, 26))
+    place(copy.Craft, U(0, 8, 1, -8), U(1, -16, 0, 44), Vector2.new(0, 1))
+   end
+  end
+  copy:GetPropertyChangedSignal("AbsoluteSize"):Connect(arrangeCard)
+  task.defer(arrangeCard)
+ end
+ if name == "UpgradeCard" or name == "BountyCard" then
+  local function arrange()
+   local guiScale = gui:FindFirstChild("ScalaUI") :: UIScale?
+   local w = copy.AbsoluteSize.X / (if guiScale then guiScale.Scale else 1)
+   if w <= 0 then return end
+   if w >= 600 then
+    local style = CARD_STYLE[name]
+    style(copy)
+    if styler then styler(copy) end
+    return
+   end
+   if name == "UpgradeCard" then
+    copy.Size = U(1, -12, 0, 260)
+    place(copy.Icon, U(0, 12, 0, 12), U(0, 60, 0, 60), Vector2.zero)
+    place(copy.Title, U(0, 80, 0, 14), U(1, -92, 0, 50))
+    place(copy.Description, U(0, 12, 0, 80), U(1, -24, 0, 40))
+    place(copy.Effect, U(0, 12, 0, 124), U(1, -24, 0, 32))
+    place(copy.Cost, U(0, 12, 0, 160), U(1, -24, 0, 32))
+    place(copy.Action, U(0, 12, 0, 200), U(1, -24, 0, 48), Vector2.zero)
+   else
+    copy.Size = U(1, -12, 0, 170)
+    place(copy.Title, U(0, 12, 0, 8), U(1, -24, 0, 30))
+    place(copy.Progress, U(0, 12, 0, 46), U(1, -24, 0, 16))
+    place(copy.Reward, U(0, 12, 0, 70), U(1, -24, 0, 32))
+    place(copy.Claim, U(0, 12, 0, 110), U(1, -24, 0, 48), Vector2.zero)
+   end
+  end
+  copy:GetPropertyChangedSignal("AbsoluteSize"):Connect(arrange)
+  task.defer(arrange)
+ end
+ return copy
 end
 
 function UiView.clear(root: Instance)
@@ -544,7 +612,7 @@ end
 -- Schermi bassi (telefono, 844x390 meno la barra di Roblox) usano l'impaginazione compatta,
 -- pensata per 1000x430 logici: con la scala del computer i testi diventavano di 7 pixel.
 function UiView.compact(vp: Vector2): boolean
-	return vp.Y < 560 or (game:GetService("UserInputService").TouchEnabled and vp.Y < 760)
+	return vp.X < 600 or vp.Y < 560 or (game:GetService("UserInputService").TouchEnabled and vp.Y < 760)
 end
 
 -- schermo touch (telefono, tablet); dal computer si prova con l'attributo SimTouch = true sul
@@ -586,10 +654,8 @@ end
 local simReal: Vector2? = nil
 
 function UiView.fitScale(gui: ScreenGui, vp: Vector2): Vector2
-	local s = if UiView.compact(vp)
-		then math.clamp(math.min(vp.X / 960, vp.Y / 430), 0.6, 1.2)
-		else math.clamp(math.min(vp.X / 1280, vp.Y / 680), 0.55, 1.6)
-	local logical = vp / s
+	local s = if UiView.compact(vp) then 1 else math.clamp(math.min(vp.X / 1280, vp.Y / 680), 1, 1.5)
+ local logical = vp / s
 	if simReal then
 		s = simReal.X / logical.X
 	end
@@ -621,7 +687,8 @@ function UiView.text(o: Instance?, size: number, bold: boolean?)
 		o.TextSize = size
 		o.TextWrapped = true
 		o.Font = if bold then Enum.Font.GothamBlack else Enum.Font.GothamBold
-		o.TextStrokeTransparency = 0.45
+		o.TextStrokeTransparency = 0
+		if styler then styler(o) end
 	end
 end
 
@@ -632,8 +699,8 @@ function UiView.fit(o: Instance?, size: number, min: number, bold: boolean?)
 		UiView.text(o, size, bold)
 		o.TextScaled = true
 		local c = o:FindFirstChildOfClass("UITextSizeConstraint") or Instance.new("UITextSizeConstraint")
-		c.MaxTextSize = size
-		c.MinTextSize = min
+		c.MaxTextSize = math.max(12, size)
+		c.MinTextSize = math.max(12, min)
 		c.Parent = o
 	end
 end
@@ -666,6 +733,16 @@ function UiView.viewportChanged(callback: (Vector2) -> ())
 	end
 	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bind)
 	bind()
+end
+
+function UiView.menuMetrics(vp: Vector2)
+ local cols = if vp.X < 600 then 3 else 6
+ local cell = math.min(150, (vp.X - 16 - (cols - 1) * 8) / cols)
+ local navHeight = math.ceil(6 / cols) * 56 + (math.ceil(6 / cols) - 1) * 8
+ local width = math.min(1120, vp.X - 16)
+ return {cols = cols, cell = cell, navWidth = cols * cell + (cols - 1) * 8,
+  navHeight = navHeight, x = (vp.X - width) / 2, y = navHeight + 16,
+  width = width, height = math.max(160, vp.Y - navHeight - 24)}
 end
 
 return UiView

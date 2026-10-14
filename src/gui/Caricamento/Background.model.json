@@ -38,7 +38,8 @@
       "UiAsset": {
         "String": "bg_loading"
       }
-    }
+    },
+    "ClipsDescendants": true
   },
   "children": [
     {

@@ -38,7 +38,8 @@
       "UiAsset": {
         "String": "panel_card"
       }
-    }
+    },
+    "ClipsDescendants": true
   },
   "children": [
     {
@@ -150,10 +151,59 @@
         },
         "TextWrapped": true,
         "RichText": true,
-        "TextStrokeTransparency": 0.6,
-        "TextXAlignment": "Left"
+        "TextStrokeTransparency": 0,
+        "TextXAlignment": "Left",
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        }
       },
-      "children": []
+      "children": [
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 13
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
+        }
+      ]
     },
     {
       "name": "Time",
@@ -196,10 +246,59 @@
         },
         "TextWrapped": true,
         "RichText": true,
-        "TextStrokeTransparency": 0.6,
-        "TextXAlignment": "Left"
+        "TextStrokeTransparency": 0,
+        "TextXAlignment": "Left",
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        }
       },
-      "children": []
+      "children": [
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 22
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
+        }
+      ]
     },
     {
       "name": "Clock",
@@ -242,10 +341,59 @@
         },
         "TextWrapped": true,
         "RichText": true,
-        "TextStrokeTransparency": 0.6,
-        "TextXAlignment": "Left"
+        "TextStrokeTransparency": 0,
+        "TextXAlignment": "Left",
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        }
       },
-      "children": []
+      "children": [
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 12
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
+        }
+      ]
     },
     {
       "name": "Altitude",
@@ -288,10 +436,59 @@
         },
         "TextWrapped": true,
         "RichText": true,
-        "TextStrokeTransparency": 0.6,
-        "TextXAlignment": "Left"
+        "TextStrokeTransparency": 0,
+        "TextXAlignment": "Left",
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        }
       },
-      "children": []
+      "children": [
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
+        }
+      ]
     },
     {
       "name": "Warmth",
@@ -334,7 +531,8 @@
           "UiAsset": {
             "String": ""
           }
-        }
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -402,7 +600,8 @@
                 0.27450980392156865
               ]
             },
-            "BackgroundTransparency": 0
+            "BackgroundTransparency": 0,
+            "ClipsDescendants": true
           },
           "children": []
         },
@@ -447,11 +646,60 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
+            "TextStrokeTransparency": 0,
             "TextXAlignment": "Center",
-            "ZIndex": 3
+            "ZIndex": 3,
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 12
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         }
       ]
     },
@@ -496,10 +744,59 @@
         },
         "TextWrapped": true,
         "RichText": true,
-        "TextStrokeTransparency": 0.6,
-        "TextXAlignment": "Left"
+        "TextStrokeTransparency": 0,
+        "TextXAlignment": "Left",
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        }
       },
-      "children": []
+      "children": [
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 12
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
+        }
+      ]
     },
     {
       "name": "Gear",
@@ -542,10 +839,59 @@
         },
         "TextWrapped": true,
         "RichText": true,
-        "TextStrokeTransparency": 0.6,
-        "TextXAlignment": "Left"
+        "TextStrokeTransparency": 0,
+        "TextXAlignment": "Left",
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        }
       },
-      "children": []
+      "children": [
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 12
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
+        }
+      ]
     }
   ]
 }

@@ -8,16 +8,78 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local UiView = require(Shared:WaitForChild("UiView"))
 local UiAssets = require(Shared:WaitForChild("UiAssets"))
 
-Theme.BG = Color3.fromRGB(16, 18, 24)
-Theme.PANEL = Color3.fromRGB(28, 31, 39)
-Theme.CARD = Color3.fromRGB(38, 42, 52)
-Theme.TEXT = Color3.fromRGB(240, 240, 242)
-Theme.MUTED = Color3.fromRGB(165, 170, 182)
-Theme.ACCENT = Color3.fromRGB(255, 196, 80)
-Theme.GOOD = Color3.fromRGB(110, 205, 120)
-Theme.BAD = Color3.fromRGB(235, 95, 85)
-Theme.BLUE = Color3.fromRGB(90, 170, 255)
-Theme.COIN = Color3.fromRGB(255, 205, 60)
+-- Token cromatici unici: anche il ripiego senza PNG mantiene lo stile colorato.
+Theme.BG = Color3.fromRGB(30, 58, 122)
+Theme.PANEL = Color3.fromRGB(43, 76, 155)
+Theme.CARD = Color3.fromRGB(24, 48, 106)
+Theme.OUTLINE = Color3.fromRGB(11, 22, 51)
+Theme.TEXT = Color3.fromRGB(255, 255, 255)
+Theme.MUTED = Color3.fromRGB(205, 224, 248)
+Theme.ACCENT = Color3.fromRGB(255, 210, 63)
+Theme.GOOD = Color3.fromRGB(91, 217, 74)
+Theme.BAD = Color3.fromRGB(255, 77, 94)
+Theme.BLUE = Color3.fromRGB(63, 184, 255)
+Theme.TEAL = Color3.fromRGB(34, 211, 197)
+Theme.ORANGE = Color3.fromRGB(255, 138, 42)
+Theme.PURPLE = Color3.fromRGB(155, 91, 255)
+Theme.PINK = Color3.fromRGB(255, 111, 181)
+Theme.DISABLED = Color3.fromRGB(185, 200, 221)
+Theme.COIN = Theme.ACCENT
+Theme.GRADE = { C = Theme.DISABLED, B = Theme.BLUE, A = Theme.GOOD, S = Theme.ACCENT }
+Theme.RARITY = {
+	Comune = { Theme.DISABLED, Color3.fromRGB(100, 130, 170) },
+	Raro = { Theme.BLUE, Theme.PANEL },
+	Epico = { Theme.PURPLE, Color3.fromRGB(103, 57, 187) },
+	Leggendario = { Theme.ACCENT, Theme.ORANGE },
+}
+Theme.ELEMENT = {
+	Roccia = Theme.ORANGE, Gelo = Theme.BLUE, Cosmico = Theme.PURPLE,
+	Tempesta = Theme.TEAL, Eclissi = Theme.PINK, Fulmine = Theme.PURPLE,
+	Ossa = Theme.MUTED, Gas = Theme.GOOD,
+}
+Theme.MENU = { Store = Theme.ACCENT, Backpack = Theme.ORANGE, Dragons = Theme.PURPLE,
+	Crafting = Theme.TEAL, Upgrades = Theme.GOOD, Teleport = Theme.BLUE }
+
+function Theme.fitText(o: TextLabel | TextButton, size: number, wrapped: boolean?)
+	o.TextSize = math.max(12, size)
+	o.TextScaled = true
+	o.TextTruncate = Enum.TextTruncate.AtEnd
+	o.TextWrapped = wrapped == true and not o:IsA("TextButton")
+	o.TextStrokeColor3 = Theme.OUTLINE
+	o.TextStrokeTransparency = 0
+	local limit = o:FindFirstChildOfClass("UITextSizeConstraint") or Instance.new("UITextSizeConstraint")
+	limit.MinTextSize = 12
+	limit.MaxTextSize = math.max(12, size)
+	limit.Parent = o
+	local pad = o:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 4)
+	pad.PaddingRight = UDim.new(0, 4)
+	pad.PaddingTop = UDim.new(0, 2)
+	pad.PaddingBottom = UDim.new(0, 2)
+	pad.Parent = o
+	local caption = o:FindFirstChild("AssetCaption")
+	if caption and caption:IsA("TextLabel") then Theme.fitText(caption, size, wrapped) end
+end
+
+function Theme.action(button: TextButton, kind: string, disabled: boolean?)
+	local k = if disabled then "off" else kind
+	local colors = { buy = Theme.GOOD, sell = Theme.BAD, main = Theme.ACCENT, alt = Theme.BLUE, off = Theme.DISABLED }
+	button.BackgroundColor3 = colors[k] or Theme.BLUE
+	button:SetAttribute("ButtonKind", k)
+	button:SetAttribute("UiDisabled", disabled == true)
+	local tint = button:FindFirstChild("Tinta")
+	if tint then tint:Destroy() end
+	button.ClipsDescendants = true
+	local stroke = button:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Color, stroke.Thickness, stroke.Transparency = Theme.OUTLINE, 2, 0
+	stroke.Parent = button
+	local corner = button:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 12)
+	corner.Parent = button
+	UiView.skin(button, "btn_" .. k .. "_v3_normal")
+	Theme.fitText(button, 22, false)
+end
 
 Theme.ORE_COLORS = {
 	Carbone = Color3.fromRGB(45, 45, 50),
@@ -57,6 +119,7 @@ function Theme.frame(parent: Instance, color: Color3?, transparency: number?): F
 	f.BackgroundColor3 = color or Theme.PANEL
 	f.BackgroundTransparency = transparency or 0
 	f.BorderSizePixel = 0
+	f.ClipsDescendants = true
 	f.Parent = parent
 	return f
 end
@@ -78,22 +141,23 @@ function Theme.label(parent: Instance, text: string, size: number, color: Color3
 	l.TextColor3 = color or Theme.TEXT
 	l.Font = if bold then Enum.Font.GothamBold else Enum.Font.GothamMedium
 	l.TextXAlignment = Enum.TextXAlignment.Left
-	l.TextWrapped = true
+	l.TextWrapped = false
 	l.RichText = true
 	l.TextStrokeTransparency = 0.6
 	l.Size = UDim2.new(1, 0, 0, size + 6)
 	l.Parent = parent
+	Theme.fitText(l, size)
 	return l
 end
 
 function Theme.button(parent: Instance, text: string, color: Color3?, size: UDim2?): TextButton
 	local b = Instance.new("TextButton")
-	b.Size = size or UDim2.new(0, 110, 0, 40)
+	b.Size = size or UDim2.new(0, 140, 0, 52)
 	b.BackgroundColor3 = color or Theme.ACCENT
 	b.Text = text
 	b.Font = Enum.Font.GothamBold
 	b.TextSize = 15
-	b.TextColor3 = Theme.BG
+	b.TextColor3 = Theme.TEXT
 	b.AutoButtonColor = true
 	b.Parent = parent
 	Theme.corner(b, 10)
@@ -101,6 +165,7 @@ function Theme.button(parent: Instance, text: string, color: Color3?, size: UDim
 	minimum.MinSize = Vector2.new(44, 44)
 	minimum.Parent = b
 	b.TextStrokeTransparency = 0.6
+	Theme.fitText(b, 22)
 	return b
 end
 
@@ -299,33 +364,84 @@ end
 -- Icone degli oggetti del negozio e degli attrezzi: le immagini del set dell'interfaccia (stesso
 -- stile delle altre) invece dei modellini fatti di Part. Le "act_" sono bianche: si colorano.
 Theme.ITEM_ICONS = {
-	Pitons = "icon_piton",
-	Chiodi = "icon_piton",
-	Medkit = "icon_health",
-	Bende = "icon_health",
-	Thermos = "icon_warmth",
-	Tuta = "icon_cold",
-	Torcia = "weather_clear",
-	Parapendio = "icon_altitude",
-	Ramponi = "act_climb",
-	Rampino = "act_grapple",
-	PiccoRinforzato = "act_mine",
-	MysteryEgg = "icon_egg",
-	RareEgg = "icon_egg",
+	Pitons = "item_Pitons", Chiodi = "item_Chiodi", Medkit = "item_Medkit",
+	Bende = "item_Bende", Thermos = "item_Thermos", Tuta = "item_Tuta",
+	Torcia = "item_Torcia", Parapendio = "item_Parapendio", Ramponi = "item_Ramponi",
+	Rampino = "item_Rampino", PiccoRinforzato = "item_PiccoRinforzato", Sella = "item_Sella",
+	MysteryEgg = "item_MysteryEgg", RareEgg = "item_RareEgg",
+	Piccozza = "item_Piccozza", Piccone = "item_Piccone",
 } :: { [string]: string }
 
 function Theme.itemIcon(image: ImageLabel, id: string, fallback: Instance?)
 	local asset = Theme.ITEM_ICONS[id] or ""
+	if id == "Sella" or id == "Parapendio" or id == "Chiodi" then fallback = nil end
 	Theme.assetPreview(image, asset, fallback)
 	image.ImageColor3 = if string.sub(asset, 1, 4) == "act_" then Color3.fromRGB(255, 205, 110) else Color3.new(1, 1, 1)
 end
 
 -- L'immagine sostituisce l'anteprima 3D solo dopo l'inserimento del suo ID.
 function Theme.assetPreview(image: ImageLabel, asset: string, object: Instance?)
+	for _, child in image:GetChildren() do
+		if child:IsA("ViewportFrame") or child.Name == "IconFallback" then child:Destroy() end
+	end
 	UiView.asset(image, asset)
 	if UiAssets.get(asset) then return end
 	image.Visible = true
-	Theme.viewport(image, object, UDim2.fromScale(1, 1), false)
+	if object then
+		Theme.viewport(image, object, UDim2.fromScale(1, 1), false)
+	else
+		-- ID ancora vuoto: nome breve pertinente, mai un'icona di un altro oggetto.
+		local Names = require(Shared.Names)
+		local id = asset:gsub("^item_", "")
+		local titles = { TravelHub = "Base camp", TravelHome = "Home", TravelArena = "Arena", TravelGym = "Gym", TravelIsland = "Island", TravelCamp = "Camp", Piccozza = "Ice axe", Piccone = "Pickaxe", MysteryEgg = "Mystery egg", RareEgg = "Rare egg", Pitons = "Pitons", Medkit = "Medkit", Thermos = "Thermos" }
+		for _, recipe in require(Shared.Gear).RECIPES do titles[recipe.id] = recipe.name end
+		for _, upgrade in require(Shared.UpgradeConfig).UPGRADES do titles["Upgrade" .. upgrade.id] = upgrade.name end
+		local hint = Theme.label(image, titles[id] or Names.t(id), 12, Theme.TEXT, true)
+		hint.Name = "IconFallback"
+		hint.Size = UDim2.fromScale(1, 1)
+		hint.TextWrapped = true
+		hint.TextXAlignment = Enum.TextXAlignment.Center
+	end
 end
+
+function Theme.paint(root: Instance)
+	local all = root:GetDescendants()
+	table.insert(all, root)
+	for _, o in all do
+		if o:FindFirstAncestor("Templates") then continue end
+		if o:IsA("TextLabel") or o:IsA("TextButton") then
+			Theme.fitText(o, math.max(12, o.TextSize), o.TextWrapped)
+		end
+		if o:IsA("GuiObject") then
+			local asset = o:GetAttribute("UiAsset")
+			if type(asset) == "string" and asset:match("^panel_") then
+				o.BackgroundColor3 = Theme.PANEL
+				o.BackgroundTransparency = 0
+				o.ClipsDescendants = true
+				local gradient = o:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
+				gradient.Color = ColorSequence.new(Theme.TEXT, Theme.PANEL:Lerp(Theme.TEXT, 0.65))
+				gradient.Rotation = 90
+				gradient.Parent = o
+			end
+			if o:IsA("TextButton") and o.Name ~= "Close" and not o:GetAttribute("SemanticBound") then
+				o:SetAttribute("SemanticBound", true)
+				local function update()
+					if o:GetAttribute("UiNative") then return end
+					local text = o.Text:lower()
+					local kind = if text:match("^sell") or text == "sure?" then "sell"
+						elseif text:match("^buy") or text:match("^craft") or text:match("^hatch") or text == "follow" then "buy"
+						elseif text:match("^upgrade") or text:match("^unlock") or text:match("^rebirth") or text == "ride" or text == "evolve" then "main"
+						else "alt"
+					if o.Parent and o.Parent.Name == "Tabs" then return end
+					Theme.action(o, kind, text == "not ready yet" or text == "owned" or text == "max")
+				end
+				o:GetPropertyChangedSignal("Text"):Connect(update)
+				update()
+			end
+		end
+	end
+end
+
+UiView.setStyler(Theme.paint, Theme)
 
 return Theme

@@ -33,7 +33,8 @@
         0
       ]
     },
-    "BackgroundTransparency": 0.45
+    "BackgroundTransparency": 0.45,
+    "ClipsDescendants": true
   },
   "children": []
 }

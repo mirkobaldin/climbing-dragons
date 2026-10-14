@@ -38,7 +38,8 @@
       "UiAsset": {
         "String": ""
       }
-    }
+    },
+    "ClipsDescendants": true
   },
   "children": [
     {
@@ -106,7 +107,8 @@
             0.3137254901960784
           ]
         },
-        "BackgroundTransparency": 0
+        "BackgroundTransparency": 0,
+        "ClipsDescendants": true
       },
       "children": []
     },
@@ -151,11 +153,60 @@
         },
         "TextWrapped": true,
         "RichText": true,
-        "TextStrokeTransparency": 0.6,
+        "TextStrokeTransparency": 0,
         "TextXAlignment": "Center",
-        "ZIndex": 3
+        "ZIndex": 3,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        }
       },
-      "children": []
+      "children": [
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 12
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
+        }
+      ]
     }
   ]
 }

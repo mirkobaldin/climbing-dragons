@@ -33,7 +33,8 @@
         0.18823529411764706
       ]
     },
-    "BackgroundTransparency": 1
+    "BackgroundTransparency": 1,
+    "ClipsDescendants": true
   },
   "children": [
     {
@@ -82,15 +83,24 @@
             0.9490196078431372
           ]
         },
-        "TextWrapped": true,
-        "TextStrokeTransparency": 0.6,
+        "TextWrapped": false,
+        "TextStrokeTransparency": 0,
         "AutoButtonColor": true,
         "Attributes": {
           "UiAsset": {
             "String": "btn_round_normal"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -187,6 +197,46 @@
             }
           },
           "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
         }
       ]
     },
@@ -236,15 +286,24 @@
             0.9490196078431372
           ]
         },
-        "TextWrapped": true,
-        "TextStrokeTransparency": 0.6,
+        "TextWrapped": false,
+        "TextStrokeTransparency": 0,
         "AutoButtonColor": true,
         "Attributes": {
           "UiAsset": {
             "String": "btn_round_normal"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -341,6 +400,46 @@
             }
           },
           "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
         }
       ]
     },
@@ -390,15 +489,24 @@
             0.9490196078431372
           ]
         },
-        "TextWrapped": true,
-        "TextStrokeTransparency": 0.6,
+        "TextWrapped": false,
+        "TextStrokeTransparency": 0,
         "AutoButtonColor": true,
         "Attributes": {
           "UiAsset": {
             "String": "btn_round_normal"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -492,6 +600,46 @@
               "UiAsset": {
                 "String": "act_piton"
               }
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
             }
           },
           "children": []
@@ -544,15 +692,24 @@
             0.9490196078431372
           ]
         },
-        "TextWrapped": true,
-        "TextStrokeTransparency": 0.6,
+        "TextWrapped": false,
+        "TextStrokeTransparency": 0,
         "AutoButtonColor": true,
         "Attributes": {
           "UiAsset": {
             "String": "btn_round_normal"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -649,6 +806,46 @@
             }
           },
           "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
         }
       ]
     },
@@ -698,15 +895,24 @@
             0.9490196078431372
           ]
         },
-        "TextWrapped": true,
-        "TextStrokeTransparency": 0.6,
+        "TextWrapped": false,
+        "TextStrokeTransparency": 0,
         "AutoButtonColor": true,
         "Attributes": {
           "UiAsset": {
             "String": "btn_round_normal"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -803,6 +1009,46 @@
             }
           },
           "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
         }
       ]
     },
@@ -852,15 +1098,24 @@
             0.9490196078431372
           ]
         },
-        "TextWrapped": true,
-        "TextStrokeTransparency": 0.6,
+        "TextWrapped": false,
+        "TextStrokeTransparency": 0,
         "AutoButtonColor": true,
         "Attributes": {
           "UiAsset": {
             "String": "btn_round_normal"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -957,6 +1212,46 @@
             }
           },
           "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
         }
       ]
     },
@@ -1006,15 +1301,24 @@
             0.9490196078431372
           ]
         },
-        "TextWrapped": true,
-        "TextStrokeTransparency": 0.6,
+        "TextWrapped": false,
+        "TextStrokeTransparency": 0,
         "AutoButtonColor": true,
         "Attributes": {
           "UiAsset": {
             "String": "btn_round_normal"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -1111,6 +1415,46 @@
             }
           },
           "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
         }
       ]
     },
@@ -1160,15 +1504,24 @@
             0.9490196078431372
           ]
         },
-        "TextWrapped": true,
-        "TextStrokeTransparency": 0.6,
+        "TextWrapped": false,
+        "TextStrokeTransparency": 0,
         "AutoButtonColor": true,
         "Attributes": {
           "UiAsset": {
             "String": "btn_round_normal"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -1265,6 +1618,46 @@
             }
           },
           "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
+            }
+          },
+          "children": []
         }
       ]
     },
@@ -1314,15 +1707,24 @@
             0.9490196078431372
           ]
         },
-        "TextWrapped": true,
-        "TextStrokeTransparency": 0.6,
+        "TextWrapped": false,
+        "TextStrokeTransparency": 0,
         "AutoButtonColor": true,
         "Attributes": {
           "UiAsset": {
             "String": "btn_round_normal"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        },
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -1416,6 +1818,46 @@
               "UiAsset": {
                 "String": "act_shoot"
               }
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 14
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
+              ]
             }
           },
           "children": []
