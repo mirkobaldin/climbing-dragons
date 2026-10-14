@@ -75,6 +75,7 @@ type Rig = {
 	seatLocal: CFrame?,
 	seatRestPivot: Vector3?,
 	seatCF: CFrame?,
+	seatObj: CFrame?, -- sella nello spazio del perno (ammortizzata)
 	seatShift: Vector3,
 	lean: Vector2,
 	-- ordine rispetto a chi sposta il modello
@@ -610,20 +611,34 @@ local function post(r: Rig, dt: number)
 		end
 	end
 
-	-- 6) sella: segue il petto, ammortizzata
+	-- 6) sella: segue il petto, ammortizzata NELLO SPAZIO DEL DRAGO. Prima l'ammortizzatore lavorava
+	-- nel mondo: in volo veloce la sella restava indietro, seatShift spostava il drago (PetAnimator),
+	-- il ritardo cresceva ancora e in pochi secondi la posizione esplodeva (il drago in monta finiva
+	-- a -1000000, il giocatore cadeva). Ora si ammortizza solo il movimento del petto rispetto al
+	-- drago, e lo spostamento ha un tetto
 	if r.seatLocal then
 		computeWorld(r)
-		local target = r.W[sk.chest] * (r.seatLocal :: CFrame)
-		local prev = r.seatCF
-		if prev then
+		local targetObj = pivot:ToObjectSpace(r.W[sk.chest] * (r.seatLocal :: CFrame))
+		local prevObj = r.seatObj
+		local obj = targetObj
+		if prevObj then
 			local k = math.min(1, dt * 14)
-			r.seatCF = CFrame.new(prev.Position:Lerp(target.Position, k)) * prev.Rotation:Lerp(target.Rotation, k)
-		else
-			r.seatCF = target
+			obj = CFrame.new(prevObj.Position:Lerp(targetObj.Position, k)) * prevObj.Rotation:Lerp(targetObj.Rotation, k)
 		end
+		if obj.Position ~= obj.Position then
+			obj = targetObj -- NaN: si riparte dal bersaglio
+		end
+		r.seatObj = obj
+		r.seatCF = pivot * obj
 		if r.seatRestPivot then
-			local now = pivot:PointToObjectSpace((r.seatCF :: CFrame).Position)
-			r.seatShift = now - (r.seatRestPivot :: Vector3)
+			local shift = obj.Position - (r.seatRestPivot :: Vector3)
+			local cap = sk.length * 0.12
+			if shift ~= shift then
+				shift = Vector3.zero
+			elseif shift.Magnitude > cap then
+				shift = shift.Unit * cap
+			end
+			r.seatShift = shift
 		end
 	end
 

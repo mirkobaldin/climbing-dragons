@@ -113,6 +113,13 @@ function KfsPlayer.load(model: Model, kfs: KeyframeSequence): Track
 		end
 		rig = { model = model, bones = bones, tracks = {} }
 		rigs[model] = rig
+		-- le ossa dei draghi grandi possono arrivare dopo il modello (streaming): si aggiungono
+		-- quando arrivano, se no restavano ferme per sempre (es. le zampe)
+		model.DescendantAdded:Connect(function(d)
+			if d:IsA("Bone") and not bones[d.Name] then
+				bones[d.Name] = d
+			end
+		end)
 	end
 	local track = setmetatable({
 		clip = parse(kfs),
