@@ -134,7 +134,7 @@ end
 
 local MISSIONS: { Mission } = {
 	{
-		text = "Find a wild dragon egg and pick it up (follow the arrows)",
+		text = "Find a wild dragon egg (follow the arrows)",
 		label = "Dragon egg",
 		check = function(player, memo)
 			return player:GetAttribute("CarryingEgg") ~= nil or grew("EggsIncubated")(player, memo)
@@ -150,29 +150,37 @@ local MISSIONS: { Mission } = {
 		reward = 150,
 	},
 	{
-		text = "Hatch your egg: press G (Dragons), then 'Hatch' when it's ready",
+		text = "Hatch your egg: open Dragons and tap Hatch {UI:Dragons}",
 		label = "Your nest",
 		check = grew("EggsHatched"),
 		target = playerVec("NestPosition"),
 		reward = 300,
 	},
 	{
-		text = "Go to the Dragon Arena, inside the giant ribs",
+		-- la meta e' la pedana davanti all'arena (l'arena e' chiusa: prima la freccia puntava al
+		-- centro e il personaggio, rimasto fuori, non la raggiungeva mai)
+		text = "Go to the Dragon Arena: step on the glowing platform",
 		label = "Dragon Arena",
 		check = function(player)
-			local c = workspace:GetAttribute("TrainingCenter")
-			return typeof(c) == "Vector3" and near(player, c, 70)
+			local pad = workspace:GetAttribute("TrainingPad") or workspace:GetAttribute("TrainingCenter")
+			return player:GetAttribute("Training") == true or (typeof(pad) == "Vector3" and near(player, pad, 28))
 		end,
-		target = worldVec("TrainingCenter"),
+		target = function()
+			local pad = workspace:GetAttribute("TrainingPad") or workspace:GetAttribute("TrainingCenter")
+			return if typeof(pad) == "Vector3" then pad else nil
+		end,
 		reward = 100,
 	},
 	{
-		text = "Train your dragon: stand in the rune circle and hit the crystals",
-		label = "Rune circle",
+		text = "Train your dragon: stay on the platform and shoot the crystals",
+		label = "Platform",
 		check = function(player)
 			return player:GetAttribute("Training") == true
 		end,
-		target = worldVec("TrainingCenter"),
+		target = function()
+			local pad = workspace:GetAttribute("TrainingPad") or workspace:GetAttribute("TrainingCenter")
+			return if typeof(pad) == "Vector3" then pad else nil
+		end,
 		reward = 200,
 	},
 	{
@@ -186,7 +194,7 @@ local MISSIONS: { Mission } = {
 		reward = 100,
 	},
 	{
-		text = "Work out once: hold the prompt on a gym machine",
+		text = "Work out once on a gym machine",
 		label = "Gym",
 		check = function(player, memo)
 			local total = 0
@@ -202,7 +210,7 @@ local MISSIONS: { Mission } = {
 		reward = 150,
 	},
 	{
-		text = "Explore the caves: mine 5 ores inside the mountain (Pickaxe, key 2)",
+		text = "Mine 5 ores in the caves {KEY2}",
 		label = "Ores",
 		check = grew("OresMined", 5),
 		target = caveOre,

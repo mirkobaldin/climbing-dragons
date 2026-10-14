@@ -76,53 +76,62 @@ function MobileControls.start()
 		end
 		return b
 	end
+	-- modifica dei tasti (pulsante ⚙): mentre li sposti non fanno partire le azioni
+	local editing = false
+	local function on(b: GuiButton, fn: () -> ())
+		b.Activated:Connect(function()
+			if not editing then
+				fn()
+			end
+		end)
+	end
 	extra("Glide", "Glide")
 	extra("Ride", "Ride")
 	extra("Fire", "Fire", "act_shoot")
 
-	actions.Run.Activated:Connect(function()
+	on(actions.Run, function()
 		actions.Run.Text = if Sprint.toggle() then "Walk" else "Run"
 	end)
-	actions.Climb.Activated:Connect(function()
+	on(actions.Climb, function()
 		Climbing.grabNearest()
 	end)
-	actions.JumpOff.Activated:Connect(Climbing.jumpOff)
-	actions.Release.Activated:Connect(Climbing.releaseRope)
-	actions.Throw.Activated:Connect(function()
+	on(actions.JumpOff, Climbing.jumpOff)
+	on(actions.Release, Climbing.releaseRope)
+	on(actions.Throw, function()
 		task.spawn(PickaxeThrow.activate)
 	end)
-	actions.Shoot.Activated:Connect(function()
+	on(actions.Shoot, function()
 		if TrainingFX.shoot then
 			TrainingFX.shoot()
 		end
 	end)
-	actions.Glide.Activated:Connect(function()
+	on(actions.Glide, function()
 		Glider.toggle(true)
 	end)
-	actions.Ride.Activated:Connect(DragonRide.toggle)
-	actions.Fire.Activated:Connect(DragonRide.fire)
+	on(actions.Ride, DragonRide.toggle)
+	on(actions.Fire, DragonRide.fire)
 	local function activateTool(name: string)
 		local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
 		if tool and tool.Name == name then
 			tool:Activate()
 		end
 	end
-	actions.Grapple.Activated:Connect(function()
+	on(actions.Grapple, function()
 		activateTool(Config.GRAPPLE_NAME)
 	end)
-	actions.Mine.Activated:Connect(function()
+	on(actions.Mine, function()
 		activateTool(Config.PICKAXE_NAME)
 	end)
 	local function tap(input: InputObject): boolean
 		return input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1
 	end
 	actions.Piton.InputBegan:Connect(function(input)
-		if tap(input) then
+		if tap(input) and not editing then
 			Climbing.aimBegin()
 		end
 	end)
 	actions.Piton.InputEnded:Connect(function(input)
-		if tap(input) then
+		if tap(input) and not editing then
 			Climbing.aimFinish()
 		end
 	end)
@@ -147,6 +156,27 @@ function MobileControls.start()
 		vp = size
 	end)
 	local last = ""
+	-- tasti spostati dal giocatore: { Nome = { x, y } } in pixel dall'angolo in basso a destra
+	local custom: { [string]: { number } } = {}
+	local function loadCustom()
+		custom = {}
+		local raw = player:GetAttribute("ControlsLayout")
+		if type(raw) == "string" then
+			local ok, t = pcall(function()
+				return game:GetService("HttpService"):JSONDecode(raw)
+			end)
+			if ok and type(t) == "table" then
+				for k, v in t do
+					if type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" then
+						custom[k] = { v[1], v[2] }
+					end
+				end
+			end
+		end
+		last = ""
+	end
+	player:GetAttributeChangedSignal("ControlsLayout"):Connect(loadCustom)
+	loadCustom()
 	local function refresh()
 		local touch = Ui.touch()
 		gui.Enabled = touch
@@ -174,6 +204,12 @@ function MobileControls.start()
 			Ride = DragonRide.canRide and not climbing,
 			Fire = riding,
 		}
+		if editing then
+			-- in modifica si vedono tutti, per sistemarli
+			for _, name in ORDER do
+				available[name] = true
+			end
+		end
 		actions.Glide.Text = if Glider.isGliding() then "Close" else "Glide"
 		actions.Ride.Text = if riding then "Land" else "Ride"
 		local visible = {}
@@ -183,7 +219,7 @@ function MobileControls.start()
 				table.insert(visible, name)
 			end
 		end
-		local key = table.concat(visible, "|") .. tostring(vp)
+		local key = table.concat(visible, "|") .. tostring(vp) .. tostring(editing)
 		if key == last then
 			return
 		end
@@ -199,16 +235,134 @@ function MobileControls.start()
 		local slots = {
 			{ r1, 180 }, { r1, 132 }, { r1, 88 },
 			{ r2, 180 }, { r2, 155 }, { r2, 130 }, { r2, 105 }, { r2, 82 },
+			-- terzo giro (si vede quasi solo quando sposti i tasti: li' compaiono tutti)
+			{ r2 + size + 8, 180 }, { r2 + size + 8, 160 }, { r2 + size + 8, 140 }, { r2 + size + 8, 120 },
 		}
 		for i, name in visible do
 			local b = actions[name] :: TextButton
 			local s = slots[math.min(i, #slots)]
 			local a = math.rad(s[2])
 			b.Size = UDim2.fromOffset(if i == 1 then size + 8 else size, if i == 1 then size + 8 else size)
-			b.Position = UDim2.fromOffset(-jx + math.cos(a) * s[1], -jy - math.sin(a) * s[1])
+			local c = custom[name]
+			-- posizione scelta dal giocatore (ControlsLayout), se no l'arco attorno al salto
+			b.Position = if c then UDim2.fromOffset(c[1], c[2]) else UDim2.fromOffset(-jx + math.cos(a) * s[1], -jy - math.sin(a) * s[1])
 			b.TextSize = if small then 11 else 15
 		end
 	end
+	-- Modifica dei tasti: ⚙ sotto il meteo; si trascinano i pulsanti, "Done" salva (Progression,
+	-- attributo ControlsLayout), "Reset" torna all'arco. Mirko: "su alcuni telefoni la UI fa
+	-- schifo, ci starebbe un'impostazione per spostare i tasti"
+	local gear = Instance.new("TextButton")
+	gear.Name = "ModificaTasti"
+	gear.AnchorPoint = Vector2.new(1, 0)
+	gear.Position = UDim2.new(1, -12, 0, 84)
+	gear.Size = UDim2.fromOffset(44, 44)
+	gear.Text = "⚙"
+	gear.TextScaled = true
+	gear.Font = Enum.Font.GothamBlack
+	gear.TextColor3 = Color3.new(1, 1, 1)
+	gear.BackgroundColor3 = Color3.fromRGB(30, 34, 48)
+	gear.BackgroundTransparency = 0.2
+	gear.Parent = gui
+	local gc = Instance.new("UICorner")
+	gc.CornerRadius = UDim.new(0.5, 0)
+	gc.Parent = gear
+	local panel = Instance.new("Frame")
+	panel.Name = "PannelloModifica"
+	panel.AnchorPoint = Vector2.new(0.5, 0)
+	panel.Position = UDim2.new(0.5, 0, 0, 70)
+	panel.Size = UDim2.fromOffset(360, 96)
+	panel.BackgroundColor3 = Color3.fromRGB(16, 18, 28)
+	panel.BackgroundTransparency = 0.1
+	panel.Visible = false
+	panel.Parent = gui
+	local pc = Instance.new("UICorner")
+	pc.CornerRadius = UDim.new(0, 12)
+	pc.Parent = panel
+	local info = Instance.new("TextLabel")
+	info.BackgroundTransparency = 1
+	info.Position = UDim2.fromOffset(10, 6)
+	info.Size = UDim2.new(1, -20, 0, 30)
+	info.Font = Enum.Font.GothamBold
+	info.TextScaled = true
+	info.TextColor3 = Color3.new(1, 1, 1)
+	info.Text = "Drag the buttons where you like"
+	info.Parent = panel
+	local function panelButton(text: string, color: Color3, x: number): TextButton
+		local b = Instance.new("TextButton")
+		b.AnchorPoint = Vector2.new(0.5, 1)
+		b.Position = UDim2.new(x, 0, 1, -8)
+		b.Size = UDim2.new(0.42, 0, 0, 44)
+		b.Text = text
+		b.Font = Enum.Font.GothamBlack
+		b.TextScaled = true
+		b.TextColor3 = Color3.new(1, 1, 1)
+		b.BackgroundColor3 = color
+		b.Parent = panel
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 10)
+		c.Parent = b
+		return b
+	end
+	local reset = panelButton("Reset", Color3.fromRGB(200, 70, 60), 0.26)
+	local done = panelButton("Done", Color3.fromRGB(60, 175, 80), 0.74)
+	local function setEditing(on: boolean)
+		editing = on
+		ClientState.editingControls = on
+		panel.Visible = on
+		gear.Visible = not on
+		last = ""
+	end
+	gear.Activated:Connect(function()
+		setEditing(true)
+	end)
+	reset.Activated:Connect(function()
+		custom = {}
+		last = ""
+	end)
+	done.Activated:Connect(function()
+		setEditing(false)
+		local remote = RS:FindFirstChild("Remotes") and RS.Remotes:FindFirstChild("SaveControls")
+		if remote then
+			local any = next(custom) ~= nil
+			(remote :: RemoteEvent):FireServer(if any then game:GetService("HttpService"):JSONEncode(custom) else nil)
+		end
+	end)
+	-- trascinamento (dito o mouse): il pulsante segue il dito, la posizione e' dall'angolo
+	local dragging: TextButton? = nil
+	local UIS = game:GetService("UserInputService")
+	for _, name in ORDER do
+		local b = actions[name] :: TextButton
+		b.InputBegan:Connect(function(input)
+			if editing and tap(input) then
+				dragging = b
+			end
+		end)
+	end
+	UIS.InputChanged:Connect(function(input)
+		local b = dragging
+		if not b or not editing then
+			return
+		end
+		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+			local corner = actions.AbsolutePosition
+			local x = math.floor(input.Position.X - corner.X)
+			local y = math.floor(input.Position.Y - corner.Y)
+			b.Position = UDim2.fromOffset(x, y)
+			custom[b.Name] = { x, y }
+		end
+	end)
+	UIS.InputEnded:Connect(function(input)
+		if tap(input) then
+			dragging = nil
+		end
+	end)
+	gui:GetPropertyChangedSignal("Enabled"):Connect(function()
+		if not gui.Enabled and editing then
+			setEditing(false)
+		end
+	end)
+
 	-- Solo il controllo del contesto a 10 Hz; nessuna animazione per-frame aggiunta.
 	task.spawn(function()
 		while gui.Parent do

@@ -98,6 +98,79 @@ local function build(model: Model): Rig | false
 	}
 end
 
+-- Pose a terra (seduto, dorme): quanto alzare il modello perche' non affondi. Contare solo le
+-- ossa non bastava: sdraiato, l'osso piu' basso e' quello della schiena e la pancia (la mesh
+-- attorno) finiva sotto la paglia per tutto lo spessore del corpo. Qui le ossa del corpo (anca,
+-- colonna, petto: attributo Ruolo) devono restare sopra il terreno dello spessore del corpo,
+-- il resto (zampe, collo, coda sottile) solo sopra il terreno. Il riposo si calcola dalla catena delle ossa
+-- (Bone.CFrame dal genitore), senza le animazioni.
+type Ground = { bones: { Bone }, body: { [Bone]: boolean }, restLow: number, thick: number }
+local grounds: { [Model]: Ground | false } = setmetatable({}, { __mode = "k" }) :: any
+
+local function buildGround(model: Model): Ground | false
+	local bones: { Bone } = {}
+	local body: { [Bone]: boolean } = {}
+	local rest: { [Bone]: CFrame } = {}
+	local function restOf(b: Bone): CFrame
+		local r = rest[b]
+		if r then
+			return r
+		end
+		local parent = b.Parent
+		local base = if parent and parent:IsA("Bone") then restOf(parent) elseif parent and parent:IsA("BasePart") then parent.CFrame else CFrame.identity
+		r = base * b.CFrame
+		rest[b] = r
+		return r
+	end
+	local low = math.huge
+	local pivot = model:GetPivot()
+	for _, d in model:GetDescendants() do
+		if d:IsA("Bone") then
+			table.insert(bones, d)
+			local role = d:GetAttribute("Ruolo")
+			if role == "hips" or role == "spine" or role == "chest" then
+				body[d] = true
+			end
+			low = math.min(low, pivot:PointToObjectSpace(restOf(d).Position).Y)
+		end
+	end
+	if #bones == 0 then
+		return false
+	end
+	local _, size = model:GetBoundingBox()
+	return { bones = bones, body = body, restLow = low, thick = size.Y * 0.14 }
+end
+
+function DragonMotion.groundLift(model: Model): number
+	local g = grounds[model]
+	if g == nil then
+		g = buildGround(model)
+		grounds[model] = g
+	end
+	if not g then
+		return 0
+	end
+	local gg = g :: Ground
+	local pivot = model:GetPivot()
+	local legLow, bodyLow = math.huge, math.huge
+	for _, b in gg.bones do
+		local y = pivot:PointToObjectSpace(b.TransformedWorldCFrame.Position).Y
+		if gg.body[b] then
+			bodyLow = math.min(bodyLow, y)
+		else
+			legLow = math.min(legLow, y)
+		end
+	end
+	local need = 0
+	if legLow < math.huge then
+		need = math.max(need, gg.restLow - legLow)
+	end
+	if bodyLow < math.huge then
+		need = math.max(need, gg.restLow + gg.thick - bodyLow)
+	end
+	return math.max(0, need)
+end
+
 -- molla: va verso target con tempo caratteristico 1/k (piccolo k = piu' lenta, segue in ritardo)
 local function spring(r: Rig, key: string, target: number, dt: number, k: number): number
 	local v = r.s[key] or 0

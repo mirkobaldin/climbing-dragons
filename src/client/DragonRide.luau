@@ -117,16 +117,20 @@ local function mount()
 	Sfx.play("Ruggito", root.Position, 0.8)
 end
 
--- colpo del drago: punto mirato col mouse (sul telefono il centro dello schermo), escluso te e
--- i tuoi draghi
-local lastShot = 0
-local function shoot(screenPos: Vector2?)
-	if not riding or os.clock() - lastShot < 0.35 then
-		return
-	end
-	lastShot = os.clock()
+-- dove si mira (coordinate del viewport, barra in alto compresa): il mouse sul computer, sul
+-- telefono un punto fisso un po' sopra il centro (il drago sta sotto e non lo copre, come in
+-- Blox Fruits). Mirino e segno a terra (aimMarks) mostrano proprio questo punto
+local function aimScreen(): Vector2
 	local camera = workspace.CurrentCamera
-	local at = screenPos or Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+	if Ui.touch() or not UserInputService.MouseEnabled then
+		return Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y * 0.4)
+	end
+	return UserInputService:GetMouseLocation()
+end
+
+-- punto del mondo colpito mirando da "at" (escluso te e i tuoi draghi); hit = c'e' una superficie
+local function aimAt(at: Vector2): (Vector3, RaycastResult?)
+	local camera = workspace.CurrentCamera
 	local ray = camera:ViewportPointToRay(at.X, at.Y)
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
@@ -141,7 +145,17 @@ local function shoot(screenPos: Vector2?)
 	end
 	params.FilterDescendantsInstances = skip
 	local hit = workspace:Raycast(ray.Origin, ray.Direction * 400, params)
-	local aim = if hit then hit.Position else ray.Origin + ray.Direction * 260
+	return (if hit then hit.Position else ray.Origin + ray.Direction * 260), hit
+end
+
+-- colpo del drago verso il mirino
+local lastShot = 0
+local function shoot(_: Vector2?)
+	if not riding or os.clock() - lastShot < 0.35 then
+		return
+	end
+	lastShot = os.clock()
+	local aim = aimAt(aimScreen())
 	local r = ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("RideAttack") :: RemoteEvent?
 	if r then
 		r:FireServer(aim)
@@ -264,6 +278,64 @@ function DragonRide.start()
 		mover, turner, att, sitTrack = nil, nil, nil, nil
 		riding = false
 		ClientState.riding = false
+	end)
+
+	-- mirino in monta (al mouse o fisso sul telefono) e segno a terra dove arriva il colpo: prima
+	-- sul telefono non si sapeva dove andava la palla
+	local aimGui = Instance.new("ScreenGui")
+	aimGui.Name = "MirinoMonta"
+	aimGui.ResetOnSpawn = false
+	aimGui.IgnoreGuiInset = true
+	aimGui.DisplayOrder = 4
+	aimGui.Parent = player:WaitForChild("PlayerGui")
+	local reticle = Instance.new("Frame")
+	reticle.AnchorPoint = Vector2.new(0.5, 0.5)
+	reticle.Size = UDim2.fromOffset(34, 34)
+	reticle.BackgroundTransparency = 1
+	reticle.Visible = false
+	reticle.Parent = aimGui
+	local rc = Instance.new("UICorner")
+	rc.CornerRadius = UDim.new(0.5, 0)
+	rc.Parent = reticle
+	local rs = Instance.new("UIStroke")
+	rs.Color = Color3.fromRGB(255, 120, 60)
+	rs.Thickness = 3
+	rs.Parent = reticle
+	for k = 0, 3 do
+		local tick = Instance.new("Frame")
+		tick.AnchorPoint = Vector2.new(0.5, 0.5)
+		tick.BorderSizePixel = 0
+		tick.BackgroundColor3 = Color3.new(1, 1, 1)
+		local a = k * math.pi / 2
+		tick.Position = UDim2.new(0.5, math.cos(a) * 24, 0.5, math.sin(a) * 24)
+		tick.Size = if k % 2 == 0 then UDim2.fromOffset(10, 3) else UDim2.fromOffset(3, 10)
+		tick.Parent = reticle
+	end
+	local mark = Instance.new("Part")
+	mark.Name = "SegnoColpo"
+	mark.Shape = Enum.PartType.Cylinder
+	mark.Size = Vector3.new(0.3, 9, 9)
+	mark.Material = Enum.Material.Neon
+	mark.Color = Color3.fromRGB(255, 110, 50)
+	mark.Transparency = 0.35
+	mark.Anchored, mark.CanCollide, mark.CanQuery, mark.CanTouch, mark.CastShadow = true, false, false, false, false
+	RunService.RenderStepped:Connect(function()
+		reticle.Visible = riding
+		if not riding then
+			mark.Parent = nil
+			return
+		end
+		local at = aimScreen()
+		reticle.Position = UDim2.fromOffset(at.X, at.Y)
+		reticle.Rotation = (os.clock() * 40) % 360
+		local _, hit = aimAt(at)
+		if hit then
+			local n = hit.Normal
+			mark.CFrame = CFrame.lookAt(hit.Position + n * 0.2, hit.Position + n * 1.2) * CFrame.Angles(0, math.pi / 2, 0)
+			mark.Parent = workspace
+		else
+			mark.Parent = nil
+		end
 	end)
 
 	local accum = 0

@@ -6,7 +6,7 @@ Quando il branch e' unito in `main`, togli la riga.
 
 | Chi | Branch | Compito | File toccati |
 |---|---|---|---|
-| Claude (cloud) | cloud/modelli-20261014 | Arena dei draghi nuova e modelli della mappa in Blender (docs/CLOUD_SESSIONE.md) | solo tools/blender/{arena,mappa}.py e cloud/**; nessun file src |
+| Claude (cloud) | cloud/modelli-20261014 | Isola dei Draghi con arena (giro 2: rifare col metodo e i controlli di docs/CLOUD_SESSIONE.md) e modelli della mappa | solo tools/blender/{arena,mappa}.py e cloud/**; nessun file src |
 | Claude | main | bug draghi (terreno, monta, colpo in volo), attacchi per elemento, VFX, animazioni, UI telefono e colori, contatore | src/** |
 | Codex | codex/discord-community-20261013 | IN CORSO: server Discord configurato, immagini e AutoMod pubblicati, bot online; verifica finale di gerarchia ruoli e permessi | artifacts/discord-community-20261013/** nel worktree; copia consegna Desktop/Climbing & Dragons Discord/**; nessun file src |
 | Codex | codex/alpine-assets-20261013 | PRONTO: otto asset Blender esportati e verificati, catalogo in MegaChalet/SET_ALPINO.html; import e Play da provare in Studio | artifacts/alpine-assets-20261013/** nel worktree; esportazioni richieste in main/{Tent,Campfire,StoneCabin,ModernChalet,MegaChalet,Gliders}/**; nessun file src |

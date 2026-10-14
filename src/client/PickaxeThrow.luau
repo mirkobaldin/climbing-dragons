@@ -12,6 +12,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local ClimbConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ClimbConfig"))
+local Ui = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UiView"))
 local ClientState = require(script.Parent.ClientState)
 local Sfx = require(script.Parent.Sfx)
 
@@ -26,14 +27,17 @@ end
 local SPEED = 90 -- studs al secondo (uguale al server)
 local busy = false
 
--- punto dello schermo da cui si mira: il mouse (computer) o il centro (telefono)
+-- punto dello schermo da cui si mira: il mouse (computer) o, sul telefono, un punto fisso un po'
+-- sopra il centro con la camera spostata oltre la spalla (come Blox Fruits): prima il mirino
+-- stava al centro, cioe' sopra il personaggio, e non si vedeva dove si tirava
 local function aimScreenPoint(): Vector2
 	local cam = workspace.CurrentCamera
-	if UserInputService.MouseEnabled and not UserInputService.TouchEnabled then
+	if UserInputService.MouseEnabled and not Ui.touch() then
 		return UserInputService:GetMouseLocation()
 	end
-	return cam.ViewportSize / 2
+	return Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y * 0.4)
 end
+local SHOULDER = Vector3.new(2.6, 1.2, 0) -- spostamento della camera con la piccozza in mano (telefono)
 
 -- dove punta il mirino nel mondo (escluso il personaggio, i draghi e la piccozza in volo):
 -- prima il raggio partiva dalla mano lungo la camera, che guarda in giu', e colpiva il terreno a
@@ -302,6 +306,14 @@ function PickaxeThrow.start()
 		local tool = character and character:FindFirstChildWhichIsA("Tool")
 		local show = tool ~= nil and tool.Name == ClimbConfig.TOOL_NAME and not ClientState.climbing and not (ClientState :: any).dragonMode
 		cross.Visible = show
+		-- telefono: camera oltre la spalla destra finche' hai la piccozza in mano
+		local hum = character and character:FindFirstChildOfClass("Humanoid")
+		if hum then
+			local want = if show and Ui.touch() then SHOULDER else Vector3.zero
+			if hum.CameraOffset ~= want and (hum.CameraOffset == Vector3.zero or hum.CameraOffset == SHOULDER) then
+				hum.CameraOffset = want
+			end
+		end
 		if show then
 			local p = aimScreenPoint()
 			-- nemico agganciato: il mirino gli si mette sopra, rosso e piu' grande

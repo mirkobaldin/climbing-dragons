@@ -93,6 +93,7 @@ local function save(player: Player)
 		dragons = Dragons.serialize(player),
 		economy = Economy.serialize(player),
 		tutorial = player:GetAttribute("TutorialStep"),
+		controls = player:GetAttribute("ControlsLayout"), -- tasti del telefono spostati (client/ControlsEditor)
 		missions = player:GetAttribute("MissionStep"),
 		upgrades = Upgrades.serialize(player), -- potenziamenti, statistiche, taglie, rinascite
 		materials = (function() -- materiali raccolti (drop dei nemici)
@@ -169,6 +170,9 @@ local function load(player: Player)
 			dragonData = data.dragons
 			economyData = data.economy
 			tutorial = data.tutorial
+			if type(data.controls) == "string" and #data.controls < 2000 then
+				player:SetAttribute("ControlsLayout", data.controls)
+			end
 			missions = data.missions
 			upgradeData = data.upgrades
 			if type(data.materials) == "table" then
@@ -364,6 +368,21 @@ function Progression.setup(remotes: { [string]: RemoteEvent })
 	else
 		warn("[Progression] DataStore non disponibile, i progressi non verranno salvati: " .. tostring(result))
 	end
+
+	-- posizione dei tasti del telefono scelta dal giocatore (client/ControlsEditor): una stringa
+	-- JSON corta, salvata col resto
+	local saveControls = Instance.new("RemoteEvent")
+	saveControls.Name = "SaveControls"
+	saveControls.Parent = ReplicatedStorage:WaitForChild("Remotes")
+	saveControls.OnServerEvent:Connect(function(player, layout)
+		if layout == nil then
+			player:SetAttribute("ControlsLayout", nil)
+		elseif type(layout) == "string" and #layout < 2000 and pcall(function()
+			return game:GetService("HttpService"):JSONDecode(layout)
+		end) then
+			player:SetAttribute("ControlsLayout", layout)
+		end
+	end)
 
 	local craftFn = Instance.new("RemoteFunction")
 	craftFn.Name = "Craft"

@@ -326,7 +326,9 @@ function HUD.start()
 		local stageName = Names.t(stage.name)
 		petName.Text = string.format('%s <font color="#ffc86a">%s</font>', Names.t(d.element), Names.t(d.rarity))
 		local grade = DragonConfig.grade(d)
-		petLevel.Text = string.format("Lv %d · %s · ATK %d · %s", lv, stageName, math.floor(DragonConfig.attack(d) + 0.5), grade)
+		-- meno scritte (Mirko: "troppe scritte"): livello e stadio; attacco e voto stanno nel menu
+		petLevel.Text = string.format("Lv %d · %s", lv, stageName)
+		local _ = grade
 		petXpFill.Size = UDim2.fromScale(math.clamp((d.xp or 0) / need, 0, 1), 1)
 		petXpText.Text = string.format("%d / %d XP", math.floor(d.xp or 0), need)
 		petStats.Text = string.format(
@@ -463,7 +465,8 @@ function HUD.start()
 		local menuOpen = menu ~= nil and menu:GetAttribute("MenuOpen") == true
 		info.Visible = not menuOpen
 		quest.Visible = type(questLine) == "string" and not menuOpen
-		questText.Text = if type(questLine) == "string" then questLine else ""
+		-- comandi giusti per computer o telefono (UiView.hintText)
+		questText.Text = if type(questLine) == "string" then Ui.hintText(questLine) else ""
 		local inTutorial = type(tutorialLine) == "string"
 		questTitle.Text = if inTutorial then "Tutorial" else "Mission"
 		if os.clock() - armedAt > 4 then

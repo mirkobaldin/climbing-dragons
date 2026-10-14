@@ -56,6 +56,7 @@ type Pet = {
 	yaw: number?, -- direzione dell'ultimo fotogramma (per le virate in monta)
 	turn: number, -- velocita' di virata filtrata (rad/s, + a sinistra)
 	wasRidden: boolean?,
+	lift: number, -- quanto si alza a terra perche' la posa non affondi
 }
 
 local pets: { [Model]: Pet } = {}
@@ -280,6 +281,7 @@ local function setup(model: Model)
 		walkPhase = 0,
 		airBlend = 1,
 		turn = 0,
+		lift = 0,
 	}
 	local _, size = model:GetBoundingBox()
 	pet.size = math.max(size.X, size.Y, size.Z)
@@ -698,7 +700,13 @@ function PetAnimator.start()
 			else
 				-- corpo intero (mesh, ossa); "respiro" leggero dei modelli a mesh unica
 				local breathe = if pet.rig == "mesh" then CFrame.Angles(math.sin(t * 5 + pet.phase) * 0.06, 0, 0) else CFrame.identity
-				model:PivotTo(pivot * breathe)
+				-- a terra (seduto, dorme): non affonda (DragonMotion.groundLift)
+				if pet.tracks and pet.airBlend < 0.99 then
+					pet.lift += (DragonMotion.groundLift(model) * (1 - pet.airBlend) - pet.lift) * math.min(1, dt * 4)
+				else
+					pet.lift *= 0.9
+				end
+				model:PivotTo(pivot * breathe + Vector3.new(0, pet.lift, 0))
 				if pet.tracks then
 					-- collo, busto e coda che seguono il volo vero (sopra le animazioni)
 					DragonMotion.update(model, dt, { turn = pet.turn, vy = vel.Y, speed = flat.Magnitude, air = pet.airBlend, walk = pet.walkPhase * math.pi, t = t })
@@ -728,6 +736,10 @@ function PetAnimator.start()
 					local idleW = (1 - air) * (1 - moving)
 					tracks.fly:AdjustWeight(math.max(air - dive, 0.001), 0.1)
 					tracks.walk:AdjustWeight(math.max((1 - air) * moving * (1 - runK), 0.001), 0.1)
+					-- passo alla velocita' vera (un passo lungo ~mezzo drago): i piedi non scivolano
+					if (tracks.walk :: any).AdjustSpeed then
+						(tracks.walk :: any):AdjustSpeed(math.clamp(flat.Magnitude / math.max(pet.size * 0.55, 2), 0.6, 2.2))
+					end
 					if tx.run then
 						tx.run:AdjustWeight(math.max((1 - air) * moving * runK, 0.001), 0.15)
 					end

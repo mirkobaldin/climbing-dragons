@@ -118,7 +118,27 @@ end
 function Ropes.setup(remotes: { [string]: RemoteEvent })
 	remotes.PlacePiton.OnServerEvent:Connect(placePiton)
 	remotes.UpdateRope.OnServerEvent:Connect(updateRope)
-	remotes.ReleaseRope.OnServerEvent:Connect(releaseRope)
+	-- sganciarsi (R o "Unclip"): se sei vicino al chiodo della corda lo togli e torna nello zaino
+	-- (prima restava nella roccia e non c'era modo di riprenderlo)
+	remotes.ReleaseRope.OnServerEvent:Connect(function(player: Player)
+		local root = rootOf(player)
+		local rope = root and root:FindFirstChild(ROPE_NAME) :: RopeConstraint?
+		local a0 = rope and rope.Attachment0
+		local piton = a0 and a0.Parent
+		releaseRope(player)
+		local list = pitonsByPlayer[player]
+		if root and piton and piton:IsA("BasePart") and list and (piton.Position - root.Position).Magnitude < 14 then
+			local idx = table.find(list, piton)
+			if idx then
+				table.remove(list, idx)
+				piton:Destroy()
+				player:SetAttribute("Pitons", math.min(ClimbConfig.PITONS_MAX, ((player:GetAttribute("Pitons") or 0) :: number) + 1))
+				player:SetAttribute("PitonsRecovered", ((player:GetAttribute("PitonsRecovered") or 0) :: number) + 1) -- tutorial
+				player:SetAttribute("Notice", "Piton recovered (+1)")
+				player:SetAttribute("NoticeTime", os.clock())
+			end
+		end
+	end)
 
 	local function onPlayer(player: Player)
 		player:SetAttribute("Pitons", ClimbConfig.PITONS_START)

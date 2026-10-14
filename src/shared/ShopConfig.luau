@@ -57,6 +57,9 @@ ShopConfig.EGG_ODDS = {
 }
 
 -- Prodotti a Robux (crea su create.roblox.com i Developer Product e metti qui gli ID; 0 = nascosto)
+-- Prodotti che si comprano piu' volte: vanno creati come "Prodotti sviluppatore", non come Pass
+-- (Coins x1000, Revive e Training Boost il 2026-10-14 erano stati creati come Pass: con un ID di
+-- pass il gioco non li puo' vendere)
 ShopConfig.DEV_PRODUCTS = {
 	Revive = 0, -- "Soccorso alpino": rinasci dove sei caduto
 	InstantHatch = 0, -- schiude subito tutte le uova del nido

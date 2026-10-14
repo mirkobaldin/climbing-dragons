@@ -18,6 +18,7 @@ local ClientState = {
 	petAnchor = nil :: Vector3?, -- addestramento: dove vola il tuo drago (dentro l'arena)
 	noFallUntil = 0, -- niente danni da caduta fino a (os.clock), es. dopo il Rampino
 	riding = false, -- in groppa al drago adulto (client/DragonRide)
+	editingControls = false, -- si stanno spostando i tasti del telefono (client/MobileControls)
 	grappling = false, -- il Rampino ti sta tirando (il parapendio si chiude)
 }
 

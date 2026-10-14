@@ -375,6 +375,10 @@ local function computeSigns(sk: Skel): Signs
 		if leg.bones[2] then
 			s["lift" .. i] = signFor(sk, leg.bones[2], sk.right, foot, function(m) return m.Y end) -- + = piede su
 		end
+		-- piede (4° osso della zampa): + = punta delle dita su (serve per staccare il tallone)
+		if leg.bones[4] and leg.bones[5] then
+			s["toe" .. i] = signFor(sk, leg.bones[4], sk.right, foot, function(m) return m.Y end)
+		end
 	end
 	if #sk.tail > 0 then
 		local tip = sk.tail[#sk.tail]
@@ -533,17 +537,39 @@ end
 local function buildFly(sk: Skel, s: Signs, t: number): Poses
 	local poses: Poses = {}
 	local p = t / FLY_T
-	-- ali: il battito del tucano; le ossa verso la punta in ritardo (viverna)
+	-- ali: il battito del tucano con la "frusta" verso la punta. Ogni osso (braccio, poi dita)
+	-- segue l'angolo della spalla in ritardo e un po' piu' ampio, e ruota della DIFFERENZA col
+	-- genitore: cosi' a inizio discesa la punta resta su (l'ala si curva e prende aria, la
+	-- "sacca") e a fine discesa scende sotto il braccio; in risalita resta indietro e in basso.
+	-- Prima la punta seguiva il braccio quasi rigida (Mirko: "la punta rimane su").
+	local up, down = hump(p, FLY_LOW, FLY_HIGH), hump(p, FLY_HIGH, FLY_LOW)
 	for i, w in sk.wings do
 		local flap = s["flap" .. i]
-		local lags = { 0, 0.08, 0.14, 0.2 }
+		local A = 40 * flyAmp
+		local n = #w.arm
+		local prev, lastLag, lastGain = 0, 0, 1
 		for k, b in w.arm do
-			local lag = lags[math.min(k, #lags)]
-			-- sulle ali a catena lunga (es. Roccia, 7 ossa in fila) le ossa in ritardo si sommavano
-			-- e la punta faceva quasi un giro: l'ampiezza dopo il gomito si divide tra le ossa
-			local amp = if k == 1 then 42 elseif k == 2 then 16 else 10 * math.min(1, 2 / math.max(#w.arm - 2, 1))
-			add(poses, sk, b, sk.fwd, flap * amp * flyAmp * wave("fly", "wing", p - lag))
+			local f = if n > 1 then (k - 1) / (n - 1) else 0
+			local lag, gain = 0.13 * f, 1 + 0.3 * f
+			local angle = A * gain * wave("fly", "wing", p - lag)
+			add(poses, sk, b, sk.fwd, flap * (angle - prev))
+			prev, lastLag, lastGain = angle, lag, gain
 		end
+		-- dita: continuano il ritardo; in discesa si piegano giu' (la membrana si gonfia)
+		for _, finger in w.fingers do
+			local fprev = prev
+			for j, b in finger do
+				if j > 3 then
+					break
+				end
+				local angle = A * (lastGain + 0.1 * j) * wave("fly", "wing", p - lastLag - 0.05 * j)
+				local cup = (if j == 1 then -14 else -6) * down
+				add(poses, sk, b, sk.fwd, flap * (angle - fprev + cup))
+				fprev = angle
+			end
+		end
+		-- percorso a "8": in discesa l'ala va un po' avanti, in risalita indietro
+		add(poses, sk, w.arm[1], UP, (s["sweep" .. i] or 1) * (6 * up - 8 * down))
 		local sp = spreads[i]
 		if sp then
 			-- prima si apre l'ala (di lato, poi all'altezza giusta), il battito si somma sopra
@@ -553,46 +579,50 @@ local function buildFly(sk: Skel, s: Signs, t: number): Poses
 				add(poses, sk, w.arm[2], UP, sp.elbow)
 			end
 		end
-		-- risalita: avambraccio e dita si richiudono; discesa: le punte vanno avanti (l'ala si gonfia)
-		-- a campana su tutta la risalita e la discesa: prima si accendeva di colpo al cambio e la
-		-- punta dell'ala scattava in una sola chiave
-		local up, down = hump(p, FLY_LOW, FLY_HIGH), hump(p, FLY_HIGH, FLY_LOW)
+		-- risalita: il polso si chiude (l'ala si raccoglie e taglia l'aria), discesa: si riapre
+		-- tutta. A campana su tutta la fase, niente scatti
 		if w.arm[2] then
-			add(poses, sk, w.arm[2], UP, (s["fold" .. i] or 1) * 22 * up)
+			add(poses, sk, w.arm[2], UP, (s["fold" .. i] or 1) * 26 * up)
 		end
 		for _, finger in w.fingers do
-			add(poses, sk, finger[1], UP, (s["fold" .. i] or 1) * (16 * up - 10 * down))
-			if finger[2] then
-				add(poses, sk, finger[2], sk.fwd, flap * 8 * wave("fly", "wing", p - 0.25))
-			end
+			add(poses, sk, finger[1], UP, (s["fold" .. i] or 1) * (20 * up - 10 * down))
 		end
 	end
-	-- corpo che segue il battito, testa in ritardo (ampiezze piccole: prima corpo, collo e coda
-	-- ondeggiavano tutti insieme e il drago sembrava una banana che dondola)
-	add(poses, sk, sk.hips, sk.right, 1.5 * wave("fly", "hips", p))
+	-- corpo: sale un poco a ogni battuta (il petto si alza in discesa) e la schiena ondeggia
+	add(poses, sk, sk.hips, sk.right, (s.bodyPitch or 1) * 2.5 * wave("fly", "hips", p))
 	for _, b in sk.spine do
-		add(poses, sk, b, sk.right, 0.8 * wave("fly", "chest", p))
+		add(poses, sk, b, sk.right, (s.bodyPitch or 1) * 1.2 * wave("fly", "chest", p - 0.05))
 	end
+	-- collo e testa: il collo assorbe il sobbalzo e la testa resta ferma sull'orizzonte
+	-- (come gli uccelli), con un leggero ritardo che la fa sembrare viva
 	for k, b in sk.neck do
 		local share = if k == #sk.neck then 0.4 else 0.6 / math.max(#sk.neck - 1, 1)
-		add(poses, sk, b, sk.right, (s.neckPitch or 1) * 4 * share * wave("fly", "head", p))
+		add(poses, sk, b, sk.right, (s.neckPitch or 1) * share * (-3.5 * wave("fly", "hips", p) + 4 * wave("fly", "head", p - 0.1)))
 	end
-	-- zampe: raccolte all'indietro, penzolano appena col battito
+	-- zampe: raccolte all'indietro e penzolanti, ogni pezzo in ritardo sul precedente (si
+	-- vedono muovere col battito: prima erano ferme in tutte le animazioni)
 	for i, leg in sk.legs do
-		local tuck = if leg.front then -28 else -38
-		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * (tuck + 5 * wave("fly", "leg", p)))
+		local tuck = if leg.front then -26 else -36
+		local lift = s["lift" .. i] or 1
+		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * (tuck + 9 * wave("fly", "leg", p)))
 		if leg.bones[2] then
-			add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * (16 + 5 * wave("fly", "leg", p - 0.12)))
+			add(poses, sk, leg.bones[2], sk.right, lift * (20 + 12 * wave("fly", "leg", p - 0.12)))
 		end
 		if leg.bones[3] then
-			add(poses, sk, leg.bones[3], sk.right, (s["lift" .. i] or 1) * -6 * wave("fly", "leg", p - 0.22))
+			add(poses, sk, leg.bones[3], sk.right, lift * (-12 + 12 * wave("fly", "leg", p - 0.24)))
+		end
+		if leg.bones[4] then
+			add(poses, sk, leg.bones[4], sk.right, (s["toe" .. i] or 1) * (-10 + 14 * wave("fly", "leg", p - 0.34)))
+		end
+		if leg.bones[5] then
+			add(poses, sk, leg.bones[5], sk.right, (s["toe" .. i] or 1) * 10 * wave("fly", "leg", p - 0.44))
 		end
 	end
-	-- coda tesa: solo un'onda leggera verso la punta
+	-- coda: onda verticale contro il battito (bilancia il corpo) e una laterale leggera
 	for k, b in sk.tail do
 		local f = (k - 1) / math.max(#sk.tail - 1, 1)
-		add(poses, sk, b, UP, (s.tailYaw or 1) * (1.5 + 2.5 * f) * math.sin(2 * math.pi * (p - 0.1 * k)))
-		add(poses, sk, b, sk.right, (s.tailPitch or 1) * 1.2 * wave("fly", "hips", p - 0.08 * k))
+		add(poses, sk, b, UP, (s.tailYaw or 1) * (1.5 + 3 * f) * math.sin(2 * math.pi * (p - 0.1 * k)))
+		add(poses, sk, b, sk.right, (s.tailPitch or 1) * (1.5 + 3.5 * f) * wave("fly", "hips", p - 0.25 - 0.06 * k))
 	end
 	return poses
 end
@@ -639,30 +669,45 @@ local function buildWalk(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 			swing = -1 + 2 * x * x * (3 - 2 * x)
 			lift = math.sin(math.pi * x)
 		end
-		local amp = if leg.front then 20 else 24
+		local amp = if leg.front then 26 else 30
+		local liftS = s["lift" .. i] or 1
 		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * amp * swing)
 		if leg.bones[2] then
-			add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * 42 * lift)
+			add(poses, sk, leg.bones[2], sk.right, liftS * 55 * lift)
 		end
 		if leg.bones[3] then
-			-- piede: in volo le dita scendono, all'appoggio torna piatto
-			add(poses, sk, leg.bones[3], sk.right, (s["lift" .. i] or 1) * -24 * lift)
+			add(poses, sk, leg.bones[3], sk.right, liftS * -30 * lift)
+		end
+		-- piede: a fine appoggio il tallone si stacca e spinge sulle dita, in volo le dita si
+		-- alzano per non strisciare, poi tornano piatte prima di appoggiare (prima caviglia, piede
+		-- e dita erano rigidi: "zampe robotiche")
+		if leg.bones[4] then
+			local heel = hump(ph, STANCE - 0.2, STANCE + 0.06)
+			add(poses, sk, leg.bones[4], sk.right, (s["toe" .. i] or 1) * (-28 * heel + 18 * lift))
+		end
+		if leg.bones[5] then
+			add(poses, sk, leg.bones[5], sk.right, (s["toe" .. i] or 1) * 14 * hump(ph, STANCE - 0.15, STANCE + 0.1))
 		end
 	end
-	-- il corpo si abbassa un poco a ogni appoggio (due volte per passo): niente "carrello"
+	-- il corpo si abbassa a ogni appoggio (due volte per passo) e si risolleva: peso vero
 	local hipsRest = sk.rest[sk.hips]
-	local drop = sk.height * 0.012 * (0.5 + 0.5 * math.cos(4 * math.pi * p))
+	local drop = sk.height * 0.025 * (0.5 + 0.5 * math.cos(4 * math.pi * p))
 	poses[sk.hips] = CFrame.new(hipsRest:VectorToObjectSpace(Vector3.new(0, -drop, 0))) * (poses[sk.hips] or CFrame.identity)
-	-- bacino che ondeggia, schiena che compensa, testa che dondola a ogni passo
-	add(poses, sk, sk.hips, UP, 4 * wave("walk", "pelvis", p))
-	add(poses, sk, sk.hips, sk.fwd, 2.5 * wave("walk", "pelvis", p + 0.25))
-	for _, b in sk.spine do
-		add(poses, sk, b, UP, -2 * wave("walk", "spine", p))
+	-- bacino che ruota e rolla col passo; la schiena fa una S che corre dall'anca al petto
+	-- (come le lucertole e i coccodrilli), il petto rolla al contrario delle anche
+	add(poses, sk, sk.hips, UP, 6 * wave("walk", "pelvis", p))
+	add(poses, sk, sk.hips, sk.fwd, 4.5 * math.sin(2 * math.pi * p))
+	for k, b in sk.spine do
+		add(poses, sk, b, UP, -5 * math.sin(2 * math.pi * (p + 0.12 * k)))
+		add(poses, sk, b, sk.fwd, -2.5 * math.sin(2 * math.pi * p) / math.max(#sk.spine, 1))
 	end
+	-- collo: compensa la S della schiena, cosi' la testa resta puntata avanti; su e giu' a ogni
+	-- appoggio, un po' in ritardo
+	local spineN = math.max(#sk.spine, 1)
 	for k, b in sk.neck do
 		local share = 1 / math.max(#sk.neck, 1)
-		add(poses, sk, b, sk.right, (s.neckPitch or 1) * 6 * share * math.sin(4 * math.pi * p))
-		add(poses, sk, b, UP, (s.neckYaw or 1) * 4 * share * wave("walk", "head", p))
+		add(poses, sk, b, sk.right, (s.neckPitch or 1) * 7 * share * math.sin(4 * math.pi * (p - 0.06)))
+		add(poses, sk, b, UP, (s.neckYaw or 1) * share * (6 * math.sin(2 * math.pi * (p + 0.12 * spineN)) + 3 * wave("walk", "head", p)))
 	end
 	-- coda: le quattro curve del giaguaro distribuite lungo la coda
 	local tailKeys = { "tail1", "tail2", "tail3", "tail4" }
@@ -687,9 +732,30 @@ local function buildIdle(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 	local poses: Poses = {}
 	local p = t / IDLE_T
 	-- respiro (leopardo) e sguardo che si guarda attorno
-	add(poses, sk, sk.hips, sk.right, 1.5 * wave("idle", "pelvis", p))
+	add(poses, sk, sk.hips, sk.right, 2 * wave("idle", "pelvis", p))
 	for _, b in sk.spine do
-		add(poses, sk, b, sk.right, 1.5 * wave("idle", "spine", p))
+		add(poses, sk, b, sk.right, 2.5 * wave("idle", "spine", p))
+	end
+	-- sposta il peso da un lato all'altro: anca che rolla e zampe che si piegano un poco a turno
+	-- (prima da fermo le zampe erano di pietra)
+	local shift = math.sin(2 * math.pi * p)
+	add(poses, sk, sk.hips, sk.fwd, 2.5 * shift)
+	for i, leg in sk.legs do
+		local k = shift * leg.side
+		if leg.bones[2] then
+			add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * 6 * math.max(0, k))
+		end
+		if leg.bones[3] then
+			add(poses, sk, leg.bones[3], sk.right, (s["lift" .. i] or 1) * -4 * math.max(0, k))
+		end
+		-- ogni tanto una zampa davanti si sposta appena (a meta' ciclo, una per lato)
+		if leg.front then
+			local step = hump(p, if leg.side > 0 then 0.1 else 0.6, if leg.side > 0 then 0.3 else 0.8)
+			add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * 6 * step)
+			if leg.bones[2] then
+				add(poses, sk, leg.bones[2], sk.right, (s["lift" .. i] or 1) * 14 * step)
+			end
+		end
 	end
 	for k, b in sk.neck do
 		local share = 1 / math.max(#sk.neck, 1)
@@ -698,7 +764,7 @@ local function buildIdle(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 	end
 	for k, b in sk.tail do
 		local f = (k - 1) / math.max(#sk.tail - 1, 1)
-		add(poses, sk, b, UP, (s.tailYaw or 1) * (2 + 5 * f) * math.sin(2 * math.pi * (p - 0.06 * k)))
+		add(poses, sk, b, UP, (s.tailYaw or 1) * (3 + 8 * f) * math.sin(2 * math.pi * (p - 0.06 * k)))
 	end
 	foldWings(poses, sk, s, folds, 3 * wave("idle", "pelvis", p))
 	return poses
