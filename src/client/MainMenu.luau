@@ -402,6 +402,12 @@ function MainMenu.start()
 		refreshers[name]()
 		Ui.open(window)
 	end
+	-- una scheda puo' chiudere il menu mettendo MenuOpen a false (es. Ride nel menu draghi)
+	gui:GetAttributeChangedSignal("MenuOpen"):Connect(function()
+		if gui:GetAttribute("MenuOpen") ~= true and current then
+			open(current)
+		end
+	end)
 	for k, name in names do
 		local b = column[name]
 		b.Text = (if name == "Store" then "Shop" else name)

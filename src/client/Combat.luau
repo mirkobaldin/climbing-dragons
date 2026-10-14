@@ -392,8 +392,30 @@ end
 -- Draghi a riposo attorno alla casa (tag "Riposo", server/Economy): dormono, si siedono,
 -- ogni tanto si svegliano e si guardano attorno. Solo quelli vicini alla camera.
 
-type Resting = { tracks: { [string]: any }, state: string, nextChange: number }
+type Resting = { tracks: { [string]: any }, state: string, nextChange: number, base: CFrame, bones: { Bone }, lift: number }
 local resting: { [Model]: Resting } = {}
+
+-- Le pose Sit/Sleep spostano lo scheletro in basso (negli adulti scalati il corpo finiva 17 studs
+-- sotto la paglia): a ogni frame si alza il modello di quanto l'osso piu' basso animato sta sotto
+-- quello piu' basso a riposo, cosi' zampe e pancia restano sul terreno
+local function groundResting(dt: number)
+	local camPos = workspace.CurrentCamera.CFrame.Position
+	for m, r in resting do
+		if not m.Parent or (r.base.Position - camPos).Magnitude > 250 then
+			continue
+		end
+		local bind, low = math.huge, math.huge
+		for _, b in r.bones do
+			bind = math.min(bind, b.WorldPosition.Y)
+			low = math.min(low, b.TransformedWorldCFrame.Y)
+		end
+		if low == math.huge then
+			continue
+		end
+		r.lift += (bind - low - r.lift) * math.min(1, dt * 6)
+		m:PivotTo(r.base + Vector3.new(0, r.lift, 0))
+	end
+end
 
 local function restStep()
 	local camPos = workspace.CurrentCamera.CFrame.Position
@@ -420,7 +442,13 @@ local function restStep()
 					tracks[name] = tr
 				end
 			end
-			r = { tracks = tracks, state = "", nextChange = 0 }
+			local bones = {}
+			for _, b in m:GetDescendants() do
+				if b:IsA("Bone") then
+					table.insert(bones, b)
+				end
+			end
+			r = { tracks = tracks, state = "", nextChange = 0, base = m:GetPivot(), bones = bones, lift = 0 }
 			resting[m] = r
 		end
 		local rr = r :: Resting
@@ -461,6 +489,7 @@ function Combat.start()
 			pcall(restStep)
 		end
 	end)
+	RunService.RenderStepped:Connect(groundResting)
 	local remotes = ReplicatedStorage:WaitForChild("Remotes")
 	task.spawn(function()
 		local fx = remotes:WaitForChild("EnemyFX", 60) :: RemoteEvent?
@@ -501,7 +530,21 @@ function Combat.start()
 			elseif kind == "fireball" then
 				fireball(a, b, c, d)
 			elseif kind == "rideShot" then
-				-- colpo del drago in monta (server/Enemies RideAttack): morso e palla dell'elemento
+				-- colpo del drago in monta (server/Enemies RideAttack): morso e palla dell'elemento.
+				-- Parte dalla bocca del drago come lo vedi tu: la posizione del server in volo veloce
+				-- e' indietro di 10-20 studs e il colpo partiva da dietro il drago
+				local folder = workspace:FindFirstChild("Pets")
+				local mine = folder and folder:FindFirstChild(tostring(e))
+				for _, m in (if mine then mine:GetChildren() else {}) :: { Instance } do
+					if m:IsA("Model") and m:GetAttribute("Slot") == 1 then
+						local mouth = DragonVFX.mouth(m, b)
+						local fwd = b - mouth
+						if fwd.Magnitude > 1 then
+							-- un po' davanti al muso, che non si veda nascere dentro la testa
+							a = mouth + fwd.Unit * 2
+						end
+					end
+				end
 				fireball(a, b, c, d)
 				petGesture(e, "Bite")
 				Sfx.play("Ruggito", a, 1.6)
@@ -531,7 +574,7 @@ function Combat.start()
 	local spBtn = Ui.node(gui, "Speciale")
 	local spStroke = spBtn.Stroke
 	local spCool = spBtn.Cooldown
-	spBtn.Key.Text = if UserInputService.TouchEnabled then "Roar" else "Z"
+	spBtn.Key.Text = if Ui.touch() then "Roar" else "Z"
 	spBtn.Activated:Connect(special)
 	local timer = Ui.node(gui, "Timer")
 	local eventLabel = Ui.node(gui, "Event")
@@ -541,11 +584,13 @@ function Combat.start()
 	Ui.text(eventLabel, 18, true)
 	Ui.viewportChanged(function(vp)
 		local logical = Ui.fitScale(gui, vp)
-		if UserInputService.TouchEnabled then
-			-- a sinistra della fila dei comandi touch (MobileControls: 212 px a destra, alta 54, a
-			-- 170 px dal fondo), lontano dal salto e dal meteo
+		if Ui.touch() then
+			-- in basso, a sinistra dell'arco dei comandi (MobileControls: arco attorno al salto,
+			-- raggio fino a ~230 px dall'angolo), lontano dal meteo
 			local k = logical.X / vp.X
-			Ui.px(spBtn, 1, -232 * k, 1, -170 * k, 64, 64, 1, 1)
+			local small = math.min(vp.X, vp.Y) <= 500
+			local x, y = if small then 270 else 400, if small then 55 else 150
+			Ui.px(spBtn, 1, -x * k, 1, -y * k, 68, 68, 0.5, 0.5)
 		else
 			Ui.px(spBtn, 1, -24, 1, -24, 76, 76, 1, 1)
 		end

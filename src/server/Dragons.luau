@@ -165,6 +165,28 @@ local function changed(player: Player, petsToo: boolean)
 	end
 end
 
+-- Mette il drago "id" al primo posto dei draghi al seguito (quello che si monta, server/Riding);
+-- se non ti seguiva prende il posto dell'ultimo
+function Dragons.setLead(player: Player, id: number): (boolean, string?)
+	local s = Dragons.state(player)
+	local d = findDragon(s, id)
+	if not d then
+		return false, "Dragon not found"
+	end
+	local idx = table.find(s.equipped, d.id)
+	if idx == 1 then
+		return true, nil
+	end
+	if idx then
+		table.remove(s.equipped, idx)
+	elseif #s.equipped >= Dragons.maxEquipped(player) then
+		table.remove(s.equipped)
+	end
+	table.insert(s.equipped, 1, d.id)
+	changed(player, true)
+	return true, nil
+end
+
 -- danno di un colpo del drago (stadio, livello, statistiche e critico)
 function Dragons.hitDamage(d: DragonData): number
 	local dmg = DragonConfig.attack(d)

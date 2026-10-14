@@ -17,11 +17,14 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
+local Ui = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UiView"))
 local ClientState = require(script.Parent.ClientState)
 local Climbing = require(script.Parent.Climbing)
 local Sfx = require(script.Parent.Sfx)
 
 local DragonRide = {}
+-- per i pulsanti del telefono (client/MobileControls): puoi salire, monta/scendi, spara
+DragonRide.canRide = false
 
 local player = Players.LocalPlayer
 local SPEED, BOOST, CLIMB = 70, 125, 45
@@ -177,6 +180,14 @@ local function adultFollowing(): boolean
 	return false
 end
 
+function DragonRide.toggle()
+	toggle()
+end
+
+function DragonRide.fire()
+	shoot(nil)
+end
+
 function DragonRide.start()
 	ContextActionService:BindAction("MontaDrago", function(_, state)
 		if state == Enum.UserInputState.Begin then
@@ -261,9 +272,13 @@ function DragonRide.start()
 		if accum > 0.5 then
 			accum = 0
 			local can = player:GetAttribute("Gear_Sella") == true and adultFollowing() and not ClientState.dragonMode
-			btn.Visible = can
-			btn.Text = if player:GetAttribute("Riding") then "Land (H)" else (if UserInputService.TouchEnabled then "Ride" else "Ride (H)")
-			fire.Visible = riding and UserInputService.TouchEnabled
+			DragonRide.canRide = can
+			-- sul telefono Ride e Fire stanno nell'arco dei comandi (MobileControls): qui prima
+			-- finivano a meta' schermo a destra, sotto il riquadro del meteo
+			local touch = Ui.touch()
+			btn.Visible = can and not touch
+			btn.Text = if player:GetAttribute("Riding") then "Land (H)" else "Ride (H)"
+			fire.Visible = false
 		end
 		if not riding or not mover then
 			return

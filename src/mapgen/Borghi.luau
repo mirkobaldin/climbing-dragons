@@ -1421,11 +1421,21 @@ end
 --   "covered" ponte coperto cinese (langqiao): arco basso, pilastri rossi, tetto curvo, lanterne
 --   "stone"   ponte di pietra a schiena d'asino con le lanterne di pietra ai capi
 local bridgeCount = 0
+-- ponti gia' fatti (centro e mezza lunghezza): due strade che passano il fiume nello stesso punto
+-- facevano due o tre ponti uno dentro l'altro, a quote diverse
+local bridgeSpots: { { p: Vector3, r: number } } = {}
 local BRIDGE_KIT = { arch = "PonteRosso", covered = "PonteCoperto", stone = "PontePietra" }
-local function bridge(parent: Instance, a: Vector3, b: Vector3, style: string)
-	bridgeCount += 1
+local function bridge(parent: Instance, a: Vector3, b: Vector3, style: string): boolean
 	local dir = Vector3.new(b.X - a.X, 0, b.Z - a.Z)
 	local span = dir.Magnitude
+	local center = Vector3.new((a.X + b.X) / 2, 0, (a.Z + b.Z) / 2)
+	for _, o in bridgeSpots do
+		if (o.p - center).Magnitude < o.r + span / 2 + 20 then
+			return false
+		end
+	end
+	table.insert(bridgeSpots, { p = center, r = span / 2 })
+	bridgeCount += 1
 	dir = dir.Unit
 	local side = dir:Cross(Vector3.yAxis)
 	-- modello di Blender: lungo come il ponte (lo si scala), con i capi a terra
@@ -1437,7 +1447,7 @@ local function bridge(parent: Instance, a: Vector3, b: Vector3, style: string)
 		local km = fromKit(t.Name, parent, CFrame.lookAt(base, base + side), math.clamp(span / width, 0.6, 2.2))
 		if km then
 			km.Name = "Ponte"
-			return
+			return true
 		end
 	end
 	local m = Instance.new("Model")
@@ -1513,6 +1523,7 @@ local function bridge(parent: Instance, a: Vector3, b: Vector3, style: string)
 		end
 	end
 	m.Parent = parent
+	return true
 end
 
 local BRIDGE_STYLES = { "arch", "covered", "stone" }
@@ -1567,7 +1578,9 @@ local function riverBridges(ctx: Ctx, every: number): number
 							local b = c + across * (last + 7)
 							local ha, hb = probe(a.X, a.Z), probe(b.X, b.Z)
 							if ha and hb and not ha.water and not hb.water and math.abs(ha.y - hb.y) < 10 then
-								bridge(ctx.folder, Vector3.new(a.X, ha.y, a.Z), Vector3.new(b.X, hb.y, b.Z), BRIDGE_STYLES[bridgeCount % #BRIDGE_STYLES + 1])
+								if not bridge(ctx.folder, Vector3.new(a.X, ha.y, a.Z), Vector3.new(b.X, hb.y, b.Z), BRIDGE_STYLES[bridgeCount % #BRIDGE_STYLES + 1]) then
+									break
+								end
 								table.insert(ctx.placed, { p = c, r = span / 2 + 10 })
 								-- un sentiero corto che parte dalle due rive
 								paint(Vector3.new(a.X, ha.y, a.Z) - across * 30, Vector3.new(a.X, ha.y, a.Z), 5, M.Ground)
@@ -2123,9 +2136,10 @@ local function buildRoads(ctx: Ctx, nodes: { Node }, hamletSpots: { Vector3 }, m
 					local span = Vector2.new(here.X - (runStart :: Vector3).X, here.Z - (runStart :: Vector3).Z).Magnitude
 					if span >= 8 and span <= 90 and math.abs(here.Y - (runStart :: Vector3).Y) < 12 then
 						local d = Vector3.new(here.X - (runStart :: Vector3).X, 0, here.Z - (runStart :: Vector3).Z).Unit
-						bridge(folder, (runStart :: Vector3) - d * 4, here + d * 4, BRIDGE_STYLES[bridgeCount % #BRIDGE_STYLES + 1])
-						table.insert(ctx.placed, { p = ((runStart :: Vector3) + here) / 2, r = span / 2 + 6 })
-						bridges += 1
+						if bridge(folder, (runStart :: Vector3) - d * 4, here + d * 4, BRIDGE_STYLES[bridgeCount % #BRIDGE_STYLES + 1]) then
+							table.insert(ctx.placed, { p = ((runStart :: Vector3) + here) / 2, r = span / 2 + 6 })
+							bridges += 1
+						end
 					end
 					runStart = nil
 				end
@@ -2292,6 +2306,7 @@ local VILLAGES = {
 }
 
 function Borghi.build(map: any?): Folder
+	bridgeSpots = {}
 	local old = workspace:FindFirstChild("Borghi")
 	if old then
 		old:Destroy()

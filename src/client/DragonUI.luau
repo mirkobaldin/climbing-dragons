@@ -237,12 +237,30 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 				sell.Text = "Sure? Sell " .. price
 			end
 		end)
-		for _, btn in { follow, evolve, sell } do
+		-- adulto: al posto di Evolve si monta questo drago (diventa il primo al seguito, server/Riding)
+		local ride = Theme.button(side, "Ride", Theme.BLUE)
+		ride.TextColor3 = Color3.new(1, 1, 1)
+		ride.Visible = nextStage == nil
+		ride.Activated:Connect(function()
+			local remote = RS.Remotes:FindFirstChild("DragonRide") :: RemoteEvent?
+			if remote then
+				remote:FireServer(d.id)
+				local gui = container:FindFirstAncestorWhichIsA("ScreenGui")
+				if gui then
+					gui:SetAttribute("MenuOpen", false)
+				end
+			end
+		end)
+		local middle = if nextStage then evolve else ride
+		if nextStage then
+			ride:Destroy()
+		end
+		for _, btn in { follow, middle, sell } do
 			btn.AnchorPoint = Vector2.new(0, 1)
 			btn.TextSize = 17
 		end
-		Ui.row({ follow, evolve, sell }, 0, 0, 46)
-		for _, btn in { follow, evolve, sell } do
+		Ui.row({ follow, middle, sell }, 0, 0, 46)
+		for _, btn in { follow, middle, sell } do
 			btn.Position = UDim2.new(btn.Position.X.Scale, btn.Position.X.Offset, 1, 0)
 		end
 	end

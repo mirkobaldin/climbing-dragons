@@ -127,9 +127,17 @@ function UiView.skin(target: GuiObject, name: string)
 				if name == "btn_close" then
 					caption.Text = ""
 				elseif string.find(name, "btn_round", 1, true) then
-					caption.Position = UDim2.fromScale(0, 0.7)
-					caption.Size = UDim2.fromScale(1, 0.28)
-					caption.TextSize = 10
+					-- sotto l'icona; senza icona (Glide, Ride del telefono) in mezzo e piu' grande
+					local icon = target:FindFirstChild("Icon")
+					if icon and icon:IsA("ImageLabel") and icon.Visible and icon.Image ~= "" then
+						caption.Position = UDim2.fromScale(0, 0.7)
+						caption.Size = UDim2.fromScale(1, 0.28)
+						caption.TextSize = 10
+					else
+						caption.Position = UDim2.fromScale(0.1, 0.3)
+						caption.Size = UDim2.fromScale(0.8, 0.4)
+						caption.TextScaled = true
+					end
 				end
 			end
 			sync()
@@ -140,6 +148,51 @@ function UiView.skin(target: GuiObject, name: string)
 		end
 	end
 	UiView.asset(image :: ImageLabel, name)
+end
+
+-- colore di un pulsante o riquadro con l'immagine (cornice dorata): un riempimento colorato con
+-- sfumatura dentro la cornice, fra l'immagine e il testo. Prima tutti i pulsanti erano dello
+-- stesso blu scuro e non si distinguevano. round = tondo; inset = margine della cornice (0..0.5)
+function UiView.tint(target: GuiObject, color: Color3, round: boolean?, inset: number?)
+	local fill = target:FindFirstChild("Tinta") :: Frame?
+	if not fill then
+		local f = Instance.new("Frame")
+		f.Name = "Tinta"
+		f.BorderSizePixel = 0
+		f.ZIndex = 1
+		local corner = Instance.new("UICorner")
+		corner.Parent = f
+		local grad = Instance.new("UIGradient")
+		grad.Rotation = 90
+		grad.Parent = f
+		f.Parent = target
+		fill = f
+	end
+	local f = fill :: Frame
+	local k = inset or (if round then 0.11 else 0.06)
+	f.AnchorPoint = Vector2.new(0.5, 0.5)
+	f.Position = UDim2.fromScale(0.5, 0.5)
+	f.Size = UDim2.fromScale(1 - k * 2, 1 - k * 2)
+	f.BackgroundColor3 = Color3.new(1, 1, 1)
+	f.BackgroundTransparency = 0.08
+	local corner = f:FindFirstChildOfClass("UICorner") :: UICorner
+	corner.CornerRadius = if round then UDim.new(0.5, 0) else UDim.new(0, 8)
+	local h, s, v = color:ToHSV()
+	local light = Color3.fromHSV(h, math.max(0, s * 0.75), math.min(1, v * 1.25 + 0.08))
+	local dark = Color3.fromHSV(h, math.min(1, s * 1.1), v * 0.55)
+	local grad = f:FindFirstChildOfClass("UIGradient") :: UIGradient
+	grad.Color = ColorSequence.new(light, dark)
+	f.Visible = true
+	-- l'icona e la scritta sopra il colore
+	for _, child in target:GetChildren() do
+		if child:IsA("GuiObject") and child ~= f and child.Name ~= "AssetSurface" and child.ZIndex < 2 then
+			child.ZIndex = 2
+		end
+	end
+	-- se non c'e' l'immagine il colore e' lo sfondo stesso
+	if not target:FindFirstChild("AssetSurface") then
+		target.BackgroundTransparency = 1
+	end
 end
 
 function UiView.apply(root: Instance)
@@ -505,6 +558,12 @@ end
 -- pensata per 1000x430 logici: con la scala del computer i testi diventavano di 7 pixel.
 function UiView.compact(vp: Vector2): boolean
 	return vp.Y < 560 or (game:GetService("UserInputService").TouchEnabled and vp.Y < 760)
+end
+
+-- schermo touch (telefono, tablet); dal computer si prova con l'attributo SimTouch = true sul
+-- giocatore (insieme a SimViewport): compaiono i pulsanti del telefono
+function UiView.touch(): boolean
+	return game:GetService("UserInputService").TouchEnabled or Players.LocalPlayer:GetAttribute("SimTouch") == true
 end
 
 -- Prova del telefono dal computer: attributo SimViewport (Vector2, es. 844x354) sul giocatore.

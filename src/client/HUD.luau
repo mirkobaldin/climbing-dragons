@@ -176,8 +176,41 @@ function HUD.start()
 	end
 	petStats.Visible = false -- l'attacco va nella riga del livello
 	gearLabel.Visible = false -- l'elenco degli attrezzi era illeggibile: sta nello zaino
+	-- meteo compresso (tocco sul riquadro): solo icona, ora e condizioni. Sul telefono parte
+	-- compresso, perche' copriva i pulsanti Ride e Fire; il calore torna se fa molto freddo
+	local folded = false
+	local foldedSet = false
+	local chevron = Instance.new("TextLabel")
+	chevron.Name = "Piega"
+	chevron.BackgroundTransparency = 1
+	chevron.TextColor3 = Color3.fromRGB(200, 210, 230)
+	chevron.Font = Enum.Font.GothamBlack
+	chevron.TextSize = 14
+	chevron.AnchorPoint = Vector2.new(1, 0)
+	chevron.Position = UDim2.new(1, -6, 0, 4)
+	chevron.Size = UDim2.fromOffset(18, 18)
+	chevron.Parent = info
 	local function layoutWeather()
-		if compact then
+		local frozen = warmthBack.Visible
+		chevron.Text = if folded then "▼" else "▲"
+		altitude.Visible = not folded
+		if compact and folded then
+			local h = 58 + (if frozen then 22 else 0)
+			P(info, 1, -10, 0, 8, 190, h, 1, 0)
+			P(weatherIcon, 0, 8, 0, 7, 44, 44)
+			P(weatherFallback, 0, 8, 0, 7, 44, 44)
+			P(timeBig, 0, 58, 0, 5, 120, 26)
+			P(clock, 0, 58, 0, 31, 120, 18)
+			P(warmthBack, 0, 10, 0, 58, 170, 14)
+		elseif folded then
+			local h = 84 + (if frozen then 30 else 0)
+			P(info, 1, -16, 0, 16, 240, h, 1, 0)
+			P(weatherIcon, 0, 12, 0, 13, 58, 58)
+			P(weatherFallback, 0, 12, 0, 13, 58, 58)
+			P(timeBig, 0, 82, 0, 12, 140, 34)
+			P(clock, 0, 82, 0, 48, 140, 20)
+			P(warmthBack, 0, 16, 0, 84, 208, 18)
+		elseif compact then
 			local h = 76 + (if warmthBack.Visible then 22 else 0) + (if finder.Visible then 34 else 0)
 			P(info, 1, -10, 0, 8, 226, h, 1, 0)
 			P(weatherIcon, 0, 10, 0, 10, 44, 44)
@@ -199,8 +232,25 @@ function HUD.start()
 			P(finder, 0, 20, 0, h - 42, 232, 36)
 		end
 	end
-	finder:GetPropertyChangedSignal("Visible"):Connect(layoutWeather)
-	warmthBack:GetPropertyChangedSignal("Visible"):Connect(layoutWeather)
+	local relayingWeather = false
+	local function relayWeather()
+		if relayingWeather then
+			return
+		end
+		relayingWeather = true
+		layoutWeather()
+		relayingWeather = false
+	end
+	finder:GetPropertyChangedSignal("Visible"):Connect(relayWeather)
+	warmthBack:GetPropertyChangedSignal("Visible"):Connect(relayWeather)
+	info.Active = true
+	info.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+			folded = not folded
+			foldedSet = true
+			relayWeather()
+		end
+	end)
 	local function layoutAll()
 		texts()
 		layoutPlayer()
@@ -239,6 +289,9 @@ function HUD.start()
 	Ui.viewportChanged(function(vp)
 		logical = Ui.fitScale(gui, vp)
 		compact = Ui.compact(vp)
+		if not foldedSet then
+			folded = compact
+		end
 		layoutAll()
 	end)
 	pet:GetPropertyChangedSignal("Visible"):Connect(layoutPlayer)
@@ -368,7 +421,8 @@ function HUD.start()
 		local alt = if root then math.max(0, math.floor(root.Position.Y - 20)) else 0
 		altitude.Text = string.format("Altitude  %d m", alt)
 		local warmth = (player:GetAttribute("Warmth") or 100) :: number
-		warmthBack.Visible = warmth < 99.5 or alt > Gear.COLD_ALTITUDE - 20
+		-- compresso: il calore si vede solo quando fa davvero freddo
+		warmthBack.Visible = if folded then warmth < 40 else (warmth < 99.5 or alt > Gear.COLD_ALTITUDE - 20)
 		warmthFill.Size = UDim2.new(math.clamp(warmth / 100, 0, 1), 0, 1, 0)
 		warmthFill.BackgroundColor3 = if warmth > 40
 			then Color3.fromRGB(255, 150, 70)
@@ -384,7 +438,7 @@ function HUD.start()
 			finderText =
 				string.format("Carrying an egg (%s %s): take it to your nest!", Names.t(parts[2]), Names.t(parts[1]))
 		end
-		finder.Visible = finderText ~= nil
+		finder.Visible = finderText ~= nil and not folded
 		finder.Text = finderText or ""
 		local owned = {}
 		for _, recipe in Gear.RECIPES do

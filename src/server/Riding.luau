@@ -37,6 +37,32 @@ function Riding.setup()
 	remote.Name = "DragonRide"
 	remote.Parent = ReplicatedStorage:WaitForChild("Remotes")
 	remote.OnServerEvent:Connect(function(player: Player, on: any)
+		-- dal menu draghi (pulsante Ride della scheda): l'id del drago da montare, che passa al
+		-- primo posto dei draghi al seguito
+		if type(on) == "number" then
+			local s = Dragons.state(player)
+			local chosen = nil
+			for _, d in s.dragons do
+				if d.id == on then
+					chosen = d
+				end
+			end
+			if not chosen then
+				return
+			end
+			if (chosen.stage or 1) < #DragonConfig.STAGES then
+				remote:FireClient(player, "Only an adult dragon can carry you: evolve it first")
+				return
+			end
+			if not Gear.has(player, "Sella") then
+				remote:FireClient(player, "You need a Dragon Saddle (Crafting, at a workbench)")
+				return
+			end
+			player:SetAttribute("Riding", false)
+			Dragons.setLead(player, on)
+			task.wait(0.4) -- il nuovo drago appare accanto a te, poi sali
+			on = true
+		end
 		if on ~= true then
 			player:SetAttribute("Riding", false)
 			return

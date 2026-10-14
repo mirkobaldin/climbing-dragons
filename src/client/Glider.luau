@@ -204,27 +204,50 @@ local function canopy(owner: Player): Model?
 	return m
 end
 
+-- in aria col parapendio nello zaino (per il pulsante Glide del telefono, client/MobileControls:
+-- il salto del telefono non e' il tasto Spazio e prima non si poteva aprire la vela)
+function Glider.available(): boolean
+	if gliding then
+		return true
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	return root ~= nil and humanoid ~= nil and Gear.has(player, "Parapendio") and not ClientState.climbing
+		and not ClientState.riding and humanoid.FloorMaterial == Enum.Material.Air and root.AssemblyLinearVelocity.Y < 2
+end
+
+-- apre o chiude la vela; anyFall: basta essere in aria (il pulsante), non serve gia' cadere forte
+function Glider.toggle(anyFall: boolean?): boolean
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if gliding then
+		stop()
+		return true
+	end
+	if not root or not humanoid or not Gear.has(player, "Parapendio") or ClientState.climbing then
+		return false
+	end
+	local vy = root.AssemblyLinearVelocity.Y
+	local falling = humanoid.FloorMaterial == Enum.Material.Air and (if anyFall then vy < 2 else vy < -G.MIN_FALL_SPEED)
+	if falling then
+		start()
+		return true
+	end
+	return false
+end
+
+function Glider.isGliding(): boolean
+	return gliding
+end
+
 function Glider.start()
 	ContextActionService:BindAction("Parapendio", function(_, state)
 		if state ~= Enum.UserInputState.Begin then
 			return Enum.ContextActionResult.Pass
 		end
-		local character = player.Character
-		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-		if gliding then
-			stop()
-			return Enum.ContextActionResult.Sink
-		end
-		if not root or not humanoid or not Gear.has(player, "Parapendio") or ClientState.climbing then
-			return Enum.ContextActionResult.Pass
-		end
-		local falling = humanoid.FloorMaterial == Enum.Material.Air and root.AssemblyLinearVelocity.Y < -G.MIN_FALL_SPEED
-		if falling then
-			start()
-			return Enum.ContextActionResult.Sink
-		end
-		return Enum.ContextActionResult.Pass
+		return if Glider.toggle(false) then Enum.ContextActionResult.Sink else Enum.ContextActionResult.Pass
 	end, false, Enum.KeyCode.Space, Enum.KeyCode.ButtonA)
 
 	RunService.Heartbeat:Connect(function(dt)
