@@ -264,7 +264,7 @@ function MainMenu.start()
 	local toggle = column.NascondiIcone
 	toggle.Parent = gui
 	toggle.Visible = true
-	Ui.text(toggle, 14, true)
+	Ui.text(toggle, 16, true)
 	toggle.TextColor3 = Color3.fromRGB(240, 240, 242)
 	if not column.Teleport:FindFirstChild("Icon") then
 		local icon = column.Store.Icon:Clone()
@@ -287,10 +287,16 @@ function MainMenu.start()
 		end
 		local caption = btn:FindFirstChild("AssetCaption")
 		if caption then
-			caption.Position = UDim2.fromScale(0, 0.7)
-			caption.Size = UDim2.fromScale(1, 0.26)
-			caption.TextScaled = false
-			caption.TextSize = 13
+			-- scritta piu' grande e un po' piu' larga del pulsante (si rimpicciolisce se non ci sta):
+			-- "Crafting (N)" a 13 px era illeggibile
+			caption.Position = UDim2.fromScale(-0.04, 0.7)
+			caption.Size = UDim2.fromScale(1.08, 0.28)
+			caption.TextScaled = true
+			local fit = caption:FindFirstChildOfClass("UITextSizeConstraint") or Instance.new("UITextSizeConstraint")
+			fit.MaxTextSize = 14
+			fit.MinTextSize = 10
+			fit.Parent = caption
+			caption.TextStrokeTransparency = 0.3
 			caption.Font = Enum.Font.GothamBlack
 			caption.TextXAlignment = Enum.TextXAlignment.Center
 			caption.ZIndex = 4
@@ -336,7 +342,7 @@ function MainMenu.start()
 	end
 	local dragonsTab = content.Dragons
 	dragonsTab.Header.Size = UDim2.new(1, 0, 0, 24)
-	Ui.text(dragonsTab.Header, 14, true)
+	Ui.fit(dragonsTab.Header, 16, 11, true)
 	dragonsTab.Header.TextXAlignment = Enum.TextXAlignment.Left
 	dragonsTab.Body.Position = UDim2.fromOffset(0, 30)
 	dragonsTab.Body.Size = UDim2.new(1, 0, 1, -30)
@@ -446,8 +452,9 @@ function MainMenu.start()
 			for _, n in { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" } do
 				column[n].Size = UDim2.fromOffset(cell, cell)
 				local cap = column[n]:FindFirstChild("AssetCaption")
-				if cap and cap:IsA("TextLabel") then
-					cap.TextSize = if compact then 11 else 13
+				local fit = cap and cap:FindFirstChildOfClass("UITextSizeConstraint")
+				if fit then
+					fit.MaxTextSize = if compact then 12 else 14
 				end
 			end
 			local wx, wy, ww, wh

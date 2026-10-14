@@ -979,7 +979,52 @@ function Enemies.setup()
 			end
 		end)
 	end)
+	-- in groppa al drago adulto (server/Riding): click (o F) = palla dell'elemento dove miri.
+	-- Il client manda il punto mirato (anche un drago volante, che si muove solo sui client: il
+	-- server lo ritrova con Flyers.near nello stesso punto del volo)
+	local rideEvent = Instance.new("RemoteEvent")
+	rideEvent.Name = "RideAttack"
+	rideEvent.Parent = ReplicatedStorage.Remotes
+	local lastRide: { [Player]: number } = {}
+	rideEvent.OnServerEvent:Connect(function(player, aim)
+		if typeof(aim) ~= "Vector3" or aim ~= aim or player:GetAttribute("Riding") ~= true then
+			return
+		end
+		local now = os.clock()
+		if now - (lastRide[player] or 0) < UpgradeConfig.RIDE_SHOT.COOLDOWN then
+			return
+		end
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local d = Dragons.equippedDragons(player)[1]
+		if not root or not d then
+			return
+		end
+		lastRide[player] = now
+		local from = (root :: BasePart).Position + Vector3.new(0, 3, 0)
+		local dir = aim - from
+		if dir.Magnitude < 1 then
+			return
+		end
+		local to = from + dir.Unit * math.min(dir.Magnitude, UpgradeConfig.RIDE_SHOT.RANGE)
+		local travel = (to - from).Magnitude / UpgradeConfig.RIDE_SHOT.SPEED
+		local crit = math.random() < (d.crit or 0.05)
+		local damage = DragonConfig.attack(d) * UpgradeConfig.RIDE_SHOT.DAMAGE_MULT * (if crit then 2 else 1)
+		fxEvent:FireAllClients("rideShot", from, to, d.element, travel, player.UserId)
+		task.delay(travel, function()
+			local n = hitAround(player, to, UpgradeConfig.RIDE_SHOT.RADIUS, damage, function(enemy)
+				if d.element == "Gelo" then
+					enemy.slowUntil = os.clock() + 2
+				elseif d.element == "Roccia" or d.element == "Ossa" then
+					enemy.stunUntil = os.clock() + 0.6
+				end
+			end)
+			if n > 0 then
+				Upgrades.addStat(player, "AirHits", n)
+			end
+		end)
+	end)
 	Players.PlayerRemoving:Connect(function(player)
+		lastRide[player] = nil
 		lastThrow[player] = nil
 		lastHit[player] = nil
 		for _, enemy in enemies do

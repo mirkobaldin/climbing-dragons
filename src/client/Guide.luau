@@ -162,7 +162,10 @@ function Guide.start()
 		local sp, onScreen = camera:WorldToViewportPoint(home + Vector3.new(0, 14, 0))
 		local vp = camera.ViewportSize
 		local inside = onScreen and sp.X > 0 and sp.X < vp.X and sp.Y > 0 and sp.Y < vp.Y
-		edge.Visible = dist > 40 and not inside
+		-- con un menu aperto la freccia finiva sopra la finestra
+		local menu = player.PlayerGui:FindFirstChild("MainMenu")
+		local menuOpen = menu ~= nil and menu:GetAttribute("MenuOpen") == true
+		edge.Visible = dist > 40 and not inside and not menuOpen
 		if edge.Visible then
 			-- direzione della casa rispetto alla camera, portata sul bordo dello schermo
 			local rel = camera.CFrame:PointToObjectSpace(home)

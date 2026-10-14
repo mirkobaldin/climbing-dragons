@@ -100,9 +100,9 @@ local function onTop(island: Model, x: number, z: number): CFrame?
 	return CFrame.new(hit.Position) * CFrame.Angles(0, math.random() * math.pi * 2, 0)
 end
 
-local SIZES = { IsolaPiccola = 14, IsolaMedia = 24, IsolaGrande = 38 }
+local SIZES = { IsolaPiccola = 14, IsolaMedia = 24, IsolaGrande = 38, IsolaTerreno = 38 }
 
-local function island(rng: Random, parent: Instance, at: Vector3, kind: string, scale: number, theme: string): Model?
+local function island(rng: Random, parent: Instance, at: Vector3, kind: string, scale: number, theme: string, bare: boolean?): Model?
 	local R = SIZES[kind] * scale
 	if not free(at, R, R * 1.3) then
 		return nil
@@ -111,10 +111,12 @@ local function island(rng: Random, parent: Instance, at: Vector3, kind: string, 
 	if not m then
 		return nil
 	end
-	-- sopra: i cristalli dell'elemento, o (sulla montagna) padiglione, torii e lanterne
+	-- sopra: i cristalli dell'elemento, o (sulla montagna) padiglione e lanterne. Niente torii:
+	-- Mirko non vuole i "pali giapponesi" in mezzo alle isole. Le isole dei terreni (bare) restano
+	-- vuote: in mezzo ci va la casa
 	local crystals = if theme == "Cielo" then {} else crystalModels(theme)
-	local props = { "Padiglione", "Torii", "LanternaPietra", "LanternaPietra" }
-	local n = if kind == "IsolaGrande" then 4 elseif kind == "IsolaMedia" then 3 else 1
+	local props = { "Padiglione", "LanternaPietra", "LanternaPietra" }
+	local n = if bare then 0 elseif kind == "IsolaGrande" then 4 elseif kind == "IsolaMedia" then 3 else 1
 	if #crystals > 0 then
 		n += 2
 	end
@@ -132,8 +134,8 @@ local function island(rng: Random, parent: Instance, at: Vector3, kind: string, 
 				used += 1
 			else
 				local name = props[rng:NextInteger(1, #props)]
-				-- il padiglione e il torii solo sulle isole grandi
-				if (name == "Padiglione" or name == "Torii") and kind == "IsolaPiccola" then
+				-- il padiglione solo sulle isole grandi
+				if name == "Padiglione" and kind == "IsolaPiccola" then
 					name = "LanternaPietra"
 				end
 				if place(name, m, cf) then
@@ -169,31 +171,69 @@ function Isole.skyPlots(): string
 	if old then
 		old:Destroy()
 	end
-	local markers = workspace:FindFirstChild("MapMarkers")
-	local hub = markers and markers:FindFirstChild("HubSpawn")
-	if not hub or not hub:IsA("BasePart") or not kit("IsolaGrande") then
-		return "[Isole] manca HubSpawn o BorghiKit.IsolaGrande"
+	-- IsolaTerreno: come la grande ma senza massi sopra (spuntavano dalla pedana) e piu' piatta
+	local KIND = if kit("IsolaTerreno") then "IsolaTerreno" else "IsolaGrande"
+	if not kit(KIND) then
+		return "[Isole] manca BorghiKit.IsolaGrande"
 	end
+	-- Mirko: non alla base della montagna ma "un attimo piu' in alto" degli Chalet. Si parte dai
+	-- terreni degli Chalet (Level 3, sui costoni) e si va verso fuori dalla montagna, 170-260
+	-- studs piu' in alto, dove c'e' aria libera per un'isola grande (casa, pedana e recinto)
+	local MOUNT = Vector3.new(1300, 0, 0) -- centro della montagna (Config.MOUNTAIN)
+	local chalets = {}
+	for _, p in game:GetService("CollectionService"):GetTagged("Plot") do
+		if p:IsA("Model") and p:GetAttribute("Level") == 3 then
+			table.insert(chalets, p:GetPivot().Position)
+		end
+	end
+	if #chalets == 0 then
+		return "[Isole] nessun terreno degli Chalet (Level 3): rigenera la mappa"
+	end
+	table.sort(chalets, function(a, b)
+		return a.X + a.Z * 0.001 < b.X + b.Z * 0.001
+	end)
 	local folder = Instance.new("Folder")
 	folder.Name = "TerreniCielo"
 	folder.Parent = root
 	local rng = Random.new(20261014)
 	local made = 0
-	for k = 0, 11 do
+	local SCALE = 4.6 -- isola grande: ci stanno il Mega Chalet in scala 5, la pedana e il recinto
+	local used: { Vector3 } = {}
+	for _, base in chalets do
 		if made >= 4 then
 			break
 		end
-		local a = k / 12 * math.pi * 2 + rng:NextNumber(-0.2, 0.2)
-		local d = rng:NextNumber(420, 640)
-		local p = hub.Position + Vector3.new(math.cos(a) * d, 0, math.sin(a) * d)
-		local ground = workspace:Raycast(p + Vector3.new(0, 2000, 0), Vector3.new(0, -4000, 0), terrainOnly)
-		local at = Vector3.new(p.X, (if ground then ground.Position.Y else hub.Position.Y) + rng:NextNumber(230, 300), p.Z)
-		local isl = island(rng, folder, at, "IsolaGrande", 3.2, "Cielo")
+		local out = Vector3.new(base.X - MOUNT.X, 0, base.Z - MOUNT.Z)
+		out = if out.Magnitude > 1 then out.Unit else Vector3.xAxis
+		local isl: Model? = nil
+		local at = base
+		-- (la roccia sotto e' profonda ~225 studs: sotto serve aria per almeno 280)
+		for _, try in { { 320, 200 }, { 420, 220 }, { 520, 240 }, { 620, 220 }, { 720, 260 }, { 820, 240 } } do
+			local side = Vector3.new(-out.Z, 0, out.X) * rng:NextNumber(-80, 80)
+			local p = base + out * try[1] + side
+			local ground = workspace:Raycast(Vector3.new(p.X, 5200, p.Z), Vector3.new(0, -6000, 0), terrainOnly)
+			local gy = if ground then ground.Position.Y else 0
+			at = Vector3.new(p.X, math.max(base.Y + try[2], gy + 290), p.Z)
+			local near = false
+			for _, u in used do
+				if (u - at).Magnitude < 38 * SCALE * 2.6 then
+					near = true
+				end
+			end
+			if not near then
+				isl = island(rng, folder, at, KIND, SCALE, "Cielo", true)
+				if isl then
+					break
+				end
+			end
+			task.wait()
+		end
 		if isl then
-			-- il terreno al centro della cima, con l'ingresso (-Z) verso il campo base
+			table.insert(used, at)
+			-- il terreno al centro della cima, con l'ingresso (-Z) verso la montagna (si arriva da li')
 			local top = onTop(isl, 0, 0)
 			if top then
-				local toHub = Vector3.new(hub.Position.X - at.X, 0, hub.Position.Z - at.Z).Unit
+				local toHub = Vector3.new(MOUNT.X - at.X, 0, MOUNT.Z - at.Z).Unit
 				local cf = CFrame.lookAt(top.Position, top.Position + toHub)
 				local plot = Instance.new("Model")
 				plot.Name = "TerrenoCielo" .. (made + 1)
@@ -210,8 +250,18 @@ function Isole.skyPlots(): string
 					b.Parent = plot
 					return b
 				end
-				local post = block(Vector3.new(0.6, 5, 0.6), cf * CFrame.new(38, 2.5, -52), "PlotPost")
-				local board = block(Vector3.new(6, 3, 0.3), cf * CFrame.new(38, 5, -52.2), "PlotSign")
+				-- cartello davanti all'angolo della pedana (il Mega Chalet in scala 5 e' largo ~125 studs:
+				-- a (38, -52) finiva dentro la casa), appoggiato sul prato dell'isola
+				local signCf = cf * CFrame.new(58, 0, -96)
+				local params = RaycastParams.new()
+				params.FilterType = Enum.RaycastFilterType.Include
+				params.FilterDescendantsInstances = { isl }
+				local hitSign = workspace:Raycast(signCf.Position + Vector3.new(0, 40, 0), Vector3.new(0, -90, 0), params)
+				if hitSign then
+					signCf = CFrame.new(hitSign.Position) * cf.Rotation
+				end
+				local post = block(Vector3.new(0.6, 5, 0.6), signCf * CFrame.new(0, 2.5, 0), "PlotPost")
+				local board = block(Vector3.new(6, 3, 0.3), signCf * CFrame.new(0, 5, -0.2), "PlotSign")
 				local gui = Instance.new("SurfaceGui")
 				gui.Face = Enum.NormalId.Front
 				gui.PixelsPerStud = 40

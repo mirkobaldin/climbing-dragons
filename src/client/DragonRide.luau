@@ -4,6 +4,9 @@
 --   WASD / joystick   avanti, indietro, di lato
 --   Spazio / Ctrl     su / giu' (sul telefono si sale e scende guardando in alto o in basso)
 --   Shift             piu' veloce
+--   click / F         il drago spara la palla del suo elemento dove miri (server/Enemies
+--                     RideAttack); Z resta l'attacco speciale. In groppa niente attrezzi
+--                     (il rampino tirava giu' il drago)
 -- Il tuo personaggio e' seduto e lo spinge una LinearVelocity; il drago lo mette sotto di te
 -- PetAnimator (attributo "Riding", lo vedono tutti).
 
@@ -53,6 +56,9 @@ local function cleanup()
 	riding = false
 	ClientState.riding = false
 	ClientState.noFallUntil = os.clock() + 2
+	pcall(function()
+		game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, true)
+	end)
 end
 
 local function mount()
@@ -65,6 +71,11 @@ local function mount()
 	Climbing.release()
 	riding = true
 	ClientState.riding = true
+	-- attrezzi riposti e barra nascosta: il click ora e' il colpo del drago
+	humanoid:UnequipTools()
+	pcall(function()
+		game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
+	end)
 	humanoid.PlatformStand = true
 	humanoid.AutoRotate = false
 	local a = Instance.new("Attachment")
@@ -101,6 +112,37 @@ local function mount()
 		end
 	end
 	Sfx.play("Ruggito", root.Position, 0.8)
+end
+
+-- colpo del drago: punto mirato col mouse (sul telefono il centro dello schermo), escluso te e
+-- i tuoi draghi
+local lastShot = 0
+local function shoot(screenPos: Vector2?)
+	if not riding or os.clock() - lastShot < 0.35 then
+		return
+	end
+	lastShot = os.clock()
+	local camera = workspace.CurrentCamera
+	local at = screenPos or Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+	local ray = camera:ViewportPointToRay(at.X, at.Y)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local skip: { Instance } = {}
+	if player.Character then
+		table.insert(skip, player.Character)
+	end
+	local pets = workspace:FindFirstChild("Pets")
+	local mine = pets and pets:FindFirstChild(tostring(player.UserId))
+	if mine then
+		table.insert(skip, mine)
+	end
+	params.FilterDescendantsInstances = skip
+	local hit = workspace:Raycast(ray.Origin, ray.Direction * 400, params)
+	local aim = if hit then hit.Position else ray.Origin + ray.Direction * 260
+	local r = ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("RideAttack") :: RemoteEvent?
+	if r then
+		r:FireServer(aim)
+	end
 end
 
 local function toggle()
@@ -142,6 +184,17 @@ function DragonRide.start()
 		end
 		return Enum.ContextActionResult.Pass
 	end, false, Enum.KeyCode.H)
+	-- colpo del drago: click sinistro o F (pad: R2)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if not riding or processed then
+			return
+		end
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			shoot(Vector2.new(input.Position.X, input.Position.Y))
+		elseif input.KeyCode == Enum.KeyCode.F or input.KeyCode == Enum.KeyCode.ButtonR2 then
+			shoot(nil)
+		end
+	end)
 
 	-- pulsante (telefono e computer): compare con un drago adulto al seguito e la sella
 	local gui = Instance.new("ScreenGui")
@@ -167,8 +220,20 @@ function DragonRide.start()
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = Color3.fromRGB(255, 196, 80)
 	stroke.Thickness = 2
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- sul bordo, non sulle lettere (sembravano sfocate)
 	stroke.Parent = btn
 	btn.Activated:Connect(toggle)
+	-- sul telefono: pulsante del colpo (sopra quello per scendere)
+	local fire = btn:Clone()
+	fire.Name = "Fire"
+	fire.Text = "Fire"
+	fire.TextColor3 = Color3.fromRGB(255, 160, 110)
+	fire.Position = btn.Position - UDim2.fromOffset(0, 52)
+	fire.Visible = false
+	fire.Parent = gui
+	fire.Activated:Connect(function()
+		shoot(nil)
+	end)
 
 	local r = remote()
 	if r then
@@ -198,6 +263,7 @@ function DragonRide.start()
 			local can = player:GetAttribute("Gear_Sella") == true and adultFollowing() and not ClientState.dragonMode
 			btn.Visible = can
 			btn.Text = if player:GetAttribute("Riding") then "Land (H)" else (if UserInputService.TouchEnabled then "Ride" else "Ride (H)")
+			fire.Visible = riding and UserInputService.TouchEnabled
 		end
 		if not riding or not mover then
 			return

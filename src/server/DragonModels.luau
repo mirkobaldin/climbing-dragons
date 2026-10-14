@@ -17,6 +17,34 @@ local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 
 local DragonModels = {}
 
+-- Dove si siede chi monta un drago adulto (attributo "Seat", spazio del perno del modello): sulle
+-- spalle subito dietro la base del collo (Mirko: "attaccalo direttamente al collo", niente sella).
+-- Lo scheletro lo riconosce MapGen.AnimDraghi (anca, petto, collo); per i draghi senza ossa
+-- giuste resta il vecchio posto sopra il centro (client/PetAnimator).
+local SEAT_BACK, SEAT_UP = 0.05, 0.075 -- frazioni della lunghezza del drago
+local analyzer: any = false
+local function seatOf(model: Model): Vector3?
+	if analyzer == false then
+		local mapgen = ServerStorage:FindFirstChild("MapGen")
+		local mod = mapgen and mapgen:FindFirstChild("AnimDraghi")
+		local ok, m = pcall(function()
+			return require(mod :: ModuleScript)
+		end)
+		analyzer = if ok then m else nil
+	end
+	if not analyzer then
+		return nil
+	end
+	local ok, sk = pcall(analyzer.analizza, model)
+	if not ok or not sk or not sk.neck or not sk.neck[1] then
+		return nil
+	end
+	local _, size = model:GetBoundingBox()
+	local ext = math.max(size.X, size.Y, size.Z)
+	local p = sk.neck[1].WorldPosition - sk.fwd * ext * SEAT_BACK + Vector3.yAxis * ext * SEAT_UP
+	return model:GetPivot():PointToObjectSpace(p)
+end
+
 type Template = { model: Model, element: string?, name: string? }
 
 local EGG_WORDS = { "egg", "uovo", "uova" }
@@ -473,6 +501,9 @@ function DragonModels.dragon(elementId: string, rarityId: string, stage: number,
 	model:SetAttribute("Element", element.id)
 	model:SetAttribute("Rarity", rarity.id)
 	model:SetAttribute("Stage", stage)
+	if stage >= #DragonConfig.STAGES then
+		model:SetAttribute("Seat", seatOf(model))
+	end
 	return model
 end
 

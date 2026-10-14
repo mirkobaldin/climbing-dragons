@@ -42,7 +42,12 @@ export type Flyer = {
 	grounded: boolean, -- posato a terra: prende piu' danni
 	lastHitAct: number,
 	lastActAt: number, -- ultimo gesto (ruggito, soffio...): "colpito" non lo interrompe
+	duel: Duel?, -- rivale del Duello dei draghi (server/Training): resta nell'arena
 }
+
+-- Duello dei draghi nell'arena: il rivale gira attorno al centro e ogni tanto attacca il drago
+-- dello sfidante (attack lo decide Training); quando muore chiama dead al posto dei premi soliti
+export type Duel = { player: Player, center: Vector3, radius: number, height: number, every: number, attack: (any) -> (), dead: (any) -> () }
 
 local list: { Flyer } = {}
 local folder: Folder
@@ -369,7 +374,32 @@ local function perch(f: Flyer)
 	wait(f, 4)
 end
 
+-- rivale del duello: giri nell'arena, ogni "every" secondi si ferma e attacca
+local function duelBrain(f: Flyer)
+	local d = f.duel :: Duel
+	while not f.dead do
+		orbit(f, d.center, d.radius, d.height, if math.random() < 0.5 then 0.55 else -0.55)
+		if not wait(f, d.every * (0.7 + math.random() * 0.6)) then
+			return
+		end
+		act(f, if math.random() < 0.3 then "Roar" else "Breath")
+		if not wait(f, 0.5) then
+			return
+		end
+		local ok, err = pcall(d.attack, f)
+		if not ok then
+			warn("[Duello] " .. tostring(err))
+		end
+		if not wait(f, 0.8) then
+			return
+		end
+	end
+end
+
 local function brain(f: Flyer)
+	if f.duel then
+		return duelBrain(f)
+	end
 	while not f.dead do
 		if f.ends and os.clock() > (f.ends :: number) then
 			-- il drago selvatico se ne va
@@ -424,6 +454,17 @@ local function die(f: Flyer)
 	f.dead = true
 	local at = Flyers.position(f)
 	fxEvent:FireAllClients("flyerDeath", f.model)
+	if f.duel then
+		local idx = table.find(list, f)
+		if idx then
+			table.remove(list, idx)
+		end
+		task.delay(3, function()
+			f.model:Destroy()
+		end)
+		f.duel.dead(f)
+		return
+	end
 	local total = 0
 	for _, d in f.damagedBy do
 		total += d
@@ -437,7 +478,12 @@ local function die(f: Flyer)
 			end
 			Upgrades.addStat(player, "BossKills")
 			Upgrades.addStat(player, "Kills")
-			notice(player, string.format("%s defeated! +%d coins", f.def.name, math.floor(f.def.coins * share + 0.5)))
+			-- pietre dell'evoluzione: 2 dal Guardiano, 1 dal drago selvatico (a chi ha fatto almeno il 15%)
+			local stones = if share >= 0.15 then (if f.guardian then 2 else 1) else 0
+			if stones > 0 then
+				Dragons.addStones(player, stones)
+			end
+			notice(player, string.format("%s defeated! +%d coins%s", f.def.name, math.floor(f.def.coins * share + 0.5), if stones > 0 then string.format(" · +%d evolution stone%s", stones, if stones > 1 then "s" else "") else ""))
 		end
 	end
 	-- lascia un uovo raro dove cade
@@ -481,7 +527,7 @@ function Flyers.damage(f: Flyer, player: Player?, amount: number)
 	end
 end
 
-local function spawn(def: UpgradeConfig.Flyer, home: Vector3, guardian: boolean, seconds: number?): Flyer?
+local function spawn(def: UpgradeConfig.Flyer, home: Vector3, guardian: boolean, seconds: number?, duel: Duel?): Flyer?
 	local ok, model = pcall(DragonModels.dragon, def.element, "Leggendario", 3, 30)
 	if not ok or not model then
 		return nil
@@ -561,9 +607,12 @@ local function spawn(def: UpgradeConfig.Flyer, home: Vector3, guardian: boolean,
 		grounded = false,
 		lastHitAct = 0,
 		lastActAt = 0,
+		duel = duel,
 	}
 	-- primo pezzo: il Guardiano posato, il selvatico in arrivo dall'alto
-	local start = if guardian then home + Vector3.new(0, hitRadius * 0.55, 0) else above(home + Vector3.new(-250, 160, 0), CLEAR + 60)
+	local start = if duel then home + Vector3.new(duel.radius, duel.height + 10, 0)
+		elseif guardian then home + Vector3.new(0, hitRadius * 0.55, 0)
+		else above(home + Vector3.new(-250, 160, 0), CLEAR + 60)
 	setSeg(f, "hold", 0, if guardian then "Idle" else "Fly", { P0 = start, Look = home, Bob = 0 })
 	m:PivotTo(FlyerPath.fromModel(m, now()))
 	m.Parent = folder
@@ -579,6 +628,35 @@ function Flyers.spawnWild(center: Vector3): Flyer?
 	local def = table.clone(UpgradeConfig.WILD_DRAGON)
 	def.element = WILD[math.random(1, #WILD)]
 	return spawn(def, center, false, UpgradeConfig.EVENTS.RAID_SECONDS)
+end
+
+-- rivale del Duello dei draghi (server/Training)
+function Flyers.spawnDuel(def: UpgradeConfig.Flyer, duel: Duel): Flyer?
+	local f = spawn(def, duel.center, false, nil, duel)
+	if f then
+		f.model:SetAttribute("DuelOwner", duel.player.UserId)
+	end
+	return f
+end
+
+-- da dove sputa (per le palle del duello)
+function Flyers.mouth(f: Flyer): Vector3
+	return mouthPos(f)
+end
+
+function Flyers.remove(f: Flyer)
+	if f.dead then
+		return
+	end
+	f.dead = true
+	fxEvent:FireAllClients("flyerLeave", f.model)
+	local idx = table.find(list, f)
+	if idx then
+		table.remove(list, idx)
+	end
+	task.delay(2, function()
+		f.model:Destroy()
+	end)
 end
 
 function Flyers.spawnGuardian()

@@ -1358,9 +1358,12 @@ def rock_lump(b, center, r, seed, mat="ROCK", squash=0.7):
     b.face_list(mat, verts, faces)
 
 
-def isola(name, R, seed):
+def isola(name, R, seed, lumps=True, dome=0.06):
     """Isola volante: cima di prato irregolare, roccia sotto a cono rovesciato con le punte,
-    massi sopra. R = raggio della cima. In Roblox roccia e prato usano i materiali di Roblox."""
+    massi sopra (lumps). R = raggio della cima. In Roblox roccia e prato usano i materiali di Roblox.
+    Mirko (2026-10-13): "si vede il vuoto dentro". La roccia era un guscio aperto in cima col bordo
+    piu' largo del prato in certi punti: ora il bordo sta sotto il prato (96%, senza scosse) e un
+    tappo di roccia chiude il cono. Senza massi (lumps=False) per le isole dei terreni."""
     import random
     rnd = random.Random(seed)
     b = Builder(name)
@@ -1376,35 +1379,40 @@ def isola(name, R, seed):
     rows = []
     for i in range(6):
         s = 1.0 - i / 5
-        rows.append([edge(k, s, R * 0.06 * (1 - s * s) + 0.3) for k in range(nseg + 1)])
+        rows.append([edge(k, s, R * dome * (1 - s * s) + 0.3) for k in range(nseg + 1)])
     rows = [r for r in reversed(rows)]
     top = []
     for i in range(6):
         s = i / 5
-        top.append([(x * 1.0, y * 1.0, z) for (x, y, z) in [edge(k, max(s, 0.001), R * 0.06 * (1 - s * s) + 0.3) for k in range(nseg + 1)]])
+        top.append([(x * 1.0, y * 1.0, z) for (x, y, z) in [edge(k, max(s, 0.001), R * dome * (1 - s * s) + 0.3) for k in range(nseg + 1)]])
     b.shell("GRASS", top, 0.6)
     # roccia sotto: anelli che si stringono verso il basso, con qualche punta
     rows = []
     depth = R * 1.25
     for i in range(9):
         t = i / 8
-        s = (1 - t) ** 1.25 * 1.02
-        z = -depth * t
+        s = (1 - t) ** 1.25 * 0.96
+        z = -depth * t - 0.25
         row = []
         for k in range(nseg + 1):
-            jit = 1 + (rnd.random() - 0.5) * 0.18 * (1 - t)
+            # il bordo in cima (i = 0) senza scosse: resta tutto sotto il prato
+            jit = 1 + (rnd.random() - 0.5) * 0.18 * (1 - t) * (0 if i == 0 else 1)
             x, y, _ = edge(k, max(s * jit, 0.02), z)
-            row.append((x, y, z + (rnd.random() - 0.5) * R * 0.04))
+            row.append((x, y, z + (0 if i == 0 else (rnd.random() - 0.5) * R * 0.04)))
         rows.append(row)
     b.shell("ROCK", rows, 1.2)
+    # tappo: chiude il cono sotto il prato (da sotto o di sbieco non si vede piu' il vuoto)
+    b.poly("ROCK", [p for p in rows[0][:-1]], thick=0.8)
     for k in range(5):
         a = rnd.random() * math.tau
         rr = R * (0.2 + rnd.random() * 0.45)
         L = R * (0.3 + rnd.random() * 0.35)
         z0 = -depth * (0.35 + rnd.random() * 0.25)
+        # la punta parte da dentro il cono (prima alcune stavano fuori, staccate dall'isola)
+        rr = min(rr, R * 0.96 * (1 + z0 / depth) ** 1.25 * 0.7)
         crystal(b, (math.cos(a) * rr, math.sin(a) * rr, z0 + L * 0.2), (0, 0, -1), L, R * 0.09, mat="ROCK", sides=6)
     # qualche masso sopra (niente alberelli: Mirko non li vuole)
-    for k in range(int(R / 4) + 2):
+    for k in range(int(R / 4) + 2 if lumps else 0):
         a = rnd.random() * math.tau
         rr = R * rnd.random() * 0.7
         rock_lump(b, (math.cos(a) * rr, math.sin(a) * rr, 0.7), 0.8 + rnd.random() * 1.4, seed * 10 + k, squash=0.6)
@@ -1452,6 +1460,8 @@ MODELS.update({
     "IsolaPiccola": lambda: isola("IsolaPiccola", 14, 3),
     "IsolaMedia": lambda: isola("IsolaMedia", 24, 7),
     "IsolaGrande": lambda: isola("IsolaGrande", 38, 11),
+    # isola dei terreni del Mega Chalet: niente massi (spuntavano dalla pedana), cupola piu' bassa
+    "IsolaTerreno": lambda: isola("IsolaTerreno", 38, 11, lumps=False, dome=0.025),
     "NuvolaA": lambda: nuvola("NuvolaA", 1, 26),
     "NuvolaB": lambda: nuvola("NuvolaB", 2, 40),
     "NuvolaC": lambda: nuvola("NuvolaC", 3, 18),

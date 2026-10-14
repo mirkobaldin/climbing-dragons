@@ -9,13 +9,17 @@
 --                 (TARGET_XP). Il client manda ("shoot", origine, direzione), il server controlla
 --   * TARGET RUSH sfida di RUSH_SECONDS: si accende un cristallo dorato alla volta, colpiscilo
 --                 prima che cambi (RUSH_XP). Classifica del server sul tabellone
+--   * DUELLO      Duello dei draghi (altare rosso): tre round contro draghi rivali (server/Flyers
+--                 spawnDuel) che girano nell'arena e sputano palle al tuo drago. Spari come ai
+--                 cristalli, Spazio = schivata. Vinci: pietre dell'evoluzione, monete, XP e il
+--                 grado sale (DuelTier, salvato con le statistiche). DragonConfig.DUEL
 --   * BANCARELLA  pass "Training XP x2" e boost "x3 per 15 minuti" a Robux
 -- L'XP e' moltiplicata dal pass TrainingX2, dal boost (attributo TrainingBoostUntil) e da
 -- Roblox Premium (l'attributo TrainingMult la mostra al client).
 -- Gli effetti li fa ogni client (client/TrainingFX) con l'evento "TrainingFX":
 --   ("hit", userId, punto, elemento, xp) · ("level", userId, dragonId, livello)
 --   · ("evolve", userId, dragonId) · ("hint", 0, testo) · ("rush", 0, cristallo, secondi, punti)
---   · ("rushEnd", 0, punti, record)
+--   · ("rushEnd", 0, punti, record) · ("duel", 0, stato) (barra del duello sul client)
 
 local CollectionService = game:GetService("CollectionService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -25,6 +29,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 local ShopConfig = require(ReplicatedStorage.Shared.ShopConfig)
 local Dragons = require(script.Parent.Dragons)
+local Economy = require(script.Parent.Economy)
+local Flyers = require(script.Parent.Flyers)
+local Upgrades = require(script.Parent.Upgrades)
 
 local Training = {}
 
@@ -346,6 +353,41 @@ local function buildRushAltar(parent: Instance, at: Vector3, center: Vector3): (
 	return orb, label
 end
 
+-- Altare del Duello dei draghi: pietra scura con una sfera rossa che arde
+local function buildDuelAltar(parent: Instance, at: Vector3, center: Vector3): Part
+	local look = CFrame.lookAt(at, Vector3.new(center.X, at.Y, center.Z))
+	part(parent, "AltareDuello", Vector3.new(4, 3, 4), look * CFrame.new(0, 1.5, 0), DARK, Enum.Material.Basalt)
+	local RED = Color3.fromRGB(255, 80, 50)
+	local orb = deco(part(parent, "SferaDuello", Vector3.one * 2.4, look * CFrame.new(0, 4.5, 0), RED, Enum.Material.Neon, Enum.PartType.Ball))
+	orb.CanQuery = true
+	local light = Instance.new("PointLight")
+	light.Color = RED
+	light.Range = 14
+	light.Brightness = 2
+	light.Parent = orb
+	local fire = Instance.new("Fire")
+	fire.Size = 3
+	fire.Heat = 6
+	fire.Color = RED
+	fire.SecondaryColor = Color3.fromRGB(255, 200, 80)
+	fire.Parent = orb
+	-- cartello sopra
+	local sign = deco(part(parent, "CartelloDuello", Vector3.new(7, 2, 0.3), look * CFrame.new(0, 7.6, 0), WOOD, Enum.Material.Wood))
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Back
+	gui.PixelsPerStud = 40
+	gui.Parent = sign
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamBlack
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromRGB(255, 200, 150)
+	label.Text = "DRAGON DUEL"
+	label.Parent = gui
+	return orb
+end
+
 -- Bancarella dei boost (a Robux)
 local function buildStall(parent: Instance, at: Vector3, center: Vector3): (Part, Part)
 	local look = CFrame.lookAt(at, Vector3.new(center.X, at.Y, center.Z))
@@ -498,6 +540,7 @@ function Training.setup()
 		local arc = 14 / math.max(outR, 1) -- 14 studs di lato
 		buildSign(folder, around(arc * 2.2, outR + 16), center)
 		local orb, board = buildRushAltar(folder, around(-arc, outR + 9), center)
+		local duelOrb = buildDuelAltar(folder, around(-arc * 2.6, outR + 9), center)
 		local x2, x3 = buildStall(folder, around(arc, outR + 9), center)
 		-- portale d'ingresso (il modello di Mirko in ServerStorage.Modelli.PortaleArena), con la
 		-- scalinata rivolta verso la piana
@@ -605,6 +648,180 @@ function Training.setup()
 		end
 		prompt(orb, "Start Target Rush", string.format("%d s challenge", T.RUSH_SECONDS), 12).Triggered:Connect(startRush)
 
+		-- Duello dei draghi: prenotato all'altare, parte quando entri nel cerchio (come la sfida)
+		local D = DragonConfig.DUEL
+		local WILD = { "Gelo", "Cosmico", "Tempesta", "Fulmine", "Ossa", "Gas", "Roccia", "Eclissi" }
+		local enemyFx = ReplicatedStorage.Remotes:WaitForChild("EnemyFX") :: RemoteEvent
+		type Duel = { armed: boolean, ends: number, round: number, tier: number, hp: number, maxHp: number, rival: any?, rivalMax: number, lastDodge: number, nextRound: number?, element: string }
+		local duels: { [Player]: Duel } = {}
+		local lastDuel: { [Player]: number } = {}
+		local function duelState(player: Player, du: Duel, state: string, extra: string?)
+			local rival = du.rival
+			fx:FireClient(player, "duel", 0, {
+				state = state,
+				round = du.round,
+				rounds = D.ROUNDS,
+				tier = du.tier,
+				hp = du.hp,
+				maxHp = du.maxHp,
+				rivalHp = if rival then math.max(0, rival.health) else 0,
+				rivalMax = du.rivalMax,
+				name = D.NAMES[math.clamp(du.round, 1, #D.NAMES)],
+				text = extra,
+			})
+		end
+		local function endDuel(player: Player, won: boolean, why: string?)
+			local du = duels[player]
+			if not du then
+				return
+			end
+			duels[player] = nil
+			lastDuel[player] = os.clock()
+			if du.rival and not du.rival.dead then
+				Flyers.remove(du.rival)
+			end
+			if won then
+				local tier = du.tier
+				local stones = D.STONES + (if tier >= 3 then 1 else 0) + (if tier >= 6 then 1 else 0)
+				Dragons.addStones(player, stones)
+				Economy.addCoins(player, D.COINS * tier)
+				for _, d in Dragons.equippedDragons(player) do
+					give(player, d, D.XP * tier)
+				end
+				player:SetAttribute("DuelTier", tier + 1)
+				duelState(player, du, "won", string.format("+%d evolution stone%s · +%d coins · next: tier %d", stones, if stones > 1 then "s" else "", D.COINS * tier, tier + 1))
+			else
+				duelState(player, du, "lost", why or "Your dragon was defeated")
+			end
+		end
+		local function startRound(player: Player, du: Duel)
+			du.round += 1
+			du.nextRound = nil
+			local list = Dragons.equippedDragons(player)
+			local d = list[1]
+			if not d then
+				endDuel(player, false, "You need a dragon following you")
+				return
+			end
+			local k = math.clamp(du.round, 1, D.ROUNDS)
+			local tierK = 1 + D.TIER_HP * (du.tier - 1)
+			du.element = WILD[math.random(1, #WILD)]
+			du.rivalMax = math.floor(DragonConfig.attack(d) * D.HITS[k] * tierK + 0.5)
+			local def = {
+				name = D.NAMES[k] .. (if du.tier > 1 then " · Tier " .. du.tier else ""),
+				element = du.element,
+				health = du.rivalMax,
+				damage = 0,
+				radius = D.RIVAL_ORBIT,
+				height = 24,
+				speed = 0.55,
+				coins = 0,
+				xp = 0,
+				scale = D.SCALE[k],
+			}
+			local center0 = center
+			du.rival = Flyers.spawnDuel(def :: any, {
+				player = player,
+				center = center0,
+				radius = D.RIVAL_ORBIT,
+				height = 24,
+				every = D.EVERY[k],
+				attack = function(f: any)
+					if duels[player] ~= du or f.dead then
+						return
+					end
+					-- palla verso dove sara' il tuo drago quando arriva (stessa formula del client)
+					local travel = 1.1
+					local fired = os.clock()
+					local aim = DragonConfig.arenaDragonAt(center0, workspace:GetServerTimeNow() + travel)
+					enemyFx:FireAllClients("fireball", Flyers.mouth(f), aim, du.element, travel)
+					task.delay(travel, function()
+						if duels[player] ~= du or f.dead then
+							return
+						end
+						if du.lastDodge > fired - 0.25 and du.lastDodge < fired + travel then
+							duelState(player, du, "dodge")
+							return
+						end
+						du.hp = math.max(0, du.hp - du.maxHp / D.TAKES[k])
+						duelState(player, du, "hurt")
+						if du.hp <= 0 then
+							endDuel(player, false, "Your dragon was defeated in round " .. du.round)
+						end
+					end)
+				end,
+				dead = function()
+					if duels[player] ~= du then
+						return
+					end
+					du.rival = nil
+					if du.round >= D.ROUNDS then
+						endDuel(player, true)
+					else
+						du.nextRound = os.clock() + D.ROUND_PAUSE
+						duelState(player, du, "roundWon")
+					end
+				end,
+			})
+			if not du.rival then
+				endDuel(player, false, "No rival dragon available")
+				return
+			end
+			duelState(player, du, "round")
+		end
+		local function startDuel(player: Player)
+			if duels[player] then
+				return
+			end
+			local wait = D.COOLDOWN - (os.clock() - (lastDuel[player] or -math.huge))
+			if wait > 0 then
+				fx:FireClient(player, "hint", 0, string.format("Dragon Duel ready again in %d s", math.ceil(wait)))
+				return
+			end
+			local d = Dragons.equippedDragons(player)[1]
+			if not d then
+				fx:FireClient(player, "hint", 0, "You need a dragon following you to duel")
+				return
+			end
+			-- vita del tuo drago: cresce con lo stadio e il livello (solo per la barra: le palle del
+			-- rivale tolgono sempre maxHp / TAKES)
+			local maxHp = math.floor(100 * DragonConfig.STAGE_POWER[math.clamp(d.stage or 1, 1, 3)] * (1 + 0.01 * (d.level or 1)))
+			local tier = math.max(1, (player:GetAttribute("DuelTier") or 1) :: number)
+			duels[player] = { armed = true, ends = os.clock() + 60, round = 0, tier = tier, hp = maxHp, maxHp = maxHp, rival = nil, rivalMax = 1, lastDodge = 0, element = "Gelo" }
+			fx:FireClient(player, "hint", 0, string.format("Dragon Duel (tier %d) ready: step into the circle to start!", tier))
+		end
+		local duelPrompt = prompt(duelOrb, "Start Dragon Duel", "3 rounds", 12)
+		duelPrompt.Triggered:Connect(startDuel)
+		Players.PlayerRemoving:Connect(function(player)
+			local du = duels[player]
+			if du and du.rival then
+				Flyers.remove(du.rival)
+			end
+			duels[player] = nil
+			lastDuel[player] = nil
+		end)
+		task.spawn(function()
+			while true do
+				task.wait(0.2)
+				local now = os.clock()
+				for player, du in duels do
+					local inside = player:GetAttribute("Training") == true
+					if du.armed then
+						if inside then
+							du.armed = false
+							startRound(player, du)
+						elseif now >= du.ends then
+							duels[player] = nil -- non e' mai entrato
+						end
+					elseif not inside then
+						endDuel(player, false, "You left the arena")
+					elseif du.nextRound and now >= du.nextRound then
+						startRound(player, du)
+					end
+				end
+			end
+		end)
+
 		-- bancarella: pass e boost a Robux (ID in DragonConfig.GAMEPASSES e ShopConfig.DEV_PRODUCTS)
 		prompt(x2, "Training XP x2", "Game Pass", 10).Triggered:Connect(function(player)
 			local id = DragonConfig.GAMEPASSES.TrainingX2
@@ -630,6 +847,13 @@ function Training.setup()
 		local lastHit: { [Player]: number } = {}
 		local leftAt: { [Player]: number } = {}
 		fx.OnServerEvent:Connect(function(player: Player, action: any, origin: any, dir: any)
+			if action == "dodge" then
+				local du = duels[player]
+				if du and os.clock() - du.lastDodge >= D.DODGE_COOLDOWN then
+					du.lastDodge = os.clock()
+				end
+				return
+			end
 			if action == "leave" then
 				-- Q: fuori subito; per 2 secondi il cerchio non ti riprende
 				leftAt[player] = os.clock()
@@ -656,6 +880,28 @@ function Training.setup()
 			end
 			lastHit[player] = now
 			dir = dir.Unit
+			-- duello in corso: si spara solo al rivale (mira larga quanto il drago)
+			local du = duels[player]
+			if du and not du.armed then
+				local rival = du.rival
+				if rival and not rival.dead then
+					local rp = Flyers.position(rival)
+					local v = rp - origin
+					local tol = math.atan2(Flyers.hitRadius(rival), v.Magnitude) + math.rad(5)
+					if math.acos(math.clamp(v.Unit:Dot(dir), -1, 1)) < tol and v.Magnitude < 260 then
+						local d = list[1]
+						local crit = math.random() < (d.crit or 0.05)
+						Flyers.damage(rival, player, DragonConfig.attack(d) * (if crit then 2 else 1))
+						fx:FireClient(player, "hit", player.UserId, rp, d.element, 0)
+						if du.rival then
+							duelState(player, du, "hit")
+						end
+						return
+					end
+				end
+				fx:FireClient(player, "miss", 0, origin + dir * 90, list[1].element)
+				return
+			end
 			-- auto-mira: vale il cristallo piu' vicino al centro del mirino entro 12 gradi (prima
 			-- bisognava passare a 5 studs dal cristallo: quasi impossibile)
 			local best, bestAngle, bestPos = nil, math.rad(12), nil

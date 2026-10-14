@@ -8,6 +8,8 @@
 --   clip23  1 IQ vs 200 IQ: cade dalla parete e si schianta; poi la stessa caduta salvata dal rampino
 --   clip24  SHINY HATCH: l'uovo trema tre volte, lampo dorato, il cucciolo shiny ruggisce
 --   clip25  4000 m DESCENT: parapendio dalla vetta al campo base col cronometro
+--   clip26  FROM BABY TO BEAST: il giovane si evolve in adulto, ci sali sul collo, volo su borgo,
+--           cascate e isole, duello con un drago selvatico sopra la vetta
 
 local Debris = game:GetService("Debris")
 local Lighting = game:GetService("Lighting")
@@ -91,6 +93,14 @@ local function openSet(): Set
 	end
 	hideAll(me)
 	hideAll(workspace:FindFirstChild("Pets"))
+	hideAll(workspace:FindFirstChild("Volanti")) -- il Guardiano vero finiva nel duello della clip26
+	local bills = {}
+	for _, d in (if workspace:FindFirstChild("Volanti") then (workspace :: any).Volanti:GetDescendants() else {}) :: { Instance } do
+		if d:IsA("BillboardGui") and d.Enabled then
+			d.Enabled = false
+			table.insert(bills, d)
+		end
+	end
 	if root then
 		root.Anchored = true
 	end
@@ -120,6 +130,9 @@ local function openSet(): Set
 			end)
 			for _, p in hiddenParts do
 				p.LocalTransparencyModifier = 0
+			end
+			for _, d in bills do
+				d.Enabled = true
 			end
 			for _, e in blurred do
 				(e :: any).Enabled = true
@@ -249,11 +262,12 @@ local function dragon(m: Instance?): Dragon?
 	local set = saves and saves:FindFirstChild((m:GetAttribute("AnimKey") or "") :: string)
 	local tracks = {}
 	m:SetAttribute("AnimRange", 2000)
-	for _, name in { "Fly", "Glide", "Hover", "Dive", "Idle", "Walk", "Roar", "Breath", "Bite", "Hit" } do
+	local ONCE = { Roar = true, Breath = true, Bite = true, Hit = true, Takeoff = true, Land = true }
+	for _, name in { "Fly", "Glide", "Hover", "Dive", "Idle", "Walk", "Roar", "Breath", "Bite", "Hit", "BankL", "BankR", "Climb", "Descend", "Takeoff", "Land" } do
 		local k = set and set:FindFirstChild("Dragon_" .. name)
 		if k and k:IsA("KeyframeSequence") then
 			local tr = KfsPlayer.load(m, k)
-			tr.Looped = not (name == "Roar" or name == "Breath" or name == "Bite" or name == "Hit")
+			tr.Looped = not ONCE[name]
 			if tr.Looped then
 				tr:Play(0, 0.001)
 			end
@@ -720,8 +734,346 @@ local function clip25(set: Set, f: Instance)
 end
 
 ------------------------------------------------------------------------------------------
+-- clip26: FROM BABY TO BEAST
 
-local SCENES = { clip21 = clip21, clip22 = clip22, clip23 = clip23, clip24 = clip24, clip25 = clip25 }
+-- dove si siede chi monta (attributo Seat del server: sulle spalle dietro il collo)
+local function seatOf(m: Model): CFrame
+	local seat = m:GetAttribute("Seat")
+	local pivot = m:GetPivot()
+	if typeof(seat) == "Vector3" then
+		return pivot * CFrame.new(seat)
+	end
+	local cf, size = m:GetBoundingBox()
+	return CFrame.new(cf.Position + Vector3.new(0, size.Y * 0.3, 0)) * pivot.Rotation
+end
+
+local function mouthOf(m: Model): Vector3
+	local size = sizeOf(m)
+	return (m:GetPivot() * CFrame.new(0, size.Y * 0.18, -size.Z * 0.47)).Position
+end
+
+-- a cavalcioni: gambe in avanti ai lati del collo, braccia avanti a tenersi
+local function sit(b: Body?, lean: number?)
+	if not b then
+		return
+	end
+	local j = b.joints
+	for _, n in { "RightHip", "LeftHip" } do
+		if j[n] then
+			j[n].Transform = CFrame.Angles(math.rad(70), 0, math.rad(if n == "RightHip" then -18 else 18))
+		end
+	end
+	for _, n in { "RightKnee", "LeftKnee" } do
+		if j[n] then
+			j[n].Transform = CFrame.Angles(math.rad(-60), 0, 0)
+		end
+	end
+	for _, n in { "RightShoulder", "LeftShoulder" } do
+		if j[n] then
+			j[n].Transform = CFrame.Angles(math.rad(55 + (lean or 0)), 0, math.rad(if n == "RightShoulder" then -8 else 8))
+		end
+	end
+	if j.Waist then
+		j.Waist.Transform = CFrame.Angles(math.rad(-12 - (lean or 0) * 0.3), 0, 0)
+	end
+end
+
+-- palla dell'elemento da a a b in "time" secondi; all'arrivo esplode
+local function shot(a: Vector3, b: Vector3, color: Color3, time: number, size: number)
+	local ball = Instance.new("Part")
+	ball.Shape = Enum.PartType.Ball
+	ball.Material = Enum.Material.Neon
+	ball.Color = color
+	ball.Size = Vector3.one * size
+	ball.Anchored, ball.CanCollide, ball.CanQuery, ball.CanTouch = true, false, false, false
+	ball.CFrame = CFrame.new(a)
+	ball.Parent = workspace
+	local trail = Instance.new("ParticleEmitter")
+	trail.Texture = "rbxasset://textures/particles/fire_main.dds"
+	trail.Color = ColorSequence.new(color, Color3.new(1, 1, 1))
+	trail.LightEmission = 1
+	trail.Size = NumberSequence.new(size * 0.9, 0)
+	trail.Lifetime = NumberRange.new(0.25, 0.45)
+	trail.Rate = 120
+	trail.Speed = NumberRange.new(1, 3)
+	trail.Parent = ball
+	local light = Instance.new("PointLight")
+	light.Color = color
+	light.Range = size * 6
+	light.Brightness = 3
+	light.Parent = ball
+	TweenService:Create(ball, TweenInfo.new(time, Enum.EasingStyle.Linear), { CFrame = CFrame.new(b) }):Play()
+	task.delay(time, function()
+		trail.Enabled = false
+		ball.Transparency = 1
+		local boom = trail:Clone()
+		boom.Rate = 0
+		boom.Speed = NumberRange.new(size * 3, size * 7)
+		boom.SpreadAngle = Vector2.new(180, 180)
+		boom.Size = NumberSequence.new(size * 1.6, 0)
+		boom.Lifetime = NumberRange.new(0.4, 0.8)
+		boom.Enabled = true
+		boom.Parent = ball
+		boom:Emit(60)
+		Sfx.play("Esplosione", b, 1.5)
+		Debris:AddItem(ball, 1.2)
+	end)
+end
+
+local STORM = Color3.fromRGB(110, 200, 255)
+local DARK = Color3.fromRGB(170, 110, 255)
+
+local function clip26(set: Set, f: Instance)
+	local spot = f:GetAttribute("Spot") :: Vector3
+	local look = flat(f:GetAttribute("Look") :: Vector3)
+	local young = dragon(f:FindFirstChild("Giovane"))
+	local adultD = dragon(f:FindFirstChild("Adulto"))
+	local rival = dragon(f:FindFirstChild("Rivale"))
+	if not young or not adultD or not rival then
+		return
+	end
+	local adultM, youngM, rivalM = adultD.model, young.model, rival.model
+	local nSeg = (f:GetAttribute("Segs") or 0) :: number
+	local segs = {}
+	for k = 1, nSeg do
+		table.insert(segs, { f:GetAttribute("Seg" .. k .. "A") :: Vector3, f:GetAttribute("Seg" .. k .. "B") :: Vector3 })
+	end
+	local fight = f:GetAttribute("Fight") :: Vector3
+	local fightDir = flat(f:GetAttribute("FightDir") :: Vector3)
+	local pre = { spot }
+	for _, sg in segs do
+		table.insert(pre, sg[1])
+	end
+	table.insert(pre, fight)
+	preload(pre)
+	local side = look:Cross(Vector3.yAxis)
+	-- 1) il giovane davanti alle costole (dietro di lui), il giocatore accanto; la camera davanti
+	local ys = sizeOf(youngM)
+	local yBase = groundAt(spot) + Vector3.new(0, ys.Y / 2, 0)
+	youngM:PivotTo(CFrame.lookAt(yBase, yBase + look))
+	loop(young, "Idle")
+	local b = body()
+	local feet = groundAt(spot - side * (ys.X * 0.6 + 4) - look * 4)
+	if b then
+		b.model:PivotTo(CFrame.lookAt(feet + Vector3.new(0, 3, 0), feet + Vector3.new(0, 3, 0) + look))
+	end
+	fadeTo(set, 0, 0.25)
+	beat(2.0, function(u)
+		pose(b, 10, 0)
+		local c = yBase + Vector3.new(0, ys.Y * 0.1, 0)
+		set.cam = CFrame.lookAt(c + look * (ys.Z * 1.6 - u * 3) + side * ys.X * 0.7 + Vector3.new(0, ys.Y * 0.3, 0), c)
+		set.fov = 60
+	end)
+	-- 2) l'evoluzione si carica: luce che cresce, scintille a spirale, scossa
+	local orb = Instance.new("Part")
+	orb.Shape = Enum.PartType.Ball
+	orb.Material = Enum.Material.Neon
+	orb.Color = STORM
+	orb.Transparency = 0.6
+	orb.Anchored, orb.CanCollide, orb.CanQuery = true, false, false
+	orb.Size = Vector3.one
+	orb.CFrame = CFrame.new(yBase)
+	orb.Parent = workspace
+	local sparks = Instance.new("ParticleEmitter")
+	sparks.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	sparks.Color = ColorSequence.new(STORM, Color3.new(1, 1, 1))
+	sparks.LightEmission = 1
+	sparks.Rate = 160
+	sparks.Speed = NumberRange.new(-14, -6) -- verso il centro
+	sparks.SpreadAngle = Vector2.new(180, 180)
+	sparks.Lifetime = NumberRange.new(0.5, 0.9)
+	sparks.Size = NumberSequence.new(1.2, 0)
+	sparks.Parent = orb
+	local glow = Instance.new("PointLight")
+	glow.Color = STORM
+	glow.Range = 40
+	glow.Parent = orb
+	gesture(young, "Roar")
+	Sfx.play("Ruggito", yBase, 1.2)
+	beat(2.0, function(u)
+		pose(b, 40 * u, 0)
+		local r = ys.Z * (0.3 + 1.1 * u)
+		orb.Size = Vector3.one * r
+		orb.Transparency = 0.75 - 0.35 * u
+		glow.Brightness = 1 + 6 * u
+		set.shake = 0.3 + 1.2 * u
+		local c = yBase
+		set.cam = CFrame.lookAt(c + look * (ys.Z * 1.4 + u * 6) + side * ys.X * 0.5 + Vector3.new(0, ys.Y * 0.2, 0), c)
+		set.fov = 60 + 8 * u
+	end)
+	-- 3) lampo: al posto del giovane c'e' l'adulto, che ruggisce (camera bassa)
+	flash(set, Color3.fromRGB(220, 245, 255), 1.4)
+	Sfx.play("Fulmine", yBase, 2.5)
+	youngM:PivotTo(CFrame.new(0, -2000, 0))
+	orb:Destroy()
+	local as = sizeOf(adultM)
+	local aBase = groundAt(spot) + Vector3.new(0, as.Y / 2, 0)
+	adultM:PivotTo(CFrame.lookAt(aBase, aBase + look))
+	loop(adultD, "Idle")
+	local roar = gesture(adultD, "Roar")
+	task.delay(0.5, function()
+		Sfx.play("Ruggito", aBase, 3)
+		set.shake = 2
+	end)
+	beat(math.max(roar * 0.85, 2.0), function(u)
+		pose(b, 120, 5, 8)
+		local c = aBase + Vector3.new(0, as.Y * 0.2, 0)
+		set.cam = CFrame.lookAt(c + look * (as.Z * 0.95 + u * 10) + side * as.X * 0.25 - Vector3.new(0, as.Y * 0.35, 0), c + Vector3.new(0, as.Y * 0.25, 0))
+		set.fov = 72
+	end)
+	-- 4) in groppa: il giocatore sul collo, il drago spicca il volo
+	flash(set, Color3.new(1, 1, 1), 0.4)
+	local function ride()
+		if b then
+			local seat = seatOf(adultM)
+			b.model:PivotTo(seat * CFrame.new(0, 2.1, 0))
+			sit(b, 0)
+		end
+	end
+	ride()
+	local takeoff = gesture(adultD, "Takeoff")
+	loop(adultD, "Climb")
+	beat(math.max(takeoff, 1.4), function(u)
+		local k = smooth(u)
+		local p = aBase + Vector3.new(0, 40 * k, 0) + look * 20 * k
+		adultM:PivotTo(CFrame.lookAt(p, p + look) * CFrame.Angles(math.rad(18 * math.sin(math.pi * u)), 0, 0))
+		ride()
+		set.cam = CFrame.lookAt(p - look * as.Z * 1.1 + side * as.X * 0.6 - Vector3.new(0, 8 - 14 * k, 0), p)
+		set.fov = 74
+		set.shake = 0.8 * (1 - u)
+	end)
+	-- 5) i posti piu' belli: un tratto per posto, tagli col lampo; il drago si inclina nelle curve
+	for k, sg in segs do
+		if k == #segs then
+			break -- l'ultimo e' l'arrivo al duello
+		end
+		local a, c = sg[1], sg[2]
+		local dir = (c - a).Unit
+		local sideways = dir:Cross(Vector3.yAxis).Unit
+		flash(set, Color3.new(1, 1, 1), 0.25)
+		loop(adultD, if k % 2 == 1 then "BankL" else "BankR")
+		local smoothCam: CFrame? = nil
+		beat(1.9, function(u)
+			-- una S leggera: curva a sinistra o a destra (bank)
+			local sway = math.sin(u * math.pi) * 35 * (if k % 2 == 1 then -1 else 1)
+			local p = a:Lerp(c, u) + sideways * sway
+			local q = a:Lerp(c, math.min(1, u + 0.02)) + sideways * math.sin(math.min(1, u + 0.02) * math.pi) * 35 * (if k % 2 == 1 then -1 else 1)
+			local fwd = if (q - p).Magnitude > 0.01 then (q - p).Unit else dir
+			local roll = math.cos(u * math.pi) * 0.45 * (if k % 2 == 1 then 1 else -1)
+			adultM:PivotTo(CFrame.lookAt(p, p + fwd) * CFrame.Angles(0, 0, roll))
+			ride()
+			local want = CFrame.lookAt(p - fwd * as.Z * 0.95 + Vector3.new(0, as.Y * 0.55, 0) + sideways * 6, p + fwd * 40)
+			smoothCam = if smoothCam then CFrame.new(want.Position) * (smoothCam :: CFrame).Rotation:Lerp(want.Rotation, 0.25) else want
+			set.cam = smoothCam :: CFrame
+			set.fov = 80
+		end)
+	end
+	-- 6) tra le isole della vetta: arriva il rivale
+	local last = segs[#segs]
+	local a6, c6 = if last then last[1] else fight - fightDir * 300, fight
+	local rs = sizeOf(rivalM)
+	local across0 = fightDir:Cross(Vector3.yAxis).Unit
+	local rivalAt = fight + across0 * (rs.Z * 1.3 + 36) + fightDir * 30
+	local rivalFrom = rivalAt + fightDir * 260 + Vector3.new(0, 90, 0)
+	flash(set, Color3.new(1, 1, 1), 0.25)
+	loop(adultD, "Fly")
+	loop(rival, "Fly")
+	beat(2.2, function(u)
+		local p = a6:Lerp(c6, smooth(u))
+		local fwd = (c6 - a6).Unit
+		adultM:PivotTo(CFrame.lookAt(p, p + fwd))
+		ride()
+		local rp = rivalFrom:Lerp(rivalAt, smooth(u))
+		rivalM:PivotTo(CFrame.lookAt(rp, rp - fightDir))
+		set.cam = CFrame.lookAt(p - fwd * as.Z * 1.0 + Vector3.new(0, as.Y * 0.5, 0), rp:Lerp(p, 0.3))
+		set.fov = 78
+	end)
+	-- 7) il duello: entrambi librati, il rivale soffia, schivata, tre colpi del tuo drago
+	loop(adultD, "Hover")
+	loop(rival, "Hover")
+	local myAt = c6
+	local function face()
+		adultM:PivotTo(CFrame.lookAt(myAt, Vector3.new(rivalAt.X, myAt.Y, rivalAt.Z)))
+		rivalM:PivotTo(CFrame.lookAt(rivalAt, Vector3.new(myAt.X, rivalAt.Y, myAt.Z)))
+		ride()
+	end
+	face()
+	local across = (rivalAt - myAt).Unit:Cross(Vector3.yAxis).Unit
+	-- dalla parte della valle, vicina: i due draghi riempiono l'inquadratura, dietro la vetta
+	-- distanza perche' entrino tutti e due (campo 70 gradi: meta' larghezza = 0.7 x distanza)
+	local camDist = ((rivalAt - myAt).Magnitude * 0.5 + rs.Z * 0.7) / 0.62
+	local camSide = myAt:Lerp(rivalAt, 0.5) - fightDir * camDist + Vector3.new(0, -8, 0)
+	local _ = across
+	gesture(rival, "Roar")
+	Sfx.play("Ruggito", rivalAt, 3)
+	beat(1.2, function(u)
+		face()
+		set.cam = CFrame.lookAt(camSide, myAt:Lerp(rivalAt, 0.5))
+		set.fov = 70
+		set.shake = 0.6
+	end)
+	-- il rivale soffia: il tuo drago scarta di lato (schivata) e la palla passa
+	gesture(rival, "Breath")
+	local dodgeFrom = myAt
+	shot(mouthOf(rivalM), myAt + Vector3.new(0, 4, 0), DARK, 0.7, 6)
+	beat(0.9, function(u)
+		local k = math.sin(math.pi * math.clamp((u - 0.25) / 0.6, 0, 1))
+		myAt = dodgeFrom + across * 26 * k + Vector3.new(0, 10 * k, 0)
+		face()
+		adultM:PivotTo(adultM:GetPivot() * CFrame.Angles(0, 0, -k * 1.2))
+		ride()
+		set.cam = CFrame.lookAt(camSide, dodgeFrom:Lerp(rivalAt, 0.5))
+	end)
+	myAt = dodgeFrom
+	-- tre colpi: gli ultimi due lo colpiscono, il terzo e' il piu' grande
+	for k = 1, 3 do
+		gesture(adultD, if k == 3 then "Breath" else "Bite")
+		local big = k == 3
+		task.delay(0.25, function()
+			shot(mouthOf(adultM), rivalAt + Vector3.new(0, rs.Y * 0.1, 0), STORM, 0.45, if big then 9 else 5)
+		end)
+		task.delay(0.7, function()
+			gesture(rival, "Hit")
+			set.shake = if big then 2.5 else 1
+			if big then
+				flash(set, STORM, 0.8)
+			end
+		end)
+		beat(if big then 1.0 else 0.75, function(u)
+			face()
+			local behind = myAt - (rivalAt - myAt).Unit * (as.Z * 0.9) + Vector3.new(0, as.Y * 0.6, 0) + across * 8
+			set.cam = CFrame.lookAt(if k == 2 then camSide else behind, rivalAt)
+			set.fov = if big then 64 else 72
+		end)
+	end
+	-- il rivale precipita, il tuo drago ruggisce vittorioso
+	loop(rival, "Dive")
+	local fallFrom = rivalAt
+	local winRoar = gesture(adultD, "Roar")
+	task.delay(0.4, function()
+		Sfx.play("Ruggito", myAt, 3)
+	end)
+	beat(math.max(winRoar, 2.4), function(u)
+		local rp = fallFrom + Vector3.new(0, -260 * u * u, 0) + fightDir * 40 * u
+		rivalM:PivotTo(CFrame.lookAt(rp, rp - fightDir) * CFrame.Angles(math.rad(-50 * u), 0, math.rad(200 * u)))
+		adultM:PivotTo(CFrame.lookAt(myAt, Vector3.new(rivalAt.X, myAt.Y, rivalAt.Z)))
+		ride()
+		-- la camera gira attorno a te e al tuo drago (sfondo: le isole e la vetta)
+		local ang = 0.6 + u * 1.2
+		local around = CFrame.Angles(0, ang, 0) * (-(rivalAt - myAt).Unit)
+		set.cam = CFrame.lookAt(myAt + around * (as.Z * 1.3) + Vector3.new(0, as.Y * 0.35, 0), myAt + Vector3.new(0, as.Y * 0.15, 0))
+		set.fov = 70
+	end)
+	fadeTo(set, 1, 0.3)
+	task.wait(0.35)
+	if b then
+		b.model:Destroy()
+	end
+end
+
+------------------------------------------------------------------------------------------
+
+local SCENES = { clip21 = clip21, clip22 = clip22, clip23 = clip23, clip24 = clip24, clip25 = clip25, clip26 = clip26 }
 
 function ClipNuove.play(kind: string)
 	local scene = SCENES[kind]

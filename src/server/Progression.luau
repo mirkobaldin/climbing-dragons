@@ -128,6 +128,13 @@ local function save(player: Player)
 	if player:GetAttribute("NoSave") then
 		return
 	end
+	-- mai un profilo a meta': se draghi, monete o potenziamenti mancano (dati gia' cancellati o non
+	-- ancora caricati) non si scrive niente. Il 2026-10-13 un salvataggio cosi' aveva cancellato
+	-- draghi, casa e monete di Mirko (recuperati dalla versione precedente del DataStore)
+	if data.dragons == nil or data.economy == nil or data.upgrades == nil then
+		warn("[Progression] Salvataggio saltato: dati incompleti per " .. player.Name)
+		return
+	end
 	local ok, err = pcall(function()
 		(store :: DataStore):SetAsync("player_" .. player.UserId, data)
 	end)
@@ -196,6 +203,10 @@ local function load(player: Player)
 	Dragons.load(player, dragonData)
 	Economy.load(player, economyData)
 	Upgrades.load(player, upgradeData)
+	-- i dati dei draghi per il menu (posti nel nido e nel recinto, draghi al seguito) dipendono
+	-- dalla casa e dai potenziamenti: si ripubblicano ora che sono caricati (prima il menu diceva
+	-- "Buy the Tent" anche a chi aveva il Mega Chalet)
+	Dragons.refresh(player)
 	updateTotal(player)
 	giveTools(player)
 end

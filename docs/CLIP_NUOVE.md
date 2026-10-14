@@ -26,6 +26,7 @@
 | `clip23` | 1 IQ vs 200 IQ: si butta dalla parete e si schianta, poi la stessa caduta salvata dal rampino | ~9 s |
 | `clip24` | SHINY HATCH: l'uovo trema tre volte, lampo dorato, cucciolo shiny che ruggisce | ~7 s |
 | `clip25` | 4000 m DESCENT: parapendio dalla vetta al campo base col cronometro | ~16 s |
+| `clip26` | FROM BABY TO BEAST: evoluzione, in groppa sul collo, volo (borgo, cascate, isole), duello sopra la vetta | ~20 s |
 
 **Regole per tutte:** testo nei primi 0.5 s (max 6 parole), un solo testo a schermo per volta,
 audio di tendenza col drop sul momento forte, finale che si ricollega all'inizio, commento fissato
@@ -58,6 +59,18 @@ subito dopo la pubblicazione, 1 clip al giorno alla stessa ora.
 - **Testo:** 0 s `jumping off a 4000 m mountain` · all'arrivo `can you beat this time?`
 - **Pinned comment:** `comment your best time when you try it 🪂 (game in bio)`
 - **Bonus:** fallo come serie ("Day 1: 2:31 → Day 7: 1:12").
+
+## clip26: "FROM BABY TO BEAST"
+- **Scena:** il drago Tempesta giovane davanti al portale dell'arena (le costole dietro), si carica
+  di luce e con un lampo diventa adulto e ruggisce; il giocatore gli sale sul collo, decollo, tre
+  tagli sui posti piu' belli (borgo Misty Terraces, cascate, isole dei cristalli di Storm Ridge),
+  poi tra le isole sopra la vetta arriva un Fulmine Nero selvatico: schivata, due morsi e un soffio
+  enorme, il rivale precipita e il tuo drago ruggisce vittorioso.
+- **Testo:** 0 s `raising my dragon from baby to beast` · sul lampo `EVOLVED` · sul duello
+  `then a wild one showed up...`
+- **Pinned comment:** `which element should I evolve next? ⚡❄️🪨🦴 (game in bio)`
+- **Ora consigliata:** `time 17` e `weather Clear` (il duello controluce sopra le nuvole).
+- **Audio:** epico/phonk con il drop sul lampo dell'evoluzione.
 
 ---
 

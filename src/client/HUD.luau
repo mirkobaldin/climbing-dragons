@@ -88,38 +88,39 @@ function HUD.start()
 		local y0 = if compact then 8 else 16
 		local h
 		if compact then
-			h = if shieldOn then 88 else 76
+			h = if shieldOn then 96 else 80
 			P(me, 0, x, 0, y0, w, h)
-			P(Ui.node(me, "Name"), 0, 46, 0, 6, 192, 20)
-			P(me.HealthIcon, 0, 14, 0, 30, 24, 24)
-			P(me.Health, 0, 46, 0, 32, 192, 20)
-			P(me.StaminaIcon, 0, 16, 0, 55, 20, 20)
-			P(me.Stamina, 0, 46, 0, 58, 192, 12)
-			P(me.Shield, 0, 46, 0, 74, 192, 10)
+			P(Ui.node(me, "Name"), 0, 46, 0, 9, 192, 20)
+			P(me.HealthIcon, 0, 14, 0, 32, 24, 24)
+			P(me.Health, 0, 46, 0, 34, 192, 20)
+			P(me.StaminaIcon, 0, 16, 0, 57, 20, 20)
+			P(me.Stamina, 0, 46, 0, 59, 192, 14)
+			P(me.Shield, 0, 46, 0, 77, 192, 14)
 		else
-			h = if shieldOn then 132 else 114
+			-- (il nome toccava la cornice in alto: piu' giu' e pannello piu' alto)
+			h = if shieldOn then 144 else 120
 			P(me, 0, x, 0, y0, w, h)
-			P(Ui.node(me, "Name"), 0, 62, 0, 14, 262, 22)
-			P(me.HealthIcon, 0, 22, 0, 42, 30, 30)
-			P(me.Health, 0, 62, 0, 44, 258, 26)
-			P(me.StaminaIcon, 0, 24, 0, 76, 26, 26)
-			P(me.Stamina, 0, 62, 0, 78, 258, 20)
-			P(me.Shield, 0, 62, 0, 104, 258, 14)
+			P(Ui.node(me, "Name"), 0, 62, 0, 20, 262, 22)
+			P(me.HealthIcon, 0, 22, 0, 48, 30, 30)
+			P(me.Health, 0, 62, 0, 50, 258, 26)
+			P(me.StaminaIcon, 0, 24, 0, 82, 26, 26)
+			P(me.Stamina, 0, 62, 0, 84, 258, 20)
+			P(me.Shield, 0, 62, 0, 110, 258, 20)
 		end
 		local y = y0 + h + 6
 		if pet.Visible then
-			local ph = if compact then 58 else 92
+			local ph = if compact then 62 else 98
 			P(pet, 0, x, 0, y, w, ph)
 			if compact then
 				P(pet.Element, 0, 10, 0, 9, 40, 40)
 				P(petName, 0, 58, 0, 5, 184, 20)
 				P(petLevel, 0, 58, 0, 25, 184, 16)
-				P(pet.XP, 0, 58, 0, 43, 180, 9)
+				P(pet.XP, 0, 58, 0, 43, 180, 13)
 			else
 				P(pet.Element, 0, 16, 0, 12, 44, 44)
 				P(petName, 0, 70, 0, 10, 254, 22)
 				P(petLevel, 0, 70, 0, 34, 254, 20)
-				P(pet.XP, 0, 18, 0, 62, 304, 18)
+				P(pet.XP, 0, 18, 0, 64, 304, 22)
 			end
 			y += ph + 6
 		end
@@ -127,14 +128,14 @@ function HUD.start()
 		P(coins, 0, x, 0, y, w, ch)
 		if compact then
 			P(coins.Icon, 0, 10, 0, 5, 24, 24)
-			P(coinText, 0, 40, 0, 0, 90, 34)
-			P(coins.PitonIcon, 0, 136, 0, 5, 24, 24)
-			P(pitonText, 0, 166, 0, 0, 76, 34)
+			P(coinText, 0, 40, 0, 0, 112, 34)
+			P(coins.PitonIcon, 0, 160, 0, 5, 24, 24)
+			P(pitonText, 0, 190, 0, 0, 52, 34)
 		else
 			P(coins.Icon, 0, 14, 0, 8, 34, 34)
-			P(coinText, 0, 56, 0, 0, 120, 50)
-			P(coins.PitonIcon, 0, 186, 0, 8, 34, 34)
-			P(pitonText, 0, 226, 0, 0, 100, 50)
+			P(coinText, 0, 56, 0, 0, 150, 50)
+			P(coins.PitonIcon, 0, 216, 0, 8, 34, 34)
+			P(pitonText, 0, 256, 0, 0, 70, 50)
 		end
 		gui:SetAttribute("LeftBottom", y + ch + 10)
 	end
@@ -147,19 +148,20 @@ function HUD.start()
 		local k = if compact then 0.8 else 1
 		Ui.text(Ui.node(me, "Name"), math.floor(18 * k), true)
 		Ui.text(healthText, math.floor(15 * k), true)
-		Ui.text(staminaText, if compact then 10 else 13, true)
-		Ui.text(shieldText, if compact then 8 else 10, true)
-		Ui.text(coinText, math.floor(24 * k), true)
+		Ui.fit(staminaText, if compact then 11 else 14, 9, true)
+		Ui.fit(shieldText, if compact then 11 else 14, 9, true)
+		Ui.fit(coinText, math.floor(24 * k), 12, true) -- 9 cifre andavano a capo
 		Ui.text(pitonText, math.floor(24 * k), true)
 		Ui.text(petName, if compact then 14 else 17, true)
 		Ui.text(petLevel, if compact then 12 else 14)
-		Ui.text(petXpText, if compact then 8 else 12, true)
+		Ui.fit(petXpText, if compact then 11 else 14, 9, true)
 		Ui.text(weatherFallback, if compact then 24 else 30)
 		Ui.text(timeBig, if compact then 22 else 32, true)
 		Ui.text(clock, if compact then 12 else 16)
 		Ui.text(altitude, if compact then 13 else 17, true)
 		Ui.text(warmthText, if compact then 10 else 13, true)
-		Ui.text(finder, if compact then 11 else 13, true)
+		Ui.fit(finder, if compact then 12 else 15, 10, true)
+		finder.TextXAlignment = Enum.TextXAlignment.Center
 		Ui.text(questTitle, if compact then 15 else 19, true)
 		Ui.text(questText, if compact then 13 else 15)
 		Ui.text(skip, if compact then 11 else 13, true)
@@ -177,24 +179,24 @@ function HUD.start()
 	local function layoutWeather()
 		if compact then
 			local h = 76 + (if warmthBack.Visible then 22 else 0) + (if finder.Visible then 34 else 0)
-			P(info, 1, -10, 0, 8, 214, h, 1, 0)
+			P(info, 1, -10, 0, 8, 226, h, 1, 0)
 			P(weatherIcon, 0, 10, 0, 10, 44, 44)
 			P(weatherFallback, 0, 10, 0, 10, 44, 44)
 			P(timeBig, 0, 62, 0, 6, 142, 26)
 			P(clock, 0, 62, 0, 32, 142, 16)
 			P(altitude, 0, 62, 0, 50, 142, 18)
 			P(warmthBack, 0, 12, 0, 76, 190, 14)
-			P(finder, 0, 12, 0, h - 34, 190, 28)
+			P(finder, 0, 12, 0, h - 34, 202, 28)
 		else
 			local h = 122 + (if warmthBack.Visible then 30 else 0) + (if finder.Visible then 42 else 0)
-			P(info, 1, -16, 0, 16, 252, h, 1, 0)
+			P(info, 1, -16, 0, 16, 272, h, 1, 0)
 			P(weatherIcon, 0, 16, 0, 16, 58, 58)
 			P(weatherFallback, 0, 16, 0, 16, 58, 58)
 			P(timeBig, 0, 88, 0, 14, 148, 34)
 			P(clock, 0, 88, 0, 50, 148, 20)
 			P(altitude, 0, 20, 0, 84, 212, 22)
-			P(warmthBack, 0, 20, 0, 118, 212, 18)
-			P(finder, 0, 20, 0, h - 42, 212, 36)
+			P(warmthBack, 0, 20, 0, 118, 232, 18)
+			P(finder, 0, 20, 0, h - 42, 232, 36)
 		end
 	end
 	finder:GetPropertyChangedSignal("Visible"):Connect(layoutWeather)

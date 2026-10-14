@@ -268,6 +268,10 @@ UpgradeConfig.EVENTS = {
 	AVALANCHE_REWARD = 120, -- monete a chi sopravvive alla grande valanga
 }
 
+-- Colpo del drago in monta (click o F, server/Enemies "RideAttack"): danno = attacco del drago x
+-- DAMAGE_MULT, palla dell'elemento lunga al massimo RANGE, area RADIUS
+UpgradeConfig.RIDE_SHOT = { COOLDOWN = 0.7, RANGE = 220, SPEED = 260, RADIUS = 13, DAMAGE_MULT = 1.4 }
+
 -- Draghi volanti (drago selvatico e guardiano della vetta)
 export type Flyer = { name: string, element: string, health: number, damage: number, radius: number, height: number, speed: number, coins: number, xp: number, scale: number }
 UpgradeConfig.WILD_DRAGON = {

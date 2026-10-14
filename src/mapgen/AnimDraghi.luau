@@ -8,6 +8,7 @@
 -- ServerStorage.RBX_ANIMSAVES.<rig> tre animazioni che si aprono nell'Animation Editor:
 --   drago-volo (1.2 s)   drago-cammina (1.0 s)   drago-fermo (2.4 s)   drago-picchiata (0.8 s)
 --   drago-librato (0.9 s, fermo in aria)   drago-planata (3 s)
+--   in monta: drago-virata-sx, drago-virata-dx (1.2 s), drago-salita (0.9 s), drago-discesa (2.4 s)
 --   una volta sola: drago-ruggito (2.2 s)   drago-soffio (2.0 s)   drago-morso (1.0 s)   drago-colpito (0.6 s)
 -- Le curve vengono dal mocap (dataset MoCapAnything, animali "zoo"): battito d'ali del tucano,
 -- passo, bacino e coda del giaguaro, respiro del leopardo; i ritardi lungo l'ala dalla viverna.
@@ -1044,6 +1045,67 @@ local function buildLand(sk: Skel, s: Signs, t: number, folds: { Fold }): Poses
 end
 
 ------------------------------------------------------------------------------------------
+-- In monta (client/PetAnimator le mescola col volo secondo come si muove il drago): virata a
+-- sinistra e a destra, salita, discesa. Mirko: "fai anche altre animazioni per il volo, virata
+-- dai vari lati, discesa, distacco da terra" (il distacco e' drago-decollo, qui sopra).
+
+local BANK_T, CLIMB_T, DESCEND_T = FLY_T, 0.9, 2.4
+
+-- virata verso turn (-1 sinistra, +1 destra): il corpo fa la curva (collo e coda verso
+-- l'interno), l'ala interna si raccoglie un po' e sale, quella esterna si stende e batte piena
+local function buildBank(sk: Skel, s: Signs, t: number, turn: number): Poses
+	local poses = buildFly(sk, s, t)
+	local p = t / BANK_T
+	for i, w in sk.wings do
+		local inner = w.side == turn
+		if inner then
+			add(poses, sk, w.arm[1], sk.fwd, s["flap" .. i] * 12)
+			if w.arm[2] then
+				add(poses, sk, w.arm[2], UP, (s["fold" .. i] or 1) * 20)
+			end
+		else
+			add(poses, sk, w.arm[1], sk.fwd, s["flap" .. i] * -6 * (1 + 0.3 * math.sin(2 * math.pi * p)))
+			add(poses, sk, w.arm[1], UP, -(s["sweep" .. i] or 1) * 6) -- in avanti: ala piu' aperta
+		end
+	end
+	neckTurn(poses, sk, s, 4, 22 * turn)
+	for k, b in sk.tail do
+		local f = (k - 1) / math.max(#sk.tail - 1, 1)
+		add(poses, sk, b, UP, (s.tailYaw or 1) * turn * (4 + 6 * f))
+	end
+	return poses
+end
+
+-- salita: battiti piu' ampi e veloci, petto su, testa alta, zampe che penzolano indietro
+local function buildClimb(sk: Skel, s: Signs, t: number): Poses
+	local old = flyAmp
+	flyAmp = math.min(1, old * 1.25)
+	local poses = buildFly(sk, s, t / CLIMB_T * FLY_T)
+	flyAmp = old
+	rear(poses, sk, s, 14)
+	neckTurn(poses, sk, s, 14, 0)
+	for i, leg in sk.legs do
+		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * -12)
+	end
+	return poses
+end
+
+-- discesa: ali aperte e alzate a V quasi ferme (le punte vibrano), muso giu', zampe raccolte
+local function buildDescend(sk: Skel, s: Signs, t: number): Poses
+	local poses = buildGlide(sk, s, t / DESCEND_T * GLIDE_T)
+	local p = t / DESCEND_T
+	for i, w in sk.wings do
+		add(poses, sk, w.arm[1], sk.fwd, s["flap" .. i] * (16 + 3 * math.sin(4 * math.pi * p)))
+	end
+	rear(poses, sk, s, -8)
+	neckTurn(poses, sk, s, -10, 0)
+	for i, leg in sk.legs do
+		add(poses, sk, leg.bones[1], sk.right, s["swing" .. i] * -10)
+	end
+	return poses
+end
+
+------------------------------------------------------------------------------------------
 -- KeyframeSequence: posa radice col nome della mesh, poi le ossa annidate come lo scheletro
 
 local function writeSequence(sk: Skel, name: string, length: number, build: (number) -> Poses): KeyframeSequence
@@ -1227,6 +1289,10 @@ function AnimDraghi.genera(soloNome: string?): string
 				["drago-guarda"] = { LOOK_T, function(t) return buildLook(sk, s, t, folds) end, true },
 				["drago-decollo"] = { TAKEOFF_T, function(t) return buildTakeoff(sk, s, t, folds) end, true },
 				["drago-atterra"] = { LAND_T, function(t) return buildLand(sk, s, t, folds) end, true },
+				["drago-virata-sx"] = { BANK_T, function(t) return buildBank(sk, s, t, -1) end },
+				["drago-virata-dx"] = { BANK_T, function(t) return buildBank(sk, s, t, 1) end },
+				["drago-salita"] = { CLIMB_T, function(t) return buildClimb(sk, s, t) end },
+				["drago-discesa"] = { DESCEND_T, function(t) return buildDescend(sk, s, t) end },
 			} do
 				local old = store:FindFirstChild(name)
 				if old then

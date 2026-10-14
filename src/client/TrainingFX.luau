@@ -229,6 +229,124 @@ local function rushUi(): TextLabel
 	rushGui, rushLabel = gui, label
 	return label
 end
+-- Duello dei draghi (server/Training): barra in alto con round, vita del tuo drago e del rivale
+type DuelInfo = { state: string, round: number, rounds: number, tier: number, hp: number, maxHp: number, rivalHp: number, rivalMax: number, name: string, text: string? }
+local duelGui: ScreenGui? = nil
+local duelOn = false
+local dodgeAt = -math.huge -- ultima schivata (il drago scarta di lato per mezzo secondo)
+local dodgeSide = 1
+local function duelBar(parent: Instance, name: string, y: number, color: Color3): (Frame, TextLabel)
+	local back = Instance.new("Frame")
+	back.Name = name
+	back.AnchorPoint = Vector2.new(0.5, 0)
+	back.Position = UDim2.new(0.5, 0, 0, y)
+	back.Size = UDim2.new(1, -24, 0, 22)
+	back.BackgroundColor3 = Color3.fromRGB(30, 24, 28)
+	back.BorderSizePixel = 0
+	back.Parent = parent
+	Instance.new("UICorner", back).CornerRadius = UDim.new(0, 8)
+	local fill = Instance.new("Frame")
+	fill.Name = "Fill"
+	fill.Size = UDim2.fromScale(1, 1)
+	fill.BackgroundColor3 = color
+	fill.BorderSizePixel = 0
+	fill.Parent = back
+	Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 8)
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamBold
+	label.TextSize = 15
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.TextStrokeTransparency = 0.4
+	label.ZIndex = 2
+	label.Parent = back
+	return fill, label
+end
+local function showDuel(info: DuelInfo)
+	local gui = duelGui
+	if not gui or not gui.Parent then
+		local g = Instance.new("ScreenGui")
+		g.Name = "DragonDuel"
+		g.ResetOnSpawn = false
+		g.DisplayOrder = 20
+		g.Parent = player:WaitForChild("PlayerGui")
+		local panel = Instance.new("Frame")
+		panel.Name = "Panel"
+		panel.AnchorPoint = Vector2.new(0.5, 0)
+		-- in alto al centro, fra la colonna di sinistra e il meteo (piu' giu' copriva il rivale)
+		panel.Position = UDim2.new(0.5, 0, 0, 8)
+		panel.Size = UDim2.new(0.34, 0, 0, 104)
+		panel.BackgroundColor3 = Color3.fromRGB(18, 16, 22)
+		panel.BackgroundTransparency = 0.15
+		panel.Parent = g
+		Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 12)
+		local stroke = Instance.new("UIStroke")
+		stroke.Color = Color3.fromRGB(255, 110, 70)
+		stroke.Thickness = 2
+		stroke.Parent = panel
+		local size = Instance.new("UISizeConstraint")
+		size.MaxSize = Vector2.new(440, 104)
+		size.MinSize = Vector2.new(280, 104)
+		size.Parent = panel
+		local title = Instance.new("TextLabel")
+		title.Name = "Title"
+		title.Position = UDim2.fromOffset(12, 6)
+		title.Size = UDim2.new(1, -24, 0, 24)
+		title.BackgroundTransparency = 1
+		title.Font = Enum.Font.GothamBlack
+		title.TextSize = 18
+		title.TextXAlignment = Enum.TextXAlignment.Left
+		title.TextColor3 = Color3.fromRGB(255, 200, 140)
+		title.Parent = panel
+		local hint = Instance.new("TextLabel")
+		hint.Name = "Hint"
+		hint.AnchorPoint = Vector2.new(1, 0)
+		hint.Position = UDim2.new(1, -12, 0, 8)
+		hint.Size = UDim2.fromOffset(170, 20)
+		hint.BackgroundTransparency = 1
+		hint.Font = Enum.Font.GothamBold
+		hint.TextSize = 13
+		hint.TextXAlignment = Enum.TextXAlignment.Right
+		hint.TextColor3 = Color3.fromRGB(200, 200, 210)
+		hint.Text = if UserInputService.TouchEnabled then "Jump = dodge" else "Space = dodge"
+		hint.Parent = panel
+		duelBar(panel, "Mine", 36, Color3.fromRGB(110, 210, 120))
+		duelBar(panel, "Rival", 66, Color3.fromRGB(235, 90, 60))
+		duelGui = g
+		gui = g
+	end
+	local g = gui :: ScreenGui
+	local panel = g:FindFirstChild("Panel") :: Frame
+	local title = panel:FindFirstChild("Title") :: TextLabel
+	local mine = panel:FindFirstChild("Mine") :: Frame
+	local rival = panel:FindFirstChild("Rival") :: Frame
+	g.Enabled = true
+	duelOn = info.state ~= "won" and info.state ~= "lost"
+	title.Text = string.format("DRAGON DUEL · TIER %d · ROUND %d/%d", info.tier, math.max(info.round, 1), info.rounds)
+	;(mine:FindFirstChild("Fill") :: Frame).Size = UDim2.fromScale(math.clamp(info.hp / math.max(info.maxHp, 1), 0, 1), 1)
+	;(mine:FindFirstChildOfClass("TextLabel") :: TextLabel).Text = string.format("Your dragon  %d / %d", math.ceil(info.hp), info.maxHp)
+	;(rival:FindFirstChild("Fill") :: Frame).Size = UDim2.fromScale(math.clamp(info.rivalHp / math.max(info.rivalMax, 1), 0, 1), 1)
+	;(rival:FindFirstChildOfClass("TextLabel") :: TextLabel).Text = if info.state == "roundWon" then "Round won! Next rival incoming..." else string.format("%s  %d / %d", info.name, math.ceil(info.rivalHp), info.rivalMax)
+	if info.state == "hurt" then
+		DragonVFX.shake = 1.2
+		Sfx.play("Esplosione")
+	elseif info.state == "dodge" then
+		ClientState.hint = "Dodged!"
+	elseif info.state == "round" then
+		ClientState.hint = info.name .. " enters the arena!"
+		Sfx.play("Ruggito")
+	elseif info.state == "won" or info.state == "lost" then
+		title.Text = if info.state == "won" then "DRAGON DUEL WON!" else "DRAGON DUEL LOST"
+		;(rival:FindFirstChildOfClass("TextLabel") :: TextLabel).Text = info.text or ""
+		task.delay(6, function()
+			if not duelOn and duelGui == g then
+				g.Enabled = false
+			end
+		end)
+	end
+end
+
 local function setLit(index: number)
 	rushLit = index
 	if litGlow then
@@ -774,8 +892,14 @@ local function startAim(event: RemoteEvent)
 		-- il drago vola in cerchio dentro l'arena (prima restava fermo a mezz'aria)
 		local c = workspace:GetAttribute("TrainingCenter")
 		if on and typeof(c) == "Vector3" then
-			local t = os.clock() * 0.3
-			ClientState.petAnchor = c + Vector3.new(math.cos(t) * 26, 20 + math.sin(t * 2.3) * 4, math.sin(t) * 26)
+			local p = DragonConfig.arenaDragonAt(c, workspace:GetServerTimeNow())
+			local since = os.clock() - dodgeAt
+			if since < 0.7 then
+				local out = Vector3.new(p.X - c.X, 0, p.Z - c.Z)
+				out = if out.Magnitude > 0.1 then out.Unit else Vector3.xAxis
+				p += (out * dodgeSide * 14 + Vector3.new(0, 6, 0)) * math.sin(math.pi * since / 0.7)
+			end
+			ClientState.petAnchor = p
 		else
 			ClientState.petAnchor = nil
 		end
@@ -819,6 +943,20 @@ local function startAim(event: RemoteEvent)
 			event:FireServer("leave")
 		end
 	end
+	local function dodge()
+		if not on or not duelOn or os.clock() - dodgeAt < DragonConfig.DUEL.DODGE_COOLDOWN then
+			return
+		end
+		dodgeAt = os.clock()
+		dodgeSide = -dodgeSide
+		event:FireServer("dodge")
+	end
+	UserInputService.JumpRequest:Connect(dodge)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if on and not processed and (input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA) then
+			dodge()
+		end
+	end)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		-- Q (la X accende e spegne il mirino)
 		if on and not processed and input.KeyCode == Enum.KeyCode.Q then
@@ -855,6 +993,8 @@ function TrainingFX.start()
 				onEvolve(userId, a)
 			elseif kind == "hint" then
 				ClientState.hint = a
+			elseif kind == "duel" then
+				showDuel(a)
 			elseif kind == "miss" then
 				onHit(player.UserId, a, b, 0, true)
 			elseif kind == "rush" then

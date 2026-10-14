@@ -131,6 +131,7 @@ do
 			dragomorso = "Dragon_Bite", dragocolpito = "Dragon_Hit",
 			dragoseduto = "Dragon_Sit", dragodorme = "Dragon_Sleep", dragocorsa = "Dragon_Run", dragoannusa = "Dragon_Sniff",
 			dragoscrolla = "Dragon_Shake", dragoguarda = "Dragon_Look", dragodecollo = "Dragon_Takeoff", dragoatterra = "Dragon_Land",
+			dragoviratasx = "Dragon_BankL", dragoviratadx = "Dragon_BankR", dragosalita = "Dragon_Climb", dragodiscesa = "Dragon_Descend",
 			dragonfly = "Dragon_Fly", dragonwalk = "Dragon_Walk", dragonidle = "Dragon_Idle",
 		}
 		-- cartelle con lo stesso nome (es. vecchi salvataggi automatici) si uniscono; quelle del

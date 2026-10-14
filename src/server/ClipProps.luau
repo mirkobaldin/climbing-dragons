@@ -8,6 +8,9 @@
 --   clip23  "1 IQ vs 200 IQ": caduta da una parete vera, poi la stessa caduta salvata dal rampino
 --   clip24  "shiny hatch": l'uovo che si schiude e il cucciolo SHINY
 --   clip25  "4000 m descent": parapendio dalla vetta al campo base
+--   clip26  "from baby to beast": il drago giovane si evolve in adulto, ci sali sul collo, volo sui
+--           posti piu' belli (borgo, cascate, isole dei cristalli, isole della vetta) e duello con
+--           un drago selvatico sopra la vetta
 
 local ServerStorage = game:GetService("ServerStorage")
 
@@ -181,6 +184,95 @@ function ClipProps.prepare(kind: string, player: Player): string?
 			folder:SetAttribute("P" .. k, Vector3.new(p.X, math.max(g + 35, glideY), p.Z))
 		end
 		folder:SetAttribute("Points", N)
+	elseif kind == "clip26" then
+		local summit = marker("Summit")
+		local hub = marker("HubSpawn")
+		if not summit or not hub then
+			return "Manca la vetta o il campo base"
+		end
+		-- i tre draghi: il tuo giovane e il tuo adulto (Tempesta), il rivale (Fulmine Nero)
+		local function make(element: string, stage: number, name: string): Model?
+			local ok, m = pcall(DragonModels.dragon, element, "Leggendario", stage, 50)
+			if not ok or not m then
+				return nil
+			end
+			still(m)
+			m.Name = name
+			m:PivotTo(CFrame.new(hub + Vector3.new(0, -600, 0)))
+			m.Parent = folder
+			return m
+		end
+		make("Tempesta", 2, "Giovane")
+		make("Tempesta", 3, "Adulto")
+		local rival = make("Fulmine", 3, "Rivale")
+		if rival then
+			rival:ScaleTo(rival:GetScale() * 1.15)
+		end
+		-- l'evoluzione: davanti alle costole del drago gigante (fanno da sfondo)
+		local landmarks = workspace:FindFirstChild("Landmarks")
+		local ribs = landmarks and landmarks:FindFirstChild("DragonRibs")
+		local base = if ribs and ribs:IsA("Model") then ribs:GetPivot().Position else hub
+		local toHub = Vector3.new(hub.X - base.X, 0, hub.Z - base.Z)
+		toHub = if toHub.Magnitude > 1 then toHub.Unit else Vector3.xAxis
+		local spot = base + toHub * 320 -- fuori dal portale dell'arena (a 170 si stava fra i muri)
+		folder:SetAttribute("Spot", Vector3.new(spot.X, groundY(spot.X, spot.Z) or spot.Y, spot.Z))
+		folder:SetAttribute("Look", toHub) -- il drago guarda la piana, dietro di lui le costole
+		-- i tratti di volo (A -> B), sempre ben sopra il terreno
+		local function air(p: Vector3, clear: number): Vector3
+			local g = groundY(p.X, p.Z) or p.Y
+			return Vector3.new(p.X, math.max(p.Y, g + clear), p.Z)
+		end
+		local segs = {}
+		local borghi = workspace:FindFirstChild("Borghi")
+		local village = borghi and (borghi:FindFirstChild("MISTY TERRACES") or borghi:FindFirstChild("RIVERBEND"))
+		local vm = village and village:FindFirstChildWhichIsA("Model", true)
+		if vm then
+			local v = vm:GetPivot().Position
+			table.insert(segs, { air(v + Vector3.new(-170, 30, -90), 38), air(v + Vector3.new(150, 40, 80), 38) })
+		end
+		local falls = workspace:FindFirstChild("MapMarkers") and (workspace :: any).MapMarkers:FindFirstChild("Waterfalls")
+		if falls then
+			local lo, hi
+			for _, w in falls:GetChildren() do
+				if w:IsA("BasePart") then
+					if not lo or w.Position.Y < lo.Y then
+						lo = w.Position
+					end
+					if not hi or w.Position.Y > hi.Y then
+						hi = w.Position
+					end
+				end
+			end
+			if lo and hi then
+				-- risale la cascata un po' di lato, dal fondo alla cima
+				local out = Vector3.new(lo.X - 1300, 0, lo.Z).Unit
+				table.insert(segs, { air(lo + out * 70 - Vector3.new(0, 20, 0), 25), air(hi + out * 60 + Vector3.new(0, 40, 0), 25) })
+			end
+		end
+		local isles = workspace:FindFirstChild("IsoleVolanti")
+		local storm = isles and isles:FindFirstChild("STORM RIDGE")
+		if storm then
+			local pts = {}
+			for _, c in storm:GetChildren() do
+				if c:IsA("Model") and string.find(c.Name, "Isola") then
+					table.insert(pts, c:GetPivot().Position)
+				end
+			end
+			if #pts >= 2 then
+				table.insert(segs, { pts[1] + (pts[1] - pts[2]).Unit * 90 + Vector3.new(0, 15, 0), pts[2] + (pts[2] - pts[1]).Unit * 90 + Vector3.new(0, 25, 0) })
+			end
+		end
+		-- l'ultimo tratto: tra le isole sopra la vetta, fino al punto del duello
+		local dir = Vector3.new(hub.X - summit.X, 0, hub.Z - summit.Z).Unit
+		local fight = summit + dir * 170 + Vector3.new(0, 90, 0)
+		table.insert(segs, { summit + dir * 520 + Vector3.new(0, 40, 0), fight })
+		for k, sg in segs do
+			folder:SetAttribute("Seg" .. k .. "A", sg[1])
+			folder:SetAttribute("Seg" .. k .. "B", sg[2])
+		end
+		folder:SetAttribute("Segs", #segs)
+		folder:SetAttribute("Fight", fight)
+		folder:SetAttribute("FightDir", -dir) -- il rivale arriva dalla vetta
 	else
 		return "Clip sconosciuta"
 	end

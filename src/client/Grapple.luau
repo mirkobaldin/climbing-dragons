@@ -68,6 +68,11 @@ local function fire()
 	if busy or not root or not humanoid or os.clock() - lastUse < cooldown then
 		return
 	end
+	-- in groppa al drago il rampino tirava giu' il drago: niente rampino (client/DragonRide)
+	if ClientState.riding then
+		ClientState.hint = "Land first (H) to use the Grappling Hook"
+		return
+	end
 	local hit = aimRay(root)
 	if not hit then
 		ClientState.hint = "Too far for the Grappling Hook (max " .. range() .. ")"

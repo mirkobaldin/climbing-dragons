@@ -467,7 +467,7 @@ function Combat.start()
 		if not fx then
 			return
 		end
-		(fx :: RemoteEvent).OnClientEvent:Connect(function(kind: string, a: any, b: any, c: any, d: any)
+		(fx :: RemoteEvent).OnClientEvent:Connect(function(kind: string, a: any, b: any, c: any, d: any, e: any)
 			if kind == "special" then
 				-- onda dell'elemento del drago
 				local color = elementColor(c)
@@ -500,6 +500,11 @@ function Combat.start()
 				meteor(a, b, c)
 			elseif kind == "fireball" then
 				fireball(a, b, c, d)
+			elseif kind == "rideShot" then
+				-- colpo del drago in monta (server/Enemies RideAttack): morso e palla dell'elemento
+				fireball(a, b, c, d)
+				petGesture(e, "Bite")
+				Sfx.play("Ruggito", a, 1.6)
 			elseif kind == "flyerHurt" then
 				flash(a)
 			elseif kind == "flyerDeath" or kind == "flyerLeave" then

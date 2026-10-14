@@ -22,7 +22,7 @@ local Survival = require(script.Parent.Survival)
 local Upgrades = {}
 
 -- statistiche salvate (contatori)
-local STATS = { "Kills", "Kills_Yeti", "Kills_GolemGhiaccio", "BossKills", "Summits", "Descents", "AirHits", "Specials", "MetersClimbed" }
+local STATS = { "Kills", "Kills_Yeti", "Kills_GolemGhiaccio", "BossKills", "Summits", "Descents", "AirHits", "Specials", "MetersClimbed", "DuelTier" }
 
 type BountySlot = { id: string, need: number, progress: number }
 type State = {
@@ -602,7 +602,13 @@ function Upgrades.setup()
 		watch(p)
 	end
 	Players.PlayerRemoving:Connect(function(player)
-		states[player] = nil
+		-- i dati si tengono ancora qualche secondo: Progression salva all'uscita e prima trovava
+		-- gia' tutto cancellato (il 2026-10-13 ha scritto un profilo senza draghi ne' monete)
+		task.delay(10, function()
+			if not player.Parent then
+				states[player] = nil
+			end
+		end)
 	end)
 
 	task.spawn(function()

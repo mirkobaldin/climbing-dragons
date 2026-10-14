@@ -54,6 +54,20 @@ uova e draghi familiari. Il codice e' sincronizzato in Studio con **Rojo** (`def
   `docs/CLIP_NUOVE.md`. `time 17` ferma l'ora (anche nelle clip), `time auto` la fa ripartire.
 - Admin: il proprietario da' la modalita' admin con `admin <nome>` (DataStore "AdminConcessi"), ogni admin
   fa comandi per altri con `to <nome> <comando>` (l'azione arriva al client col RemoteEvent AdminAction).
+- Case di Codex in scala 5 (HOUSE_SCALE in server/Economy): scale percorribili (le scatole COL_Scala*
+  diventano rampe), alberi e terreno tolti sopra la pedana, recinto dei draghi a riposo dietro la casa
+  (attributi PenCells/PenGate del terreno). Terreni del Sky Chalet: isole `IsolaTerreno` sopra gli Chalet
+  (`Isole.skyPlots()`). Admin `house <0-4>` per provare le case (con `nosave`).
+- Monta (server/Riding, client/DragonRide): niente sella visibile (serve solo per salire), il giocatore
+  siede sul collo (attributo Seat calcolato da DragonModels con MapGen.AnimDraghi); click/F = colpo del
+  drago (RideAttack in server/Enemies), niente attrezzi in groppa. Animazioni in monta: drago-virata-sx/dx,
+  drago-salita, drago-discesa (AnimDraghi) mescolate da client/PetAnimator.
+- Arena: Duello dei draghi (altare rosso, server/Training + Flyers.spawnDuel, DragonConfig.DUEL): 3 round,
+  Spazio = schivata, premio pietre dell'evoluzione (servono per evolvere: Giovane 1, Adulto 2).
+- Menu draghi (client/DragonUI): griglia di tessere e scheda stile FIFA (voto, grado, statistiche, evoluzione).
+- Salvataggio: `nosave` va messo sul SERVER (admin o attributo lato server). Progression non salva mai un
+  profilo senza draghi/economia/potenziamenti (il 2026-10-13 un salvataggio a meta' aveva svuotato quello
+  di Mirko: recuperato con GetVersionAsync).
 - Zaino: tasto I (anche V), con minerali, drop dei nemici (icone da ReplicatedStorage.DropIcone) e attrezzi.
 - Suoni: tutti gli id in `src/shared/SoundConfig.luau`, si suonano per nome con `client/Sfx`.
 - Effetti visivi: libreria `ReplicatedStorage.VFXLib` (emitter flipbook e mesh copiati in Studio dai

@@ -326,7 +326,7 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 			return false, string.format("It must reach level %d: train it at the dragon ribs", DragonConfig.MAX_LEVEL)
 		end
 		if s.stones < nextStage.stones then
-			return false, string.format("You need %d evolution stones (defeat the boss at the summit)", nextStage.stones)
+			return false, string.format("You need %d evolution stones: win Dragon Duels in the arena or defeat the Summit Guardian", nextStage.stones)
 		end
 		s.stones -= nextStage.stones
 		d.stage += 1
@@ -450,7 +450,13 @@ function Dragons.setup()
 		if f then
 			f:Destroy()
 		end
-		states[player] = nil
+		-- i dati si tengono ancora qualche secondo: Progression salva all'uscita e prima trovava
+		-- gia' tutto cancellato (il 2026-10-13 ha scritto un profilo senza draghi ne' monete)
+		task.delay(10, function()
+			if not player.Parent then
+				states[player] = nil
+			end
+		end)
 	end)
 end
 

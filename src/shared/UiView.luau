@@ -552,6 +552,19 @@ function UiView.text(o: Instance?, size: number, bold: boolean?)
 	end
 end
 
+-- come text, ma il testo si rimpicciolisce (fino a min) se non ci sta nel riquadro: prima i
+-- testi lunghi (uovo piu' vicino, scudo, XP) uscivano dai bordi o erano minuscoli
+function UiView.fit(o: Instance?, size: number, min: number, bold: boolean?)
+	if o and (o:IsA("TextLabel") or o:IsA("TextButton")) then
+		UiView.text(o, size, bold)
+		o.TextScaled = true
+		local c = o:FindFirstChildOfClass("UITextSizeConstraint") or Instance.new("UITextSizeConstraint")
+		c.MaxTextSize = size
+		c.MinTextSize = min
+		c.Parent = o
+	end
+end
+
 function UiView.viewportChanged(callback: (Vector2) -> ())
 	local connection: RBXScriptConnection? = nil
 	local function bind()

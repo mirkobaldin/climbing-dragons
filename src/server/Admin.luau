@@ -48,7 +48,7 @@ sella                  la Sella del drago (H per salire su un drago adulto)
 nosave                 prove: fino all'uscita non si salva niente
 hatch                  tutte le uova del nido pronte
 coins <n>              monete (anche negative)
-house                  compra/migliora la casa gratis
+house                  compra/migliora la casa gratis (house 2 = Baita, 3 = Chalet, 4 = Sky Chalet: per le prove, con nosave)
 stones <n>             pietre dell'evoluzione
 pass <FastIncubation|EggFinder|ExtraDragon|ExtraIncubator>
 god / ungod   heal   warm   pitons
@@ -60,6 +60,7 @@ clip22                 il Guardiano atterra davanti allo scalatore in vetta e gl
 clip23                 1 IQ vs 200 IQ: caduta da una parete, poi la stessa salvata dal rampino
 clip24                 l'uovo si schiude: cucciolo SHINY
 clip25                 discesa in parapendio dalla vetta al campo base col cronometro
+clip26                 FROM BABY TO BEAST: evoluzione, in groppa, volo sui posti belli, duello
 shiny                  la prossima schiusa e' SHINY (clip della schiusa)
 upmax / upreset        tutti i potenziamenti al massimo / a zero
 materiali <n>          n di ogni drop dei nemici (pelliccia, cristallo di ghiaccio, nucleo)
@@ -316,6 +317,9 @@ local function exec(player: Player, args: { string }): (boolean, string, string?
 	elseif cmd == "coins" then
 		Economy.addCoins(player, tonumber(args[2]) or 1000)
 		return true, "Monete: " .. math.floor(Economy.coins(player)), nil
+	elseif cmd == "house" and tonumber(args[2]) then
+		Economy.setHouse(player, tonumber(args[2]) :: number)
+		return true, "Casa di livello " .. args[2] .. " (usa nosave per non salvarla)", nil
 	elseif cmd == "house" then
 		local nextHouse = EconomyConfig.HOUSES[((player:GetAttribute("HouseLevel") or 0) :: number) + 1]
 		if not nextHouse then

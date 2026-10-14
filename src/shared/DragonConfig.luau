@@ -136,12 +136,13 @@ DragonConfig.RARITIES = {
 }
 
 -- Stadi di crescita: dimensione del drago (studs) e pietre dell'evoluzione per arrivarci.
--- Per evolvere il drago deve essere a livello MAX_LEVEL (si addestra nella zona di addestramento);
--- dopo l'evoluzione riparte dal livello 1. Le pietre per ora sono 0: il boss non c'e' ancora.
+-- Per evolvere il drago deve essere a livello MAX_LEVEL (si addestra nella zona di addestramento)
+-- e servono le pietre dell'evoluzione: si vincono nel Duello dei draghi (arena), battendo il
+-- Guardiano della vetta o il drago selvatico degli eventi. Dopo l'evoluzione riparte dal livello 1.
 DragonConfig.STAGES = {
 	{ name = "Cucciolo", size = 8.6, stones = 0 }, -- scala del modello ~0.6 (prima 5.5 = 0.383)
-	{ name = "Giovane", size = 14, stones = 0 },
-	{ name = "Adulto", size = 33, stones = 0 }, -- prima 22: Mirko lo trovava troppo piccolo
+	{ name = "Giovane", size = 14, stones = 1 },
+	{ name = "Adulto", size = 33, stones = 2 }, -- prima 22: Mirko lo trovava troppo piccolo
 }
 
 -- Livelli e addestramento (zona delle costole del drago, vedi server/Training)
@@ -166,6 +167,35 @@ DragonConfig.TRAINING = {
 	BOOST_MINUTES = 15,
 	PREMIUM_MULT = 1.2, -- abbonati Roblox Premium
 }
+
+-- Duello dei draghi (arena, server/Training): tre round contro draghi rivali sempre piu' forti.
+-- Le vite sono in "colpi": il rivale regge HITS[round] colpi del tuo drago (sempre equilibrato,
+-- cucciolo o adulto), il tuo drago regge TAKES[round] palle del rivale. Ogni duello vinto alza il
+-- grado (attributo DuelTier, salvato): rivali piu' duri, premi piu' grandi.
+DragonConfig.DUEL = {
+	ROUNDS = 3,
+	HITS = { 12, 16, 22 }, -- colpi del tuo drago per battere il rivale di ogni round (grado 1)
+	TAKES = { 7, 6, 5 }, -- palle del rivale che il tuo drago regge
+	TIER_HP = 0.15, -- +15% di vita al rivale per ogni grado
+	EVERY = { 3.2, 2.7, 2.2 }, -- secondi tra un attacco e l'altro del rivale
+	SCALE = { 0.9, 1.1, 1.5 }, -- grandezza del rivale (1 = 22 studs); il terzo e' il Campione
+	NAMES = { "Rival Dragon", "Arena Veteran", "Arena Champion" },
+	DODGE_WINDOW = 0.9, -- schivata (Spazio) valida per le palle in volo in quel momento
+	DODGE_COOLDOWN = 1.6,
+	ROUND_PAUSE = 3,
+	COOLDOWN = 30, -- secondi tra un duello e l'altro
+	STONES = 1, -- pietre dell'evoluzione a vittoria (+1 dal grado 3, +1 dal grado 6)
+	COINS = 250, -- x grado
+	XP = 120, -- x grado, al drago
+	RIVAL_ORBIT = 46, -- raggio dei giri del rivale
+}
+
+-- Dove vola il tuo drago nell'arena al tempo t (secondi del server): server e client usano la
+-- stessa formula (il server sa dove mira il rivale; la schivata la aggiunge il client)
+function DragonConfig.arenaDragonAt(center: Vector3, t: number): Vector3
+	local a = t * 0.3
+	return center + Vector3.new(math.cos(a) * 26, 20 + math.sin(a * 2.3) * 4, math.sin(a) * 26)
+end
 
 -- Posizione di un cristallo-bersaglio del campo d'addestramento al tempo t (secondi del server):
 -- girano attorno al cerchio a quote e velocita' diverse, meta' in un verso e meta' nell'altro,

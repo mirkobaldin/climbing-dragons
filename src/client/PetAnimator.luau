@@ -52,8 +52,9 @@ type Pet = {
 	-- il movimento procedurale delle ossa
 	tracks: { fly: AnimationTrack, walk: AnimationTrack, idle: AnimationTrack }?,
 	seat: Vector3?, -- dove si siede chi monta (spazio del corpo: -Z muso, +Y su)
-	saddle: { BasePart }?,
-	saddleCheck: number?,
+	yaw: number?, -- direzione dell'ultimo fotogramma (per le virate in monta)
+	turn: number, -- velocita' di virata filtrata (rad/s, + a sinistra)
+	wasRidden: boolean?,
 }
 
 local pets: { [Model]: Pet } = {}
@@ -185,6 +186,13 @@ local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationT
 				if kDive then
 					tracks.dive = KfsPlayer.load(model, kDive) -- picchiata (trailer e discese veloci)
 				end
+				-- in monta (cicli): virate, salita, discesa, librato e planata (MapGen.AnimDraghi)
+				for name, key in { bankL = "Dragon_BankL", bankR = "Dragon_BankR", climb = "Dragon_Climb", descend = "Dragon_Descend", hover = "Dragon_Hover", glide = "Dragon_Glide" } do
+					local k = kf(key)
+					if k then
+						tracks[name] = KfsPlayer.load(model, k)
+					end
+				end
 				-- a terra: seduto, dorme, corsa (cicli)
 				for name, key in { sit = "Dragon_Sit", sleep = "Dragon_Sleep", run = "Dragon_Run" } do
 					local k = kf(key)
@@ -247,54 +255,6 @@ local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationT
 	return tracks
 end
 
--- Sella di cuoio sul drago adulto (parti dentro il modello: si muovono con PivotTo). Si vede
--- quando il padrone ha la Sella (Gear_Sella) e il drago e' adulto e al primo posto.
-local function saddleFor(pet: Pet, on: boolean)
-	if not on then
-		for _, p in pet.saddle or {} do
-			p.Transparency = 1
-		end
-		return
-	end
-	if pet.saddle then
-		for _, p in pet.saddle do
-			p.Transparency = p:GetAttribute("Alpha") or 0
-		end
-		return
-	end
-	local model = pet.model
-	local body = model:GetPivot() * pet.fix:Inverse()
-	local seat = body * CFrame.new(pet.seat or Vector3.zero)
-	local k = math.clamp(pet.size / 30, 0.7, 1.6)
-	local LEATHER = Color3.fromRGB(110, 62, 34)
-	local list: { BasePart } = {}
-	local function piece(size: Vector3, at: CFrame, color: Color3, material: Enum.Material, shape: Enum.PartType?): Part
-		local p = Instance.new("Part")
-		p.Name = "Sella"
-		p.Size = size * k
-		p.CFrame = seat * CFrame.new(at.Position * k) * at.Rotation
-		p.Color = color
-		p.Material = material
-		if shape then
-			p.Shape = shape
-		end
-		p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
-		p.Massless = true
-		p.Parent = model
-		table.insert(list, p)
-		return p
-	end
-	piece(Vector3.new(4.6, 0.25, 5.2), CFrame.new(0, -0.15, 0), Color3.fromRGB(150, 32, 38), Enum.Material.Fabric) -- coperta
-	piece(Vector3.new(3.2, 0.7, 3.8), CFrame.new(0, 0.3, 0), LEATHER, Enum.Material.Leather) -- seduta
-	piece(Vector3.new(3.2, 1.3, 0.6), CFrame.new(0, 0.9, 1.7), LEATHER, Enum.Material.Leather) -- schienale
-	piece(Vector3.new(0.9, 1.1, 0.9), CFrame.new(0, 0.9, -1.8), Color3.fromRGB(205, 160, 70), Enum.Material.Metal, Enum.PartType.Cylinder) -- pomo
-	for _, side in { -1, 1 } do
-		piece(Vector3.new(0.25, 2.4, 0.45), CFrame.new(side * 1.85, -0.9, -0.2), LEATHER, Enum.Material.Leather) -- cinghia
-		piece(Vector3.new(0.8, 0.2, 0.8), CFrame.new(side * 1.95, -2.1, -0.2), Color3.fromRGB(190, 190, 196), Enum.Material.Metal) -- staffa
-	end
-	pet.saddle = list
-end
-
 local function setup(model: Model)
 	local ownerId = model:GetAttribute("Owner")
 	if type(ownerId) ~= "number" or pets[model] then
@@ -318,6 +278,7 @@ local function setup(model: Model)
 		footDrop = 0,
 		walkPhase = 0,
 		airBlend = 1,
+		turn = 0,
 	}
 	local _, size = model:GetBoundingBox()
 	pet.size = math.max(size.X, size.Y, size.Z)
@@ -342,11 +303,13 @@ local function setup(model: Model)
 		end
 	end
 
-	-- la sella: sulla schiena, un po' sopra il centro del corpo (vedi saddleFor)
+	-- chi monta: sulle spalle dietro la base del collo (attributo Seat del server, DragonModels);
+	-- senza: sopra il centro del corpo
 	do
 		local bcf, bsize = model:GetBoundingBox()
 		local body = pivot0 * pet.fix:Inverse()
-		pet.seat = body:PointToObjectSpace(bcf.Position + Vector3.new(0, bsize.Y * 0.16, 0))
+		local seat = model:GetAttribute("Seat")
+		pet.seat = if typeof(seat) == "Vector3" then body:PointToObjectSpace(pivot0 * seat) else body:PointToObjectSpace(bcf.Position + Vector3.new(0, bsize.Y * 0.16, 0))
 	end
 
 	for _, d in model:GetDescendants() do
@@ -674,6 +637,12 @@ function PetAnimator.start()
 			end
 			local desired = CFrame.lookAt(pos, pos + look.Unit)
 			local rotated = current.Rotation:Lerp(desired.Rotation, alpha)
+			do
+				local yaw = math.atan2(-rotated.LookVector.X, -rotated.LookVector.Z)
+				local d = (yaw - (pet.yaw or yaw) + math.pi) % (2 * math.pi) - math.pi
+				pet.yaw = yaw
+				pet.turn += (d / math.max(dt, 1 / 240) - pet.turn) * math.min(1, dt * 6)
+			end
 			local lateral = flat:Dot(rotated.RightVector)
 			local bank = math.clamp(-lateral * 0.02, -0.45, 0.45)
 			local pitch = math.clamp(vel.Y * 0.015, -0.35, 0.35) + math.sin(flapT) * 0.05
@@ -686,17 +655,29 @@ function PetAnimator.start()
 					face = -Vector3.zAxis
 				end
 				local hips = r.Position - Vector3.new(0, 1.4, 0)
-				cf = CFrame.lookAt(hips, hips + face.Unit) * CFrame.new(-(pet.seat :: Vector3))
+				-- si inclina nelle virate e punta il muso su o giu' quando sale e scende; il perno
+				-- e' il posto di chi monta, cosi' il giocatore resta attaccato al collo
+				local roll = math.clamp(pet.turn * 0.35, -0.6, 0.6)
+				local nose = math.clamp(vel.Y * 0.008, -0.4, 0.35)
+				cf = CFrame.lookAt(hips, hips + face.Unit) * CFrame.Angles(nose, 0, roll) * CFrame.new(-(pet.seat :: Vector3))
 				pet.airBlend = 1
-				pitch *= 0.3
-				bank *= 0.5
+				pitch = 0
+				bank = 0
+				if not pet.wasRidden then
+					pet.wasRidden = true
+					local tr = (actsOf[model] or {}).Takeoff
+					if tr then
+						tr.time = 0
+						tr:Play(0.15, 1.2)
+						task.delay(math.max(0.1, tr.clip.length - 0.2), function()
+							tr:Stop(0.3)
+						end)
+					end
+				end
+			elseif pet.wasRidden then
+				pet.wasRidden = false
 			end
 			pet.cf = cf
-			if not pet.saddleCheck or t > pet.saddleCheck then
-				pet.saddleCheck = t + 1
-				local want = owner ~= nil and owner:GetAttribute("Gear_Sella") == true and pet.slot == 1 and (model:GetAttribute("Stage") or 1) >= 3
-				saddleFor(pet, want)
-			end
 
 			if pet.quad or pet.tracks then
 				pitch *= pet.airBlend
@@ -744,6 +725,33 @@ function PetAnimator.start()
 					end
 					if tx.sleep then
 						tx.sleep:AdjustWeight(math.max(idleW * sleepK, 0.001), 1.2)
+					end
+					-- in monta: librato da fermo, virate a destra e sinistra, salita, discesa e picchiata
+					-- (le animazioni nuove di MapGen.AnimDraghi), il resto battito normale
+					local w = { hover = 0, bankL = 0, bankR = 0, climb = 0, descend = 0, glide = 0 }
+					if riding then
+						local fwdK = math.clamp(flat.Magnitude / 30, 0, 1)
+						local upK = math.clamp(vel.Y / 28, 0, 1)
+						local downK = math.clamp(-vel.Y / 26, 0, 1)
+						local diveK = if tx.dive then math.clamp((-vel.Y - 40) / 30, 0, 1) else 0
+						local turnK = math.clamp(math.abs(pet.turn) / 1.1, 0, 1) * fwdK
+						w.hover = if tx.hover then (1 - fwdK) * (1 - downK) * (1 - upK * 0.5) else 0
+						w.climb = if tx.climb then upK * (1 - w.hover) else 0
+						w.descend = if tx.descend then downK * (1 - diveK) else 0
+						w.bankL = if tx.bankL and pet.turn > 0 then turnK * (1 - w.climb - w.descend) else 0
+						w.bankR = if tx.bankR and pet.turn < 0 then turnK * (1 - w.climb - w.descend) else 0
+						-- di corsa dritto e in piano (Shift): ali aperte, planata
+						w.glide = if tx.glide and flat.Magnitude > 95 then (1 - turnK) * (1 - upK) * (1 - downK) else 0
+						local used = w.hover + w.climb + w.descend + w.bankL + w.bankR + w.glide + diveK
+						tracks.fly:AdjustWeight(math.max(1 - used, 0.001), 0.15)
+						if tx.dive then
+							tx.dive:AdjustWeight(math.max(diveK, 0.001), 0.2)
+						end
+					end
+					for name, k in w do
+						if tx[name] then
+							tx[name]:AdjustWeight(math.max(k, 0.001), 0.25)
+						end
 					end
 					-- gesti: decollo e atterraggio ai cambi, e ogni tanto uno a caso quando e' fermo
 					local acts = actsOf[model] or {}
