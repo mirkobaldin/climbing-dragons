@@ -36,6 +36,8 @@ type Rig = {
 }
 
 local rigs: { [Model]: Rig | false } = setmetatable({}, { __mode = "k" }) :: any
+-- modelli senza ossa riconosciute: si riprova ogni 2 s (le ossa possono arrivare dopo, streaming)
+local retryAt: { [Model]: number } = setmetatable({}, { __mode = "k" }) :: any
 
 local function vec(b: Bone, name: string, fallback: Vector3): Vector3
 	local v = b:GetAttribute(name)
@@ -143,7 +145,7 @@ end
 
 function DragonMotion.groundLift(model: Model): number
 	local g = grounds[model]
-	if g == nil then
+	if g == nil or (g == false and os.clock() >= (retryAt[model] or 0)) then
 		g = buildGround(model)
 		grounds[model] = g
 	end
@@ -195,9 +197,10 @@ end
 
 function DragonMotion.update(model: Model, dt: number, m: Motion)
 	local r = rigs[model]
-	if r == nil then
+	if r == nil or (r == false and os.clock() >= (retryAt[model] or 0)) then
 		r = build(model)
 		rigs[model] = r
+		retryAt[model] = os.clock() + 2
 	end
 	if not r then
 		return

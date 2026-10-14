@@ -219,8 +219,30 @@ local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationT
 				actsOf[model] = acts -- a parte: chi scorre le tracce (clip del Trailer) trova solo tracce
 				-- animazioni procedurali sopra le pose (client/DragonProcedural): piedi sul terreno,
 				-- inerzia di collo e coda, sella che segue il petto. Solo con KfsPlayer
+				-- le ossa dei draghi grandi arrivano dopo il modello (streaming): se non ci sono ancora
+				-- si riprova per 10 s (prima l'Eclissi e il Cosmico adulti restavano senza)
 				if not DragonProcedural.attach(model) then
-					warn("[DragonProcedural] non attivo su " .. model.Name)
+					task.spawn(function()
+						local last = -1
+						for _ = 1, 20 do
+							task.wait(0.5)
+							if not model.Parent then
+								return
+							end
+							-- solo quando le ossa hanno smesso di arrivare (scheletro completo)
+							local n = 0
+							for _, d in model:GetDescendants() do
+								if d:IsA("Bone") then
+									n += 1
+								end
+							end
+							if n >= 8 and n == last and DragonProcedural.attach(model) then
+								return
+							end
+							last = n
+						end
+						warn("[DragonProcedural] non attivo su " .. model.Name)
+					end)
 				end
 				return tracks :: any
 			end
@@ -677,6 +699,9 @@ function PetAnimator.start()
 				local nose = math.clamp(vel.Y * 0.008, -0.4, 0.35)
 				-- la sella si sposta col petto (DragonProcedural): il drago si muove sotto chi monta
 				local shift = (pet.fix :: CFrame):VectorToWorldSpace(DragonProcedural.seatShift(model))
+				if shift ~= shift then
+					shift = Vector3.zero -- mai un NaN nella posizione del drago
+				end
 				cf = CFrame.lookAt(hips, hips + face.Unit) * CFrame.Angles(nose, 0, roll) * CFrame.new(-((pet.seat :: Vector3) + shift))
 				pet.airBlend = 1
 				pitch = 0

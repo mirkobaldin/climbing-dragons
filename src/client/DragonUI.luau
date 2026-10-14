@@ -45,25 +45,40 @@ local function preview(kind: string, element: string): Instance?
 	return sub and sub:FindFirstChild(element)
 end
 
--- il drago nello stadio giusto (l'adulto ha il suo modello), visto di tre quarti dalla parte della
--- testa (ossa del collo: attributi Ruolo, DragonModels.markBones)
+-- il drago nello stadio giusto (l'adulto ha il suo modello) su un altare di pietra con l'anello di
+-- rune del suo elemento, visto di tre quarti dalla parte della testa (ossa del collo: attributi
+-- Ruolo, DragonModels.markBones). Prima fluttuava su un fondo piatto dentro un bordo bianco
+local function part(parent: Instance, shape: Enum.PartType, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material, transparency: number?): Part
+	local p = Instance.new("Part")
+	p.Shape = shape
+	p.Size = size
+	p.CFrame = cf
+	p.Color = color
+	p.Material = material
+	p.Transparency = transparency or 0
+	p.Anchored = true
+	p.Parent = parent
+	return p
+end
+
 local function dragonView(parent: Instance, d: any, spin: boolean): ViewportFrame
 	local stage = math.clamp(d.stage or 1, 1, 3)
 	local object = preview(PREVIEW_KIND[stage], d.element) or preview("Dragons", d.element)
 	local vf = Instance.new("ViewportFrame")
 	vf.BackgroundTransparency = 1
-	vf.Ambient = Color3.fromRGB(200, 200, 210)
-	vf.LightColor = Color3.fromRGB(255, 250, 240)
-	vf.LightDirection = Vector3.new(-0.5, -1, -0.7)
+	-- luce calda di tre quarti davanti e ambiente basso: il drago ha volume (prima tutto chiaro e
+	-- piatto)
+	vf.Ambient = Color3.fromRGB(150, 145, 165)
+	vf.LightColor = Color3.fromRGB(255, 236, 205)
 	vf.Parent = parent
 	if not object then
 		return vf
 	end
+	local world = Instance.new("WorldModel")
+	world.Parent = vf
 	local clone = object:Clone() :: Model
-	clone.Parent = vf
+	clone.Parent = world
 	local cf, size = clone:GetBoundingBox()
-	local center = cf.Position
-	local radius = size.Magnitude / 2
 	-- davanti: verso la testa
 	local front = -clone:GetPivot().LookVector
 	local head: Vector3? = nil
@@ -77,18 +92,36 @@ local function dragonView(parent: Instance, d: any, spin: boolean): ViewportFram
 		end
 	end
 	if head then
-		local flat = Vector3.new((head :: Vector3).X - center.X, 0, (head :: Vector3).Z - center.Z)
+		local flat = Vector3.new((head :: Vector3).X - cf.Position.X, 0, (head :: Vector3).Z - cf.Position.Z)
 		if flat.Magnitude > 0.1 then
 			front = flat.Unit
 		end
 	end
+	-- altare: il drago poggia sopra (base del riquadro = piano dell'altare)
+	local foot = math.max(size.X, size.Z) * 0.42
+	local h = size.Y * 0.16
+	local bottom = cf.Position.Y - size.Y / 2
+	local top = bottom
+	local base = Vector3.new(cf.Position.X, bottom - h / 2, cf.Position.Z)
+	local up = CFrame.Angles(0, 0, math.pi / 2)
+	local e = DragonConfig.element(d.element)
+	local rune = if e then e.glow else Color3.fromRGB(255, 200, 90)
+	part(world, Enum.PartType.Cylinder, Vector3.new(h, foot * 2, foot * 2), CFrame.new(base) * up, Color3.fromRGB(46, 44, 54), Enum.Material.Slate)
+	part(world, Enum.PartType.Cylinder, Vector3.new(h * 0.35, foot * 2.25, foot * 2.25), CFrame.new(base - Vector3.new(0, h * 0.5, 0)) * up, Color3.fromRGB(34, 32, 40), Enum.Material.Slate)
+	part(world, Enum.PartType.Cylinder, Vector3.new(h * 0.18, foot * 2.06, foot * 2.06), CFrame.new(Vector3.new(base.X, top - h * 0.05, base.Z)) * up, Color3.fromRGB(176, 128, 64), Enum.Material.Metal)
+	part(world, Enum.PartType.Cylinder, Vector3.new(h * 0.06, foot * 1.7, foot * 1.7), CFrame.new(Vector3.new(base.X, top + h * 0.02, base.Z)) * up, rune, Enum.Material.Neon, 0.25)
+	part(world, Enum.PartType.Cylinder, Vector3.new(h * 0.08, foot * 1.55, foot * 1.55), CFrame.new(Vector3.new(base.X, top + h * 0.04, base.Z)) * up, Color3.fromRGB(40, 38, 48), Enum.Material.Slate)
+	-- camera: drago + altare tutti dentro, un po' dall'alto
+	local center = Vector3.new(cf.Position.X, (bottom - h + cf.Position.Y + size.Y / 2) / 2, cf.Position.Z)
+	local radius = math.max(size.Magnitude / 2, foot * 1.2) * 1.02
+	vf.LightDirection = -(front * 0.6 + Vector3.new(0, 1, 0) + front:Cross(Vector3.yAxis) * 0.5).Unit
 	local camera = Instance.new("Camera")
 	camera.FieldOfView = 30
 	camera.Parent = vf
 	vf.CurrentCamera = camera
-	local dist = radius / math.tan(math.rad(15)) * 0.78
+	local dist = radius / math.tan(math.rad(15)) * 0.74
 	local function aim(a: number)
-		local dir = (CFrame.fromAxisAngle(Vector3.yAxis, a) * front) + Vector3.new(0, 0.42, 0)
+		local dir = (CFrame.fromAxisAngle(Vector3.yAxis, a) * front) + Vector3.new(0, 0.38, 0)
 		camera.CFrame = CFrame.lookAt(center + dir.Unit * dist, center)
 	end
 	aim(math.rad(35))
@@ -103,6 +136,27 @@ local function dragonView(parent: Instance, d: any, spin: boolean): ViewportFram
 		end)
 	end
 	return vf
+end
+
+-- alone dietro il drago (cerchio sfumato del colore della rarita')
+local function halo(parent: Instance, color: Color3)
+	local g = Instance.new("Frame")
+	g.Name = "Alone"
+	g.AnchorPoint = Vector2.new(0.5, 0.5)
+	g.Position = UDim2.fromScale(0.5, 0.45)
+	g.Size = UDim2.fromScale(0.8, 0.8)
+	g.BackgroundColor3 = color
+	g.BackgroundTransparency = 0.7
+	g.BorderSizePixel = 0
+	g.Parent = parent
+	local ar = Instance.new("UIAspectRatioConstraint")
+	ar.Parent = g
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0.5, 0)
+	c.Parent = g
+	local grad = Instance.new("UIGradient")
+	grad.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0.2), NumberSequenceKeypoint.new(1, 1) })
+	grad.Parent = g
 end
 
 local function label(parent: Instance, str: string, size: number, color: Color3?, bold: boolean?, align: Enum.TextXAlignment?): TextLabel
@@ -204,7 +258,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	detail.Position = UDim2.fromScale(1, 0)
 	detail.Size = UDim2.new(0.4, 0, 1, 0)
 	Theme.corner(detail, 12)
-	Theme.stroke(detail, Color3.new(1, 1, 1), 2, 0.75)
+	Theme.stroke(detail, Color3.fromRGB(255, 200, 90), 2, 0.6)
 
 	local tab = "Dragons"
 	local autoTab = true -- finche' non scegli tu: uovo pronto (o nessun drago) -> Nest
@@ -275,8 +329,10 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		local stageBox = Theme.frame(detail, colors[2], 0)
 		stageBox.Position = UDim2.new(0, 10, 0, 64)
 		stageBox.Size = UDim2.new(1, -20, 0.42, -20)
+		stageBox.ClipsDescendants = true
 		Theme.corner(stageBox, 12)
-		Theme.gradient(stageBox, colors[1], colors[2], 90)
+		Theme.gradient(stageBox, colors[2]:Lerp(Color3.new(0, 0, 0), 0.2), Color3.fromRGB(8, 8, 14), 90)
+		halo(stageBox, colors[1])
 		local vf = dragonView(stageBox, d, true)
 		vf.Size = UDim2.fromScale(1, 1)
 		-- livello ed esperienza
@@ -377,7 +433,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		Theme.corner(tile, 12)
 		Theme.gradient(tile, colors[1], colors[2], 90)
 		local isSel = selected == d.id
-		Theme.stroke(tile, if isSel then Color3.new(1, 1, 1) elseif following then Theme.GOOD else colors[1], if isSel then 4 else 2.5, 0)
+		-- scelto: bordo dorato (prima bianco e invadente)
+		Theme.stroke(tile, if isSel then Color3.fromRGB(255, 210, 90) elseif following then Theme.GOOD else colors[1]:Lerp(Color3.new(0, 0, 0), 0.3), if isSel then 3 else 2, 0)
 		local vf = dragonView(tile, d, false)
 		vf.Position = UDim2.fromScale(0.03, 0.04)
 		vf.Size = UDim2.fromScale(0.94, 0.74)

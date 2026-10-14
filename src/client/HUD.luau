@@ -25,8 +25,26 @@ local WEATHER_NAMES =
 local Ui = require(ReplicatedStorage.Shared.UiView)
 
 function HUD.start()
-	pcall(function()
-		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
+	-- la salute la mostra la nostra HUD (cuore e barra): quella di Roblox (barra in alto e bordo
+	-- rosso quando prendi danni) si spegne all'avvio, a ogni respawn e ogni 2 secondi, perche' le
+	-- clip e il rampino rimettono "tutta" l'interfaccia di Roblox (CoreGuiType.All) e la
+	-- riaccendevano: un giocatore la vedeva sovrapposta alla nostra
+	local function hideRobloxHealth()
+		pcall(function()
+			if StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.Health) then
+				StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
+			end
+		end)
+	end
+	hideRobloxHealth()
+	player.CharacterAdded:Connect(function()
+		task.defer(hideRobloxHealth)
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(2)
+			hideRobloxHealth()
+		end
 	end)
 	local gui = Ui.screen("ClimbHUD")
 	local me, coins, info, pet, quest =
