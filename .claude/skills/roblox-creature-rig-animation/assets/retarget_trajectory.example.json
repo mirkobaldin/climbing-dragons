@@ -1,0 +1,19 @@
+{
+  "mode": "trajectory",
+  "note": "TEMPLATE for joint position trajectories (e.g. from a tracker or another tool). File format: {\"fps\": 30, \"axis_forward\": \"-Z\", \"axis_up\": \"Y\", \"scale\": 1.0, \"joints\": {\"name\": [[x,y,z], ...]}}. Positions drive IK/torso controls; aim entries rotate FK controls so their rest +Y axis follows (to - from).",
+  "source": {"file": "refs/mocap/quadruped_walk_tracks.json"},
+  "in_place": true,
+  "loop": false,
+  "root_joint": "hips",
+  "position_targets": [
+    {"joint": "hips", "target": "CTRL-torso", "scale": 1.0},
+    {"joint": "l_hind_paw", "target": "CTRL-foot_ik_leg_hind_L"},
+    {"joint": "r_hind_paw", "target": "CTRL-foot_ik_leg_hind_R"},
+    {"joint": "l_fore_paw", "target": "CTRL-foot_ik_leg_fore_L"},
+    {"joint": "r_fore_paw", "target": "CTRL-foot_ik_leg_fore_R"}
+  ],
+  "aim": [
+    {"from": "neck_base", "to": "head", "target": "CTRL-neck_01"},
+    {"from": "tail_base", "to": "tail_mid", "target": "CTRL-tail_01"}
+  ]
+}

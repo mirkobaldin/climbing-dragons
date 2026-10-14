@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "roblox-creature-pipeline/pipeline_manifest/1.0.0",
+  "title": "Roblox creature pipeline manifest (shared data contract)",
+  "description": "Shared by roblox-reference-modeling and roblox-creature-rig-animation. Paths are relative to the manifest folder. Units: meters, Blender Z-up, creature faces -Y.",
+  "type": "object",
+  "required": ["schema_version", "creature_id", "units", "axes", "paths", "stages", "components", "landmarks", "joints", "textures", "checkpoints", "defects"],
+  "properties": {
+    "schema_version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"},
+    "creature_id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]{1,40}$"},
+    "display_name": {"type": "string"},
+    "created_at": {"type": "string"},
+    "updated_at": {"type": "string"},
+    "units": {
+      "type": "object",
+      "required": ["length", "blender_scale_length"],
+      "properties": {
+        "length": {"enum": ["meter"]},
+        "blender_scale_length": {"type": "number", "minimum": 0},
+        "meters_per_stud": {"type": "number", "minimum": 0},
+        "meters_per_stud_note": {"type": "string"}
+      }
+    },
+    "axes": {
+      "type": "object",
+      "required": ["blender_up", "creature_forward", "creature_left"],
+      "properties": {
+        "blender_up": {"const": "+Z"},
+        "creature_forward": {"const": "-Y"},
+        "creature_left": {"const": "+X"},
+        "fbx_axis_forward": {"enum": ["X", "Y", "Z", "-X", "-Y", "-Z"]},
+        "fbx_axis_up": {"enum": ["X", "Y", "Z", "-X", "-Y", "-Z"]},
+        "note": {"type": "string"}
+      }
+    },
+    "paths": {
+      "type": "object",
+      "required": ["working_blend"],
+      "additionalProperties": {"type": "string"}
+    },
+    "environment": {"type": "object"},
+    "limits": {
+      "type": "object",
+      "properties": {
+        "max_refinement_iterations": {"type": "integer", "minimum": 1},
+        "min_iou_improvement": {"type": "number", "minimum": 0},
+        "stall_patience": {"type": "integer", "minimum": 1},
+        "max_stage_retries": {"type": "integer", "minimum": 0}
+      }
+    },
+    "polygon_budget_profile": {"type": "string"},
+    "references": {"type": "array", "items": {"$ref": "#/$defs/reference"}},
+    "components": {"type": "array", "items": {"$ref": "#/$defs/component"}},
+    "export_groups": {"type": "array", "items": {"$ref": "#/$defs/export_group"}},
+    "landmarks": {"type": "object", "additionalProperties": {"$ref": "#/$defs/landmark"}},
+    "joints": {"type": "array", "items": {"$ref": "#/$defs/joint"}},
+    "textures": {"type": "array", "items": {"$ref": "#/$defs/texture"}},
+    "checkpoints": {"type": "array", "items": {"$ref": "#/$defs/checkpoint"}},
+    "stages": {"type": "object", "additionalProperties": {"$ref": "#/$defs/stage"}},
+    "defects": {"type": "array", "items": {"$ref": "#/$defs/defect"}},
+    "verifications": {"type": "array", "items": {"$ref": "#/$defs/verification"}},
+    "handoff": {"type": "object", "properties": {"ready": {"type": "boolean"}}},
+    "exports": {"type": "array", "items": {"type": "object", "required": ["kind", "path"]}}
+  },
+  "$defs": {
+    "vec3": {"type": "array", "items": {"type": "number"}, "minItems": 3},
+    "reference": {
+      "type": "object",
+      "required": ["view", "image", "projection_declared", "projection_assessed"],
+      "properties": {
+        "view": {"type": "string"},
+        "image": {"type": "string"},
+        "projection_declared": {"enum": ["orthographic", "perspective", "unknown"]},
+        "projection_assessed": {"enum": ["orthographic", "perspective", "unknown"]},
+        "usable_for": {"type": "array", "items": {"enum": ["triangulation", "silhouette", "visual_hull", "visual_only"]}},
+        "px_per_m": {"type": ["number", "null"]},
+        "size_px": {"type": "array", "items": {"type": "integer"}},
+        "evidence": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "component": {
+      "type": "object",
+      "required": ["name", "key", "role", "side"],
+      "properties": {
+        "name": {"type": "string"},
+        "key": {"type": "string"},
+        "role": {"enum": ["skull", "jaw", "tooth", "horn", "vertebra", "rib", "pelvis", "limb_bone", "claw", "wing_bone", "membrane", "other_rigid"]},
+        "side": {"enum": ["C", "L", "R"]},
+        "bone_hint": {"type": "string"},
+        "influences": {"type": "array", "items": {"type": "string"}},
+        "export_group": {"type": "string"},
+        "material_group": {"type": "string"},
+        "tris": {"type": "integer", "minimum": 0},
+        "approved": {"type": "boolean"},
+        "source": {"enum": ["procedural", "visual_hull_init", "image_to_3d_init", "manual"]}
+      }
+    },
+    "export_group": {
+      "type": "object",
+      "required": ["name", "components"],
+      "properties": {
+        "name": {"type": "string"},
+        "components": {"type": "array", "items": {"type": "string"}},
+        "tris": {"type": "integer"},
+        "max_tris": {"type": "integer"},
+        "material_groups": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "landmark": {
+      "type": "object",
+      "required": ["co", "source"],
+      "properties": {
+        "co": {"$ref": "#/$defs/vec3"},
+        "source": {"enum": ["config", "reference_triangulation", "scene_edit", "mirrored"]},
+        "complete": {"type": "boolean"},
+        "residual_m": {"type": ["number", "null"]}
+      }
+    },
+    "joint": {
+      "type": "object",
+      "required": ["name", "head", "tail", "parent", "side", "chain"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+        "head": {"$ref": "#/$defs/vec3"},
+        "tail": {"$ref": "#/$defs/vec3"},
+        "parent": {"type": ["string", "null"]},
+        "side": {"enum": ["C", "L", "R"]},
+        "chain": {"type": "string"},
+        "chain_type": {"enum": ["root", "axial", "leg", "wing_arm", "wing_digit", "jaw", "head", "toe"]},
+        "index": {"type": "integer"},
+        "connected": {"type": "boolean"},
+        "pole_hint": {"$ref": "#/$defs/vec3"}
+      }
+    },
+    "texture": {
+      "type": "object",
+      "required": ["material_group", "map", "path", "color_space"],
+      "properties": {
+        "material_group": {"type": "string"},
+        "map": {"enum": ["color", "normal", "roughness", "metalness"]},
+        "path": {"type": "string"},
+        "resolution": {"type": "integer", "minimum": 1},
+        "color_space": {"enum": ["sRGB", "Non-Color"]},
+        "normal_convention": {"enum": ["OpenGL", "DirectX", "n/a"]},
+        "origin": {"enum": ["procedural_bake", "high_to_low_bake", "image_estimate_approximation", "manual"]},
+        "approximation": {"type": "boolean"}
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["id", "stage", "path", "approved"],
+      "properties": {
+        "id": {"type": "string"},
+        "stage": {"type": "string"},
+        "path": {"type": "string"},
+        "approved": {"type": "boolean"},
+        "label": {"type": "string"},
+        "created_at": {"type": "string"}
+      }
+    },
+    "stage": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["pending", "running", "done", "failed", "approved", "stale", "skipped", "unsupported"]},
+        "updated_at": {"type": "string"},
+        "summary": {"type": "object"},
+        "log": {"type": "string"},
+        "inputs_hash": {"type": "string"},
+        "attempts": {"type": "integer"},
+        "history": {"type": "array"}
+      }
+    },
+    "defect": {
+      "type": "object",
+      "required": ["id", "stage", "severity", "description", "status"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^D[0-9]{3,}$"},
+        "stage": {"type": "string"},
+        "severity": {"enum": ["info", "warning", "error", "blocker"]},
+        "description": {"type": "string"},
+        "objects": {"type": "array", "items": {"type": "string"}},
+        "status": {"enum": ["open", "resolved", "wontfix"]}
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["topic", "source", "result"],
+      "properties": {
+        "topic": {"type": "string"},
+        "source": {"type": "string"},
+        "result": {"type": "string"},
+        "checked_at": {"type": "string"}
+      }
+    }
+  }
+}

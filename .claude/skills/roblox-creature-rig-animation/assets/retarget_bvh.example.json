@@ -1,0 +1,18 @@
+{
+  "mode": "bvh",
+  "note": "TEMPLATE for a human biped BVH (CMU-style names). A biped supplies torso/neck/head and two feet only: hind legs follow the feet; fore legs, wings, tail and jaw are reported as unsupported_by_source. Verify source bone names in the file before use.",
+  "source": {"file": "refs/mocap/walk.bvh", "scale": 0.01, "axis_forward": "-Z", "axis_up": "Y", "rotate_mode": "NATIVE"},
+  "in_place": true,
+  "loop": false,
+  "root": {"source": "Hips", "target": "CTRL-torso", "scale": "auto"},
+  "bones": [
+    {"source": "Spine", "target": "CTRL-spine_01"},
+    {"source": "Spine1", "target": "CTRL-spine_02"},
+    {"source": "Neck", "target": "CTRL-neck_01"},
+    {"source": "Head", "target": "CTRL-head", "rest_offset_deg": [0, 0, 0]}
+  ],
+  "ik_targets": [
+    {"source": "LeftFoot", "target": "CTRL-foot_ik_leg_hind_L"},
+    {"source": "RightFoot", "target": "CTRL-foot_ik_leg_hind_R"}
+  ]
+}

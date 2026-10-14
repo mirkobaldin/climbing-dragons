@@ -1,0 +1,18 @@
+{
+  "enabled": false,
+  "status": "NOT INSTALLED, NOT TESTED. Candidate only.",
+  "name": "TripoSR",
+  "repository": "https://github.com/VAST-AI-Research/TripoSR",
+  "license": "MIT (README states code, pretrained models and demo are MIT)",
+  "license_verified_at": "",
+  "vram_required_gb": 6.0,
+  "vram_source": "README: about 6 GB for a single image with default options (read 2026-10-13)",
+  "max_vram_gb": 8.0,
+  "python": "C:/ai/triposr/.venv/Scripts/python.exe",
+  "workdir": "C:/ai/triposr/TripoSR",
+  "command": ["{python}", "run.py", "{image}", "--output-dir", "{output_dir}"],
+  "command_note": "Confirm flags with `python run.py --help` in your install before enabling; only --output-dir, --bake-texture and --texture-resolution were confirmed from the README.",
+  "output_globs": ["**/*.obj", "**/*.glb", "**/*.ply"],
+  "timeout_s": 900,
+  "expected_quality_note": "Single-image reconstruction guesses unseen geometry; thin rib/wing structures and gaps are typically lost. Use only as a proportion guide."
+}

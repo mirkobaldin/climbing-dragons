@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "note": "roblox_limits are copied from official docs (checked 2026-10-13; re-verify). profiles are PROJECT DEFAULTS, not Roblox requirements - tune per game and device target.",
+  "roblox_limits": {
+    "in_experience": {
+      "max_tris_per_mesh": 20000,
+      "max_influences_per_vertex": 4,
+      "max_texture_px": 1024,
+      "sources": [
+        "https://create.roblox.com/docs/art/modeling/specifications",
+        "https://create.roblox.com/docs/art/modeling/texture-specifications"
+      ],
+      "checked": "2026-10-13"
+    },
+    "marketplace_avatar_body": {
+      "total_tris": 10742,
+      "max_texture_px": 2048,
+      "note": "Applies to R15 humanoid character bodies sold on the Marketplace. A non-humanoid in-game creature is not an avatar body.",
+      "sources": ["https://create.roblox.com/docs/avatar/character-bodies/specifications"],
+      "checked": "2026-10-13"
+    }
+  },
+  "min_membrane_rows": 6,
+  "profiles": {
+    "pc_hero": {
+      "description": "Boss / close-up creature on PC and console",
+      "total_tris": 36000,
+      "roles": {"skull": 1500, "jaw": 600, "tooth": 1500, "horn": 400, "vertebra": 9000, "rib": 4000, "pelvis": 1200,
+                "limb_bone": 5000, "claw": 2500, "wing_bone": 4500, "membrane": 4000, "other_rigid": 600}
+    },
+    "pc_standard": {
+      "description": "Common in-game creature on PC, acceptable on recent phones",
+      "total_tris": 24000,
+      "roles": {"skull": 800, "jaw": 400, "tooth": 900, "horn": 250, "vertebra": 6500, "rib": 2600, "pelvis": 800,
+                "limb_bone": 3500, "claw": 1600, "wing_bone": 3200, "membrane": 2400, "other_rigid": 400}
+    },
+    "mobile": {
+      "description": "Crowded scenes or low-end mobile; run build_dragon with --detail 0.6 or lower",
+      "total_tris": 10000,
+      "roles": {"skull": 400, "jaw": 200, "tooth": 300, "horn": 120, "vertebra": 2600, "rib": 1100, "pelvis": 350,
+                "limb_bone": 1500, "claw": 600, "wing_bone": 1300, "membrane": 1100, "other_rigid": 200}
+    }
+  }
+}
