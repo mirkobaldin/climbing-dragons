@@ -23,7 +23,7 @@ local DragonModels = {}
 -- giuste resta il vecchio posto sopra il centro (client/PetAnimator).
 local SEAT_BACK, SEAT_UP = 0.05, 0.075 -- frazioni della lunghezza del drago
 local analyzer: any = false
-local function seatOf(model: Model): Vector3?
+local function getAnalyzer(): any
 	if analyzer == false then
 		local mapgen = ServerStorage:FindFirstChild("MapGen")
 		local mod = mapgen and mapgen:FindFirstChild("AnimDraghi")
@@ -32,7 +32,55 @@ local function seatOf(model: Model): Vector3?
 		end)
 		analyzer = if ok then m else nil
 	end
-	if not analyzer then
+	return analyzer
+end
+
+-- Ruoli delle ossa per i movimenti che il client aggiunge sopra le animazioni (client/DragonMotion:
+-- collo che entra in virata, busto che si torce, coda che segue, collo disteso in picchiata).
+-- Attributi sulle ossa del modello pulito (le copie li ereditano): Ruolo (neck, spine, chest,
+-- hips, tail), Indice e Di (posto nella catena) e gli assi del corpo nello spazio dell'osso
+-- (AsseSu, AsseDx, AsseAv). Sul modello: CollaAlzo, quanto sale il collo (gradi)
+local function markBones(model: Model)
+	local a = getAnalyzer()
+	if not a or not model:FindFirstChildWhichIsA("Bone", true) then
+		return
+	end
+	local ok, sk = pcall(a.analizza, model)
+	if not ok or not sk then
+		warn("[Draghi] ossa non riconosciute in " .. model.Name .. ": " .. tostring(sk))
+		return
+	end
+	local function mark(b: Bone?, role: string, i: number, n: number)
+		local rest = b and sk.rest[b]
+		if not b or not rest then
+			return
+		end
+		b:SetAttribute("Ruolo", role)
+		b:SetAttribute("Indice", i)
+		b:SetAttribute("Di", n)
+		b:SetAttribute("AsseSu", rest:VectorToObjectSpace(Vector3.yAxis))
+		b:SetAttribute("AsseDx", rest:VectorToObjectSpace(sk.right))
+		b:SetAttribute("AsseAv", rest:VectorToObjectSpace(sk.fwd))
+	end
+	mark(sk.hips, "hips", 1, 1)
+	for i, b in sk.spine do
+		mark(b, "spine", i, #sk.spine)
+	end
+	mark(sk.chest, "chest", 1, 1)
+	for i, b in sk.neck do
+		mark(b, "neck", i, #sk.neck)
+	end
+	for i, b in sk.tail do
+		mark(b, "tail", i, #sk.tail)
+	end
+	if #sk.neck > 1 then
+		local d = sk.neck[#sk.neck].WorldPosition - sk.neck[1].WorldPosition
+		model:SetAttribute("CollaAlzo", math.deg(math.atan2(d.Y, math.max(0.01, d:Dot(sk.fwd)))))
+	end
+end
+
+local function seatOf(model: Model): Vector3?
+	if not getAnalyzer() then
 		return nil
 	end
 	local ok, sk = pcall(analyzer.analizza, model)
@@ -350,6 +398,9 @@ local function scanTemplates(): { eggs: { Template }, dragons: { Template }, adu
 		local isDragon = not isEgg and hasWord(inst.Name, DRAGON_WORDS)
 		if isEgg or isDragon then
 			local t = { model = clean(inst), element = DragonConfig.elementForName(inst.Name), name = inst.Name }
+			if isDragon then
+				markBones(t.model)
+			end
 			-- "Drago_Eclissi_Adulto": il modello dello stadio Adulto di quell'elemento
 			if isDragon and hasWord(inst.Name, { "adulto", "adult" }) and t.element then
 				found.adults[t.element :: string] = t

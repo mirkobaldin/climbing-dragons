@@ -18,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local KfsPlayer = require(script.Parent.KfsPlayer)
+local DragonMotion = require(script.Parent.DragonMotion)
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
 
@@ -698,6 +699,10 @@ function PetAnimator.start()
 				-- corpo intero (mesh, ossa); "respiro" leggero dei modelli a mesh unica
 				local breathe = if pet.rig == "mesh" then CFrame.Angles(math.sin(t * 5 + pet.phase) * 0.06, 0, 0) else CFrame.identity
 				model:PivotTo(pivot * breathe)
+				if pet.tracks then
+					-- collo, busto e coda che seguono il volo vero (sopra le animazioni)
+					DragonMotion.update(model, dt, { turn = pet.turn, vy = vel.Y, speed = flat.Magnitude, air = pet.airBlend, walk = pet.walkPhase * math.pi, t = t })
+				end
 				if pet.tracks then
 					-- pesi: in aria il volo, a terra camminata o fermo secondo la velocita'
 					local tracks = pet.tracks

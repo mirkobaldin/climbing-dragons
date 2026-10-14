@@ -128,6 +128,13 @@ function KfsPlayer.load(model: Model, kfs: KeyframeSequence): Track
 	return track
 end
 
+-- strato in piu' (client/DragonMotion): una rotazione per osso che si mette prima della posa
+-- (negli assi del riposo), es. collo che entra in virata. Si aggiorna ogni frame da fuori
+local overlays: { [Model]: { [Bone]: CFrame } } = setmetatable({}, { __mode = "k" }) :: any
+function KfsPlayer.setOverlay(model: Model, map: { [Bone]: CFrame }?)
+	overlays[model] = map
+end
+
 local MAX_DIST = 350 -- piu' lontano non si vede: niente calcoli
 
 local function step(dt: number)
@@ -160,6 +167,7 @@ local function step(dt: number)
 		-- dell'adulto) e spariva sotto la pedana
 		local base = model:GetAttribute("AnimBaseScale")
 		local scale = if type(base) == "number" and base > 0 then model:GetScale() / base else 1
+		local over = overlays[model]
 		-- per ogni osso, media pesata delle pose delle tracce
 		for name, bone in rig.bones do
 			local acc: CFrame? = nil
@@ -177,7 +185,10 @@ local function step(dt: number)
 				if scale ~= 1 then
 					cf = cf.Rotation + cf.Position * scale
 				end
-				bone.Transform = cf
+				local o = over and over[bone]
+				bone.Transform = if o then o * cf else cf
+			elseif over and over[bone] then
+				bone.Transform = over[bone]
 			end
 		end
 	end

@@ -21,6 +21,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
 local FlyerPath = require(Shared:WaitForChild("FlyerPath"))
 local KfsPlayer = require(script.Parent.KfsPlayer)
+local DragonMotion = require(script.Parent.DragonMotion)
 local DragonVFX = require(script.Parent.DragonVFX)
 local MeshFX = require(script.Parent.MeshFX)
 local ClientState = require(script.Parent.ClientState)
@@ -459,6 +460,16 @@ function Combat.start()
 		while true do
 			task.wait(1)
 			pcall(restStep)
+		end
+	end)
+	-- draghi del recinto: si guardano attorno (collo e testa, client/DragonMotion)
+	RunService.RenderStepped:Connect(function(dt)
+		local camPos = workspace.CurrentCamera.CFrame.Position
+		local now = os.clock()
+		for m in resting do
+			if m.Parent and (m:GetPivot().Position - camPos).Magnitude < 200 then
+				DragonMotion.update(m, dt, { turn = 0, vy = 0, speed = 0, air = 0, walk = 0, t = now })
+			end
 		end
 	end)
 	local remotes = ReplicatedStorage:WaitForChild("Remotes")
