@@ -35,12 +35,12 @@ function TutorialHints.start()
 	stroke.Parent = ring
 	local hand = Instance.new("TextLabel")
 	hand.Name = "Manina"
-	hand.AnchorPoint = Vector2.new(0, 0.5)
+	hand.AnchorPoint = Vector2.new(0.5, 1)
 	hand.BackgroundTransparency = 1
 	hand.Size = UDim2.fromOffset(56, 56)
 	hand.Font = Enum.Font.GothamBlack
 	hand.TextScaled = true
-	hand.Text = "👈"
+	hand.Text = "👇"
 	hand.Visible = false
 	hand.Parent = gui
 
@@ -65,8 +65,8 @@ function TutorialHints.start()
 		ring.Position = UDim2.fromOffset(center.X, center.Y)
 		ring.Size = UDim2.fromOffset(size * (1.1 + pulse * 0.25), size * (1.1 + pulse * 0.25))
 		stroke.Transparency = pulse * 0.5
-		-- la manina a destra del pulsante, che va avanti e indietro
-		hand.Position = UDim2.fromOffset(center.X + size * 0.65 + math.sin(t * 6) * 8, center.Y)
+		-- la manina sopra il pulsante, che va su e giu'
+		hand.Position = UDim2.fromOffset(center.X, center.Y - size * 0.55 + math.sin(t * 6) * 8)
 	end)
 end
 

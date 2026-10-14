@@ -74,14 +74,15 @@ local STEPS: { Step } = {
 		end,
 		target = fixed("wallTop"),
 	},
+	-- un passo solo (i passi sono 9 come prima: TutorialStep e' nei salvataggi e chi l'aveva
+	-- finito, passo 10, deve restare fuori dal tutorial)
 	{
-		text = "Place a piton {PITON}: if you fall, the rope saves you!",
-		check = attributeAtLeast("PitonsPlaced", "pitons0"),
-		target = fixed("wallBase"),
-	},
-	{
-		text = "Take the piton back: unclip next to it {UNCLIP}",
-		check = attributeAtLeast("PitonsRecovered", "recovered0"),
+		text = "Place a piton {PITON}, then take it back {UNCLIP}",
+		check = function(player, memo)
+			local placed = attributeAtLeast("PitonsPlaced", "pitons0")(player, memo)
+			memo.placedOnce = memo.placedOnce or placed
+			return memo.placedOnce and attributeAtLeast("PitonsRecovered", "recovered0")(player, memo)
+		end,
 		target = fixed("wallBase"),
 	},
 	{
@@ -233,7 +234,7 @@ function Tutorial.setup()
 				step += 1
 				memo = points()
 				publish(player, step)
-				if step == 3 or step == 4 then
+				if step == 3 then
 					Ropes.refill(player) -- chiodi pieni per provare
 				end
 				if step > #STEPS then
