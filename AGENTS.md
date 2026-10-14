@@ -113,3 +113,9 @@ Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, anim
   con gli attributi `SimTouch = true` e `SimViewport`. Colori dei pulsanti e riquadri: `UiView.tint`.
 - Montepremi stile Squid Game: `server/Montepremi` + `client/Montepremi`, valori in `EconomyConfig.JACKPOT`.
 - Sessione cloud (modelli Blender, arena nuova): `docs/CLOUD_SESSIONE.md`, branch `cloud/*`, file in `cloud/`.
+- Giro 2 (2026-10-14): menu draghi `client/DragonUI` (griglia + drago scelto sempre visibile, anteprime
+  `ReplicatedStorage.Previews.Dragons/DragonsYoung/DragonsAdult`), negozio e crafting a carte (`MainMenu.cards`),
+  tasti del telefono spostabili (ingranaggio in `client/MobileControls`, salvati in Progression `controls`),
+  tutorial con `{KEY1}` `{UI:Store}`... (`UiView.hintText`, `client/TutorialHints`), mirino in monta
+  (`client/DragonRide`), schermata di morte in `client/DeathScreen`. Animazioni: dopo modifiche a
+  `mapgen/AnimDraghi` rilanciare `require(game.ServerStorage.MapGen:Clone().AnimDraghi).genera()` e salvare il place.
