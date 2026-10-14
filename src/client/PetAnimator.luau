@@ -19,6 +19,7 @@ local RunService = game:GetService("RunService")
 
 local KfsPlayer = require(script.Parent.KfsPlayer)
 local DragonMotion = require(script.Parent.DragonMotion)
+local DragonProcedural = require(script.Parent.DragonProcedural)
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
 local ClientState = require(script.Parent.ClientState)
 
@@ -216,6 +217,11 @@ local function loadTracks(model: Model): { fly: AnimationTrack, walk: AnimationT
 					end
 				end
 				actsOf[model] = acts -- a parte: chi scorre le tracce (clip del Trailer) trova solo tracce
+				-- animazioni procedurali sopra le pose (client/DragonProcedural): piedi sul terreno,
+				-- inerzia di collo e coda, sella che segue il petto. Solo con KfsPlayer
+				if not DragonProcedural.attach(model) then
+					warn("[DragonProcedural] non attivo su " .. model.Name)
+				end
 				return tracks :: any
 			end
 		end
@@ -669,12 +675,15 @@ function PetAnimator.start()
 				-- e' il posto di chi monta, cosi' il giocatore resta attaccato al collo
 				local roll = math.clamp(pet.turn * 0.35, -0.6, 0.6)
 				local nose = math.clamp(vel.Y * 0.008, -0.4, 0.35)
-				cf = CFrame.lookAt(hips, hips + face.Unit) * CFrame.Angles(nose, 0, roll) * CFrame.new(-(pet.seat :: Vector3))
+				-- la sella si sposta col petto (DragonProcedural): il drago si muove sotto chi monta
+				local shift = (pet.fix :: CFrame):VectorToWorldSpace(DragonProcedural.seatShift(model))
+				cf = CFrame.lookAt(hips, hips + face.Unit) * CFrame.Angles(nose, 0, roll) * CFrame.new(-((pet.seat :: Vector3) + shift))
 				pet.airBlend = 1
 				pitch = 0
 				bank = 0
 				if not pet.wasRidden then
 					pet.wasRidden = true
+					DragonProcedural.impulse(model, "decollo")
 					local tr = (actsOf[model] or {}).Takeoff
 					if tr then
 						tr.time = 0
@@ -710,6 +719,7 @@ function PetAnimator.start()
 				if pet.tracks then
 					-- collo, busto e coda che seguono il volo vero (sopra le animazioni)
 					DragonMotion.update(model, dt, { turn = pet.turn, vy = vel.Y, speed = flat.Magnitude, air = pet.airBlend, walk = pet.walkPhase * math.pi, t = t })
+					DragonProcedural.setAir(model, pet.airBlend)
 				end
 				if pet.tracks then
 					-- pesi: in aria il volo, a terra camminata o fermo secondo la velocita'
@@ -731,6 +741,10 @@ function PetAnimator.start()
 					local stillFor = now - (pet.stillSince or now)
 					local sleepK = if tx.sleep and stillFor > 30 then 1 else 0
 					local sitK = if tx.sit and stillFor > 10 and sleepK == 0 then 1 else 0
+					-- seduto o addormentato: niente piedi a terra; fermo e sveglio guarda il padrone
+					DragonProcedural.setLegs(model, 1 - math.max(sitK, sleepK))
+					local ownerHead = owner and owner.Character and owner.Character:FindFirstChild("Head")
+					DragonProcedural.setLook(model, if still and sleepK == 0 and ownerHead and ownerHead:IsA("BasePart") then ownerHead.Position else nil)
 					-- corsa quando il padrone corre (al posto della camminata)
 					local runK = if tx.run then math.clamp((flat.Magnitude - 16) / 8, 0, 1) else 0
 					local idleW = (1 - air) * (1 - moving)

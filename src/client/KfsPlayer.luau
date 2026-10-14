@@ -135,6 +135,13 @@ function KfsPlayer.setOverlay(model: Model, map: { [Bone]: CFrame }?)
 	overlays[model] = map
 end
 
+-- dopo le pose del frame (client/DragonProcedural: piedi sul terreno, inerzia, sella): una
+-- funzione per modello chiamata subito dopo aver scritto i Bone.Transform
+local posts: { [Model]: (dt: number) -> () } = setmetatable({}, { __mode = "k" }) :: any
+function KfsPlayer.setPost(model: Model, fn: ((dt: number) -> ())?)
+	posts[model] = fn :: any
+end
+
 local MAX_DIST = 350 -- piu' lontano non si vede: niente calcoli
 
 local function step(dt: number)
@@ -190,6 +197,10 @@ local function step(dt: number)
 			elseif over and over[bone] then
 				bone.Transform = over[bone]
 			end
+		end
+		local post = posts[model]
+		if post then
+			post(dt)
 		end
 	end
 end
