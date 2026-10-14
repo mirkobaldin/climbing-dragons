@@ -568,8 +568,9 @@ function DragonModels.preload()
 	getTemplates()
 end
 
--- Anteprime per l'interfaccia (ViewportFrame): un drago e un uovo per elemento in
--- ReplicatedStorage.Previews, cosi' il client puo' mostrarli nel menu senza immagini caricate
+-- Anteprime per l'interfaccia (ViewportFrame): per elemento un cucciolo (Dragons), un giovane
+-- (DragonsYoung), un adulto (DragonsAdult) e un uovo in ReplicatedStorage.Previews, cosi' il menu
+-- mostra il drago nella sua forma vera (prima anche gli adulti avevano la figura del cucciolo)
 function DragonModels.makePreviews()
 	local old = ReplicatedStorage:FindFirstChild("Previews")
 	if old then
@@ -577,13 +578,16 @@ function DragonModels.makePreviews()
 	end
 	local folder = Instance.new("Folder")
 	folder.Name = "Previews"
-	for _, kind in { "Dragons", "Eggs" } do
+	for _, kind in { "Dragons", "DragonsYoung", "DragonsAdult", "Eggs" } do
 		local sub = Instance.new("Folder")
 		sub.Name = kind
 		sub.Parent = folder
 		for _, e in DragonConfig.ELEMENTS do
 			local ok, model = pcall(function()
-				return if kind == "Dragons" then DragonModels.dragon(e.id, "Comune", 1) else DragonModels.egg(e.id, "Comune")
+				return if kind == "Dragons" then DragonModels.dragon(e.id, "Comune", 1)
+					elseif kind == "DragonsYoung" then DragonModels.dragon(e.id, "Comune", 2)
+					elseif kind == "DragonsAdult" then DragonModels.dragon(e.id, "Comune", 3)
+					else DragonModels.egg(e.id, "Comune")
 			end)
 			if ok and model then
 				model.Name = e.id
