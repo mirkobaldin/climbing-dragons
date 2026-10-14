@@ -163,8 +163,9 @@ end
 ------------------------------------------------------------------------------------------
 -- Draghi del giocatore (colpi, addestramento, palle dei draghi volanti)
 
-function MeshFX.charge(element: string?, at: Vector3, dir: Vector3): boolean
-	use(element, 1.5)
+-- scale: grandezza del colpo (1 = drago piccolo; i draghi adulti in monta e quelli volanti ~3)
+function MeshFX.charge(element: string?, at: Vector3, dir: Vector3, scale: number?): boolean
+	use(element, 1.5 * (scale or 1))
 	local s = element and SETS[element]
 	if not s then
 		return false
@@ -178,8 +179,8 @@ function MeshFX.charge(element: string?, at: Vector3, dir: Vector3): boolean
 end
 
 -- la forma del colpo che segue il proiettile p per "time" secondi; true se c'e'
-function MeshFX.rider(element: string?, p: BasePart, time: number): boolean
-	use(element, 1.35)
+function MeshFX.rider(element: string?, p: BasePart, time: number, scale: number?): boolean
+	use(element, 1.35 * (scale or 1))
 	local s = element and SETS[element]
 	if not s then
 		return false

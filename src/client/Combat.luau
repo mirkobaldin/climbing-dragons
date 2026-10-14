@@ -73,6 +73,26 @@ local function shockwave(at: Vector3, radius: number, color: Color3, time: numbe
 	Debris:AddItem(dome, t)
 end
 
+-- colonna di luce dell'attacco speciale: sale dal punto, si allarga e si spegne
+local groundOnly = RaycastParams.new()
+groundOnly.FilterType = Enum.RaycastFilterType.Include
+groundOnly.FilterDescendantsInstances = { workspace.Terrain }
+local function pillar(at: Vector3, radius: number, color: Color3)
+	local h = radius * 3
+	local col = fxPart(Enum.PartType.Cylinder, Vector3.new(h, radius * 0.25, radius * 0.25), CFrame.new(at + Vector3.new(0, h / 2 - 4, 0)) * CFrame.Angles(0, 0, math.pi / 2), color, 0.15)
+	local core = fxPart(Enum.PartType.Cylinder, Vector3.new(h, radius * 0.1, radius * 0.1), col.CFrame, color:Lerp(Color3.new(1, 1, 1), 0.5), 0.35)
+	local glow = Instance.new("PointLight")
+	glow.Color = color
+	glow.Range = math.min(60, radius * 2)
+	glow.Brightness = 6
+	glow.Parent = core
+	TweenService:Create(col, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = Vector3.new(h, radius * 0.7, radius * 0.7), Transparency = 1 }):Play()
+	TweenService:Create(core, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Size = Vector3.new(h, 0.2, 0.2), Transparency = 1 }):Play()
+	TweenService:Create(glow, TweenInfo.new(0.7), { Brightness = 0 }):Play()
+	Debris:AddItem(col, 0.8)
+	Debris:AddItem(core, 0.8)
+end
+
 local function shake(amount: number)
 	local cam = workspace.CurrentCamera
 	task.spawn(function()
@@ -159,10 +179,13 @@ local function meteor(sky: Vector3, ground: Vector3, fall: number)
 	end)
 end
 
-local function fireball(from: Vector3, to: Vector3, element: string, travel: number)
-	local warn = fxPart(Enum.PartType.Cylinder, Vector3.new(0.3, 20, 20), CFrame.new(to + Vector3.new(0, 0.2, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(255, 60, 40), 0.6)
-	Debris:AddItem(warn, travel)
-	DragonVFX.shot(element, from, to, elementColor(element))
+local function fireball(from: Vector3, to: Vector3, element: string, travel: number, scale: number?, noWarn: boolean?)
+	if not noWarn then
+		-- cerchio rosso dove cadra' la palla (dei draghi volanti, per schivarla)
+		local warn = fxPart(Enum.PartType.Cylinder, Vector3.new(0.3, 20, 20), CFrame.new(to + Vector3.new(0, 0.2, 0)) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(255, 60, 40), 0.6)
+		Debris:AddItem(warn, travel)
+	end
+	DragonVFX.shot(element, from, to, elementColor(element), scale or 2.5)
 	task.delay(travel, function()
 		shockwave(to, 10, elementColor(element), 0.35)
 	end)
@@ -480,19 +503,28 @@ function Combat.start()
 		end
 		(fx :: RemoteEvent).OnClientEvent:Connect(function(kind: string, a: any, b: any, c: any, d: any, e: any)
 			if kind == "special" then
-				-- onda dell'elemento del drago
+				-- onda dell'elemento del drago: forme dell'elemento grandi quanto l'area del colpo,
+				-- colonna di luce, tre onde d'urto e una raggiera di colpi dell'elemento verso
+				-- l'esterno (prima era un anello piccolo che quasi non si vedeva)
 				local color = elementColor(c)
-				-- forme dell'elemento grandi quanto l'area del colpo (senza mesh: le onde di prima)
-				if MeshFX.special(c, a, b) then
-					shockwave(a, b * 0.8, color, 0.45)
-				else
-					shockwave(a, b, color, 0.6)
-					task.delay(0.12, shockwave, a, b * 0.7, Color3.new(1, 1, 1), 0.4)
+				MeshFX.special(c, a, b)
+				shockwave(a, b, color, 0.6)
+				task.delay(0.12, shockwave, a, b * 0.7, Color3.new(1, 1, 1), 0.45)
+				task.delay(0.28, shockwave, a, b * 1.2, color, 0.8)
+				pillar(a, b, color)
+				local S = math.clamp(b / 14, 1.5, 3.5)
+				local spin = math.random() * math.pi * 2
+				for k = 1, 6 do
+					local ang = spin + k / 6 * math.pi * 2
+					local out = a + Vector3.new(math.cos(ang) * b, 0, math.sin(ang) * b)
+					local hit = workspace:Raycast(out + Vector3.new(0, 20, 0), Vector3.new(0, -60, 0), groundOnly)
+					local to = if hit then hit.Position else out - Vector3.new(0, 6, 0)
+					task.delay(0.05 + k * 0.04, DragonVFX.shot, c, a + Vector3.new(0, 2, 0), to, color, S)
 				end
 				Sfx.play("Ruggito", a)
 				petGesture(d, "Breath")
 				if d == player.UserId then
-					shake(1)
+					shake(1.6)
 				end
 			elseif kind == "plunge" then
 				shockwave(a, b, Color3.fromRGB(200, 230, 255), 0.4)
@@ -517,19 +549,24 @@ function Combat.start()
 				-- e' indietro di 10-20 studs e il colpo partiva da dietro il drago
 				local folder = workspace:FindFirstChild("Pets")
 				local mine = folder and folder:FindFirstChild(tostring(e))
+				local scale = 3
 				for _, m in (if mine then mine:GetChildren() else {}) :: { Instance } do
 					if m:IsA("Model") and m:GetAttribute("Slot") == 1 then
 						local mouth = DragonVFX.mouth(m, b)
 						local fwd = b - mouth
+						scale = DragonVFX.scaleFor(m)
 						if fwd.Magnitude > 1 then
 							-- un po' davanti al muso, che non si veda nascere dentro la testa
-							a = mouth + fwd.Unit * 2
+							a = mouth + fwd.Unit * 2 * scale
 						end
 					end
 				end
-				fireball(a, b, c, d)
+				fireball(a, b, c, d, scale, true)
 				petGesture(e, "Bite")
 				Sfx.play("Ruggito", a, 1.6)
+			elseif kind == "chain" then
+				-- rimbalzo del fulmine da un nemico all'altro (RIDE_ELEMENT.chain)
+				DragonVFX.shot(c, a, b, elementColor(c), 1.6)
 			elseif kind == "flyerHurt" then
 				flash(a)
 			elseif kind == "flyerDeath" or kind == "flyerLeave" then

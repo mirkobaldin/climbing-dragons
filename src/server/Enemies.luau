@@ -951,7 +951,10 @@ function Enemies.setup()
 		Upgrades.addStat(player, "Specials")
 		local at = (root :: BasePart).Position
 		local e = d.element
-		local radius = SP.RADIUS * (if e == "Tempesta" or e == "Fulmine" then 1.4 else 1)
+		-- piu' grande per i draghi giovani e adulti (un adulto e' lungo 30 studs: con 26 l'onda
+		-- restava sotto le sue ali)
+		local stageK = if (d.stage or 1) >= 3 then 1.6 elseif (d.stage or 1) == 2 then 1.25 else 1
+		local radius = SP.RADIUS * stageK * (if e == "Tempesta" or e == "Fulmine" then 1.4 else 1)
 		-- anche lo speciale cresce con lo stadio e le statistiche del drago
 		local damage = (SP.DAMAGE + 2 * level) * (if e == "Ombra" or e == "Eclissi" or e == "Cosmico" then 1.3 else 1)
 			* DragonConfig.STAGE_POWER[math.clamp(d.stage or 1, 1, 3)] * (d.atk or 1)
@@ -1007,17 +1010,54 @@ function Enemies.setup()
 		end
 		local to = from + dir.Unit * math.min(dir.Magnitude, UpgradeConfig.RIDE_SHOT.RANGE)
 		local travel = (to - from).Magnitude / UpgradeConfig.RIDE_SHOT.SPEED
-		local crit = math.random() < (d.crit or 0.05)
-		local damage = DragonConfig.attack(d) * UpgradeConfig.RIDE_SHOT.DAMAGE_MULT * (if crit then 2 else 1)
+		-- ogni elemento colpisce a modo suo (UpgradeConfig.RIDE_ELEMENT)
+		local el = UpgradeConfig.RIDE_ELEMENT[d.element] or { radius = 1, damage = 1, text = "" }
+		local crit = math.random() < (d.crit or 0.05) * (el.crit or 1)
+		local damage = DragonConfig.attack(d) * UpgradeConfig.RIDE_SHOT.DAMAGE_MULT * el.damage * (if crit then 2 else 1)
+		local radius = UpgradeConfig.RIDE_SHOT.RADIUS * el.radius
 		fxEvent:FireAllClients("rideShot", from, to, d.element, travel, player.UserId)
 		task.delay(travel, function()
-			local n = hitAround(player, to, UpgradeConfig.RIDE_SHOT.RADIUS, damage, function(enemy)
-				if d.element == "Gelo" then
-					enemy.slowUntil = os.clock() + 2
-				elseif d.element == "Roccia" or d.element == "Ossa" then
-					enemy.stunUntil = os.clock() + 0.6
+			local hit: { [any]: boolean } = {}
+			local n = hitAround(player, to, radius, damage, function(enemy)
+				hit[enemy] = true
+				if el.slow then
+					enemy.slowUntil = os.clock() + el.slow
+				end
+				if el.stun then
+					enemy.stunUntil = os.clock() + el.stun
 				end
 			end)
+			-- fulmine: salta sui nemici vicini (i piu' vicini prima), a meta' danno
+			if el.chain then
+				local last = to
+				for _ = 1, el.chain do
+					local best, bestD = nil, 45
+					for _, enemy in enemies do
+						local dist = (enemy.root.Position - last).Magnitude
+						if not enemy.dead and not hit[enemy] and dist < bestD then
+							best, bestD = enemy, dist
+						end
+					end
+					if not best then
+						break
+					end
+					hit[best] = true
+					local p = best.root.Position
+					fxEvent:FireAllClients("chain", last, p, d.element)
+					damageEnemy(best, player, damage * 0.5)
+					n += 1
+					last = p
+				end
+			end
+			-- fuoco e veleno: altri 4 tocchi nella stessa area
+			if el.dot then
+				task.spawn(function()
+					for _ = 1, 4 do
+						task.wait(0.5)
+						hitAround(player, to, radius, damage * el.dot / 4)
+					end
+				end)
+			end
 			if n > 0 then
 				Upgrades.addStat(player, "AirHits", n)
 			end

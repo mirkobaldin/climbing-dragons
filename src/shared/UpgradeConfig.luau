@@ -271,6 +271,20 @@ UpgradeConfig.EVENTS = {
 -- Colpo del drago in monta (click o F, server/Enemies "RideAttack"): danno = attacco del drago x
 -- DAMAGE_MULT, palla dell'elemento lunga al massimo RANGE, area RADIUS
 UpgradeConfig.RIDE_SHOT = { COOLDOWN = 0.7, RANGE = 220, SPEED = 260, RADIUS = 13, DAMAGE_MULT = 1.4 }
+-- ogni drago colpisce in modo diverso (in monta): area (radius) e danno (damage) rispetto a
+-- RIDE_SHOT, stordimento e rallentamento (secondi), rimbalzi del fulmine (chain, a meta' danno),
+-- danno nel tempo (dot: frazione del colpo divisa in 4 tocchi in 2 s, nella stessa area)
+export type RideElement = { radius: number, damage: number, stun: number?, slow: number?, crit: number?, chain: number?, dot: number?, text: string }
+UpgradeConfig.RIDE_ELEMENT = {
+	Roccia = { radius = 1.4, damage = 1.1, stun = 1, text = "Boulder: wide area, stuns" },
+	Gelo = { radius = 1, damage = 0.9, slow = 3, text = "Ice lance: slows enemies" },
+	Cosmico = { radius = 1.2, damage = 1, crit = 2, text = "Comet: double critical chance" },
+	Tempesta = { radius = 1.7, damage = 0.85, text = "Hurricane: the widest area" },
+	Eclissi = { radius = 1, damage = 1.2, dot = 0.5, text = "Solar serpent: burns" },
+	Fulmine = { radius = 0.8, damage = 1, chain = 3, text = "Black lightning: jumps to 3 more enemies" },
+	Ossa = { radius = 1, damage = 1.15, stun = 0.6, text = "Bone spear: heavy hit, stuns" },
+	Gas = { radius = 1.3, damage = 0.6, dot = 1.2, text = "Toxic orb: poison cloud" },
+} :: { [string]: RideElement }
 
 -- Draghi volanti (drago selvatico e guardiano della vetta)
 export type Flyer = { name: string, element: string, health: number, damage: number, radius: number, height: number, speed: number, coins: number, xp: number, scale: number }

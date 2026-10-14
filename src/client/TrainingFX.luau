@@ -400,9 +400,10 @@ local function onHit(userId: number, target: Vector3, element: string, xp: numbe
 			return
 		end
 		local from = DragonVFX.mouth(pet, target)
-		DragonVFX.shot(element, from, target, color)
+		local scale = DragonVFX.scaleFor(pet)
+		DragonVFX.shot(element, from, target, color, scale)
 		-- il cristallo si rompe quando arriva il colpo (i fulmini arrivano subito)
-		task.delay(if element == "Tempesta" or element == "Fulmine" then 0 else math.clamp((target - from).Magnitude / 120, 0.1, 0.7), land)
+		task.delay(if element == "Tempesta" or element == "Fulmine" then 0 else math.clamp((target - from).Magnitude / (120 * (1 + (scale - 1) * 0.45)), 0.1, 0.7), land)
 	end
 	if mine and not ClientState.dragonMode then
 		-- il tuo drago prima si gira verso il nemico, poi spara (se no il colpo gli usciva dalla
@@ -757,7 +758,7 @@ local function startAim(event: RemoteEvent)
 				to = if hit then hit.Position else camera.CFrame.Position + camera.CFrame.LookVector * 160
 			end
 			local element = pet:GetAttribute("Element") :: string?
-			DragonVFX.shot(element, mouthOf(pet), to, elementColor(element))
+			DragonVFX.shot(element, mouthOf(pet), to, elementColor(element), DragonVFX.scaleFor(pet))
 		end
 	end
 	-- anello che si stringe sul cristallo agganciato

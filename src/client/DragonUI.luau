@@ -9,6 +9,7 @@ local RS = game:GetService("ReplicatedStorage")
 local Shared = RS:WaitForChild("Shared")
 local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
 local EconomyConfig = require(Shared:WaitForChild("EconomyConfig"))
+local UpgradeConfig = require(Shared:WaitForChild("UpgradeConfig"))
 local Names = require(Shared:WaitForChild("Names"))
 local Ui = require(Shared:WaitForChild("UiView"))
 local Theme = require(script.Parent.Theme)
@@ -207,7 +208,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		stBar.Size = UDim2.new(1, 0, 0, 12)
 		stText.Visible = nextStage ~= nil
 		stBar.Visible = nextStage ~= nil
-		local how = text(side, if not nextStage then "This dragon has reached its final form." elseif not maxed then "Train it in the Dragon Arena (inside the giant ribs) to level it up." elseif stonesHave < stonesNeed then "Win Dragon Duels in the arena or defeat the Summit Guardian to get stones." else "Ready to evolve!", 15, if nextStage and maxed and stonesHave >= stonesNeed then Theme.GOOD else Theme.MUTED)
+		local how = text(side, if not nextStage then "Ride attack: " .. ((UpgradeConfig.RIDE_ELEMENT[d.element] or { text = "fire ball" }) :: any).text elseif not maxed then "Train it in the Dragon Arena (inside the giant ribs) to level it up." elseif stonesHave < stonesNeed then "Win Dragon Duels in the arena or defeat the Summit Guardian to get stones." else "Ready to evolve!", 15, if nextStage and maxed and stonesHave >= stonesNeed then Theme.GOOD else Theme.MUTED)
 		how.Position = UDim2.new(0, 0, 0, 214)
 		how.Size = UDim2.new(1, 0, 0, 40)
 		how.TextYAlignment = Enum.TextYAlignment.Top
