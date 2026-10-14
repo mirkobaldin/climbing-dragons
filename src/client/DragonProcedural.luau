@@ -4,10 +4,10 @@
 --   * corpo: si adatta al terreno (beccheggio e rollio dai piedi davanti/dietro e destra/sinistra),
 --     si abbassa dal lato della zampa che fa il passo, si piega verso l'interno in curva,
 --     si carica e spinge (decollo), assorbe l'atterraggio (DragonProcedural.impulse)
---   * zampe: piedi FERMI sul terreno mentre sono appoggiati (raycast + IK FABRIK dalla posa
---     dell'animazione), passi ad arco generati dalla velocita' (shared/DragonGait); in curva le
---     zampe esterne fanno passi piu' lunghi, da fermo si gira spostando le zampe una alla volta;
---     in aria, scendendo verso il terreno, le zampe si allungano verso il suolo
+--   * zampe: il passo e' quello dell'animazione a keyframe (MapGen.AnimDraghi, a tempo con la
+--     velocita'); qui ogni piede si adatta al terreno (raycast), resta FERMO nel mondo mentre e'
+--     appoggiato e poggia davvero a terra. IK a due segmenti che conserva la posa: il ginocchio
+--     piega solo nel piano dell'animazione, caviglia e dita restano come nell'animazione.
 --   * collo e coda: inerzia (restano indietro nelle virate e oscillano quando il drago si ferma)
 --   * testa: guarda un punto (setLook), mascella che si apre (setJaw) se lo scheletro la ha
 --   * ali in volo: nelle virate si inclinano insieme al corpo
@@ -40,6 +40,10 @@ type Leg = {
 	len: number,
 	homeLocal: Vector3, -- piede a riposo, spazio del perno del modello
 	state: DragonGait.LegState,
+	lock: Vector3?, -- piede fermo nel mondo durante l'appoggio
+	fadeFrom: Vector3?, -- da dove torna verso l'animazione dopo lo stacco
+	fade: number,
+	strained: boolean, -- l'ultima IK non arrivava al bersaglio (si stacca il piede)
 }
 type Axes = { up: Vector3, right: Vector3, fwd: Vector3 } -- assi del corpo nello spazio a riposo dell'osso
 type Rig = {
@@ -81,6 +85,7 @@ type Rig = {
 	-- ordine rispetto a chi sposta il modello
 	pivotAtPost: CFrame?,
 	movesAfter: number, -- >0: chi sposta il modello lo fa DOPO di noi (si anticipa)
+	predictK: number, -- quanto si anticipa (0..1, cambia piano)
 	predict: CFrame,
 	params: RaycastParams,
 	paramsAt: number,
@@ -189,6 +194,8 @@ local function build(model: Model): Rig?
 			len = len,
 			homeLocal = homeLocal,
 			state = DragonGait.newLeg(foot, l.side, l.front, len),
+			fade = 0,
+			strained = false,
 		})
 	end
 	-- sella: attributo Seat del server (spazio del perno) o base del collo come DragonModels
@@ -235,6 +242,7 @@ local function build(model: Model): Rig?
 		seatShift = Vector3.zero,
 		lean = Vector2.zero,
 		movesAfter = 0,
+		predictK = 0,
 		predict = CFrame.identity,
 		params = params,
 		paramsAt = -math.huge,
@@ -302,42 +310,86 @@ local function groundAt(r: Rig, p: Vector3, reach: number): (Vector3?, Vector3)
 	return nil, Vector3.yAxis
 end
 
--- IK di una zampa: la catena va dal punto d'attacco al piede; il piede va su target
-local function solveLeg(r: Rig, leg: Leg, target: Vector3, weight: number)
-	local chain = leg.chain
-	local pts: { Vector3 } = {}
-	for k, bi in chain do
-		pts[k] = r.W[bi].Position
-	end
-	local goal = pts[#pts]:Lerp(target, math.clamp(weight, 0, 1))
-	local q = DragonGait.fabrik(pts, goal, 10)
-	for k = 1, #chain - 1 do
+-- ricalcola il mondo delle ossa della catena da k in poi (ogni osso e' figlio del precedente)
+local function refreshChain(r: Rig, chain: { number }, from: number)
+	for k = math.max(from, 2), #chain do
 		local bi = chain[k]
-		local child = r.bones[chain[k + 1]]
-		local cur = r.W[bi] * child.CFrame.Position - r.W[bi].Position
-		local want = q[k + 1] - r.W[bi].Position
-		applyWorld(r, bi, about(r.W[bi].Position, fromTo(cur, want)))
-		-- il figlio si aggiorna dal genitore nuovo
-		local ci = chain[k + 1]
-		r.W[ci] = r.W[bi] * child.CFrame * r.cur[ci]
+		r.W[bi] = r.W[chain[k - 1]] * r.bones[bi].CFrame * r.cur[bi]
 	end
 end
 
--- dita del piede parallele al terreno (solo se il piede e' appoggiato)
-local function flattenToe(r: Rig, leg: Leg, normal: Vector3, weight: number)
-	local toe = leg.toe
-	if not toe or weight < 0.01 then
+-- IK di una zampa che CONSERVA LA POSA dell'animazione: il ginocchio piega solo nel suo piano
+-- (quello dell'animazione, quindi mai al contrario), caviglia e dita restano come nell'animazione
+-- e il piede tiene il suo orientamento nel mondo. Prima c'era FABRIK su tutta la catena: tendeva
+-- tutte le ossa insieme e i draghi camminavano in punta di piedi con le zampe davanti dritte.
+--   1) si trova il ginocchio (il giunto piu' lontano dalla retta attacco-piede)
+--   2) si piega/apre il ginocchio finche' la distanza attacco-piede e' quella giusta
+--   3) si ruota tutta la zampa sull'attacco verso il bersaglio
+--   4) il piede torna all'orientamento che aveva nell'animazione (niente dita storte)
+local function solveLeg(r: Rig, leg: Leg, target: Vector3, weight: number): boolean
+	local chain = leg.chain
+	local n = #chain
+	if n < 3 or weight < 0.001 then
+		return true
+	end
+	local footI = chain[n]
+	local footRot = r.W[footI].Rotation
+	local A = r.W[chain[1]].Position
+	local C = r.W[footI].Position
+	local goal = C:Lerp(target, math.clamp(weight, 0, 1))
+	if (goal - C).Magnitude < leg.len * 0.002 then
+		return true
+	end
+	local axisAC = C - A
+	local kb, best = 2, -1
+	if axisAC.Magnitude > 1e-6 then
+		local u = axisAC.Unit
+		for k = 2, n - 1 do
+			local q = r.W[chain[k]].Position - A
+			local dd = (q - u * q:Dot(u)).Magnitude
+			if dd > best then
+				best, kb = dd, k
+			end
+		end
+	end
+	local B = r.W[chain[kb]].Position
+	local a, b = (B - A).Magnitude, (C - B).Magnitude
+	local ok = true
+	if a > 1e-5 and b > 1e-5 then
+		local want = (goal - A).Magnitude
+		local d = math.clamp(want, math.abs(a - b) + 1e-3, (a + b) * 0.985)
+		ok = want <= (a + b) * 0.93 -- oltre: zampa quasi tesa, il piede si stacca (meglio un passo che una zampa dritta)
+		local u, v = A - B, C - B
+		local nrm = u:Cross(v)
+		if nrm.Magnitude < 1e-6 then
+			-- zampa dritta nell'animazione: si piega come un ginocchio (avanti per le zampe dietro)
+			nrm = r.predict * r.model:GetPivot():VectorToWorldSpace(r.sk.right) * (if leg.front then -1 else 1)
+		end
+		nrm = nrm.Unit
+		local th0 = math.acos(math.clamp(u.Unit:Dot(v.Unit), -1, 1))
+		local th = math.acos(math.clamp((a * a + b * b - d * d) / (2 * a * b), -1, 1))
+		applyWorld(r, chain[kb], about(B, CFrame.fromAxisAngle(nrm, th - th0)))
+		refreshChain(r, chain, kb + 1)
+	end
+	C = r.W[footI].Position
+	applyWorld(r, chain[1], about(A, fromTo(C - A, goal - A)))
+	refreshChain(r, chain, 2)
+	-- il piede torna orientato come nell'animazione
+	local F = r.W[footI]
+	applyWorld(r, footI, about(F.Position, footRot * F.Rotation:Inverse()))
+	return ok
+end
+
+-- piede appoggiato su un pendio: lo si inclina come il terreno (solo la differenza dal piano,
+-- quindi in piano non cambia niente: niente dita che si torcono)
+local function tiltFoot(r: Rig, leg: Leg, normal: Vector3, weight: number)
+	if weight < 0.01 or normal.Y > 0.999 then
 		return
 	end
 	local fi = leg.chain[#leg.chain]
-	local child = r.bones[toe]
-	local cur = r.W[fi] * child.CFrame.Position - r.W[fi].Position
-	local flat = cur - normal * cur:Dot(normal)
-	if flat.Magnitude < 1e-4 then
-		return
-	end
-	local want = cur:Lerp(flat.Unit * cur.Magnitude, weight)
-	applyWorld(r, fi, about(r.W[fi].Position, fromTo(cur, want)))
+	local rot = fromTo(Vector3.yAxis, normal)
+	local axis, angle = rot:ToAxisAngle()
+	applyWorld(r, fi, about(r.W[fi].Position, CFrame.fromAxisAngle(axis, angle * math.clamp(weight, 0, 1) * 0.8)))
 end
 
 local function post(r: Rig, dt: number)
@@ -383,9 +435,11 @@ local function post(r: Rig, dt: number)
 	-- moto del corpo (dal perno) e anticipo se il modello viene spostato dopo di noi
 	-- se chi sposta il modello lo fa dopo di noi, il perno che leggiamo e' quello del frame
 	-- prima: si anticipa del movimento dell'ultimo frame (se no i piedi scivolano di v*dt)
-	if r.movesAfter > 0 and r.lastPivot then
+	-- (l'anticipo entra e esce piano: se il conteggio oscillava, ossa e piedi saltavano di v*dt)
+	r.predictK += ((if r.movesAfter > 0 then 1 else 0) - r.predictK) * math.min(1, dt * 6)
+	if r.predictK > 0.001 and r.lastPivot then
 		local delta = (r.lastPivot :: CFrame):Inverse() * pivot
-		r.predict = (pivot * delta) * pivot:Inverse()
+		r.predict = CFrame.identity:Lerp((pivot * delta) * pivot:Inverse(), r.predictK)
 	else
 		r.predict = CFrame.identity
 	end
@@ -399,8 +453,13 @@ local function post(r: Rig, dt: number)
 		local lp = r.lastPivot :: CFrame
 		local v = (rawPivot.Position - lp.Position) / dt
 		local dv = (v - r.vel) / dt
-		r.vel = r.vel:Lerp(v, math.min(1, dt * 12))
-		r.acc = r.acc:Lerp(dv, math.min(1, dt * 6))
+		r.vel = r.vel:Lerp(v, math.min(1, dt * 8))
+		-- l'accelerazione e' la derivata di una lettura che trema: si limita e si filtra molto
+		local lim = math.max(r.size, 4) * 3
+		if dv.Magnitude > lim then
+			dv = dv.Unit * lim
+		end
+		r.acc = r.acc:Lerp(dv, math.min(1, dt * 2.5))
 		local f0 = lp:VectorToWorldSpace(sk.fwd)
 		local f1 = rawPivot:VectorToWorldSpace(sk.fwd)
 		local yaw = math.atan2(f0:Cross(f1).Y, f0:Dot(f1))
@@ -431,13 +490,13 @@ local function post(r: Rig, dt: number)
 	if groundW > 0.01 and nearLegs then
 		local fSum, fN, bSum, bN, rSum, rN, lSum, lN = 0, 0, 0, 0, 0, 0, 0, 0
 		local fz, bz = 0, 0
-		for _, leg in r.legs do
-			local restY = (pivot * leg.homeLocal).Y
-			local d = leg.state.foot.Y - restY
-			if not leg.state.planted then
-				d = (leg.state.to.Y - restY) - leg.len * 0.06 * leg.state.lift
-			end
-			d = math.clamp(d, -leg.len * 0.6, leg.len * 0.6)
+		for i, leg in r.legs do
+			-- quanto il terreno sotto il piede a riposo e' piu' alto o piu' basso del piano del
+			-- drago (il perno sta gia' sul terreno al centro): da qui beccheggio, rollio e altezza
+			local restGround = pivot * Vector3.new(leg.homeLocal.X, sk.ground, leg.homeLocal.Z)
+			local g = groundAt(r, restGround, leg.len * 1.2)
+			local raw = if g then math.clamp((g :: Vector3).Y - restGround.Y, -leg.len * 0.5, leg.len * 0.5) else 0
+			local d = DragonGait.spring(spring(r, "terra" .. i), raw, dt, 12, 1)
 			if leg.front then
 				fSum += d
 				fN += 1
@@ -495,18 +554,18 @@ local function post(r: Rig, dt: number)
 	local nNeck = #sk.neck
 	for k, bi in sk.neck do
 		local w = k / math.max(nNeck, 1)
-		local yaw = DragonGait.spring(spring(r, "neckY" .. k), -yawRate * 0.05 * w, dt, 7, 0.45)
+		local yaw = DragonGait.spring(spring(r, "neckY" .. k), -yawRate * 0.05 * w, dt, 6, 0.65)
 		-- accelerando in su la testa resta indietro (giu')
-		local pitch = DragonGait.spring(spring(r, "neckP" .. k), -accUp * 0.02 * w, dt, 7, 0.45)
+		local pitch = DragonGait.spring(spring(r, "neckP" .. k), -accUp * 0.02 * w, dt, 6, 0.65)
 		preRotate(r, bi, r.axes[bi].up, yaw)
 		preRotate(r, bi, r.axes[bi].right, pitch)
 	end
 	local nTail = #sk.tail
 	for k, bi in sk.tail do
 		local w = k / math.max(nTail, 1)
-		local yaw = DragonGait.spring(spring(r, "tailY" .. k), yawRate * 0.09 * w, dt, 5 - 2.5 * w, 0.35)
+		local yaw = DragonGait.spring(spring(r, "tailY" .. k), yawRate * 0.09 * w, dt, 5 - 2.5 * w, 0.5)
 		-- la coda punta indietro: una rotazione positiva sull'asse destro abbassa la punta
-		local pitch = DragonGait.spring(spring(r, "tailP" .. k), accUp * 0.03 * w, dt, 5 - 2.5 * w, 0.35)
+		local pitch = DragonGait.spring(spring(r, "tailP" .. k), accUp * 0.03 * w, dt, 5 - 2.5 * w, 0.5)
 		preRotate(r, bi, r.axes[bi].up, yaw)
 		preRotate(r, bi, r.axes[bi].right, pitch)
 	end
@@ -555,59 +614,75 @@ local function post(r: Rig, dt: number)
 	end
 	computeWorld(r)
 
-	-- 5) zampe: passi e IK a terra; in aria, scendendo, si allungano verso il suolo
-	if nearLegs and r.legW > 0.05 then
-		local homes: { Vector3 } = {}
-		local landing: { Vector3 } = {}
-		local normals: { Vector3 } = {}
+	-- 5) zampe: la camminata e' quella dell'animazione (a keyframe, sincronizzata con la velocita'
+	-- in PetAnimator); qui ogni piede si sposta solo in su o in giu' quanto il terreno sotto di
+	-- lui e' diverso dal piano del drago, conservando l'altezza del passo dell'animazione. Cosi'
+	-- passo e IK non litigano (prima i passi procedurali andavano per conto loro: zampe dietro
+	-- che salivano e scendevano a raffica, zampe che sembravano rotte).
+	if nearLegs and r.legW > 0.05 and groundW > 0.01 then
 		for i, leg in r.legs do
-			local home = pivot * leg.homeLocal
-			local g, n = groundAt(r, home, leg.len * 1.5)
-			homes[i] = g or home
-			normals[i] = n
-			-- atterraggio un po' avanti (meta' appoggio sotto la spalla), ruotato con la virata
-			local dur = DragonGait.stepDuration(leg.len, speed)
-			local ahead = home + flatVel * dur * 0.6
-			local rel = ahead - pivot.Position
-			local spin = CFrame.fromAxisAngle(up, r.yawRate * dur * 0.6)
-			ahead = pivot.Position + spin * rel
-			local g2 = groundAt(r, ahead, leg.len * 1.5)
-			-- mai oltre la portata della zampa (zampe quasi tese a riposo: Eclissi adulto)
-			local root = r.W[leg.chain[1]].Position
-			landing[i] = DragonGait.clampReach(g2 or ahead, root, leg.len * 0.97)
-			homes[i] = DragonGait.clampReach(homes[i], root, leg.len * 0.97)
-		end
-		if groundW > 0.5 then
-			local states: { DragonGait.LegState } = {}
-			for i, leg in r.legs do
-				states[i] = leg.state
+			local fi = leg.chain[#leg.chain]
+			local F = r.W[fi].Position
+			-- altezza del piede sopra il piano del drago nell'animazione. Nella camminata a keyframe
+			-- la zampa ruota sull'anca e durante l'appoggio il piede sale e scende di qualche
+			-- centimetro (sembrava in punta di piedi): sotto la soglia p il piede va giu' a terra,
+			-- sopra resta l'alzata del passo (curva morbida, senza scatti)
+			-- (rispetto all'altezza a riposo di QUESTO piede: in alcuni draghi il piede davanti sta
+			-- piu' su delle dita)
+			local h0 = leg.homeLocal.Y - sk.ground
+			local hA = pivot:PointToObjectSpace(F).Y - sk.ground - h0
+			local p = leg.len * 0.07
+			local hT = if hA <= 0 then 0 elseif hA < 2 * p then hA * hA / (4 * p) else hA - p
+			local probe = F - up * (hA + h0)
+			local g, nrm = groundAt(r, probe, leg.len * 1.2)
+			-- terreno: solo questo e' ammorbidito (la parte dall'animazione e' esatta, se no in
+			-- appoggio il piede restava indietro di un frame ed entrava nel terreno)
+			local terrain = 0
+			if g then
+				terrain = math.clamp((g :: Vector3).Y - probe.Y, -leg.len * 0.45, leg.len * 0.45)
 			end
-			local force: { boolean } = {}
-			for i, leg in r.legs do
-				force[i] = leg.state.planted and (leg.state.foot - r.W[leg.chain[1]].Position).Magnitude > leg.len * 0.93
+			terrain = DragonGait.spring(spring(r, "piede" .. i), terrain, dt, 16, 1)
+			local T = F + up * ((hT - hA + terrain) * groundW)
+			-- dopo uno stacco il piede torna morbido verso l'animazione (prima di bloccarlo di nuovo,
+			-- se no il nuovo blocco nasceva lontano dal piede vero e il piede scivolava fin la')
+			if leg.fade > 0 and leg.fadeFrom then
+				leg.fade = math.max(0, leg.fade - dt / 0.18)
+				local k = leg.fade * leg.fade * (3 - 2 * leg.fade)
+				local fr = leg.fadeFrom :: Vector3
+				T = T:Lerp(Vector3.new(fr.X, math.max(fr.Y, T.Y), fr.Z), k)
 			end
-			DragonGait.update(states, dt, { homes = homes, landing = landing, speed = speed, up = up, force = force })
-			for i, leg in r.legs do
-				solveLeg(r, leg, leg.state.foot, groundW)
-				flattenToe(r, leg, normals[i], if leg.state.planted then groundW else 0)
-			end
-		elseif r.air > 0.5 then
-			-- in aria: piedi pronti per l'atterraggio; se il terreno e' vicino e si scende,
-			-- le zampe si allungano verso il suolo
-			local descending = r.vel.Y < -1
-			for i, leg in r.legs do
-				local footW = r.W[leg.chain[#leg.chain]].Position
-				leg.state.foot = homes[i]
-				leg.state.planted = true
-				leg.state.lift = 0
-				if descending then
-					local gap = footW.Y - homes[i].Y
-					local reach = math.clamp(1 - gap / (leg.len * 2.5), 0, 1) * 0.8
-					if reach > 0.01 then
-						solveLeg(r, leg, Vector3.new(footW.X, homes[i].Y, footW.Z), reach)
-					end
+			-- appoggio: il piede resta fermo nel mondo (non scivola) finche' l'animazione lo stacca
+			-- o finche' si allontana troppo (il drago gira sul posto o la zampa non ci arriva piu');
+			-- poi torna morbido verso l'animazione
+			local contact = hT < leg.len * 0.015 and groundW > 0.5
+			if contact then
+				if not leg.lock then
+					local lg = groundAt(r, T, leg.len * 0.5)
+					leg.lock = if lg then Vector3.new(T.X, (lg :: Vector3).Y + h0 + hT, T.Z) else T
 				end
+				local lk = leg.lock :: Vector3
+				local flatD = Vector3.new(lk.X - T.X, 0, lk.Z - T.Z).Magnitude
+				if flatD > leg.len * 0.2 or leg.strained then
+					leg.fadeFrom, leg.fade, leg.lock = lk, 1, nil
+				else
+					T = lk
+				end
+			elseif leg.lock then
+				leg.fadeFrom, leg.fade, leg.lock = leg.lock, 1, nil
 			end
+			leg.strained = false
+			if (T - F).Magnitude > leg.len * 0.004 then
+				leg.strained = not solveLeg(r, leg, T, 1)
+			end
+			-- appoggiato su un pendio: il piede segue il terreno
+			local touch = math.clamp(1 - hT / math.max(leg.len * 0.1, 1e-3), 0, 1) * groundW
+			local nx = DragonGait.spring(spring(r, "normX" .. i), nrm.X, dt, 10, 1)
+			local nz = DragonGait.spring(spring(r, "normZ" .. i), nrm.Z, dt, 10, 1)
+			tiltFoot(r, leg, Vector3.new(nx, 1, nz).Unit, touch)
+		end
+	else
+		for _, leg in r.legs do
+			leg.lock, leg.fade = nil, 0
 		end
 	end
 
@@ -771,11 +846,11 @@ function DragonProcedural.riderLean(model: Model): Vector2
 	return if r then r.lean else Vector2.zero
 end
 
--- stato di una zampa (per i test in tools/anim_test)
-function DragonProcedural._debugLeg(model: Model, i: number): DragonGait.LegState?
+-- stato di una zampa (per i test in tools/anim_test): piede bloccato nel mondo durante l'appoggio
+function DragonProcedural._debugLeg(model: Model, i: number): { lock: Vector3?, len: number }?
 	local r = rigs[model]
 	local leg = r and r.legs[i]
-	return leg and leg.state
+	return if leg then { lock = leg.lock, len = leg.len } else nil
 end
 
 -- riassunto dello scheletro riconosciuto (per i log e il comando admin)

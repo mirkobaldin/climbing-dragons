@@ -55,6 +55,7 @@ type Pet = {
 	tracks: { fly: AnimationTrack, walk: AnimationTrack, idle: AnimationTrack }?,
 	seat: Vector3?, -- dove si siede chi monta (spazio del corpo: -Z muso, +Y su)
 	yaw: number?, -- direzione dell'ultimo fotogramma (per le virate in monta)
+	velS: Vector3?, -- velocita' del padrone filtrata
 	turn: number, -- velocita' di virata filtrata (rad/s, + a sinistra)
 	wasRidden: boolean?,
 	lift: number, -- quanto si alza a terra perche' la posa non affondi
@@ -576,9 +577,11 @@ function PetAnimator.start()
 			end
 			local s = math.max(pet.size / 4, 1)
 			local side = if pet.slot % 2 == 1 then 1 else -1
-			-- battito d'ali: piccoli sobbalzi verso l'alto (anche per le mesh senza ossa)
+			-- battito d'ali: piccoli sobbalzi verso l'alto (solo per i modelli senza animazioni: con le
+			-- ali animate il sobbalzo a |sin| non andava a tempo col battito e il volo sembrava a scatti)
 			local flapT = t * 7 + pet.phase
-			local bob = (math.sin(t * 2 + pet.phase) * 0.35 + math.abs(math.sin(flapT)) * 0.3) * s
+			local flapBob = if pet.tracks then 0 else (1 - math.cos(flapT * 2)) * 0.15
+			local bob = (math.sin(t * 1.3 + pet.phase) * 0.3 + flapBob) * s
 			local offset = Vector3.new(side * (2.2 + s * 1.3), 1.6 + s * 0.7 + bob, 2 + s * 1.2 + (if pet.slot > 2 then 4 else 0))
 			-- ogni tanto fa un giro intorno al padrone (3 secondi)
 			-- addestramento: il tuo drago vola fermo nel punto indicato (centro dell'arena)
@@ -631,7 +634,7 @@ function PetAnimator.start()
 					local ground = Vector3.new(beside.Position.X, y, beside.Position.Z)
 					target = CFrame.new(ground:Lerp(target.Position, pet.airBlend)) * target.Rotation
 				end
-				pet.walkPhase += dt * (2 + r.AssemblyLinearVelocity.Magnitude * 0.45)
+				pet.walkPhase += dt * (2 + (pet.velS or Vector3.zero).Magnitude * 0.45)
 			end
 			if anchored then
 				target = CFrame.new((ClientState.petAnchor :: Vector3) + Vector3.new(0, bob, 0))
@@ -649,7 +652,14 @@ function PetAnimator.start()
 			local alpha = 1 - math.exp(-dt * (if t >= pet.nextOrbit and t < pet.nextOrbit + 3 then 9 else 5))
 			local pos = current.Position:Lerp(target.Position, alpha)
 			-- guarda dove va il padrone (o dove guarda, se e' fermo)
-			local vel = r.AssemblyLinearVelocity
+			-- velocita' del padrone FILTRATA: quella grezza della fisica trema da un frame all'altro e
+			-- inclinazione, beccheggio e pesi delle animazioni di volo andavano a scatti
+			local rawVel = r.AssemblyLinearVelocity
+			if rawVel ~= rawVel then
+				rawVel = Vector3.zero
+			end
+			pet.velS = (pet.velS or rawVel):Lerp(rawVel, math.min(1, dt * 5))
+			local vel = pet.velS :: Vector3
 			local flat = Vector3.new(vel.X, 0, vel.Z)
 			local look = if flat.Magnitude > 2 then flat.Unit else Vector3.new(r.CFrame.LookVector.X, 0, r.CFrame.LookVector.Z)
 			-- il drago guarda dove va lui: quando il padrone si gira il suo posto passa dall'altra parte
@@ -683,7 +693,7 @@ function PetAnimator.start()
 			end
 			local lateral = flat:Dot(rotated.RightVector)
 			local bank = math.clamp(-lateral * 0.02, -0.45, 0.45)
-			local pitch = math.clamp(vel.Y * 0.015, -0.35, 0.35) + math.sin(flapT) * 0.05
+			local pitch = math.clamp(vel.Y * 0.015, -0.35, 0.35) + (if pet.tracks then 0 else math.sin(flapT) * 0.05)
 			local cf = CFrame.new(pos) * rotated
 			-- in groppa (server/Riding): il drago sta sotto chi lo monta e guarda dove va lui
 			local riding = owner ~= nil and owner:GetAttribute("Riding") == true and pet.slot == 1 and not anchored and pet.seat ~= nil
@@ -844,8 +854,6 @@ function PetAnimator.start()
 					elseif not pet.nextGesture then
 						pet.nextGesture = now + 6
 					end
-					-- il passo segue la corsa del padrone
-					tracks.walk:AdjustSpeed(math.clamp(flat.Magnitude / 12, 0.6, 1.5))
 					-- i draghi grandi battono le ali piu' lenti (un adulto che sbatte come un cucciolo
 					-- sembrava un insetto)
 					tracks.fly:AdjustSpeed(math.clamp(12 / pet.size, 0.45, 1))
