@@ -6,7 +6,8 @@ Quando il branch e' unito in `main`, togli la riga.
 
 | Chi | Branch | Compito | File toccati |
 |---|---|---|---|
-| Codex | codex/ui-bottoni-v2-20261014 | DA FARE: pulsanti e cornici v2 (docs/CODEX_BOTTONI_V2.md), senza toccare quelli vecchi | artifacts/ui-v2-20261014/**; nuove chiavi in src/shared/UiAssets.luau + UiFallback |
+| Codex | codex/ui-rifacimento-20261014 | DA FARE: rifare tutta la UI colorata e pulita, icone giuste, scheda del drago (docs/CODEX_UI_RIFACIMENTO.md). I pulsanti v2 sono gia' in main | src/gui/**, client UI (vedi elenco nel doc), src/shared/{UiView,UiAssets,UiFallback}, tools/ui/**, artifacts/ui-v3-20261014/** |
+| Claude | main | officina piccola vicino allo shop, teletrasporto prima della missione dell'uovo, case giapponesi in scala 3, base dell'Isola dei Draghi, prova draghi in Play | src/server/{Missions,Tutorial,Economy,...}, src/mapgen/{Borghi,Isole,IsolaDraghi}, NON i file UI del rifacimento |
 | Claude (cloud) | cloud/modelli-20261014 | Isola dei Draghi con arena (giro 2: rifare col metodo e i controlli di docs/CLOUD_SESSIONE.md) e modelli della mappa | solo tools/blender/{arena,mappa}.py e cloud/**; nessun file src |
 | Claude | main | bug draghi (terreno, monta, colpo in volo), attacchi per elemento, VFX, animazioni, UI telefono e colori, contatore | src/** |
 | Codex | codex/discord-community-20261013 | IN CORSO: server Discord configurato, immagini e AutoMod pubblicati, bot online; verifica finale di gerarchia ruoli e permessi | artifacts/discord-community-20261013/** nel worktree; copia consegna Desktop/Climbing & Dragons Discord/**; nessun file src |
