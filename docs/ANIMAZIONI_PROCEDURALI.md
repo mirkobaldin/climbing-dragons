@@ -102,6 +102,28 @@ rispetto all'animazione in piano.
 `DragonGait.update` (passi procedurali) non e' piu' usato da DragonProcedural: resta nel modulo
 con i suoi test, se un giorno servisse per draghi senza camminata animata.
 
+## Giro 3 (2026-10-14 notte): prova in Play di Claude locale
+Gelo giovane ed Eclissi adulto, misure dalle ossa (`TransformedWorldCFrame`) e raycast sul Terrain;
+h = altezza del piede (osso della caviglia) dal terreno, in zampe.
+- **Piano, camminata e da fermo**: a posto. Zampe mai tese oltre il 98%, mai sotto terra, niente
+  punta di piedi ne' zampe davanti distese; seduto in piano h 0,04-0,19.
+- **Pendio di 17 gradi** (x -1150, z 260 vicino al campo): in salita a posto (0 frame sotto per il
+  Gelo); **in discesa e da fermo i piedi affondano o restano sospesi**: Gelo in discesa 59 frame su
+  469 sotto il terreno (peggiore -0,79); Eclissi fermo 123 frame su 692 sotto (peggiore -1,11);
+  Gelo seduto rivolto in discesa con le zampe davanti a 0,95 da terra; Eclissi seduto di traverso
+  con le zampe davanti a 0,9-1,3 da terra. Da guardare: `setLegs(1 - max(sitK, sleepK))` in
+  PetAnimator spegne i piedi da seduto; il perno lo mette PetAnimator a terra nel punto "beside"
+  (a lato del giocatore), non sotto il drago; limiti `±0,5` / `±0,45` zampe su terreno e corpo.
+  Claude ha gia' fatto seguire il pendio al corpo anche da seduto (`bodyW = 1 - r.air` al posto
+  di `groundW` nel punto 1): non basta.
+- **Volo in monta**: lo scatto era del personaggio, non del drago: l'AlignOrientation di
+  `client/DragonRide` (Responsiveness 18) lo faceva oscillare di +-10 gradi attorno alla direzione
+  voluta e il drago lo copia. Ora e' rigida e la direzione si gira piano (TURN_RATE 4/s):
+  accelerazione angolare media del drago da 80 a 33 rad/s2, picchi da 1515 a 242. Il rollio in
+  virata resta a lungo sul tetto (0,6 rad = 34 gradi): forse va abbassato.
+- Per le prove con lo Studio MCP: un `require` dall'MCP da' una copia nuova dei moduli (stato
+  vuoto); la telecamera Scriptable lontana >500 studs dal padrone ferma i draghi (PetAnimator).
+
 ## Limiti noti
 - Solo i draghi animati da **KfsPlayer**. Con gli ID di animazione pubblicati (Animator di Roblox)
   `attach` non viene chiamato: servirebbe applicare il procedurale dopo l'Animator.

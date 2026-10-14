@@ -485,9 +485,12 @@ local function post(r: Rig, dt: number)
 	r.groundW = groundW
 	local nearLegs = dist < math.max(LEGS_RANGE, size * 4) and #r.legs >= 2
 
-	-- 1) corpo: altezza, beccheggio e rollio dai piedi; inclinazione in curva e con la spinta
+	-- 1) corpo: altezza, beccheggio e rollio dai piedi; inclinazione in curva e con la spinta.
+	-- Il corpo segue il pendio anche da seduto (setLegs 0): prima restava dritto e su un pendio il
+	-- drago seduto aveva le zampe davanti sospese nel vuoto (prova del 2026-10-14)
 	local up = Vector3.yAxis
-	if groundW > 0.01 and nearLegs then
+	local bodyW = 1 - r.air
+	if bodyW > 0.01 and nearLegs then
 		local fSum, fN, bSum, bN, rSum, rN, lSum, lN = 0, 0, 0, 0, 0, 0, 0, 0
 		local fz, bz = 0, 0
 		for i, leg in r.legs do
@@ -525,12 +528,12 @@ local function post(r: Rig, dt: number)
 		local pitchT = math.atan2(front - back, span) + math.clamp(accF * 0.02, -0.08, 0.08)
 		local rollT = -math.atan2(rgt - lft, width) - math.clamp(speed * r.yawRate / size * 0.12, -0.12, 0.12)
 		local heightT = (front + back) * 0.5
-		local pitch = DragonGait.spring(spring(r, "bodyPitch"), pitchT * groundW, dt, 9, 0.9)
-		local roll = DragonGait.spring(spring(r, "bodyRoll"), rollT * groundW, dt, 9, 0.9)
+		local pitch = DragonGait.spring(spring(r, "bodyPitch"), pitchT * bodyW, dt, 9, 0.9)
+		local roll = DragonGait.spring(spring(r, "bodyRoll"), rollT * bodyW, dt, 9, 0.9)
 		local hs = spring(r, "bodyH")
 		hs.v += r.kick * size
 		r.kick = 0
-		local h = DragonGait.spring(hs, heightT * groundW, dt, 10, 0.55)
+		local h = DragonGait.spring(hs, heightT * bodyW, dt, 10, 0.55)
 		local rot = CFrame.fromAxisAngle(rightW, pitch) * CFrame.fromAxisAngle(fwdW, roll)
 		applyWorld(r, sk.root, CFrame.new(up * h) * about(hipsW, rot))
 		r.lean = Vector2.new(roll, pitch)

@@ -18,8 +18,9 @@ local IsolaDraghi = {}
 
 IsolaDraghi.SCALE = 5 / 1.7 -- i modelli del cloud sono in metri veri: personaggio 1,7 m = 5 stud
 -- centro del pavimento dell'arena (l'origine del modello), sopra l'oceano a ovest del campo:
--- dal campo base (x -1450) si vede all'orizzonte
-IsolaDraghi.ORIGIN = CFrame.new(-5000, 820, -150)
+-- dal campo base (x -1450) si vede all'orizzonte (a -5000 era quasi sul bordo dell'oceano, che
+-- finisce a -5888: dall'isola si vedeva dove finiva l'acqua)
+IsolaDraghi.ORIGIN = CFrame.new(-4300, 820, -150)
 
 -- elementi delle torri, dal portale in senso antiorario visto dall'alto (come nel modello)
 IsolaDraghi.TOWERS = { "Roccia", "Gelo", "Cosmico", "Tempesta", "Eclissi", "Fulmine", "Ossa", "Gas" }
@@ -136,8 +137,8 @@ local function buildPlaceholder(folder: Instance, origin: CFrame)
 		else
 			part(model, string.format("Arena_Mura_%02d", k), Vector3.new(side, WALL_H, WALL_T) * M, cf * CFrame.new(0, WALL_H / 2 * M, 0), STONE, Enum.Material.Slate)
 		end
-		-- fascia di bronzo in cima
-		part(model, "Arena_Fascia", Vector3.new(side, 1, 1) * M, cf * CFrame.new(0, (WALL_H + 0.5) * M, -WALL_T / 2 * M), BRONZE, Enum.Material.Metal)
+		-- fascia di bronzo in cima, sul bordo esterno (lungo quanto il lato; dentro sporgeva agli angoli)
+		part(model, "Arena_Fascia", Vector3.new(side, 1, 1) * M, cf * CFrame.new(0, (WALL_H + 0.5) * M, (WALL_T / 2 - 0.5) * M), BRONZE, Enum.Material.Metal)
 	end
 	-- palco del domatore: balcone sopra l'arco, lato interno
 	local tamerCf = origin * CFrame.lookAt(Vector3.new(0, 12, ARENA_IN - 3) * M, Vector3.new(0, 12, 0) * M)
@@ -171,7 +172,9 @@ local function buildPlaceholder(folder: Instance, origin: CFrame)
 	for k = 0, 2 do
 		disk(model, "Arrivo", (8 + (2 - k) * 0.35) * M, 0.3 * M, w(Vector3.new(0, 0.15 + k * 0.3, 160)), BASALT, Enum.Material.Basalt)
 	end
+	-- cerchio di rune: anello d'oro (disco di Neon coperto al centro dal basalto)
 	disk(model, "Arrivo_Rune", 6 * M, 0.1 * M, w(Vector3.new(0, 0.95, 160)), GOLD, Enum.Material.Neon).Transparency = 0.4
+	disk(model, "Arrivo_Centro", 5.4 * M, 0.12 * M, w(Vector3.new(0, 0.96, 160)), BASALT, Enum.Material.Basalt)
 	local pathFrom, pathTo = Vector3.new(0, 0.1, 152), Vector3.new(0, 0.1, ARENA_IN + WALL_T)
 	part(model, "Isola_Sentiero", Vector3.new(4, 0.2, (pathFrom - pathTo).Magnitude) * M, origin * CFrame.new((pathFrom + pathTo) / 2 * M), Color3.fromRGB(120, 110, 100), Enum.Material.Cobblestone)
 	-- da lontano resta visibile come una mesh leggera
