@@ -1,0 +1,135 @@
+{
+ "nome": "Giunca",
+ "triangoli": 7434,
+ "parti": [
+  {
+   "nome": "Giunca_Scafo",
+   "materiale": "Cotto_Giunca_Scafo",
+   "triangoli": 1292
+  },
+  {
+   "nome": "Giunca_Ponte",
+   "materiale": "Cotto_Giunca_Ponte",
+   "triangoli": 2332
+  },
+  {
+   "nome": "Giunca_Vele",
+   "materiale": "VelaGiunca",
+   "triangoli": 216
+  },
+  {
+   "nome": "Giunca_Bambu",
+   "materiale": "Bambu",
+   "triangoli": 440
+  },
+  {
+   "nome": "Giunca_Corde",
+   "materiale": "Corda",
+   "triangoli": 144
+  },
+  {
+   "nome": "Giunca_Occhi",
+   "materiale": "MAT_Gold",
+   "triangoli": 120
+  },
+  {
+   "nome": "Giunca_Lanterne",
+   "materiale": "MAT_WarmLight",
+   "triangoli": 288
+  },
+  {
+   "nome": "Giunca_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 264
+  },
+  {
+   "nome": "Giunca_Pupille",
+   "materiale": "Basalto",
+   "triangoli": 88
+  },
+  {
+   "nome": "Sampan_Scafo",
+   "materiale": "Cotto_Sampan_Scafo",
+   "triangoli": 508
+  },
+  {
+   "nome": "Sampan_Stuoia",
+   "materiale": "Bambu",
+   "triangoli": 974
+  },
+  {
+   "nome": "Sampan_Ponte",
+   "materiale": "Cotto_Sampan_Ponte",
+   "triangoli": 748
+  },
+  {
+   "nome": "Sampan_Remo",
+   "materiale": "Cotto_Sampan_Remo",
+   "triangoli": 20
+  }
+ ],
+ "ingombro_m": [
+  18.9,
+  10.67,
+  13.75
+ ],
+ "min_blender": [
+  -9.9,
+  -2.52,
+  -1.4
+ ],
+ "max_blender": [
+  9.0,
+  8.15,
+  12.35
+ ],
+ "collisioni": 4,
+ "marcatori": [
+  "FX_Light_Giunca1",
+  "FX_Light_Giunca2",
+  "SPOT_Ormeggio_Giunca",
+  "SPOT_Ormeggio_Sampan"
+ ],
+ "misure_m": "giunca 18 x 12 x 5 (lunga X, prua +X); sampan 7 x 2,5 x 2 a +Y",
+ "umani": [
+  [
+   1.0,
+   0.0,
+   0.88
+  ],
+  [
+   0.0,
+   7.0,
+   0.28
+  ]
+ ],
+ "terreno_z": -0.6,
+ "viste_extra": {
+  "tre_quarti": [
+   [
+    22,
+    -24,
+    12
+   ],
+   [
+    0,
+    2,
+    3
+   ],
+   30
+  ],
+  "dettaglio": [
+   [
+    10.5,
+    -5.0,
+    3.0
+   ],
+   [
+    7.0,
+    0,
+    1.5
+   ],
+   30
+  ]
+ }
+}

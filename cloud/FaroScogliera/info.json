@@ -1,0 +1,77 @@
+{
+ "nome": "FaroScogliera",
+ "triangoli": 9026,
+ "parti": [
+  {
+   "nome": "Faro_Pietra",
+   "materiale": "Cotto_Faro_Pietra",
+   "triangoli": 4378
+  },
+  {
+   "nome": "Faro_Fasce",
+   "materiale": "Cotto_Faro_Fasce",
+   "triangoli": 432
+  },
+  {
+   "nome": "Faro_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 1180
+  },
+  {
+   "nome": "Faro_Vetri",
+   "materiale": "MAT_Glass",
+   "triangoli": 56
+  },
+  {
+   "nome": "Faro_Luce",
+   "materiale": "MAT_WarmLight",
+   "triangoli": 168
+  },
+  {
+   "nome": "Faro_Scogli",
+   "materiale": "Cotto_Faro_Scogli",
+   "triangoli": 2800
+  },
+  {
+   "nome": "Faro_Porta",
+   "materiale": "Cotto_Faro_Porta",
+   "triangoli": 12
+  }
+ ],
+ "ingombro_m": [
+  8.19,
+  7.52,
+  18.03
+ ],
+ "min_blender": [
+  -4.41,
+  -3.83,
+  -0.43
+ ],
+ "max_blender": [
+  3.79,
+  3.69,
+  17.6
+ ],
+ "collisioni": 3,
+ "marcatori": [
+  "FX_Light_Faro",
+  "SPOT_Porta"
+ ],
+ "misure_m": "5 x 18 x 5",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    3.5,
+    -5.5,
+    15.5
+   ],
+   [
+    0,
+    0,
+    14.5
+   ],
+   30
+  ]
+ }
+}

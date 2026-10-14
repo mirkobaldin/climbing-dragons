@@ -1,0 +1,26 @@
+[
+ {
+  "name": "FX_Light_Stalla1",
+  "position_y_up_m": [
+   -3.5,
+   3.2,
+   4.95
+  ]
+ },
+ {
+  "name": "FX_Light_Stalla2",
+  "position_y_up_m": [
+   3.5,
+   3.2,
+   4.95
+  ]
+ },
+ {
+  "name": "SPOT_Drago",
+  "position_y_up_m": [
+   0.0,
+   0.0,
+   -0.0
+  ]
+ }
+]

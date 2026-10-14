@@ -1,0 +1,34 @@
+[
+ {
+  "name": "FX_Light_Giunca1",
+  "position_y_up_m": [
+   -4.2,
+   2.45,
+   1.6
+  ]
+ },
+ {
+  "name": "FX_Light_Giunca2",
+  "position_y_up_m": [
+   -4.2,
+   2.45,
+   -1.6
+  ]
+ },
+ {
+  "name": "SPOT_Ormeggio_Giunca",
+  "position_y_up_m": [
+   0.0,
+   0.85,
+   -2.8
+  ]
+ },
+ {
+  "name": "SPOT_Ormeggio_Sampan",
+  "position_y_up_m": [
+   0.0,
+   0.3,
+   -5.7
+  ]
+ }
+]

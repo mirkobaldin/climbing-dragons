@@ -1,0 +1,85 @@
+{
+ "nome": "IngressoMiniera",
+ "triangoli": 7504,
+ "parti": [
+  {
+   "nome": "Miniera_Travi",
+   "materiale": "Cotto_Miniera_Travi",
+   "triangoli": 528
+  },
+  {
+   "nome": "Miniera_Assito",
+   "materiale": "Cotto_Miniera_Assito",
+   "triangoli": 1464
+  },
+  {
+   "nome": "Miniera_Roccia",
+   "materiale": "Cotto_Miniera_Roccia",
+   "triangoli": 2816
+  },
+  {
+   "nome": "Miniera_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 336
+  },
+  {
+   "nome": "Miniera_Lanterne",
+   "materiale": "MAT_WarmLight",
+   "triangoli": 56
+  },
+  {
+   "nome": "Miniera_Binari_Legno",
+   "materiale": "Cotto_Miniera_Binari_Legno",
+   "triangoli": 440
+  },
+  {
+   "nome": "Miniera_Binari_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 1864
+  }
+ ],
+ "ingombro_m": [
+  8.97,
+  6.19,
+  5.44
+ ],
+ "min_blender": [
+  -4.6,
+  -3.0,
+  -0.27
+ ],
+ "max_blender": [
+  4.38,
+  3.19,
+  5.16
+ ],
+ "collisioni": 6,
+ "marcatori": [
+  "FX_Light_Lanterna1",
+  "FX_Light_Lanterna2",
+  "SPOT_Galleria"
+ ],
+ "misure_m": "6 x 5 x 3",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    2.0,
+    -3.2,
+    2.2
+   ],
+   [
+    0.8,
+    0,
+    2.3
+   ],
+   32
+  ]
+ },
+ "umani": [
+  [
+   -0.6,
+   -1.5,
+   0.0
+  ]
+ ]
+}

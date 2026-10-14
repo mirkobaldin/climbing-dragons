@@ -1,0 +1,91 @@
+{
+ "nome": "CarrelloMiniera",
+ "triangoli": 7624,
+ "parti": [
+  {
+   "nome": "Carrello_Legno",
+   "materiale": "Cotto_Carrello_Legno",
+   "triangoli": 284
+  },
+  {
+   "nome": "Carrello_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 1480
+  },
+  {
+   "nome": "Carrello_Minerale",
+   "materiale": "Cotto_Carrello_Minerale",
+   "triangoli": 1000
+  },
+  {
+   "nome": "Binari_Legno",
+   "materiale": "Cotto_Binari_Legno",
+   "triangoli": 924
+  },
+  {
+   "nome": "Binari_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 3936
+  }
+ ],
+ "ingombro_m": [
+  12.61,
+  4.27,
+  1.37
+ ],
+ "min_blender": [
+  -1.33,
+  -2.03,
+  0.0
+ ],
+ "max_blender": [
+  11.27,
+  2.24,
+  1.37
+ ],
+ "collisioni": 4,
+ "marcatori": [
+  "SPOT_BinariDritto_Inizio",
+  "SPOT_BinariDritto_Fine",
+  "SPOT_BinariCurva_Inizio",
+  "SPOT_BinariCurva_Fine",
+  "SPOT_BinariSalita_Inizio",
+  "SPOT_BinariSalita_Fine"
+ ],
+ "misure_m": "carrello 2 x 1,5 x 1,2; binari 4 m (dritto), curva r 8 m 30 gradi, salita 4 m +0,5 m; scartamento 0,9",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    1.8,
+    -2.6,
+    1.8
+   ],
+   [
+    0,
+    0,
+    0.7
+   ],
+   32
+  ],
+  "tre_quarti": [
+   [
+    14,
+    -12,
+    8
+   ],
+   [
+    5,
+    0,
+    0.5
+   ],
+   30
+  ]
+ },
+ "umani": [
+  [
+   -1.8,
+   -0.8,
+   0.0
+  ]
+ ]
+}

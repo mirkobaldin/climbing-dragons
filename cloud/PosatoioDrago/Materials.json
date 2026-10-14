@@ -1,0 +1,26 @@
+[
+ {
+  "name": "Cotto_Posatoio_Base",
+  "BaseColor": "Textures/Cotto_Posatoio_Base_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Posatoio_Base_Normal.png",
+  "Roughness": "Textures/Cotto_Posatoio_Base_Roughness.png"
+ },
+ {
+  "name": "Cotto_Posatoio_Tronco",
+  "BaseColor": "Textures/Cotto_Posatoio_Tronco_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Posatoio_Tronco_Normal.png",
+  "Roughness": "Textures/Cotto_Posatoio_Tronco_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "LegnoTaglio",
+  "BaseColor": "../_Texture/LegnoTaglio_BaseColor.png",
+  "Normal": "../_Texture/LegnoTaglio_Normal.png",
+  "Roughness": "../_Texture/LegnoTaglio_Roughness.png"
+ }
+]

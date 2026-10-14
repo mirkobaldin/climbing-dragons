@@ -1,0 +1,26 @@
+[
+ {
+  "name": "Bandierine",
+  "BaseColor": "../_Texture/Bandierine_BaseColor.png",
+  "Normal": "../_Texture/Bandierine_Normal.png",
+  "Roughness": "../_Texture/Bandierine_Roughness.png"
+ },
+ {
+  "name": "Corda",
+  "BaseColor": "../_Texture/Corda_BaseColor.png",
+  "Normal": "../_Texture/Corda_Normal.png",
+  "Roughness": "../_Texture/Corda_Roughness.png"
+ },
+ {
+  "name": "Cotto_Bandiere_Pali",
+  "BaseColor": "Textures/Cotto_Bandiere_Pali_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Bandiere_Pali_Normal.png",
+  "Roughness": "Textures/Cotto_Bandiere_Pali_Roughness.png"
+ },
+ {
+  "name": "Cotto_Bandiere_Sassi",
+  "BaseColor": "Textures/Cotto_Bandiere_Sassi_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Bandiere_Sassi_Normal.png",
+  "Roughness": "Textures/Cotto_Bandiere_Sassi_Roughness.png"
+ }
+]

@@ -1,0 +1,74 @@
+[
+ {
+  "name": "Cotto_Roccia1",
+  "BaseColor": "Textures/Cotto_Roccia1_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia1_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia1_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia1_Neve",
+  "BaseColor": "Textures/Cotto_Roccia1_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia1_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia1_Neve_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia2",
+  "BaseColor": "Textures/Cotto_Roccia2_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia2_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia2_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia2_Neve",
+  "BaseColor": "Textures/Cotto_Roccia2_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia2_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia2_Neve_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia3",
+  "BaseColor": "Textures/Cotto_Roccia3_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia3_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia3_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia3_Neve",
+  "BaseColor": "Textures/Cotto_Roccia3_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia3_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia3_Neve_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia4",
+  "BaseColor": "Textures/Cotto_Roccia4_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia4_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia4_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia4_Neve",
+  "BaseColor": "Textures/Cotto_Roccia4_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia4_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia4_Neve_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia5",
+  "BaseColor": "Textures/Cotto_Roccia5_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia5_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia5_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia5_Neve",
+  "BaseColor": "Textures/Cotto_Roccia5_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia5_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia5_Neve_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia6",
+  "BaseColor": "Textures/Cotto_Roccia6_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia6_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia6_Roughness.png"
+ },
+ {
+  "name": "Cotto_Roccia6_Neve",
+  "BaseColor": "Textures/Cotto_Roccia6_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Roccia6_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Roccia6_Neve_Roughness.png"
+ }
+]

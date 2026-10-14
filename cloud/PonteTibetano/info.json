@@ -1,0 +1,92 @@
+{
+ "nome": "PonteTibetano",
+ "triangoli": 8342,
+ "parti": [
+  {
+   "nome": "Ponte_Tratto_Assi",
+   "materiale": "Cotto_Ponte_Tratto_Assi",
+   "triangoli": 968
+  },
+  {
+   "nome": "Ponte_Tratto_Corde",
+   "materiale": "Corda",
+   "triangoli": 3960
+  },
+  {
+   "nome": "Ponte_Tratto_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 640
+  },
+  {
+   "nome": "Ponte_Testa_Legno",
+   "materiale": "Cotto_Ponte_Testa_Legno",
+   "triangoli": 396
+  },
+  {
+   "nome": "Ponte_Testa_Pietra",
+   "materiale": "Cotto_Ponte_Testa_Pietra",
+   "triangoli": 218
+  },
+  {
+   "nome": "Ponte_Testa_Corde",
+   "materiale": "Corda",
+   "triangoli": 2000
+  },
+  {
+   "nome": "Ponte_Testa_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 160
+  }
+ ],
+ "ingombro_m": [
+  3.2,
+  10.56,
+  3.34
+ ],
+ "min_blender": [
+  -1.6,
+  -7.5,
+  -0.17
+ ],
+ "max_blender": [
+  1.6,
+  3.06,
+  3.17
+ ],
+ "collisioni": 6,
+ "marcatori": [
+  "SPOT_Inizio",
+  "SPOT_Fine"
+ ],
+ "misure_m": "tratto 6 x 2 x 1,6 (lungo Y), testata 3,2 x 3,2 x 2,7",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    1.6,
+    -1.2,
+    1.7
+   ],
+   [
+    0,
+    1.0,
+    0.3
+   ],
+   30
+  ]
+ },
+ "umani": [
+  [
+   0.0,
+   0.5,
+   0.0,
+   0.0
+  ],
+  [
+   0.4,
+   -6.0,
+   0.47,
+   0.0
+  ]
+ ],
+ "terreno_z": -6.0
+}

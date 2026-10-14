@@ -1,0 +1,36 @@
+[
+ {
+  "name": "Cotto_Miniera_Assito",
+  "BaseColor": "Textures/Cotto_Miniera_Assito_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Miniera_Assito_Normal.png",
+  "Roughness": "Textures/Cotto_Miniera_Assito_Roughness.png"
+ },
+ {
+  "name": "Cotto_Miniera_Binari_Legno",
+  "BaseColor": "Textures/Cotto_Miniera_Binari_Legno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Miniera_Binari_Legno_Normal.png",
+  "Roughness": "Textures/Cotto_Miniera_Binari_Legno_Roughness.png"
+ },
+ {
+  "name": "Cotto_Miniera_Roccia",
+  "BaseColor": "Textures/Cotto_Miniera_Roccia_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Miniera_Roccia_Normal.png",
+  "Roughness": "Textures/Cotto_Miniera_Roccia_Roughness.png"
+ },
+ {
+  "name": "Cotto_Miniera_Travi",
+  "BaseColor": "Textures/Cotto_Miniera_Travi_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Miniera_Travi_Normal.png",
+  "Roughness": "Textures/Cotto_Miniera_Travi_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "MAT_WarmLight",
+  "plain": true
+ }
+]

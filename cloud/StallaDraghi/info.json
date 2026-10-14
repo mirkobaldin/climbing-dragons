@@ -1,0 +1,85 @@
+{
+ "nome": "StallaDraghi",
+ "triangoli": 16968,
+ "parti": [
+  {
+   "nome": "Stalla_Travi",
+   "materiale": "Cotto_Stalla_Travi",
+   "triangoli": 2860
+  },
+  {
+   "nome": "Stalla_Assi",
+   "materiale": "Cotto_Stalla_Assi",
+   "triangoli": 5340
+  },
+  {
+   "nome": "Stalla_Tetto",
+   "materiale": "Cotto_Stalla_Tetto",
+   "triangoli": 852
+  },
+  {
+   "nome": "Stalla_Pietra",
+   "materiale": "Cotto_Stalla_Pietra",
+   "triangoli": 464
+  },
+  {
+   "nome": "Stalla_Fieno",
+   "materiale": "Fieno",
+   "triangoli": 1420
+  },
+  {
+   "nome": "Stalla_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 5976
+  },
+  {
+   "nome": "Stalla_Lanterne",
+   "materiale": "MAT_WarmLight",
+   "triangoli": 56
+  }
+ ],
+ "ingombro_m": [
+  16.2,
+  12.45,
+  9.81
+ ],
+ "min_blender": [
+  -8.1,
+  -6.23,
+  -0.22
+ ],
+ "max_blender": [
+  8.1,
+  6.23,
+  9.59
+ ],
+ "collisioni": 15,
+ "marcatori": [
+  "FX_Light_Stalla1",
+  "FX_Light_Stalla2",
+  "SPOT_Drago"
+ ],
+ "misure_m": "14 x 9 x 10 (aperta verso -Y)",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    3.0,
+    -6.5,
+    2.6
+   ],
+   [
+    -1.0,
+    2.0,
+    3.2
+   ],
+   26
+  ]
+ },
+ "umani": [
+  [
+   -2.0,
+   -6.0,
+   0.0
+  ]
+ ]
+}

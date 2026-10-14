@@ -1,0 +1,677 @@
+{
+ "nome": "IsolaDraghi",
+ "triangoli": 369158,
+ "parti": [
+  {
+   "nome": "Arena_Mura_01_EsternoBasso",
+   "materiale": "Cotto_mura_Portale_EsternoBasso",
+   "triangoli": 1318
+  },
+  {
+   "nome": "Arena_Mura_01_EsternoAlto",
+   "materiale": "Cotto_mura_Portale_EsternoAlto",
+   "triangoli": 1700
+  },
+  {
+   "nome": "Arena_Mura_01_Interno",
+   "materiale": "Cotto_mura_Portale_Interno",
+   "triangoli": 1944
+  },
+  {
+   "nome": "Arena_Mura_02_EsternoBasso",
+   "materiale": "Cotto_mura_A_EsternoBasso",
+   "triangoli": 6740
+  },
+  {
+   "nome": "Arena_Mura_02_EsternoAlto",
+   "materiale": "Cotto_mura_A_EsternoAlto",
+   "triangoli": 8380
+  },
+  {
+   "nome": "Arena_Mura_02_Interno",
+   "materiale": "Cotto_mura_A_Interno",
+   "triangoli": 7434
+  },
+  {
+   "nome": "Arena_Mura_02_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 2028
+  },
+  {
+   "nome": "Arena_Mura_03_EsternoBasso",
+   "materiale": "Cotto_mura_B_EsternoBasso",
+   "triangoli": 6508
+  },
+  {
+   "nome": "Arena_Mura_03_EsternoAlto",
+   "materiale": "Cotto_mura_B_EsternoAlto",
+   "triangoli": 7940
+  },
+  {
+   "nome": "Arena_Mura_03_Interno",
+   "materiale": "Cotto_mura_B_Interno",
+   "triangoli": 7260
+  },
+  {
+   "nome": "Arena_Mura_03_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 1632
+  },
+  {
+   "nome": "Arena_Mura_04_EsternoBasso",
+   "materiale": "Cotto_mura_A_EsternoBasso",
+   "triangoli": 6740
+  },
+  {
+   "nome": "Arena_Mura_04_EsternoAlto",
+   "materiale": "Cotto_mura_A_EsternoAlto",
+   "triangoli": 8380
+  },
+  {
+   "nome": "Arena_Mura_04_Interno",
+   "materiale": "Cotto_mura_A_Interno",
+   "triangoli": 7434
+  },
+  {
+   "nome": "Arena_Mura_04_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 2028
+  },
+  {
+   "nome": "Arena_Mura_05_EsternoBasso",
+   "materiale": "Cotto_mura_B_EsternoBasso",
+   "triangoli": 6508
+  },
+  {
+   "nome": "Arena_Mura_05_EsternoAlto",
+   "materiale": "Cotto_mura_B_EsternoAlto",
+   "triangoli": 7940
+  },
+  {
+   "nome": "Arena_Mura_05_Interno",
+   "materiale": "Cotto_mura_B_Interno",
+   "triangoli": 7260
+  },
+  {
+   "nome": "Arena_Mura_05_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 1632
+  },
+  {
+   "nome": "Arena_Mura_06_EsternoBasso",
+   "materiale": "Cotto_mura_A_EsternoBasso",
+   "triangoli": 6740
+  },
+  {
+   "nome": "Arena_Mura_06_EsternoAlto",
+   "materiale": "Cotto_mura_A_EsternoAlto",
+   "triangoli": 8380
+  },
+  {
+   "nome": "Arena_Mura_06_Interno",
+   "materiale": "Cotto_mura_A_Interno",
+   "triangoli": 7434
+  },
+  {
+   "nome": "Arena_Mura_06_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 2028
+  },
+  {
+   "nome": "Arena_Mura_07_EsternoBasso",
+   "materiale": "Cotto_mura_B_EsternoBasso",
+   "triangoli": 6508
+  },
+  {
+   "nome": "Arena_Mura_07_EsternoAlto",
+   "materiale": "Cotto_mura_B_EsternoAlto",
+   "triangoli": 7940
+  },
+  {
+   "nome": "Arena_Mura_07_Interno",
+   "materiale": "Cotto_mura_B_Interno",
+   "triangoli": 7260
+  },
+  {
+   "nome": "Arena_Mura_07_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 1632
+  },
+  {
+   "nome": "Arena_Mura_08_EsternoBasso",
+   "materiale": "Cotto_mura_A_EsternoBasso",
+   "triangoli": 6740
+  },
+  {
+   "nome": "Arena_Mura_08_EsternoAlto",
+   "materiale": "Cotto_mura_A_EsternoAlto",
+   "triangoli": 8380
+  },
+  {
+   "nome": "Arena_Mura_08_Interno",
+   "materiale": "Cotto_mura_A_Interno",
+   "triangoli": 7434
+  },
+  {
+   "nome": "Arena_Mura_08_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 2028
+  },
+  {
+   "nome": "Arena_Torre_Roccia",
+   "materiale": "Cotto_torre",
+   "triangoli": 10232
+  },
+  {
+   "nome": "Arena_Torre_Roccia_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 768
+  },
+  {
+   "nome": "Arena_Torre_Roccia_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 96
+  },
+  {
+   "nome": "Arena_Stendardo_Roccia",
+   "materiale": "Stendardi",
+   "triangoli": 384
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_Statua_Roccia",
+   "materiale": "Basalto",
+   "triangoli": 24
+  },
+  {
+   "nome": "Arena_Torre_Gelo",
+   "materiale": "Cotto_torre",
+   "triangoli": 10232
+  },
+  {
+   "nome": "Arena_Torre_Gelo_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 768
+  },
+  {
+   "nome": "Arena_Torre_Gelo_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 96
+  },
+  {
+   "nome": "Arena_Stendardo_Gelo",
+   "materiale": "Stendardi",
+   "triangoli": 384
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_Statua_Gelo",
+   "materiale": "Basalto",
+   "triangoli": 24
+  },
+  {
+   "nome": "Arena_Torre_Cosmico",
+   "materiale": "Cotto_torre",
+   "triangoli": 10232
+  },
+  {
+   "nome": "Arena_Torre_Cosmico_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 768
+  },
+  {
+   "nome": "Arena_Torre_Cosmico_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 96
+  },
+  {
+   "nome": "Arena_Stendardo_Cosmico",
+   "materiale": "Stendardi",
+   "triangoli": 384
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_Statua_Cosmico",
+   "materiale": "Basalto",
+   "triangoli": 24
+  },
+  {
+   "nome": "Arena_Torre_Tempesta",
+   "materiale": "Cotto_torre",
+   "triangoli": 10232
+  },
+  {
+   "nome": "Arena_Torre_Tempesta_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 768
+  },
+  {
+   "nome": "Arena_Torre_Tempesta_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 96
+  },
+  {
+   "nome": "Arena_Stendardo_Tempesta",
+   "materiale": "Stendardi",
+   "triangoli": 384
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_Statua_Tempesta",
+   "materiale": "Basalto",
+   "triangoli": 24
+  },
+  {
+   "nome": "Arena_Torre_Eclissi",
+   "materiale": "Cotto_torre",
+   "triangoli": 10232
+  },
+  {
+   "nome": "Arena_Torre_Eclissi_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 768
+  },
+  {
+   "nome": "Arena_Torre_Eclissi_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 96
+  },
+  {
+   "nome": "Arena_Stendardo_Eclissi",
+   "materiale": "Stendardi",
+   "triangoli": 384
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_Statua_Eclissi",
+   "materiale": "Basalto",
+   "triangoli": 24
+  },
+  {
+   "nome": "Arena_Torre_Fulmine",
+   "materiale": "Cotto_torre",
+   "triangoli": 10232
+  },
+  {
+   "nome": "Arena_Torre_Fulmine_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 768
+  },
+  {
+   "nome": "Arena_Torre_Fulmine_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 96
+  },
+  {
+   "nome": "Arena_Stendardo_Fulmine",
+   "materiale": "Stendardi",
+   "triangoli": 384
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_Statua_Fulmine",
+   "materiale": "Basalto",
+   "triangoli": 24
+  },
+  {
+   "nome": "Arena_Torre_Ossa",
+   "materiale": "Cotto_torre",
+   "triangoli": 10232
+  },
+  {
+   "nome": "Arena_Torre_Ossa_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 768
+  },
+  {
+   "nome": "Arena_Torre_Ossa_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 96
+  },
+  {
+   "nome": "Arena_Stendardo_Ossa",
+   "materiale": "Stendardi",
+   "triangoli": 384
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_Statua_Ossa",
+   "materiale": "Basalto",
+   "triangoli": 24
+  },
+  {
+   "nome": "Arena_Torre_Gas",
+   "materiale": "Cotto_torre",
+   "triangoli": 10232
+  },
+  {
+   "nome": "Arena_Torre_Gas_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 768
+  },
+  {
+   "nome": "Arena_Torre_Gas_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 96
+  },
+  {
+   "nome": "Arena_Stendardo_Gas",
+   "materiale": "Stendardi",
+   "triangoli": 384
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_Statua_Gas",
+   "materiale": "Basalto",
+   "triangoli": 24
+  },
+  {
+   "nome": "Arena_Portale",
+   "materiale": "Cotto_Arena_Portale",
+   "triangoli": 17784
+  },
+  {
+   "nome": "Arena_Portale_Volta",
+   "materiale": "Cotto_Arena_Portale_Volta",
+   "triangoli": 7700
+  },
+  {
+   "nome": "Arena_Portale_Oro",
+   "materiale": "OroAntico",
+   "triangoli": 972
+  },
+  {
+   "nome": "Arena_Portale_Saracinesca",
+   "materiale": "FerroBattuto",
+   "triangoli": 516
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_TestaDrago_Sx",
+   "materiale": "Basalto",
+   "triangoli": 12
+  },
+  {
+   "nome": "PLACEHOLDER_Arena_TestaDrago_Dx",
+   "materiale": "Basalto",
+   "triangoli": 12
+  },
+  {
+   "nome": "Arena_Portale_Passaggio",
+   "materiale": "Cotto_Arena_Portale_Passaggio",
+   "triangoli": 5292
+  },
+  {
+   "nome": "Arena_Palco",
+   "materiale": "Cotto_Arena_Palco",
+   "triangoli": 7708
+  },
+  {
+   "nome": "Arena_Palco_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 624
+  },
+  {
+   "nome": "Arena_Palco_Porte",
+   "materiale": "LegnoScuro",
+   "triangoli": 112
+  },
+  {
+   "nome": "Arena_Palco_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 120
+  },
+  {
+   "nome": "Arena_Pavimento",
+   "materiale": "SabbiaDuello",
+   "triangoli": 28
+  },
+  {
+   "nome": "Arena_Pavimento_Cerchio",
+   "materiale": "Cotto_Arena_Pavimento_Cerchio",
+   "triangoli": 3678
+  },
+  {
+   "nome": "Arena_Pavimento_Spicchi",
+   "materiale": "Spicchi",
+   "triangoli": 160
+  },
+  {
+   "nome": "Arena_Pavimento_Rune",
+   "materiale": "OroAntico",
+   "triangoli": 2296
+  },
+  {
+   "nome": "Arena_Altare",
+   "materiale": "Cotto_Arena_Altare",
+   "triangoli": 852
+  },
+  {
+   "nome": "Arena_Altare_Drappo",
+   "materiale": "TelaRossa",
+   "triangoli": 20
+  },
+  {
+   "nome": "Arena_Altare_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 168
+  },
+  {
+   "nome": "Arena_Altare_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 60
+  },
+  {
+   "nome": "Arena_Altare_Rune",
+   "materiale": "MAT_Ember",
+   "triangoli": 336
+  },
+  {
+   "nome": "PLACEHOLDER_CornaAltare",
+   "materiale": "Basalto",
+   "triangoli": 24
+  },
+  {
+   "nome": "Arena_Portale_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 252
+  },
+  {
+   "nome": "Isola_Roccia_01",
+   "materiale": "RocciaIsola",
+   "triangoli": 5336
+  },
+  {
+   "nome": "Isola_Roccia_02",
+   "materiale": "RocciaIsola",
+   "triangoli": 5336
+  },
+  {
+   "nome": "Isola_Roccia_03",
+   "materiale": "RocciaIsola",
+   "triangoli": 5336
+  },
+  {
+   "nome": "Isola_Roccia_04",
+   "materiale": "RocciaIsola",
+   "triangoli": 5336
+  },
+  {
+   "nome": "Isola_Roccia_Speroni",
+   "materiale": "RocciaIsola",
+   "triangoli": 4992
+  },
+  {
+   "nome": "Isola_Prato",
+   "materiale": "PratoAlto",
+   "triangoli": 6912
+  },
+  {
+   "nome": "Isola_Rocce",
+   "materiale": "RocciaIsola",
+   "triangoli": 1078
+  },
+  {
+   "nome": "Isola_Sentiero",
+   "materiale": "Cotto_Isola_Sentiero",
+   "triangoli": 5816
+  },
+  {
+   "nome": "Isola_Sentiero_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 320
+  },
+  {
+   "nome": "Isola_Sentiero_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 192
+  },
+  {
+   "nome": "Arrivo",
+   "materiale": "Cotto_Arrivo",
+   "triangoli": 2168
+  },
+  {
+   "nome": "Arrivo_Rune",
+   "materiale": "OroAntico",
+   "triangoli": 860
+  },
+  {
+   "nome": "Arrivo_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 320
+  },
+  {
+   "nome": "Arrivo_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 192
+  },
+  {
+   "nome": "Isolette_Rovine",
+   "materiale": "Cotto_Isolette_Rovine",
+   "triangoli": 5256
+  },
+  {
+   "nome": "Isolette_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 1140
+  },
+  {
+   "nome": "Isoletta_1",
+   "materiale": "RocciaIsola",
+   "triangoli": 792
+  },
+  {
+   "nome": "Isoletta_1_Prato",
+   "materiale": "PratoAlto",
+   "triangoli": 108
+  },
+  {
+   "nome": "Isoletta_2",
+   "materiale": "RocciaIsola",
+   "triangoli": 792
+  },
+  {
+   "nome": "Isoletta_2_Prato",
+   "materiale": "PratoAlto",
+   "triangoli": 108
+  },
+  {
+   "nome": "Isoletta_3",
+   "materiale": "RocciaIsola",
+   "triangoli": 792
+  },
+  {
+   "nome": "Isoletta_3_Prato",
+   "materiale": "PratoAlto",
+   "triangoli": 108
+  },
+  {
+   "nome": "Isoletta_4",
+   "materiale": "RocciaIsola",
+   "triangoli": 792
+  },
+  {
+   "nome": "Isoletta_4_Prato",
+   "materiale": "PratoAlto",
+   "triangoli": 108
+  },
+  {
+   "nome": "Isoletta_5",
+   "materiale": "RocciaIsola",
+   "triangoli": 792
+  },
+  {
+   "nome": "Isoletta_5_Prato",
+   "materiale": "PratoAlto",
+   "triangoli": 108
+  }
+ ],
+ "ingombro_m": [
+  708.26,
+  612.27,
+  270.06
+ ],
+ "min_blender": [
+  -357.17,
+  -254.15,
+  -215.06
+ ],
+ "max_blender": [
+  351.1,
+  358.11,
+  55.0
+ ],
+ "collisioni": 100,
+ "marcatori": [
+  "SPOT_Posatoio2",
+  "SPOT_Posatoio3",
+  "SPOT_Posatoio4",
+  "SPOT_Posatoio5",
+  "SPOT_Posatoio6",
+  "SPOT_Posatoio7",
+  "SPOT_Posatoio8",
+  "FX_Fire_Roccia",
+  "FX_Light_Roccia",
+  "SPOT_Statua_Roccia",
+  "FX_Fire_Gelo",
+  "FX_Light_Gelo",
+  "SPOT_Statua_Gelo",
+  "FX_Fire_Cosmico",
+  "FX_Light_Cosmico",
+  "SPOT_Statua_Cosmico",
+  "FX_Fire_Tempesta",
+  "FX_Light_Tempesta",
+  "SPOT_Statua_Tempesta",
+  "FX_Fire_Eclissi",
+  "FX_Light_Eclissi",
+  "SPOT_Statua_Eclissi",
+  "FX_Fire_Fulmine",
+  "FX_Light_Fulmine",
+  "SPOT_Statua_Fulmine",
+  "FX_Fire_Ossa",
+  "FX_Light_Ossa",
+  "SPOT_Statua_Ossa",
+  "FX_Fire_Gas",
+  "FX_Light_Gas",
+  "SPOT_Statua_Gas",
+  "SPOT_TestaDrago_Sx",
+  "SPOT_TestaDrago_Dx",
+  "FX_Fire_Palco1",
+  "FX_Fire_Palco2",
+  "SPOT_Domatore",
+  "FX_Fire_Altare",
+  "SPOT_Altare",
+  "SPOT_Posatoio1",
+  "SPOT_Cascata1",
+  "SPOT_Cascata2",
+  "SPOT_Cascata3",
+  "SPOT_Cascata4",
+  "FX_Fire_Sentiero1",
+  "FX_Fire_Sentiero2",
+  "FX_Fire_Sentiero3",
+  "FX_Fire_Sentiero4",
+  "FX_Fire_Arrivo1",
+  "FX_Fire_Arrivo2",
+  "FX_Fire_Arrivo3",
+  "FX_Fire_Arrivo4",
+  "SPOT_Arrivo",
+  "FX_Light_Arrivo",
+  "SPOT_PosatoioIsola1",
+  "SPOT_PosatoioIsola2",
+  "SPOT_PosatoioIsola3",
+  "SPOT_PosatoioIsola4",
+  "SPOT_PosatoioIsola5"
+ ]
+}

@@ -1,0 +1,18 @@
+[
+ {
+  "name": "FX_Light_Bivacco",
+  "position_y_up_m": [
+   0.0,
+   2.6,
+   -0.0
+  ]
+ },
+ {
+  "name": "SPOT_Porta",
+  "position_y_up_m": [
+   0.0,
+   0.3,
+   3.5
+  ]
+ }
+]

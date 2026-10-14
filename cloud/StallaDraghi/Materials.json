@@ -1,0 +1,42 @@
+[
+ {
+  "name": "Cotto_Stalla_Assi",
+  "BaseColor": "Textures/Cotto_Stalla_Assi_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Stalla_Assi_Normal.png",
+  "Roughness": "Textures/Cotto_Stalla_Assi_Roughness.png"
+ },
+ {
+  "name": "Cotto_Stalla_Pietra",
+  "BaseColor": "Textures/Cotto_Stalla_Pietra_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Stalla_Pietra_Normal.png",
+  "Roughness": "Textures/Cotto_Stalla_Pietra_Roughness.png"
+ },
+ {
+  "name": "Cotto_Stalla_Tetto",
+  "BaseColor": "Textures/Cotto_Stalla_Tetto_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Stalla_Tetto_Normal.png",
+  "Roughness": "Textures/Cotto_Stalla_Tetto_Roughness.png"
+ },
+ {
+  "name": "Cotto_Stalla_Travi",
+  "BaseColor": "Textures/Cotto_Stalla_Travi_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Stalla_Travi_Normal.png",
+  "Roughness": "Textures/Cotto_Stalla_Travi_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "Fieno",
+  "BaseColor": "../_Texture/Fieno_BaseColor.png",
+  "Normal": "../_Texture/Fieno_Normal.png",
+  "Roughness": "../_Texture/Fieno_Roughness.png"
+ },
+ {
+  "name": "MAT_WarmLight",
+  "plain": true
+ }
+]

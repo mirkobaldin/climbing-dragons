@@ -1,0 +1,20 @@
+[
+ {
+  "name": "Basalto",
+  "BaseColor": "../_Texture/Basalto_BaseColor.png",
+  "Normal": "../_Texture/Basalto_Normal.png",
+  "Roughness": "../_Texture/Basalto_Roughness.png"
+ },
+ {
+  "name": "Cotto_StatuaDrago_Piedistallo",
+  "BaseColor": "Textures/Cotto_StatuaDrago_Piedistallo_BaseColor.jpg",
+  "Normal": "Textures/Cotto_StatuaDrago_Piedistallo_Normal.png",
+  "Roughness": "Textures/Cotto_StatuaDrago_Piedistallo_Roughness.png"
+ },
+ {
+  "name": "Targhe",
+  "BaseColor": "../_Texture/Targhe_BaseColor.png",
+  "Normal": "../_Texture/Targhe_Normal.png",
+  "Roughness": "../_Texture/Targhe_Roughness.png"
+ }
+]

@@ -1,0 +1,50 @@
+[
+ {
+  "name": "SPOT_Roccia1",
+  "position_y_up_m": [
+   -14.9,
+   0.0,
+   -0.0
+  ]
+ },
+ {
+  "name": "SPOT_Roccia2",
+  "position_y_up_m": [
+   -10.8,
+   0.0,
+   -0.0
+  ]
+ },
+ {
+  "name": "SPOT_Roccia3",
+  "position_y_up_m": [
+   -5.45,
+   0.0,
+   -0.0
+  ]
+ },
+ {
+  "name": "SPOT_Roccia4",
+  "position_y_up_m": [
+   1.3,
+   0.0,
+   -0.0
+  ]
+ },
+ {
+  "name": "SPOT_Roccia5",
+  "position_y_up_m": [
+   7.6,
+   0.0,
+   -0.0
+  ]
+ },
+ {
+  "name": "SPOT_Roccia6",
+  "position_y_up_m": [
+   14.9,
+   0.0,
+   -0.0
+  ]
+ }
+]

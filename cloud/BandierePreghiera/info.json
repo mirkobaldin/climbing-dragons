@@ -1,0 +1,61 @@
+{
+ "nome": "BandierePreghiera",
+ "triangoli": 2718,
+ "parti": [
+  {
+   "nome": "Bandiere_Pali",
+   "materiale": "Cotto_Bandiere_Pali",
+   "triangoli": 136
+  },
+  {
+   "nome": "Bandiere_Corda",
+   "materiale": "Corda",
+   "triangoli": 422
+  },
+  {
+   "nome": "Bandiere_Drappi",
+   "materiale": "Bandierine",
+   "triangoli": 960
+  },
+  {
+   "nome": "Bandiere_Sassi",
+   "materiale": "Cotto_Bandiere_Sassi",
+   "triangoli": 1200
+  }
+ ],
+ "ingombro_m": [
+  11.02,
+  0.81,
+  4.25
+ ],
+ "min_blender": [
+  -5.51,
+  -0.4,
+  -0.0
+ ],
+ "max_blender": [
+  5.51,
+  0.41,
+  4.25
+ ],
+ "collisioni": 2,
+ "marcatori": [
+  "SPOT_Bandiere"
+ ],
+ "misure_m": "8 x 4 x 0,2",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    -1.5,
+    -2.5,
+    3.0
+   ],
+   [
+    0.5,
+    0,
+    3.1
+   ],
+   30
+  ]
+ }
+}

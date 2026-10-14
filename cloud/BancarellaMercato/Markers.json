@@ -1,0 +1,74 @@
+[
+ {
+  "name": "FX_Light_Bancarella1_1",
+  "position_y_up_m": [
+   -7.5,
+   1.4,
+   1.3
+  ]
+ },
+ {
+  "name": "FX_Light_Bancarella1_2",
+  "position_y_up_m": [
+   -4.5,
+   1.4,
+   1.3
+  ]
+ },
+ {
+  "name": "SPOT_Bancarella1",
+  "position_y_up_m": [
+   -6.0,
+   0.0,
+   1.4
+  ]
+ },
+ {
+  "name": "FX_Light_Bancarella2_1",
+  "position_y_up_m": [
+   -1.5,
+   1.4,
+   1.3
+  ]
+ },
+ {
+  "name": "FX_Light_Bancarella2_2",
+  "position_y_up_m": [
+   1.5,
+   1.4,
+   1.3
+  ]
+ },
+ {
+  "name": "SPOT_Bancarella2",
+  "position_y_up_m": [
+   0.0,
+   0.0,
+   1.4
+  ]
+ },
+ {
+  "name": "FX_Light_Bancarella3_1",
+  "position_y_up_m": [
+   4.5,
+   1.4,
+   1.3
+  ]
+ },
+ {
+  "name": "FX_Light_Bancarella3_2",
+  "position_y_up_m": [
+   7.5,
+   1.4,
+   1.3
+  ]
+ },
+ {
+  "name": "SPOT_Bancarella3",
+  "position_y_up_m": [
+   6.0,
+   0.0,
+   1.4
+  ]
+ }
+]

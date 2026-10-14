@@ -1,0 +1,26 @@
+[
+ {
+  "name": "SPOT_Uovo",
+  "position_y_up_m": [
+   0.0,
+   1.0,
+   -0.0
+  ]
+ },
+ {
+  "name": "FX_Fire_Incubatrice",
+  "position_y_up_m": [
+   0.0,
+   0.95,
+   -0.0
+  ]
+ },
+ {
+  "name": "FX_Light_Incubatrice",
+  "position_y_up_m": [
+   0.0,
+   1.6,
+   -0.0
+  ]
+ }
+]

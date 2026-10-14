@@ -1,0 +1,90 @@
+[
+ {
+  "name": "Bambu",
+  "BaseColor": "../_Texture/Bambu_BaseColor.png",
+  "Normal": "../_Texture/Bambu_Normal.png",
+  "Roughness": "../_Texture/Bambu_Roughness.png"
+ },
+ {
+  "name": "Ceramica",
+  "BaseColor": "../_Texture/Ceramica_BaseColor.png",
+  "Normal": "../_Texture/Ceramica_Normal.png",
+  "Roughness": "../_Texture/Ceramica_Roughness.png"
+ },
+ {
+  "name": "CeramicaVerde",
+  "BaseColor": "../_Texture/CeramicaVerde_BaseColor.png",
+  "Normal": "../_Texture/CeramicaVerde_Normal.png",
+  "Roughness": "../_Texture/CeramicaVerde_Roughness.png"
+ },
+ {
+  "name": "Cotto_Bancarella1_Legno",
+  "BaseColor": "Textures/Cotto_Bancarella1_Legno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Bancarella1_Legno_Normal.png",
+  "Roughness": "Textures/Cotto_Bancarella1_Legno_Roughness.png"
+ },
+ {
+  "name": "Cotto_Bancarella2_Legno",
+  "BaseColor": "Textures/Cotto_Bancarella2_Legno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Bancarella2_Legno_Normal.png",
+  "Roughness": "Textures/Cotto_Bancarella2_Legno_Roughness.png"
+ },
+ {
+  "name": "Cotto_Bancarella3_Legno",
+  "BaseColor": "Textures/Cotto_Bancarella3_Legno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Bancarella3_Legno_Normal.png",
+  "Roughness": "Textures/Cotto_Bancarella3_Legno_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "FruttaArancio",
+  "BaseColor": "../_Texture/FruttaArancio_BaseColor.png",
+  "Normal": "../_Texture/FruttaArancio_Normal.png",
+  "Roughness": "../_Texture/FruttaArancio_Roughness.png"
+ },
+ {
+  "name": "FruttaRossa",
+  "BaseColor": "../_Texture/FruttaRossa_BaseColor.png",
+  "Normal": "../_Texture/FruttaRossa_Normal.png",
+  "Roughness": "../_Texture/FruttaRossa_Roughness.png"
+ },
+ {
+  "name": "FruttaVerde",
+  "BaseColor": "../_Texture/FruttaVerde_BaseColor.png",
+  "Normal": "../_Texture/FruttaVerde_Normal.png",
+  "Roughness": "../_Texture/FruttaVerde_Roughness.png"
+ },
+ {
+  "name": "MAT_WarmLight",
+  "plain": true
+ },
+ {
+  "name": "TelaBlu",
+  "BaseColor": "../_Texture/TelaBlu_BaseColor.png",
+  "Normal": "../_Texture/TelaBlu_Normal.png",
+  "Roughness": "../_Texture/TelaBlu_Roughness.png"
+ },
+ {
+  "name": "TelaRossa",
+  "BaseColor": "../_Texture/TelaRossa_BaseColor.png",
+  "Normal": "../_Texture/TelaRossa_Normal.png",
+  "Roughness": "../_Texture/TelaRossa_Roughness.png"
+ },
+ {
+  "name": "TendaRighe",
+  "BaseColor": "../_Texture/TendaRighe_BaseColor.png",
+  "Normal": "../_Texture/TendaRighe_Normal.png",
+  "Roughness": "../_Texture/TendaRighe_Roughness.png"
+ },
+ {
+  "name": "VelaGiunca",
+  "BaseColor": "../_Texture/VelaGiunca_BaseColor.png",
+  "Normal": "../_Texture/VelaGiunca_Normal.png",
+  "Roughness": "../_Texture/VelaGiunca_Roughness.png"
+ }
+]

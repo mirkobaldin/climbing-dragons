@@ -1,0 +1,48 @@
+[
+ {
+  "name": "Cotto_Bivacco_Lamiera",
+  "BaseColor": "Textures/Cotto_Bivacco_Lamiera_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Bivacco_Lamiera_Normal.png",
+  "Roughness": "Textures/Cotto_Bivacco_Lamiera_Roughness.png"
+ },
+ {
+  "name": "Cotto_Bivacco_Legno",
+  "BaseColor": "Textures/Cotto_Bivacco_Legno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Bivacco_Legno_Normal.png",
+  "Roughness": "Textures/Cotto_Bivacco_Legno_Roughness.png"
+ },
+ {
+  "name": "Cotto_Bivacco_Pietra",
+  "BaseColor": "Textures/Cotto_Bivacco_Pietra_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Bivacco_Pietra_Normal.png",
+  "Roughness": "Textures/Cotto_Bivacco_Pietra_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "LegnoChiaro",
+  "BaseColor": "../_Texture/LegnoChiaro_BaseColor.png",
+  "Normal": "../_Texture/LegnoChiaro_Normal.png",
+  "Roughness": "../_Texture/LegnoChiaro_Roughness.png"
+ },
+ {
+  "name": "MAT_Glass",
+  "plain": true
+ },
+ {
+  "name": "TelaGrigia",
+  "BaseColor": "../_Texture/TelaGrigia_BaseColor.png",
+  "Normal": "../_Texture/TelaGrigia_Normal.png",
+  "Roughness": "../_Texture/TelaGrigia_Roughness.png"
+ },
+ {
+  "name": "TelaRossa",
+  "BaseColor": "../_Texture/TelaRossa_BaseColor.png",
+  "Normal": "../_Texture/TelaRossa_Normal.png",
+  "Roughness": "../_Texture/TelaRossa_Roughness.png"
+ }
+]

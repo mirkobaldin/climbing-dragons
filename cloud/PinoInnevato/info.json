@@ -1,0 +1,95 @@
+{
+ "nome": "PinoInnevato",
+ "triangoli": 17424,
+ "parti": [
+  {
+   "nome": "Pino1_Tronco",
+   "materiale": "Cotto_Pino1_Tronco",
+   "triangoli": 120
+  },
+  {
+   "nome": "Pino1_Chioma",
+   "materiale": "Cotto_Pino1_Chioma",
+   "triangoli": 3328
+  },
+  {
+   "nome": "Pino1_Neve",
+   "materiale": "Cotto_Pino1_Neve",
+   "triangoli": 944
+  },
+  {
+   "nome": "Pino2_Tronco",
+   "materiale": "Cotto_Pino2_Tronco",
+   "triangoli": 120
+  },
+  {
+   "nome": "Pino2_Chioma",
+   "materiale": "Cotto_Pino2_Chioma",
+   "triangoli": 4224
+  },
+  {
+   "nome": "Pino2_Neve",
+   "materiale": "Cotto_Pino2_Neve",
+   "triangoli": 1200
+  },
+  {
+   "nome": "Pino3_Tronco",
+   "materiale": "Cotto_Pino3_Tronco",
+   "triangoli": 120
+  },
+  {
+   "nome": "Pino3_Chioma",
+   "materiale": "Cotto_Pino3_Chioma",
+   "triangoli": 5736
+  },
+  {
+   "nome": "Pino3_Neve",
+   "materiale": "Cotto_Pino3_Neve",
+   "triangoli": 1632
+  }
+ ],
+ "ingombro_m": [
+  18.16,
+  6.55,
+  14.6
+ ],
+ "min_blender": [
+  -8.57,
+  -3.27,
+  -0.4
+ ],
+ "max_blender": [
+  9.59,
+  3.28,
+  14.2
+ ],
+ "collisioni": 6,
+ "marcatori": [
+  "SPOT_Pino1",
+  "SPOT_Pino2",
+  "SPOT_Pino3"
+ ],
+ "misure_m": "4 x 9 / 11,5 / 14 x 4",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    2.5,
+    -4.5,
+    3.0
+   ],
+   [
+    0,
+    0,
+    3.5
+   ],
+   30
+  ]
+ },
+ "umani": [
+  [
+   -2.5,
+   -2.5,
+   0.0
+  ]
+ ]
+}
