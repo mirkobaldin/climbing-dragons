@@ -157,7 +157,7 @@ function Tutorial.build(map: Heightmap.Map)
 	local signs = {
 		{ -W / 2 - 2, "CLIMBING", "Ice Axe (1): click near the rock\nW/S up and down, A/D sideways\nSpace: jump off" },
 		{ -W / 6, "PITONS AND ROPE", "On the wall press F: piton\nIf you fall the rope catches you\nR: unclip the rope" },
-		{ W / 6, "MINING AND CRAFTING", "Pickaxe (2): click the ores\nWorkbench by the store:\nCrampons, Suit, Grappling Hook..." },
+		{ W / 6, "MINING AND CRAFTING", "Pickaxe (2): click the ores\nWorkbench at your camp:\nCrampons, Suit, Grappling Hook..." },
 		{ W / 2 + 2, "DRAGON EGGS", "Pick up eggs and bring them\nto your camp's Nest\nG: Dragons menu" },
 	}
 	for _, s in signs do

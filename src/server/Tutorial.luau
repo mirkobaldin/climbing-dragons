@@ -95,6 +95,15 @@ local STEPS: { Step } = {
 		check = attributeAtLeast("OresSold", "sold0"),
 		target = fixed("shop"),
 	},
+	-- l'uovo si prende QUI, prima di andare al campo (Mirko: prima ti portava al campo e poi
+	-- toccava tornare indietro a prendere l'uovo e risalire). Si porta al campo sulla schiena.
+	{
+		text = "Pick up the dragon egg",
+		check = function(player, memo)
+			return player:GetAttribute("CarryingEgg") ~= nil or attributeAtLeast("EggsIncubated", "incubated0")(player, memo)
+		end,
+		target = fixed("eggSpot"),
+	},
 	{
 		text = "This is your camp! Buy the Tent at the sign {UI:Store}",
 		arrive = "camp",
@@ -103,16 +112,11 @@ local STEPS: { Step } = {
 		end,
 		target = playerAttr("PlotPosition"),
 	},
+	-- (il passo "apri il Crafting" non c'e' piu': i passi devono restare 9 per i salvataggi;
+	-- il banco da lavoro arriva con la Tenda e lo dice la nota finale)
 	{
-		text = "Open Crafting to see what you can build {UI:Crafting}",
-		check = function(player)
-			return player:GetAttribute("BenchOpened") == true or player:GetAttribute("CraftingSeen") == true
-		end,
-		target = fixed("bench"),
-	},
-	{
-		text = "Pick up the dragon egg and bring it to your nest",
-		check = attributeAtLeast("EggsIncubated", "incubated0"),
+		text = "Put the egg in your nest",
+		check = attributeAtLeast("EggsIncubated", "incubated1"),
 		target = eggTarget,
 	},
 	{
@@ -122,7 +126,7 @@ local STEPS: { Step } = {
 	},
 }
 
-local DONE_TEXT = "Ready! Use the 'Mountain' sign at camp or follow the road. Happy climbing!"
+local DONE_TEXT = "Ready! Craft gear at the Workbench by your tent. Happy climbing!"
 
 -- porta il giocatore al suo accampamento (terreno ai piedi della montagna) o al campo base
 local function bring(player: Player, where: string)
@@ -208,14 +212,12 @@ function Tutorial.setup()
 		end
 		local function points(): { [string]: any }
 			local shop = CollectionService:GetTagged("ShopCounter")[1]
-			local bench = CollectionService:GetTagged("Workbench")[1]
 			local ore = tutorial and tutorial:FindFirstChild("Ore_Ferro")
 			local eggSpot = tutorial and tutorial:FindFirstChild("EggSpot") :: BasePart?
 			return {
 				wallBase = wallBase and wallBase.Position,
 				wallTop = wallTop and wallTop.Position,
 				shop = if shop and shop:IsA("BasePart") then shop.Position else nil,
-				bench = if bench and bench:IsA("BasePart") then bench.Position else nil,
 				ore = if ore and ore:IsA("Model") then ore:GetPivot().Position else nil,
 				eggSpot = eggSpot and eggSpot.Position,
 			}

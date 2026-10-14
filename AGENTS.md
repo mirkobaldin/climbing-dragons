@@ -119,3 +119,12 @@ Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, anim
   tutorial con `{KEY1}` `{UI:Store}`... (`UiView.hintText`, `client/TutorialHints`), mirino in monta
   (`client/DragonRide`), schermata di morte in `client/DeathScreen`. Animazioni: dopo modifiche a
   `mapgen/AnimDraghi` rilanciare `require(game.ServerStorage.MapGen:Clone().AnimDraghi).genera()` e salvare il place.
+- Giro 3 (2026-10-14 sera): **Isola dei Draghi** in `src/mapgen/IsolaDraghi.luau` (fase di `Generate()`,
+  o da sola `require(game.ServerStorage.MapGen:Clone().IsolaDraghi).build()`): isola volante a ovest
+  (ORIGIN = centro del pavimento dell'arena, SCALE 5/1,7). Se c'e' `ServerStorage.CaseCodex.IsolaDraghi`
+  (modello del cloud caricato con `tools/modelli/carica_modelli.luau`) monta quello, altrimenti una
+  sagoma provvisoria di blocchi. Punti `workspace.IsolaDraghi.Punti.SPOT_*` e attributi di workspace
+  `DragonIslandArrival/Center/Tamer/Altar`; teletrasporto "Dragon Island" (server/Teleports, dal
+  primo drago) e punto di viaggio all'arrivo. Banco da lavoro: arriva con la Tenda (Economy.buildForge),
+  tolto quello accanto all'emporio. Tutorial: l'uovo si prende prima di andare al campo. Case dei
+  borghi in scala 3 (monumenti 4). UI da rifare: `docs/CODEX_UI_RIFACIMENTO.md`.

@@ -26,6 +26,7 @@ local Tutorial = require(script.Tutorial)
 local ThemeZones = require(script.ThemeZones)
 local Borghi = require(script.Borghi)
 local Isole = require(script.Isole)
+local IsolaDraghi = require(script.IsolaDraghi)
 local Village = require(script.Village)
 local Voxelizer = require(script.Voxelizer)
 
@@ -94,6 +95,7 @@ function MapGen.Generate(overrides: { [string]: any }?): Heightmap.Map
 	stage("Prati", function() Scatter.place(map) end)
 	stage("Forest", function() Forest.plant(map, yield, progress) end)
 	stage("Isole volanti", function() Isole.build() end) -- servono le zone a tema e ServerStorage.BorghiKit
+	stage("Isola dei Draghi", function() IsolaDraghi.build() end) -- sagoma provvisoria o modello del cloud (CaseCodex)
 
 	if #failed > 0 then
 		warn("[MapGen] Parti non riuscite: " .. table.concat(failed, ", ") .. " (manda l'errore qui sopra)")

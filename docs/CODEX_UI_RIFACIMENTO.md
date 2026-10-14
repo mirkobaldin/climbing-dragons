@@ -65,7 +65,9 @@ Una per oggetto, nome `item_<id>.png`, chiavi nuove in `UiAssets` e mappa in `Th
 - Tool in mano (nomi in `ClimbConfig`): piccozza, piccone, rampino, torcia (barra in basso 1-4,
   oggi solo scritte: metti l'icona sopra al nome).
 - Destinazioni del Teleport (`client/TeleportMenu.luau`): campo base, casa, arena dei draghi,
-  palestra (Muscle Beach), campo base numerato, isola dei draghi (in arrivo).
+  palestra (Muscle Beach), **Dragon Island** (gia' nel menu: quinta destinazione fissa, nella GUI
+  e' una copia di `Destination4` fatta da `layout()`; mettila nei JSON come `Destination5`),
+  campo base numerato.
 - Controlla anche minerali, drop dei nemici (`ReplicatedStorage.DropIcone`) e potenziamenti:
   dove un'icona è riusata per un'altra cosa, fanne una giusta.
 

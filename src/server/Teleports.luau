@@ -64,6 +64,11 @@ local function destinations(): { [string]: (Player) -> Vector3? }
 			end
 			return nil
 		end,
+		-- Isola dei Draghi (mapgen/IsolaDraghi): la piattaforma delle rune davanti al portale
+		["Dragon Island"] = function()
+			local p = workspace:GetAttribute("DragonIslandArrival")
+			return if typeof(p) == "Vector3" then p else nil
+		end,
 	}
 	-- i campi base della montagna (solo quelli scoperti: lo controlla chi chiama)
 	local camps = markers and markers:FindFirstChild("BaseCamps")
@@ -123,16 +128,23 @@ function Teleports.setup()
 			return
 		end
 		last[player] = os.clock()
-		-- il tuo accampamento: il punto e' gia' a terra (o sulla pedana dello Chalet)
-		character:PivotTo(CFrame.new(if name == "My camp" then at + Vector3.new(0, 2, 0) else ground(at)))
+		-- il tuo accampamento: il punto e' gia' a terra (o sulla pedana dello Chalet); l'isola e'
+		-- sospesa (il raggio cerca solo il Terrain e finirebbe nell'oceano sotto)
+		local direct = name == "My camp" or name == "Dragon Island"
+		if name == "Dragon Island" then
+			pcall(function()
+				player:RequestStreamAroundAsync(at)
+			end)
+		end
+		character:PivotTo(CFrame.new(if direct then at + Vector3.new(0, 4, 0) else ground(at)))
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		last[player] = nil
 	end)
 end
 
-Teleports.NAMES = { "Base camp (hub)", "My camp", "Dragon training", "Muscle Beach (gym)" }
+Teleports.NAMES = { "Base camp (hub)", "My camp", "Dragon training", "Muscle Beach (gym)", "Dragon Island" }
 -- chi puo' andarci: tutti, dal primo drago, con lo Chalet
-Teleports.NEEDS = { ["Dragon training"] = "dragon" } :: { [string]: string }
+Teleports.NEEDS = { ["Dragon training"] = "dragon", ["Dragon Island"] = "dragon" } :: { [string]: string }
 
 return Teleports

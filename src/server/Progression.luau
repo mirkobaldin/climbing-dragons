@@ -230,7 +230,7 @@ local function craft(player: Player, id: any): (boolean, string)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	-- si crafta solo al banco del campo base o alla forgia dello Chalet
+	-- si crafta solo a un banco: a casa (arriva con la Tenda) o in un campo base
 	local nearBench = false
 	if root then
 		for _, b in CollectionService:GetTagged("Workbench") do
@@ -241,7 +241,7 @@ local function craft(player: Player, id: any): (boolean, string)
 		end
 	end
 	if not nearBench then
-		return false, "Craft at the workbench in the base camp (or your Chalet forge)"
+		return false, "Craft at a Workbench: at your camp or in a base camp"
 	end
 	-- l'equipaggiamento vuole un banco da lavoro vicino (quello del campo o quello di casa)
 	if recipe.station ~= "Ovunque" then

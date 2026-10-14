@@ -8,7 +8,7 @@ local RS = game:GetService("ReplicatedStorage")
 local Ui = require(RS:WaitForChild("Shared").UiView)
 local player = Players.LocalPlayer
 local TeleportMenu = {}
-local FIXED = { "Base camp (hub)", "My camp", "Dragon training", "Muscle Beach (gym)" }
+local FIXED = { "Base camp (hub)", "My camp", "Dragon training", "Muscle Beach (gym)", "Dragon Island" }
 local NAMES = table.clone(FIXED)
 -- campi base scoperti, in ordine di numero (Base Camp 1, 2...)
 local function campNumbers(): { number }
@@ -38,7 +38,7 @@ local function destination(index: number): Vector3?
 		local p = player:GetAttribute("PlotSpawn") or player:GetAttribute("PlotPosition")
 		return if typeof(p) == "Vector3" then p else nil
 	else
-		local p = workspace:GetAttribute(if index == 3 then "TrainingPad" else "GymCenter")
+		local p = workspace:GetAttribute(if index == 3 then "TrainingPad" elseif index == 5 then "DragonIslandArrival" else "GymCenter")
 		return if typeof(p) == "Vector3" then p else nil
 	end
 end
@@ -69,7 +69,7 @@ function TeleportMenu.start()
 			table.insert(NAMES, "Base Camp " .. n)
 		end
 		local template = panel:FindFirstChild("Destination4")
-		for i = #FIXED + 1, #NAMES do
+		for i = 5, #NAMES do -- nella GUI ci sono 4 pulsanti: gli altri sono copie del quarto
 			if not panel:FindFirstChild("Destination" .. i) and template then
 				local c = template:Clone()
 				c.Name = "Destination" .. i
@@ -106,7 +106,7 @@ function TeleportMenu.start()
 		panel.Title.Text = if here then "Teleport" else "Teleport · from here only Home"
 		for i, name in NAMES do
 			local b = panel["Destination" .. i]
-			local locked = i == 3 and ((player:GetAttribute("DragonCount") or 0) :: number) < 1
+			local locked = (i == 3 or i == 5) and ((player:GetAttribute("DragonCount") or 0) :: number) < 1
 			local homeFar = name == "My camp" and not here
 			b.Title.Text = (if name == "My camp" then "Home" else name)
 				.. (if locked then "\nFirst dragon required" elseif homeFar then "\nfrom anywhere · 60 s" elseif not here then "\nfrom a travel point" else "")
@@ -117,7 +117,7 @@ function TeleportMenu.start()
 				else ""
 		end
 	end
-	for i = 1, #FIXED do
+	for i = 1, 4 do -- il quinto (isola) lo crea e lo collega layout()
 		bind(i)
 	end
 	local function toggle()

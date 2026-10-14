@@ -249,6 +249,7 @@ end
 -- Forgia dello Chalet: il banco da lavoro di Mirko (ServerStorage.Modelli.Banco_Crafting) accanto
 -- al punto d'arrivo; apre il crafting come il banco del campo base (tag Workbench). Prima era un
 -- banco fatto di blocchi (incudine e braciere)
+local BENCH_HEIGHT = 10 -- prima 7 come quello del campo base: accanto alle case in scala 5 era minuscolo
 local function buildForge(plot: Model, at: Vector3, deckY: number?)
 	local old = plot:FindFirstChild("Forgia")
 	if old then
@@ -273,7 +274,7 @@ local function buildForge(plot: Model, at: Vector3, deckY: number?)
 			end
 		end
 		local _, s0 = m:GetBoundingBox()
-		m:ScaleTo(m:GetScale() * 7 / math.max(s0.Y, 0.05)) -- alto come quello del campo base
+		m:ScaleTo(m:GetScale() * BENCH_HEIGHT / math.max(s0.Y, 0.05))
 		m:PivotTo(look.Rotation + m:GetPivot().Position)
 		local box, sz = m:GetBoundingBox()
 		m:PivotTo(m:GetPivot() + (base - (box.Position - Vector3.new(0, sz.Y / 2, 0))))
@@ -283,8 +284,8 @@ local function buildForge(plot: Model, at: Vector3, deckY: number?)
 	local top = Instance.new("Part")
 	top.Name = "Bench"
 	top.Anchored, top.CanCollide, top.Transparency = true, false, 1
-	top.Size = Vector3.new(10, 0.3, 4)
-	top.CFrame = look * CFrame.new(0, 3.95, 0)
+	top.Size = Vector3.new(10, 0.3, 4) * (BENCH_HEIGHT / 7)
+	top.CFrame = look * CFrame.new(0, 3.95 * BENCH_HEIGHT / 7, 0)
 	top.Parent = forge
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = "Craft"
@@ -698,7 +699,9 @@ local function buildHouse(player: Player)
 	local spawnAt = if typeof(deckSpawn) == "Vector3" then deckSpawn else plotSpawn(plot)
 	player:SetAttribute("PlotSpawn", spawnAt)
 	local forge = plot:FindFirstChild("Forgia")
-	if s.house >= 3 then
+	-- il banco da lavoro arriva con la Tenda (prima solo con lo Chalet; quello accanto
+	-- all'emporio del campo e' stato tolto)
+	if s.house >= 1 then
 		-- il banco sulla pedana, accanto alla casa (prima finiva fuori sul terreno)
 		local forgeAt = plot:GetAttribute("ForgeAt")
 		if typeof(forgeAt) == "Vector3" then

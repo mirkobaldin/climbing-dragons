@@ -1152,10 +1152,8 @@ function Village.build(map: Heightmap.Map)
 		local a = math.rad(100)
 		local x, z = cx + cos(a) * (HUB.CAMP.RADIUS + 30), cz + sin(a) * (HUB.CAMP.RADIUS + 30)
 		shop(folder, groundCFrame(x, z, Vector3.new(cx - x, 0, cz - z).Unit))
-		-- banco da lavoro accanto all'emporio
-		local wa = math.rad(125)
-		local wx, wz = cx + cos(wa) * (HUB.CAMP.RADIUS + 22), cz + sin(wa) * (HUB.CAMP.RADIUS + 22)
-		workbench(folder, groundCFrame(wx, wz, Vector3.new(cx - wx, 0, cz - wz).Unit))
+		-- niente banco da lavoro accanto all'emporio (Mirko: piccolissimo e inutile): il banco
+		-- arriva con la Tenda, a casa (Economy.buildForge), e c'e' nei campi base (BaseCamps)
 	end
 
 	-- Cartelli di viaggio: dal campo ai piedi della montagna (inizio del sentiero) e ritorno

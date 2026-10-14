@@ -339,26 +339,29 @@ end
 -- (2026-10-10, Mirko: "ancora piccole, falle in scala 4"): tutti gli edifici in scala S, i
 -- piccoli oggetti (bancarelle, pozzi, lanterne) in scala S/2; le distanze della disposizione dei
 -- borghi (tempio, ingressi, piazze, via del mercato) si moltiplicano per S
+-- (2026-10-14, Mirko: "tutte le case giapponesi scalale a 3"): le case in scala H = 3, i
+-- monumenti (pagoda, tempio, torii, portali, padiglione, torre del tamburo) restano in scala S
 local S = 4
+local H = 3
 local HOUSE_SCALE: { [string]: number } = {
-	Machiya = S,
-	Kura = S,
-	Chashitsu = S,
-	Granaio = S,
-	Minka = S,
-	Ryokan = S,
-	CasaFenghuang = S,
-	TorreFenghuang = S,
-	CasaTe = S,
-	CasaHuizhou = S,
-	Pescatore = S,
+	Machiya = H,
+	Kura = H,
+	Chashitsu = H,
+	Granaio = H,
+	Minka = H,
+	Ryokan = H,
+	CasaFenghuang = H,
+	TorreFenghuang = H,
+	CasaTe = H,
+	CasaHuizhou = H,
+	Pescatore = H,
+	Emporio = H,
 	Pagoda = S,
 	Tempio = S,
 	Torii = S,
 	Portale = S,
 	Padiglione = S,
 	TorreTamburo = S,
-	Emporio = S,
 	Bancarella = S / 2,
 	Pozzo = S / 2,
 	LanternaPietra = S / 2,

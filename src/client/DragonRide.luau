@@ -35,6 +35,8 @@ local turner: AlignOrientation? = nil
 local att: Attachment? = nil
 local sitTrack: AnimationTrack? = nil
 local riding = false
+local faceYaw: number? = nil -- direzione del drago in groppa, girata piano verso quella voluta
+local TURN_RATE = 4 -- quanto in fretta segue la direzione voluta (1/s)
 
 local function remote(): RemoteEvent?
 	return ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("DragonRide") :: RemoteEvent?
@@ -47,6 +49,7 @@ local function cleanup()
 		end
 	end
 	mover, turner, att = nil, nil, nil
+	faceYaw = nil
 	if sitTrack then
 		sitTrack:Stop(0.2)
 		sitTrack = nil
@@ -95,8 +98,9 @@ local function mount()
 	local ao = Instance.new("AlignOrientation")
 	ao.Mode = Enum.OrientationAlignmentMode.OneAttachment
 	ao.Attachment0 = a
-	ao.MaxTorque = 1e6
-	ao.Responsiveness = 18
+	-- rigida: la virata morbida la fa il codice (faceYaw); con Responsiveness 18 il personaggio
+	-- oscillava di +-10 gradi attorno alla direzione e il drago (che lo copia) andava a scatti
+	ao.RigidityEnabled = true
 	ao.CFrame = CFrame.lookAt(Vector3.zero, Vector3.new(root.CFrame.LookVector.X, 0, root.CFrame.LookVector.Z))
 	ao.Parent = root
 	turner = ao
@@ -399,7 +403,14 @@ function DragonRide.start()
 		lv.VectorVelocity = lv.VectorVelocity:Lerp(want, math.min(1, dt * 3))
 		local face = if want.Magnitude > 5 then Vector3.new(want.X, 0, want.Z) else flat
 		if face.Magnitude > 0.1 and turner then
-			(turner :: AlignOrientation).CFrame = CFrame.lookAt(Vector3.zero, face.Unit)
+			-- virata morbida: l'angolo si avvicina a quello voluto senza oscillare
+			local yaw = math.atan2(-face.X, -face.Z)
+			local cur = faceYaw or yaw
+			local d = (yaw - cur + math.pi) % (2 * math.pi) - math.pi
+			cur += d * math.min(1, dt * TURN_RATE)
+			faceYaw = cur
+			local ao = turner :: AlignOrientation
+			ao.CFrame = CFrame.Angles(0, cur, 0)
 		end
 		ClientState.noFallUntil = os.clock() + 1
 	end)

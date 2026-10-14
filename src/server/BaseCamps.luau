@@ -189,10 +189,12 @@ local function checkPlayer(player: Player, camps: Instance?)
 	local plot = player:GetAttribute("PlotSpawn") or player:GetAttribute("PlotPosition")
 	local gym = workspace:GetAttribute("GymCenter")
 	local pad = workspace:GetAttribute("TrainingPad")
+	local island = workspace:GetAttribute("DragonIslandArrival")
 	local at = near(hub and hub.Position, 90)
 		or (typeof(plot) == "Vector3" and near(plot, 60))
 		or (typeof(gym) == "Vector3" and near(gym, 90))
 		or (typeof(pad) == "Vector3" and near(pad, 50))
+		or (typeof(island) == "Vector3" and near(island, 80))
 	for _, c in (if camps then camps:GetChildren() else {}) :: { Instance } do
 		if c:IsA("BasePart") and near(c.Position, WAYPOINT_RADIUS) then
 			at = true
