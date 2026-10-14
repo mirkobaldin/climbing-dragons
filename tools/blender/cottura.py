@@ -79,7 +79,7 @@ def _source_material(ob, base_mat, texdir, look):
     ao.samples = 16
     ao.inputs["Distance"].default_value = look.get("ao_dist", 1.2)
     aoc = nodes.new("ShaderNodeMapRange")
-    aoc.inputs["To Min"].default_value = look.get("ao_min", 0.35)
+    aoc.inputs["To Min"].default_value = look.get("ao_min", 0.55)
     links.new(ao.outputs["AO"], aoc.inputs["Value"])
     mao = nodes.new("ShaderNodeMixRGB")
     mao.blend_type = "MULTIPLY"
@@ -130,14 +130,14 @@ def _source_material(ob, base_mat, texdir, look):
     st = nodes.new("ShaderNodeMapRange")
     st.inputs["From Min"].default_value = 0.5
     st.inputs["From Max"].default_value = 0.75
-    st.inputs["To Max"].default_value = look.get("streak", 0.35)
+    st.inputs["To Max"].default_value = look.get("streak", 0.2)
     links.new(streak.outputs["Fac"], st.inputs["Value"])
     dsum = nodes.new("ShaderNodeMath")
     dsum.operation = "ADD"
     dsum.use_clamp = True
     zw = nodes.new("ShaderNodeMath")
     zw.operation = "MULTIPLY"
-    zw.inputs[1].default_value = look.get("dirt", 0.5)
+    zw.inputs[1].default_value = look.get("dirt", 0.3)
     links.new(zr.outputs["Result"], zw.inputs[0])
     links.new(zw.outputs[0], dsum.inputs[0])
     links.new(st.outputs["Result"], dsum.inputs[1])
@@ -172,6 +172,11 @@ def _source_material(ob, base_mat, texdir, look):
     links.new(mt2.outputs[0], moss.inputs["Fac"])
     links.new(dirt.outputs["Color"], moss.inputs["Color1"])
     moss.inputs["Color2"].default_value = (*look.get("moss_col", (0.16, 0.22, 0.10)), 1)
+    # colori vivi (Mirko: "troppo morti, sbiaditi"): saturazione +30% e un filo di luminosita'
+    vivid = nodes.new("ShaderNodeHueSaturation")
+    vivid.inputs["Saturation"].default_value = look.get("sat", 1.3)
+    vivid.inputs["Value"].default_value = look.get("val", 1.08)
+    links.new(moss.outputs["Color"], vivid.inputs["Color"])
     # rugosita': piu' liscia sugli spigoli consumati
     rr = nodes.new("ShaderNodeMath")
     rr.operation = "MULTIPLY_ADD"
@@ -192,7 +197,7 @@ def _source_material(ob, base_mat, texdir, look):
     links.new(emit.outputs["Emission"], out.inputs["Surface"])
     target = nodes.new("ShaderNodeTexImage")
     target.name = "BAKE_TARGET"
-    return m, {"color": moss.outputs["Color"], "rough": rr.outputs[0], "bsdf": bsdf, "emit": emit, "out": out, "target": target, "links": links}
+    return m, {"color": vivid.outputs["Color"], "rough": rr.outputs[0], "bsdf": bsdf, "emit": emit, "out": out, "target": target, "links": links}
 
 
 def bake_piece(ob, base_mat, texdir, outdir, name, res=1024, look=None, samples=16):

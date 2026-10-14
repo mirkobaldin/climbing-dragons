@@ -87,8 +87,10 @@ def render(name, views, umani=(), ground=None, sun_rot=-35, quality=82, samples=
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = "JPEG"
     scene.render.image_settings.quality = quality
-    scene.view_settings.view_transform = "AgX"
-    scene.view_settings.look = "AgX - Medium High Contrast"
+    # "Standard" come in Roblox (AgX spegneva i colori nelle anteprime)
+    scene.view_settings.view_transform = "Standard"
+    scene.view_settings.look = "None"
+    scene.view_settings.exposure = 0.15
     only = os.environ.get("VISTE")
     done = []
     for vn, (pos, target, lens) in views.items():

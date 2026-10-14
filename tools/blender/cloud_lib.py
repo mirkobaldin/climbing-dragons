@@ -332,7 +332,7 @@ def m_sabbia_duello(seed):
     fine = noise(n, 0.8, seed + 1)
     big = noise(n, 3.2, seed + 2)
     rip = noise(n, 1.6, seed + 3, (1.0, 4.0))
-    c = col((0.62, 0.52, 0.38)) * (0.9 + 0.12 * nz[..., None]) * (0.92 + 0.1 * big[..., None]) * (0.94 + 0.1 * fine[..., None])
+    c = col((0.78, 0.62, 0.40)) * (0.9 + 0.12 * nz[..., None]) * (0.92 + 0.1 * big[..., None]) * (0.94 + 0.1 * fine[..., None])
     c = mix(c, c * 0.86, smooth(0.45, 0.6, rip) * 0.6)
     d1, _ = worley(n, 500, seed + 4)
     peb = 1 - smooth(0.0, 0.18, d1)
@@ -587,7 +587,7 @@ def m_membrana(seed):
     return c, h, 0.7 + 0.15 * fine
 
 
-def m_vulcanica(seed, base=(0.34, 0.30, 0.27)):
+def m_vulcanica(seed, base=(0.42, 0.35, 0.29)):
     """pietra vulcanica senza giunti (i blocchi sono geometria): grana, pori, venature chiare"""
     n = TEX
     nz = noise(n, 2.0, seed)
@@ -610,7 +610,7 @@ def m_prato(seed):
     nz = noise(n, 1.4, seed)
     big = noise(n, 3.0, seed + 1)
     blade = noise(n, 0.5, seed + 2, (1.0, 3.0))
-    c = mix(col((0.24, 0.29, 0.12)), col((0.28, 0.32, 0.13)), smooth(0.2, 0.8, big))
+    c = mix(col((0.26, 0.42, 0.10)), col((0.36, 0.48, 0.12)), smooth(0.2, 0.8, big))
     c = c * (0.88 + 0.24 * blade[..., None]) * (0.96 + 0.06 * nz[..., None])
     dirt = smooth(0.70, 0.80, noise(n, 2.2, seed + 3))
     c = mix(c, col((0.26, 0.20, 0.14)), dirt * 0.8)
@@ -630,7 +630,7 @@ def m_roccia(seed):
     warp = noise(n, 3.0, seed + 2) * 0.08
     band = 0.5 + 0.5 * np.sin((yy + warp) * 2 * math.pi * 9)
     bnd = noise(n, 2.0, seed + 5, (6.0, 1.0))
-    c = mix(col((0.27, 0.24, 0.21)), col((0.38, 0.34, 0.29)), smooth(0.3, 0.8, band * 0.6 + bnd * 0.4))
+    c = mix(col((0.36, 0.28, 0.21)), col((0.52, 0.42, 0.32)), smooth(0.3, 0.8, band * 0.6 + bnd * 0.4))
     c = c * (0.8 + 0.35 * nz[..., None]) * (0.85 + 0.25 * big[..., None])
     d1, d2 = worley(n, 14, seed + 3)
     crack = (1 - smooth(0.0, 0.015, d2 - d1)) * smooth(0.35, 0.6, noise(n, 2.5, seed + 7))
@@ -666,7 +666,7 @@ def m_granito(seed):
     big = noise(n, 3.2, seed + 1)
     rnd = np.random.default_rng(seed)
     salt = blur(rnd.random((n, n)), 1)
-    c = col((0.40, 0.38, 0.35)) * (0.85 + 0.25 * nz[..., None]) * (0.9 + 0.15 * big[..., None])
+    c = col((0.50, 0.47, 0.42)) * (0.85 + 0.25 * nz[..., None]) * (0.9 + 0.15 * big[..., None])
     c = mix(c, col((0.16, 0.15, 0.14)), smooth(0.62, 0.72, salt) * 0.7)
     c = mix(c, col((0.62, 0.60, 0.56)), smooth(0.38, 0.28, salt) * 0.5)
     h = 0.6 * nz + 0.2 * salt + 0.2 * big
@@ -854,6 +854,7 @@ MATERIALI = {
     "VelaGiunca": (lambda: m_stoffa(54, (0.58, 0.28, 0.13)), 2.0),
     "TelaBlu": (lambda: m_stoffa(55, (0.14, 0.24, 0.45)), 2.0),
     "Bandierine": (lambda: m_bandierine(44), 0),
+    "PietraBianca": (lambda: m_vulcanica(56, base=(0.74, 0.70, 0.62)), 2.5),
     "Carne": (lambda: m_carne(41), 0.6),
     "RocciaIsola": (lambda: m_roccia(36), 14.0),
     "PietraChiara": (lambda: m_pietra(29, (0.60, 0.57, 0.52), rows=4, wear=0.7), 3.0),
@@ -873,6 +874,7 @@ PIANI = {
 }
 
 _texcache = {}
+SMUSSA = True     # normali morbide sugli smussi (WeightedNormal)
 
 
 def texture_files(name, outdir=None):
@@ -1464,6 +1466,15 @@ def build_object(p, coll, texdir, sharp_deg=38):
     if len(sm) == len(me.polygons):
         me.polygons.foreach_set("use_smooth", sm)
     me.set_sharp_from_angle(angle=math.radians(sharp_deg))
+    # normali pesate sull'area: le facce grandi restano piatte, gli smussi diventano morbidi
+    # (prima tutto sembrava "troppo spigoloso"); l'FBX esporta le normali con i modificatori
+    if SMUSSA and len(me.polygons) > 0:
+        me.polygons.foreach_set("use_smooth", [True] * len(me.polygons))
+        me.set_sharp_from_angle(angle=math.radians(70))
+        mod = ob.modifiers.new("Normali", "WEIGHTED_NORMAL")
+        mod.mode = "FACE_AREA"
+        mod.weight = 80
+        mod.keep_sharp = True
     # tinta per blocco (kit_pietra): attributo dei vertici "Tinta" (usato dalla cottura dei materiali)
     tint = getattr(p, "tint", None)
     if tint and len(tint) == len(me.vertices):

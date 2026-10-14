@@ -1235,6 +1235,321 @@ def BancarellaMercato(m):
     m.notes["umani"] = [(-3.0, -2.2, 0.0)]
 
 
+# ---------------------------------------------------------------------------------------------
+@modello
+def Teleferica(m):
+    """pilone di traliccio d'acciaio (4 montanti rastremati, croci di Sant'Andrea), traversa con le
+    pulegge, funi, cabina rossa appesa al carrello; plinti di cemento"""
+    rng = random.Random(161)
+    pf = m.part("Teleferica_Traliccio", "FerroBattuto")
+    ps = m.part("Teleferica_Plinti", "Granito")
+    pc = m.part("Teleferica_Cabina", "LamieraRossa")
+    pg = m.part("Teleferica_Vetri", "MAT_Glass")
+    H, B, T_ = 14.0, 1.6, 0.6
+    def corner(sx, sy, z):
+        w = B + (T_ - B) * z / H
+        return Vector((sx * w, sy * w, z))
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            K._block(ps, Vector((sx * B, sy * B, 0.25)), (0.9, 0.9, 0.7), None, 0.04, rng.random(), chip=0.2, rng=rng, drop=((0, 0, -1),))
+            L.cyl(pf, corner(sx, sy, 0.5), corner(sx, sy, H), 0.09, n=6)
+    levels = [0.5 + (H - 0.5) * k / 7 for k in range(8)]
+    faces = [((-1, -1), (1, -1)), ((1, -1), (1, 1)), ((1, 1), (-1, 1)), ((-1, 1), (-1, -1))]
+    for (a, b) in faces:
+        for k in range(7):
+            z0, z1 = levels[k], levels[k + 1]
+            L.cyl(pf, corner(*a, z0), corner(*b, z0), 0.05, n=5)
+            L.cyl(pf, corner(*a, z0), corner(*b, z1), 0.035, n=4)
+            L.cyl(pf, corner(*b, z0), corner(*a, z1), 0.035, n=4)
+    # traversa in cima con le pulegge e la scaletta
+    L.box(pf, (0, 0, H + 0.15), (5.0, 0.3, 0.3))
+    for sx in (-1, 1):
+        L.cyl(pf, corner(sx, -1, H - 1.5), (sx * 2.4, 0, H), 0.05, n=4)
+        L.cyl(pf, corner(sx, 1, H - 1.5), (sx * 2.4, 0, H), 0.05, n=4)
+        for dy in (-0.6, 0.6):
+            c = Vector((sx * 2.2, dy, H + 0.45))
+            L.lathe(pf, [(0.0, -0.06), (0.35, -0.06), (0.3, 0.0), (0.35, 0.06), (0.0, 0.06)], 16,
+                    M=Matrix.Translation(c) @ Matrix.Rotation(math.pi / 2, 4, "Y"))
+    for z in [0.8 + 0.35 * i for i in range(int((H - 1) / 0.35))]:
+        L.box(pf, (corner(1, -1, z).x - 0.05, -corner(1, -1, z).y + 0.0 - 0.0 if False else corner(1, -1, z).y - 0.12, z), (0.3, 0.03, 0.03))
+    # funi (portante e traente) da una parte all'altra
+    for sx in (-1, 1):
+        L.cyl(pf, (sx * 2.2, -25.0, H - 0.8), (sx * 2.2, 25.0, H - 0.8), 0.03, n=5, caps=False)
+    # cabina rossa appesa a destra, 6 m dal pilone
+    cy = -6.0
+    top = Vector((2.2, cy, H - 0.8))
+    L.box(pf, top + Vector((0, 0, 0.12)), (0.25, 1.2, 0.25))
+    for dy in (-0.45, 0.45):
+        L.lathe(pf, [(0.0, -0.05), (0.18, -0.05), (0.18, 0.05), (0.0, 0.05)], 12,
+                M=Matrix.Translation(top + Vector((0, dy, 0.08))) @ Matrix.Rotation(math.pi / 2, 4, "Y"))
+    L.cyl(pf, top, top + Vector((0, 0, -2.4)), 0.07, n=6)
+    L.box(pf, top + Vector((0, 0, -2.4)), (0.2, 1.6, 0.12))
+    cz = top.z - 2.5 - 1.15
+    cc = Vector((2.2, cy, cz))
+    L.box(pc, cc, (2.0, 2.4, 2.3), bev=0.22, seg=3)
+    L.box(pc, cc + Vector((0, 0, 1.2)), (1.6, 2.0, 0.15), bev=0.07, seg=2)
+    for sx in (-1, 1):
+        for dy in (-0.55, 0.55):
+            L.box(pg, cc + Vector((sx * 1.005, dy, 0.35)), (0.02, 0.85, 0.9))
+    for sy in (-1, 1):
+        L.box(pg, cc + Vector((0, sy * 1.205, 0.35)), (1.5, 0.02, 0.9))
+    L.box(pf, cc + Vector((0, 0, -1.2)), (2.1, 2.5, 0.08))
+    m.marker("SPOT_Cabina", cc + Vector((0, 0, -1.1)))
+    m.col("Pilone", (0, 0, H / 2), (2 * B, 2 * B, H))
+    m.col("Cabina", cc, (2.0, 2.4, 2.3))
+    m.notes.update({"misure_m": "pilone 3 x 14 x 3, cabina 2 x 2,3 x 2,4, funi lunghe 50 m (lungo Y)"})
+    m.notes["viste_extra"] = {"dettaglio": ((6.0, -11.0, 9.5), (2.2, -6.0, 9.5), 30), "tre_quarti": ((18, -22, 14), (0, -3, 7), 30)}
+    m.notes["umani"] = [(2.5, -1.5, 0.0)]
+
+
+@modello
+def FaroScogliera(m):
+    """faro di pietra su scoglio: torre tonda rastremata a conci con fasce rosse, porta, finestrelle,
+    ballatoio con ringhiera, lanterna a vetri con i montanti, cupola rossa; scogli attorno"""
+    rng = random.Random(171)
+    ps = m.part("Faro_Pietra", "PietraBianca")
+    pr = m.part("Faro_Fasce", "LamieraRossa")
+    pf = m.part("Faro_Ferro", "FerroBattuto")
+    pg = m.part("Faro_Vetri", "MAT_Glass")
+    pl = m.part("Faro_Luce", "MAT_WarmLight")
+    pk = m.part("Faro_Scogli", "Granito")
+    H = 13.0
+    def door(t, z):
+        return not (abs(math.atan2(math.sin(t + math.pi / 2), math.cos(t + math.pi / 2))) < 0.34 and z < 2.3)
+    K.ring_ashlar(ps, Matrix.Identity(4), 2.4, 1.6, 0.0, H, rng, course=0.65, depth=0.45, lmin=1.6, lmax=2.6, clip=door)
+    K.tint_fill(ps)
+    L.lathe(ps, [(2.0, 0.0), (1.2, H)], 16, smooth=False, close=False)
+    K.tint_fill(ps)
+    for z in (4.2, 8.4):                       # fasce rosse
+        r0 = 2.4 + (1.6 - 2.4) * z / H
+        L.lathe(pr, [(r0 + 0.1, z), (r0 + 0.08, z + 1.3)], 24, smooth=True, close=False)
+    K.arch(ps, Matrix.Rotation(0, 4, "Z") @ Matrix.Translation((0, -2.35, 0)), 0, 2.0, 0.55, 0.85, -0.05, 0.45, rng, n=7)
+    L.box(m.part("Faro_Porta", "LegnoScuro"), (0, -2.1, 1.0), (1.1, 0.1, 2.0))
+    for z, a in ((5.6, 0.0), (9.6, math.pi)):
+        r0 = 2.4 + (1.6 - 2.4) * z / H
+        q = Vector((math.sin(a) * r0, -math.cos(a) * r0, z))
+        L.box(pg, q, (0.4, 0.06, 0.7), rot=Matrix.Rotation(a, 3, "Z"))
+        L.box(pf, q + Vector((0, 0, 0.42)), (0.6, 0.15, 0.12), rot=Matrix.Rotation(a, 3, "Z"))
+    # ballatoio: lastra sporgente su mensole, ringhiera
+    L.lathe(ps, [(0.0, H), (2.3, H), (2.3, H + 0.25), (0.0, H + 0.25)], 24, smooth=False)
+    K.tint_fill(ps)
+    for i in range(12):
+        a = 2 * math.pi * i / 12
+        K._block(ps, Vector((math.cos(a) * 1.75, math.sin(a) * 1.75, H - 0.35)), (0.25, 0.8, 0.5), Matrix.Rotation(a + math.pi / 2, 3, "Z"), 0.03, rng.random())
+    L.torus(pf, (0, 0, H + 1.2), 2.2, 0.04, nR=40, nr=4)
+    L.torus(pf, (0, 0, H + 0.7), 2.2, 0.025, nR=40, nr=4)
+    for i in range(24):
+        a = 2 * math.pi * i / 24
+        L.cyl(pf, (math.cos(a) * 2.2, math.sin(a) * 2.2, H + 0.25), (math.cos(a) * 2.2, math.sin(a) * 2.2, H + 1.2), 0.025, n=4)
+    # lanterna: zoccolo, vetri con montanti, cupola rossa, pinnacolo
+    L.lathe(pr, [(0.0, H + 0.25), (1.3, H + 0.25), (1.3, H + 0.9), (0.0, H + 0.9)], 16, smooth=False)
+    L.lathe(pg, [(1.15, H + 0.9), (1.15, H + 2.6)], 16, smooth=False, close=False)
+    for i in range(8):
+        a = 2 * math.pi * i / 8
+        L.cyl(pf, (math.cos(a) * 1.17, math.sin(a) * 1.17, H + 0.9), (math.cos(a) * 1.17, math.sin(a) * 1.17, H + 2.6), 0.05, n=5)
+    L.sphere(pl, (0, 0, H + 1.7), 0.45, seg=12, rings=8)
+    L.lathe(pr, [(0.0, H + 2.6), (1.4, H + 2.6), (1.35, H + 2.75), (1.0, H + 3.3), (0.45, H + 3.7), (0.15, H + 3.85), (0.0, H + 3.9)], 20)
+    L.cyl(pf, (0, 0, H + 3.85), (0, 0, H + 4.6), 0.06, 0.02, n=6)
+    L.sphere(pf, (0, 0, H + 3.95), 0.14, seg=8, rings=6)
+    m.marker("FX_Light_Faro", (0, 0, H + 1.7))
+    # scogli
+    for i in range(7):
+        a = 2 * math.pi * i / 7 + 0.3
+        r = rng.uniform(2.6, 3.6)
+        O.roccia(pk, (math.cos(a) * r, math.sin(a) * r, 0.1), (rng.uniform(1.6, 2.8), rng.uniform(1.4, 2.4), rng.uniform(0.9, 1.8)),
+                 seed=1100 + i, res=10, crag=0.4, cuts=10)
+    m.marker("SPOT_Porta", (0, -3.0, 0.0))
+    for k, rr in enumerate((0.0, math.pi / 4)):
+        m.col("Torre%d" % k, (0, 0, H / 2), (3.6, 3.6, H), Matrix.Rotation(rr + math.pi / 8, 3, "Z"))
+    m.col("Ballatoio", (0, 0, H + 0.12), (4.4, 4.4, 0.25))
+    m.notes.update({"misure_m": "5 x 18 x 5"})
+    m.notes["viste_extra"] = {"dettaglio": ((3.5, -5.5, H + 2.5), (0, 0, H + 1.5), 30)}
+
+
+@modello
+def FossiliDrago(m):
+    """fossili di drago (Meshy: teschio, vertebre, artiglio, ala ossea): qui la lastra di roccia a
+    strati in cui sono incastrati, le pietre attorno e i segnaposto con le misure"""
+    rng = random.Random(181)
+    pk = m.part("Fossili_Roccia", "RocciaIsola")
+    O.roccia(pk, (0, 0, 0.0), (9.0, 6.0, 1.6), seed=1200, res=18, crag=0.3, cuts=8, strata=0.04)
+    for i in range(6):
+        a = rng.uniform(0, 2 * math.pi)
+        O.roccia(pk, (math.cos(a) * 5.0, math.sin(a) * 3.6, 0.1), (rng.uniform(0.8, 1.6),) * 2 + (0.7,), seed=1210 + i, res=7, crag=0.4, cuts=7)
+    ph = m.part("PLACEHOLDER_Fossili", "OssoDrago")
+    L.box(ph, (-2.6, 0.2, 0.9), (2.0, 1.4, 1.2))         # teschio (2 x 1,4 x 1,2)
+    for k in range(7):                                    # vertebre
+        L.box(ph, (-1.2 + k * 0.55, 0.0, 0.6), (0.4, 0.5, 0.45))
+    L.box(ph, (2.8, -1.4, 0.6), (1.2, 0.6, 0.4))          # artiglio
+    L.box(ph, (1.5, 1.6, 0.55), (4.0, 2.0, 0.15))         # ala ossea
+    for nm, q in (("Teschio", (-2.6, 0.2, 0.9)), ("Vertebre", (0.45, 0.0, 0.6)), ("Artiglio", (2.8, -1.4, 0.6)), ("Ala", (1.5, 1.6, 0.55))):
+        m.marker("SPOT_Fossile_" + nm, q)
+    m.col("Lastra", (0, 0, 0.2), (8.0, 5.2, 1.2))
+    m.notes.update({"misure_m": "lastra 9 x 1,6 x 6; fossili da Meshy (vedi MESHY_PROMPT.md)"})
+
+
+def scafo(p, M, L_, B_, D_, sheer_bow, sheer_stern, flat=0.35, stations=18, ring=10):
+    """scafo di giunca/sampan lungo X: fondo piatto, fianchi svasati, insellatura alta a prua (+X) e a
+    poppa (-X), specchio di poppa piatto; restituisce le quote del ponte per stazione"""
+    verts, faces = [], []
+    secs = []
+    for i in range(stations + 1):
+        t = i / stations                      # 0 poppa, 1 prua
+        x = -L_ / 2 + L_ * t
+        u = 2 * t - 1
+        b = B_ / 2 * (1 - abs(u) ** 2.4) ** 0.6 + (0.12 * B_ if t < 0.05 else 0)
+        b = max(b, 0.06 * B_) if t > 0.97 else max(b, 0.32 * B_ if t < 0.03 else b)
+        zb = D_ * (0.15 * u ** 4 + (0.25 if t > 0.9 else 0) * ((t - 0.9) / 0.1) ** 2)
+        sheer = D_ + (sheer_stern * (1 - t) ** 3 + sheer_bow * t ** 3)
+        row = []
+        for j in range(ring + 1):
+            k = j / ring                      # 0 chiglia, 1 bordo
+            y = b * min(1.0, flat + (1 - flat) * k ** 0.7)
+            z = zb + (sheer - zb) * (k ** 1.6)
+            row.append((x, y, z))
+        secs.append((x, sheer, b))
+        for side in (1, -1):
+            pass
+        verts.append(row)
+    out_v = []
+    idx = {}
+    for i, row in enumerate(verts):
+        for j, (x, y, z) in enumerate(row):
+            for side in (1, -1):
+                idx[(i, j, side)] = len(out_v)
+                out_v.append(tuple(M @ Vector((x, side * y, z))))
+    fc = []
+    for i in range(stations):
+        for j in range(ring):
+            a, b2, c, d = idx[(i, j, 1)], idx[(i + 1, j, 1)], idx[(i + 1, j + 1, 1)], idx[(i, j + 1, 1)]
+            fc.append([a, b2, c, d])
+            a, b2, c, d = idx[(i, j, -1)], idx[(i + 1, j, -1)], idx[(i + 1, j + 1, -1)], idx[(i, j + 1, -1)]
+            fc.append([d, c, b2, a])
+        fc.append([idx[(i, 0, -1)], idx[(i + 1, 0, -1)], idx[(i + 1, 0, 1)], idx[(i, 0, 1)]])
+    # specchio di poppa e chiusura di prua
+    st = [idx[(0, j, 1)] for j in range(ring + 1)] + [idx[(0, j, -1)] for j in range(ring, -1, -1)]
+    fc.append(st[::-1])
+    bw = [idx[(stations, j, 1)] for j in range(ring + 1)] + [idx[(stations, j, -1)] for j in range(ring, -1, -1)]
+    fc.append(bw)
+    p.add_raw(out_v, fc, smooth=True)
+    return secs
+
+
+@modello
+def Giunca(m):
+    """giunca cinese (18 x 12 x 5) e sampan (7 x 2,5 x 2) ormeggiabili: scafo di assi con fondo
+    piatto e poppa alta, ponte, casseretto a poppa, tre alberi con vele a stecche di bambu',
+    timone, occhi sulla prua; il sampan ha la copertura ad arco di stuoie"""
+    rng = random.Random(191)
+    # --- giunca (lungo X, prua verso +X), ingombro con le vele 18 x 12 x 5 m di scafo
+    ph = m.part("Giunca_Scafo", "LegnoScuro")
+    pd = m.part("Giunca_Ponte", "LegnoAsse")
+    pv = m.part("Giunca_Vele", "VelaGiunca")
+    pb = m.part("Giunca_Bambu", "Bambu")
+    pr = m.part("Giunca_Corde", "Corda")
+    pe = m.part("Giunca_Occhi", "MAT_Gold")
+    pl = m.part("Giunca_Lanterne", "MAT_WarmLight")
+    pf = m.part("Giunca_Ferro", "FerroBattuto")
+    Lg, Bg, Dg = 18.0, 5.0, 2.4
+    secs = scafo(ph, Matrix.Translation((0, 0, -1.2)), Lg, Bg, Dg, 1.2, 2.6)
+    # ponte di assi (all'altezza del bordo meno 0,35) e falchetta
+    zdeck = Dg - 1.2 - 0.35
+    x = -Lg / 2 + 1.0
+    while x < Lg / 2 - 1.6:
+        t = (x + Lg / 2) / Lg
+        u = 2 * t - 1
+        b = Bg / 2 * (1 - abs(u) ** 2.4) ** 0.6 - 0.25
+        K._block(pd, Vector((x + 0.15, 0, zdeck)), (0.28, 2 * b, 0.06), None, 0.01, rng.random())
+        x += 0.3
+    K.tint_fill(pd)
+    for (xs, sheer, b) in secs[1:-1]:
+        for side in (1, -1):
+            L.box(ph, (xs, side * (b - 0.05), sheer - 1.2 + 0.05), (Lg / len(secs) + 0.05, 0.14, 0.12))
+    # casseretto a poppa con il tetto curvo
+    K._block(pd, Vector((-6.2, 0, zdeck + 1.0)), (3.6, 3.6, 2.0), None, 0.04, rng.random())
+    L.box(ph, (-6.2, 0, zdeck + 2.1), (4.2, 4.2, 0.2), bev=0.06)
+    for sx in (-1, 1):
+        lanterna_carta(pl, pf, Vector((-4.2, sx * 1.6, zdeck + 1.6)), r=0.25, h=0.45)
+    m.marker("FX_Light_Giunca1", (-4.2, -1.6, zdeck + 1.6))
+    m.marker("FX_Light_Giunca2", (-4.2, 1.6, zdeck + 1.6))
+    # timone
+    K._block(ph, Vector((-Lg / 2 - 0.3, 0, -0.2)), (1.2, 0.15, 2.4), None, 0.03, rng.random())
+    L.cyl(pb, (-Lg / 2 - 0.2, 0, 2.2), (-Lg / 2 + 1.5, 0, 2.4), 0.07, n=6)
+    # occhi sulla prua
+    for side in (1, -1):
+        c = Vector((Lg / 2 - 1.6, side * 1.15, Dg - 1.2 - 0.1))
+        L.cyl(pe, c, c + Vector((0, side * 0.05, 0)), 0.35, n=16)
+        L.cyl(m.part("Giunca_Pupille", "Basalto"), c + Vector((0.05, side * 0.06, 0)), c + Vector((0.05, side * 0.09, 0)), 0.15, n=12)
+    # alberi e vele a stecche (lug sail): vela trapezoidale con le stecche di bambu'
+    for (xm, hm, wv, hv) in ((5.0, 9.0, 4.6, 6.2), (0.5, 11.5, 6.0, 8.2), (-4.8, 8.0, 4.0, 5.4)):
+        L.cyl(pb, (xm, 0, zdeck), (xm, 0, zdeck + hm), 0.16, 0.08, n=8)
+        z0, z1 = zdeck + hm - hv - 0.4, zdeck + hm - 0.4
+        nb = 6
+        prof = []
+        for k in range(nb + 1):
+            t = k / nb
+            z = z0 + (z1 - z0) * t
+            xa = xm - wv * 0.35 - 0.5 * t
+            xb = xm + wv * 0.65 - 0.8 * t ** 2
+            bulge = 0.25 * math.sin(math.pi * t)
+            prof.append((xa, xb, z, bulge))
+        verts, faces, uvs = [], [], []
+        nx = 6
+        for k, (xa, xb, z, bu) in enumerate(prof):
+            for i in range(nx + 1):
+                u = i / nx
+                xx = xa + (xb - xa) * u
+                yy = 0.35 + bu * math.sin(math.pi * u) + 0.12 * math.sin(math.pi * k)
+                verts.append((xx, yy, z))
+                uvs.append((u * wv / 2.0, (z - z0) / 2.0))
+        w_ = nx + 1
+        base = len(pv.v)
+        pv.v.extend(verts)
+        for k in range(nb):
+            for i in range(nx):
+                q = [k * w_ + i, k * w_ + i + 1, (k + 1) * w_ + i + 1, (k + 1) * w_ + i]
+                pv.f.append(([base + a for a in q], True, [uvs[a] for a in q]))
+                pv.f.append(([base + a for a in q][::-1], True, [uvs[a] for a in q][::-1]))
+        for (xa, xb, z, bu) in prof:
+            L.cyl(pb, (xa - 0.1, 0.35 + 0.05, z), (xb + 0.1, 0.35 + 0.05, z), 0.04, n=5)
+        # scotte a ventaglio verso poppa
+        for (xa, xb, z, bu) in prof[1:]:
+            L.cyl(pr, (xa, 0.35, z), (xm - wv * 0.6, 0.3, zdeck + 0.5), 0.012, n=4, caps=False)
+    m.marker("SPOT_Ormeggio_Giunca", (0, Bg / 2 + 0.3, zdeck))
+    m.col("GiuncaScafo", (0, 0, -0.1), (Lg - 1.0, Bg - 0.4, 2.0))
+    m.col("GiuncaPonte", (0, 0, zdeck), (Lg - 3.0, Bg - 0.8, 0.1))
+    m.col("Casseretto", (-6.2, 0, zdeck + 1.0), (3.6, 3.6, 2.0))
+    # --- sampan accanto (7 x 2,5 x 2), a +Y
+    oy = 7.0
+    ps = m.part("Sampan_Scafo", "LegnoScuro")
+    pm = m.part("Sampan_Stuoia", "Bambu")
+    scafo(ps, Matrix.Translation((0, oy, -0.4)), 7.0, 2.3, 0.9, 0.5, 0.6, stations=14, ring=8)
+    x = -2.8
+    while x < 2.6:
+        K._block(m.part("Sampan_Ponte", "LegnoAsse"), Vector((x + 0.15, oy, 0.25)), (0.28, 1.7, 0.05), None, 0.01, rng.random())
+        x += 0.32
+    for i in range(9):                        # copertura ad arco di stuoie
+        xx = -1.6 + i * 0.35
+        pts = [Vector((xx, oy + 1.05 * math.cos(a), 0.3 + 1.1 * math.sin(a))) for a in [math.pi * k / 10 for k in range(11)]]
+        L.tube(pm, pts, 0.03, n=5)
+    verts, faces = [], []
+    for k in range(11):
+        a = math.pi * k / 10
+        for xx in (-1.65, 1.15):
+            verts.append((xx, oy + 1.07 * math.cos(a), 0.3 + 1.12 * math.sin(a)))
+    for k in range(10):
+        faces.append([2 * k, 2 * k + 1, 2 * k + 3, 2 * k + 2])
+        faces.append([2 * k + 2, 2 * k + 3, 2 * k + 1, 2 * k])
+    pm.add_raw(verts, faces, smooth=True)
+    L.cyl(m.part("Sampan_Remo", "LegnoAsse"), (-3.6, oy, 0.9), (-2.4, oy + 0.2, 0.2), 0.04, n=6)
+    m.marker("SPOT_Ormeggio_Sampan", (0, oy - 1.3, 0.3))
+    m.col("Sampan", (0, oy, 0.0), (6.5, 2.0, 0.8))
+    m.notes.update({"misure_m": "giunca 18 x 12 x 5 (lunga X, prua +X); sampan 7 x 2,5 x 2 a +Y"})
+    m.notes["umani"] = [(1.0, 0.0, zdeck + 0.03), (0.0, oy, 0.28)]
+    m.notes["terreno_z"] = -0.6
+    m.notes["viste_extra"] = {"tre_quarti": ((22, -24, 12), (0, 2, 3), 30), "dettaglio": ((10.5, -5.0, 3.0), (7.0, 0, 1.5), 30)}
+
+
 def VISTE_PICCOLO(h, d):
     up = max(h * 0.75, d * 0.38)
     return {
@@ -1247,6 +1562,7 @@ def VISTE_PICCOLO(h, d):
 
 
 LOOK = {
+    "PietraBianca": {"dirt_z0": 0.0, "dirt_z1": 3.0, "moss": 0.4, "streak": 0.35},
     "Granito": {"dirt_z0": 0.0, "dirt_z1": 0.9, "moss": 0.7, "streak": 0.2},
     "Corteccia": {"dirt_z0": 0.5, "dirt_z1": 2.0, "moss": 0.5, "streak": 0.1, "ao_dist": 0.4, "edge_r": 0.03, "tint": 0.0},
     "PietraVulcanica": {"dirt_z0": 0.0, "dirt_z1": 2.0, "moss": 0.5},
