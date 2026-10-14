@@ -119,7 +119,7 @@ local function dragonView(parent: Instance, d: any, spin: boolean): ViewportFram
 	camera.FieldOfView = 30
 	camera.Parent = vf
 	vf.CurrentCamera = camera
-	local dist = radius / math.tan(math.rad(15)) * 0.9
+	local dist = radius / math.tan(math.rad(15)) * 0.74
 	local function aim(a: number)
 		local dir = (CFrame.fromAxisAngle(Vector3.yAxis, a) * front) + Vector3.new(0, 0.38, 0)
 		camera.CFrame = CFrame.lookAt(center + dir.Unit * dist, center)
@@ -146,7 +146,7 @@ local function halo(parent: Instance, color: Color3)
 	g.Position = UDim2.fromScale(0.5, 0.45)
 	g.Size = UDim2.fromScale(0.8, 0.8)
 	g.BackgroundColor3 = color
-	g.BackgroundTransparency = 0.55
+	g.BackgroundTransparency = 0.7
 	g.BorderSizePixel = 0
 	g.Parent = parent
 	local ar = Instance.new("UIAspectRatioConstraint")
