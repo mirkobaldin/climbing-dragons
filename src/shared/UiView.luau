@@ -124,6 +124,13 @@ function UiView.skin(target: GuiObject, name: string)
 				caption.TextXAlignment = target.TextXAlignment
 				caption.TextColor3 = Color3.fromRGB(240, 240, 242)
 				caption.TextStrokeTransparency = 0.6
+				if target:IsA("TextButton") and not string.find(name, "btn_round", 1, true) then
+					-- pulsanti a cornice (Buy, Sell, Unlock...): bianco su oro si leggeva male,
+					-- ora carattere pieno e bordo scuro marcato
+					caption.Font = Enum.Font.GothamBlack
+					caption.TextStrokeColor3 = Color3.fromRGB(45, 24, 4)
+					caption.TextStrokeTransparency = 0.05
+				end
 				if name == "btn_close" then
 					caption.Text = ""
 				elseif string.find(name, "btn_round", 1, true) then
@@ -286,23 +293,42 @@ end
 local RIGHT = Vector2.new(1, 0.5)
 local BUTTONS = 172 -- spazio a destra per i pulsanti
 local CARD_STYLE: { [string]: (any) -> () } = {
+	-- potenziamento: icona in un riquadro colorato, titolo grande, descrizione, effetto "ora ->
+	-- dopo", costo, pulsante grande a destra. Prima i margini erano quasi zero e le scritte
+	-- piccole (feedback di un giocatore: "serve piu' padding e caratteri piu' grandi")
 	UpgradeCard = function(c)
-		c.Size = U(1, -12, 0, 118)
-		place(c.Icon, U(0, 14, 0, 14), U(0, 64, 0, 64))
-		sized(c.Icon, 36)
-		place(c.Title, U(0, 92, 0, 10), U(1, -92 - BUTTONS, 0, 24))
-		sized(c.Title, 18, true)
-		place(c.Description, U(0, 92, 0, 34), U(1, -92 - BUTTONS, 0, 20))
-		sized(c.Description, 14)
-		place(c.Effect, U(0, 92, 0, 56), U(1, -92 - BUTTONS, 0, 20))
-		sized(c.Effect, 14, true)
-		place(c.Cost, U(0, 92, 0, 82), U(1, -92 - BUTTONS, 0, 22))
-		sized(c.Cost, 14, true)
+		local W = 214 -- spazio a destra per il pulsante
+		c.Size = U(1, -12, 0, 156)
+		place(c.Icon, U(0, 20, 0.5, 0), U(0, 92, 0, 92), Vector2.new(0, 0.5))
+		sized(c.Icon, 48)
+		c.Icon.TextXAlignment = Enum.TextXAlignment.Center
+		c.Icon.BackgroundTransparency = 0.25
+		c.Icon.BackgroundColor3 = Color3.fromRGB(40, 52, 84)
+		local ic = c.Icon:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+		ic.CornerRadius = UDim.new(0, 18)
+		ic.Parent = c.Icon
+		local is = c.Icon:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
+		is.Color = Color3.fromRGB(255, 200, 90)
+		is.Thickness = 2
+		is.Transparency = 0.35
+		is.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		is.Parent = c.Icon
+		place(c.Title, U(0, 132, 0, 16), U(1, -132 - W, 0, 28))
+		sized(c.Title, 22, true)
+		place(c.Description, U(0, 132, 0, 48), U(1, -132 - W, 0, 22))
+		sized(c.Description, 16)
+		c.Description.TextColor3 = Color3.fromRGB(200, 206, 222)
+		place(c.Effect, U(0, 132, 0, 76), U(1, -132 - W, 0, 24))
+		sized(c.Effect, 16, true)
+		c.Effect.RichText = true
+		place(c.Cost, U(0, 132, 0, 110), U(1, -132 - W, 0, 28))
+		sized(c.Cost, 18, true)
+		c.Cost.RichText = true
 		for _, o in { c.Title, c.Description, c.Effect, c.Cost } do
 			left(o)
 		end
-		place(c.Action, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 46), RIGHT)
-		sized(c.Action, 16, true)
+		place(c.Action, U(1, -22, 0.5, 0), U(0, W - 30, 0, 60), RIGHT)
+		sized(c.Action, 22, true)
 	end,
 	BountyCard = function(c)
 		c.Size = U(1, -12, 0, 96)
@@ -315,18 +341,6 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 		left(c.Reward)
 		place(c.Claim, U(1, -14, 0.5, 0), U(0, BUTTONS - 26, 0, 46), RIGHT)
 		sized(c.Claim, 16, true)
-	end,
-	RebirthCard = function(c)
-		c.Size = U(1, -12, 0, 230)
-		place(c.Title, U(0, 16, 0, 12), U(1, -32, 0, 30))
-		sized(c.Title, 24, true)
-		place(c.Description, U(0, 16, 0, 48), U(1, -32, 0, 96))
-		sized(c.Description, 15)
-		c.Description.TextTruncate = Enum.TextTruncate.None
-		place(c.Cost, U(0, 16, 0, 148), U(1, -32, 0, 22))
-		sized(c.Cost, 15, true)
-		place(c.Action, U(0.5, 0, 1, -14), U(0, 240, 0, 46), Vector2.new(0.5, 1))
-		sized(c.Action, 17, true)
 	end,
 	TextCard = function(c)
 		-- alta quanto il testo (AutomaticSize dentro la lista non contava le righe a capo)
@@ -381,17 +395,18 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 		sized(c.Description, 12)
 		center(c.Description)
 		c.Description.TextYAlignment = Enum.TextYAlignment.Top
-		place(c.Coin, U(0.5, -44, 1, -66), U(0, 20, 0, 20))
-		place(c.Cost, U(0.5, -20, 1, -67), U(0.5, 10, 0, 22))
-		sized(c.Cost, 15, true)
+		-- prezzo e pulsanti grandi: su PC "Buy" e "Sell" erano piccoli e si leggevano male
+		place(c.Coin, U(0.5, -52, 1, -82), U(0, 24, 0, 24))
+		place(c.Cost, U(0.5, -24, 1, -84), U(0.5, 18, 0, 28))
+		sized(c.Cost, 18, true)
 		left(c.Cost)
-		place(c.Buy, U(0.5, 0, 1, -8), U(1, -16, 0, 38), Vector2.new(0.5, 1))
-		sized(c.Buy, 16, true)
-		place(c.SellActions, U(0.5, 0, 1, -8), U(1, -16, 0, 38), Vector2.new(0.5, 1))
-		place(c.SellActions.One, U(0, 0, 0, 0), U(0.5, -3, 1, 0))
-		place(c.SellActions.All, U(1, 0, 0, 0), U(0.5, -3, 1, 0), Vector2.new(1, 0))
-		sized(c.SellActions.One, 15, true)
-		sized(c.SellActions.All, 15, true)
+		place(c.Buy, U(0.5, 0, 1, -10), U(1, -20, 0, 52), Vector2.new(0.5, 1))
+		sized(c.Buy, 22, true)
+		place(c.SellActions, U(0.5, 0, 1, -10), U(1, -20, 0, 52), Vector2.new(0.5, 1))
+		place(c.SellActions.One, U(0, 0, 0, 0), U(0.5, -4, 1, 0))
+		place(c.SellActions.All, U(1, 0, 0, 0), U(0.5, -4, 1, 0), Vector2.new(1, 0))
+		sized(c.SellActions.One, 20, true)
+		sized(c.SellActions.All, 20, true)
 	end,
 	-- crafting: carta verticale in griglia (anteprima, nome, materiali, pulsante)
 	RecipeCard = function(c)
@@ -403,9 +418,9 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 		sized(c.Description, 12)
 		c.Description.TextXAlignment = Enum.TextXAlignment.Center
 		c.Description.TextYAlignment = Enum.TextYAlignment.Top
-		place(c.Materials, U(0, 10, 1, -86), U(1, -20, 0, 30))
-		place(c.Craft, U(0.5, 0, 1, -8), U(1, -16, 0, 38), Vector2.new(0.5, 1))
-		sized(c.Craft, 16, true)
+		place(c.Materials, U(0, 10, 1, -102), U(1, -20, 0, 32))
+		place(c.Craft, U(0.5, 0, 1, -10), U(1, -20, 0, 52), Vector2.new(0.5, 1))
+		sized(c.Craft, 22, true)
 	end,
 	Material = function(c)
 		place(c.Icon, U(0, 0, 0.5, 0), U(0, 28, 0, 28), Vector2.new(0, 0.5))
@@ -424,38 +439,6 @@ local CARD_STYLE: { [string]: (any) -> () } = {
 		c.Count.TextXAlignment = Enum.TextXAlignment.Right
 		c.Count.TextStrokeTransparency = 0.3
 		c.Count.ZIndex = 5
-	end,
-	EggCard = function(c)
-		c.Size = U(1, -10, 0, 104)
-		place(c.Icon, U(0, 10, 0.5, 0), U(0, 76, 0, 76), Vector2.new(0, 0.5))
-		place(c.Title, U(0, 94, 0, 8), U(1, -102, 0, 40))
-		sized(c.Title, 15, true)
-		place(c.Time, U(0, 94, 0, 50), U(1, -102, 0, 18))
-		sized(c.Time, 13)
-		place(c.Hatch, U(0, 94, 1, -8), U(1, -102, 0, 32), Vector2.new(0, 1))
-		sized(c.Hatch, 15, true)
-		left(c.Title)
-		left(c.Time)
-	end,
-	-- draghi: anteprima grande a sinistra, testi, barra XP e una riga di pulsanti (DragonUI li
-	-- distribuisce secondo quelli visibili)
-	DragonCard = function(c)
-		c.Size = U(1, -12, 0, 140)
-		place(c.Preview, U(0, 10, 0.5, 0), U(0, 120, 0, 120), Vector2.new(0, 0.5))
-		place(c.Element, U(0, 12, 0, 12), U(0, 30, 0, 30))
-		c.Element.ZIndex = 5
-		place(c.Title, U(0, 142, 0, 10), U(1, -154, 0, 22))
-		sized(c.Title, 16, true)
-		place(c.Ability, U(0, 142, 0, 34), U(1, -154, 0, 32))
-		sized(c.Ability, 13)
-		left(c.Title)
-		left(c.Ability)
-		c.Ability.TextYAlignment = Enum.TextYAlignment.Top
-		place(c.XP, U(0, 142, 0, 70), U(1, -154, 0, 18))
-		sized(c.XP.Text, 12, true)
-		for _, b in { c.Follow, c.Evolve, c.Sell } do
-			sized(b, 14, true)
-		end
 	end,
 }
 

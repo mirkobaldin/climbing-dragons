@@ -127,6 +127,7 @@ local function openSet(): Set
 			end
 			pcall(function()
 				StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true)
+				StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false) -- la salute la mostra la HUD
 			end)
 			for _, p in hiddenParts do
 				p.LocalTransparencyModifier = 0

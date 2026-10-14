@@ -108,7 +108,7 @@ local function tiles(parent: Instance, order: number): Frame
 end
 local function mountShop(container: Frame, status: (string, boolean) -> ()): () -> ()
 	local list = Ui.node(container, "List")
-	cards(list, 200, 250)
+	cards(list, 210, 290)
 	local sub = "Buy"
 	local render: () -> ()
 	local function call(action: string, id: string?, amount: any?)
@@ -407,7 +407,7 @@ function MainMenu.start()
 		side.List.Size = UDim2.new(1, 0, 1, -30)
 		rows(side.List)
 	end
-	cards(content.Crafting.List, 220, 280)
+	cards(content.Crafting.List, 220, 310)
 	rows(content.Upgrades.List)
 	-- pulsanti delle sotto-schede (Buy / Sell, Upgrades / Bounties...) con testo leggibile
 	for _, d in content:GetDescendants() do
@@ -447,7 +447,8 @@ function MainMenu.start()
 		Ui.tint(window, tone, false, 0.012)
 		local fill = window:FindFirstChild("Tinta") :: Frame?
 		if fill then
-			fill.BackgroundTransparency = 0.5
+			-- velo leggero: lo sfondo illustrato della finestra deve vedersi (piace ai giocatori)
+			fill.BackgroundTransparency = 0.78
 		end
 		Ui.tint(window.Title, tone, false, 0.1)
 		gui:SetAttribute("MenuOpen", true)
