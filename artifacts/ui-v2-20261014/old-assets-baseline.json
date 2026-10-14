@@ -1,0 +1,422 @@
+﻿[
+    {
+        "Path":  "artifacts/ui-20261010/act_climb.png",
+        "Hash":  "641CD2843B5E7FD669453F7F73E536D3D9ADB2ED1A7B96BD96FC2EDED28992CA"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/act_grapple.png",
+        "Hash":  "AFCC3771B3886F3D53B1D284FE2D0C7DFA9D78FFC8614AC3680E9A002F291592"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/act_jump.png",
+        "Hash":  "07E97B7C1C55CB5C8CC8FBE3FF20673EEBFA42F383E7C2602FF35A98A23FCCE8"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/act_mine.png",
+        "Hash":  "6D895ED06D576D31E66D675F2583AA868956A670827A13ADAD196F27A86B99D3"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/act_piton.png",
+        "Hash":  "7D41989131A6F436E4F73B92901EB21B2A44C9997C5A26A277684BF5A088011D"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/act_shoot.png",
+        "Hash":  "3C5376CAF9B3A1B9151A640394027C5DB6E4D9F23DC3CE1FBD803AFB64956C9F"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/act_sprint.png",
+        "Hash":  "AD299163555DBFAA41E8328148C8370CAAE2CBA1FAFA8CC2D6D8D9409D57A6E9"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/act_throw.png",
+        "Hash":  "8D66296CFB0670916DC21D6F0EFAC95215784994271A758442AE865856C52701"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/bg_death.png",
+        "Hash":  "B21ADBE841C59EFD7A9B0A779F866DD727AC755DBD1CF7C33EA244D542CE442D"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/bg_loading.png",
+        "Hash":  "E9D834DDEFDDCEA110FDD648B1FD6A2F5E5A652EA45A70C7944E1E951CDCBF84"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/bg_menu.png",
+        "Hash":  "8EB1FA68710C6AF88598B129A4EFFCAD2AA569702DFC971DEBE852B4DE13199C"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_close.png",
+        "Hash":  "65499555DF3E7643460E11326A4A807EC13DCAC1A1B90D7EBB163EA79011EF23"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_danger_hover.png",
+        "Hash":  "730498D9E77E88128E24495C655F727729FFF65F1152913372D871397306F813"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_danger_normal.png",
+        "Hash":  "53FDA5C68EAD0561D7044E9C9EA5AF7B955504EAF5473C4561ADF410A91B4023"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_danger_pressed.png",
+        "Hash":  "ACECC62CCFA62894E5A5B9229F8F0FB23FEF6826AD3AFBD2CB37F0BBC49D2449"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_primary_hover.png",
+        "Hash":  "327B7A83A0FDFAF4AE139854CD5CFA4F4C9D6E61DD0E5784C2F5691AAECDD65F"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_primary_normal.png",
+        "Hash":  "069E1253A12D235537AF34D4BA8D30E65AF9D4D25A78F0EF43E8F70BABDF1143"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_primary_pressed.png",
+        "Hash":  "CC9D79DB68CBD823918A3F35DC7827B413D870C777C12ACE04172D6CAC6F2A67"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_round_hover.png",
+        "Hash":  "06360FF6C5AAACC7C66C23055376564DC784E2B4A697D7369BB515F22CC87B3E"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_round_normal.png",
+        "Hash":  "74BAF02FFC4443408581BF6D3F42FF85787F81F6895716F04D66B3060BB574A9"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_round_pressed.png",
+        "Hash":  "C807BF38C026BFCF94C5C7C02F1198D3FD031F0FEB4565EE4132B95B60CF313A"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_secondary_hover.png",
+        "Hash":  "C1F3EE3C93CEAAC9AAD7E4D1D2A1F29111258EF407BE43F19EF9B270D9AEF11D"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_secondary_normal.png",
+        "Hash":  "E410ED1ABBD23A359B22FB92E5FC85A77FE32D930EF6A6BD903F0DCC2F35153D"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/btn_secondary_pressed.png",
+        "Hash":  "C3C9961B88CD1A8160963B3BC7782472C17CD6723297D404664AD1223D973D59"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Brace.png",
+        "Hash":  "71FA70C4F3A65A0805E2DC4A3D6F382E675DB58CB37694D0E83842148AD9D262"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Cosmico.png",
+        "Hash":  "9211E90C2E03228A7CCBA978867B42CCF5A87BC0D295C4D0B0331C18087BC8DD"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Eclissi.png",
+        "Hash":  "344BBF5FBB75F39440B57576E8C30DC56691263DC35D5136685BC6F10F55CB26"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Fulmine.png",
+        "Hash":  "6774EBBCD1C40B10F88481BFC6F1B9CB6C4F854C46683E968909AD1CC510003D"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Gas.png",
+        "Hash":  "78C677B80DCAEAF510B389A911683E9A5157FB231F52CD1EC3F9947FBF4D9B63"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Gelo.png",
+        "Hash":  "46BAD24596CB1F8D51CA05D8602735B5BAC9136C7C14A82309F015CF84ED677F"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Ombra.png",
+        "Hash":  "C66C5C870212F91303432E0CB51C00D178ECF6AE2F469F213DE813D5A382D946"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Ossa.png",
+        "Hash":  "8298FB6DD9794ED3AFBE4AA836CD85128BF83E4BDB8D520AD5E1A404DAB1E28C"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Roccia.png",
+        "Hash":  "304E10895A55B10D40C2EAF7397EAECA40A12B7D01846CEAE110F981242C9C5F"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Sole.png",
+        "Hash":  "E429111DBDF013BE4C60FBCAD7AF13AFC9C05265EA1A3985D83BD5140B110C79"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/elem_Tempesta.png",
+        "Hash":  "09331158D0573149DB1D568D38A91D8D7E75D95B05A194851734FDF0136B5733"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/game_icon.png",
+        "Hash":  "36875A2B72B708FEA40A785F06064AE85D87D300CF1BB6173D4761C1C81F4FB8"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_altitude.png",
+        "Hash":  "5AD3E5EBDE923DDFE9418C914AA0B4C454BF6CE8A55A1DBEE5EB7532FBCD0ADF"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_backpack.png",
+        "Hash":  "5B0BEF9B7349C92B0271BBD2DA220AA7B031161D38357B89D7C24FBBA8B843FC"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_coin.png",
+        "Hash":  "13E35FF54AF677D8FD645213BF75BEC3C64EB1DB186B18AEF2A08FE778A8B96B"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_cold.png",
+        "Hash":  "B8992B87FC9BA0C103F40728E210020078C4588223900F8EE3DFE574995CEEAC"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_crafting.png",
+        "Hash":  "9CEF5A4999CA54F7919C3E411FF80A8E1ABC89F7FCA64F6CE5152DCACC86F39E"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_dragons.png",
+        "Hash":  "8296A11B439568A622F3D23FE204D4C1942C9AE3C6A60904367568CD300D2F7A"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_egg.png",
+        "Hash":  "5010D5AF13AABF5BA85FDB167075FEB5B95083598100F023AC7FC29C54062932"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_health.png",
+        "Hash":  "5B1AEB2D56228AFD44A6C8244602B310C63D225E4FF79B087C3ED8FBE10E1CFB"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_lock.png",
+        "Hash":  "094CFADC2CAD73D911A65E495895CA134E7CE5B9ECD9A3A6BA98440C2829D200"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_piton.png",
+        "Hash":  "EAA00AF9307D46E57BDAD908ED05D55B70AA41276B517104606DD6AC3352BB66"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_quest.png",
+        "Hash":  "CC74AB4E941764DC2A723F52CCA26DB1CD69AD289A20805DE8B24CEEA507F673"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_settings.png",
+        "Hash":  "84E50D4E82B0CBD4010617DF7E39DD6ECB4B860EB60493540C147A0A88C5DE51"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_shop.png",
+        "Hash":  "D773799BF6A03D25B1E2860D57A8B62FA5C445F488721284F965D0258907369F"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_stamina.png",
+        "Hash":  "B757CD6FCE7D96D76D79E57C7C93C20261D78F6BF70574A9B860C60BD0A17136"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_teleport.png",
+        "Hash":  "7A0ABC090688FDB3BB384E19B170509B26D70BF6B03A51178AA9E314E5F7B686"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/icon_warmth.png",
+        "Hash":  "6EBD390C651F5CA32B1BA6BB0F3F273145623BFCE97ADC7D3BFEA5C1402D2AB7"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/index.md",
+        "Hash":  "A99C9EA02CF5EE85765ADBBFCFE3331A51A8B2A3B4680EFCFC206A1BAE1A5423"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/logo.png",
+        "Hash":  "1A7B443923CCD5EF4FF38D9ADE62E309FD95624C571AF3F9EF1EA9C58B3D52D0"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/manifest.json",
+        "Hash":  "86CE78DE0B52228C6183397779C51DE0FA36A3430EC7D402A632959C0D2409FA"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/ore_Carbone.png",
+        "Hash":  "0482B20ECA72B0D5A35F4D9262D50E2335DDAC34545EF73C7F703DD7ABA1B552"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/ore_Cosmico.png",
+        "Hash":  "7C9F328FFE74F2F8578BAB0EC4E7B4DD0ABFD5FDFC483ED9415F96057B62FD1D"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/ore_Cristallo.png",
+        "Hash":  "5483A2B4F1166D53730433D07A49BF41859C6808217F58DF82E911D15E3CA8D0"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/ore_Ferro.png",
+        "Hash":  "858F77FFAB7128FD0E81697FB4241494F36A332D3691C772405F75B521E8191A"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/ore_Oro.png",
+        "Hash":  "F8A2F5CFEF79C9BDDED4F4BDD4E797E8F4A78037431012CB7FC04B495C9E1841"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/ore_Rubino.png",
+        "Hash":  "45FA13940E5FE8B1E12FF6C584E6CE21E8D85E099B7E1042DA5B6D7956AFEFE0"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/panel_card.png",
+        "Hash":  "725BEFBDEE3B74B65F5F3A4F94A17493D68CAD1D43388F5B8773C30BDAF286D2"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/panel_header.png",
+        "Hash":  "730AD3E8267499780027F2DEC71DB1AEB03B0ABB1AC411C581CD900A0C7FFBA9"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/panel_main.png",
+        "Hash":  "ADFC0ABC0ADFF76353C113EB8B912992C48F5B43AF5B24D056F2F232CD2436F4"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/panel_quest.png",
+        "Hash":  "4C12AB75EE3AF3B95E3D2D9D6A563B476092887A2A3AC8AFC605BB12FEC9FE33"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/panel_toast.png",
+        "Hash":  "8B74A5125117CC50ABCCC8ACA08FC72E09DB2D9C875E30BE09E48A31ED0037DB"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/pass_EggFinder.png",
+        "Hash":  "BE8A9B19C2FAA511B86DFA557B446F37990E6DA9C673AAED7AED4709CC0A1765"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/pass_ExtraDragon.png",
+        "Hash":  "E3ED302F5616ACEFE9C529AEF2494029EB58BDEB13B8267B8CFC5DAA419E6D64"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/pass_ExtraIncubator.png",
+        "Hash":  "C8862A293CE8F99679244AEBDF478CAD0A12FF6A54E9510EA3BEF77E37C45692"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/pass_FastIncubation.png",
+        "Hash":  "FA91540B3111E1A8A4D0C78CF0C314C3086037F040B6BA08D42D13612621F7F7"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/pass_TrainingX2.png",
+        "Hash":  "A38AB46EF029F063AB88ABE7D5E707007BF5F9CCEE5DF5A12CCD43C03F16A246"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/prepare.ps1",
+        "Hash":  "F39D121A2E3DD15CA76A5AF6943987ACEBF4AFE4782C56C490B5B1A340754AB1"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/preview-slices.ps1",
+        "Hash":  "FF7CF85DDE71AD3D4988E610D7BB2D3A31EB9EDF612EE6B4B328D2940A6415CC"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/preview.ps1",
+        "Hash":  "C4B2BE228219DE7F2DC35491A9C0B859BAB3A02C59EA4C2D34415288CDA1A931"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/prod_Coins1000.png",
+        "Hash":  "AD93058ADB8A8EDE455981A4B81288808C1BA3C70E700A61FEFA5FBFC51DD96C"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/prod_InstantHatch.png",
+        "Hash":  "7939B37D1258B18169D7A0C7FC9D36C44D5660441FC0068284703445EE67473B"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/prod_Revive.png",
+        "Hash":  "33596B77A8A680B8321F614A51AB84CA0BCA94E01E426C24A9C46C9D5C6EE90E"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/prod_TrainingBoost.png",
+        "Hash":  "429CE97ECE465F6FE7EE36A4BB6F217B52DA1C104BD456768843AFBCAF9255F7"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/prompt-variants.json",
+        "Hash":  "AA705F19454D5BBE7B956C05518ED1479C5143C25F8329E3721E3D9612C99563"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/rarity_common.png",
+        "Hash":  "DBE2FC44EC87C20D74D6643A925B564BEFC7EA307E4EC8F98670B2B33A7BCDC9"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/rarity_epic.png",
+        "Hash":  "DAF7BBC07938D4332559B5D7BEAA44A071B3D9F51750B81A2DE7B2AF37D404AA"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/rarity_legendary.png",
+        "Hash":  "787BDCCE9CCF3F1031F1FCDDA6D5420C9E8F0ABE087B0E63FF94AF4E0F259AA7"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/rarity_rare.png",
+        "Hash":  "30F23BB67C429BF4551E3D9042398F6840A632930030B4D56EB39D68BED8F3E8"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/sources.json",
+        "Hash":  "FF5A3E5B5F979E2C0133AD75965798E3468D63C94C16E62F3B7E95A4FE56321D"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/thumb_1.png",
+        "Hash":  "8B5D88A7E5F75A15A10B5181D083547A85A44C0BB192B6A3F90C40B41C6DCB82"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/thumb_2.png",
+        "Hash":  "D0FC873E3B7AE559624ABAD95B65FA0411E59FF0DD898C555D96CF94B194382E"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/thumb_3.png",
+        "Hash":  "00D5AA66273F66B609CD552CA98B1431592758F1B4DB09E3A21C966BACC76C21"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/validation.json",
+        "Hash":  "72474C498DF0C4587ECAB9F23C2D72CBF72BC565728D30859E8389E73F1C8C2B"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/weather_clear.png",
+        "Hash":  "5A8F8D7B5B7939502806B9E09F443EB3F287F73B9A44658B7C4E5262A11E157F"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/weather_cloudy.png",
+        "Hash":  "0B996577693339BE2CEEC8C295E3ECA106B14345F948441D687CFED4CF0186FD"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/weather_night.png",
+        "Hash":  "921CED6733EC182B9BD76867F4E6774D783829A7E1022DE772D85CA2C71A67A5"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/weather_rain.png",
+        "Hash":  "4A7BC1A58336F40C1862CE9AF4879E4B24F2FD182FDF2805299231321A204A99"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/weather_snow.png",
+        "Hash":  "7C6FD421F9BB07FF2DA673D984B27D9DDE552A5E262156F919CD1D1624094817"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/weather_storm.png",
+        "Hash":  "575016D079628FF8FE7ACEFE2319FE34D573A40C63F25F63B6E3AC68E85B3AF1"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/weather_thunder.png",
+        "Hash":  "354122A3C50A764049C28E0DD38BEED424010783CA66965F4BBE4F5520D5D25C"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/contact-1.png",
+        "Hash":  "5740529B977CC698395994EFD8CFD183AE59A9C8372E723AD22668A3973B8EA1"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/contact-2.png",
+        "Hash":  "97B9EE5D08359D891D744A30904417FF231CCF391C27144EDFBBDCB620DD680B"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/contact-3.png",
+        "Hash":  "C8B5247288A8A75A8B54E76CF62F8A8AB297352BC0B12F3095DE7682BEAA3ABB"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/contact-4.png",
+        "Hash":  "E7CE3E8ABABC09A8A69008C579E175D931544DB6145C400624F37CB7EA327628"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/contact-5.png",
+        "Hash":  "D0CEE659E6FC8219460B1DAABC778CDAE8B5AB3BA550793F88A410C49D2FBAB0"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/slices-1.png",
+        "Hash":  "8F3807E250F2AC7F209792A563A09BDCC67512F78315FB1BB08F4B84D7FB033F"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/slices-2.png",
+        "Hash":  "EC3F3DC9FAF6CB75717DA061B000444B0D78639127A8A409E7BF272568B6F706"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/slices-3.png",
+        "Hash":  "F41DA7AD37B9F413CE2072BE09FBFF46A5391B617D424ED327F34B28EC8FB034"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/slices-4.png",
+        "Hash":  "21F14CE65019C452D0138FE10510467BDFECC70FD0D6FCB4CEEB3E6584DFF8D2"
+    },
+    {
+        "Path":  "artifacts/ui-20261010/review/slices-5.png",
+        "Hash":  "BAD89CCEBE84CC53C2631CD0E7737C7ACFF8073D26533461F968E8C2081E0B66"
+    }
+]

@@ -1,0 +1,25 @@
+{
+  "assets": 26,
+  "buttonDraws": 189,
+  "clippedLabels": [],
+  "font": "Montserrat Black (mappatura Roblox di GothamBlack)",
+  "sizes": [
+    [
+      120,
+      44
+    ],
+    [
+      200,
+      56
+    ],
+    [
+      320,
+      64
+    ]
+  ],
+  "backgrounds": [
+    "bg_menu",
+    "dark",
+    "light"
+  ]
+}

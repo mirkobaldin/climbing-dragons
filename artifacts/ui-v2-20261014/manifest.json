@@ -1,0 +1,341 @@
+[
+  {
+    "name": "btn_buy_v2_normal",
+    "use": "Buy / Craft / Hatch / Follow",
+    "color": "emerald",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "normal"
+  },
+  {
+    "name": "btn_buy_v2_hover",
+    "use": "Buy / Craft / Hatch / Follow",
+    "color": "emerald",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "hover"
+  },
+  {
+    "name": "btn_buy_v2_pressed",
+    "use": "Buy / Craft / Hatch / Follow",
+    "color": "emerald",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "pressed"
+  },
+  {
+    "name": "btn_sell_v2_normal",
+    "use": "Sell / Sell all",
+    "color": "ruby",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "normal"
+  },
+  {
+    "name": "btn_sell_v2_hover",
+    "use": "Sell / Sell all",
+    "color": "ruby",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "hover"
+  },
+  {
+    "name": "btn_sell_v2_pressed",
+    "use": "Sell / Sell all",
+    "color": "ruby",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "pressed"
+  },
+  {
+    "name": "btn_main_v2_normal",
+    "use": "Rebirth / Ride / Unlock / Upgrade",
+    "color": "amber",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "normal"
+  },
+  {
+    "name": "btn_main_v2_hover",
+    "use": "Rebirth / Ride / Unlock / Upgrade",
+    "color": "amber",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "hover"
+  },
+  {
+    "name": "btn_main_v2_pressed",
+    "use": "Rebirth / Ride / Unlock / Upgrade",
+    "color": "amber",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "pressed"
+  },
+  {
+    "name": "btn_alt_v2_normal",
+    "use": "Rest / Skip / Reset",
+    "color": "midnight",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "normal"
+  },
+  {
+    "name": "btn_alt_v2_hover",
+    "use": "Rest / Skip / Reset",
+    "color": "midnight",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "hover"
+  },
+  {
+    "name": "btn_alt_v2_pressed",
+    "use": "Rest / Skip / Reset",
+    "color": "midnight",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "pressed"
+  },
+  {
+    "name": "btn_off_v2_normal",
+    "use": "Not ready yet / unavailable",
+    "color": "slate",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "normal"
+  },
+  {
+    "name": "btn_off_v2_hover",
+    "use": "Not ready yet / unavailable",
+    "color": "slate",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "hover"
+  },
+  {
+    "name": "btn_off_v2_pressed",
+    "use": "Not ready yet / unavailable",
+    "color": "slate",
+    "width": 512,
+    "height": 160,
+    "slice": [
+      64,
+      48,
+      448,
+      112
+    ],
+    "state": "pressed"
+  },
+  {
+    "name": "tab_on_v2_normal",
+    "use": "Selected tab",
+    "color": "gold",
+    "width": 384,
+    "height": 112,
+    "slice": [
+      56,
+      36,
+      328,
+      76
+    ],
+    "state": "normal"
+  },
+  {
+    "name": "tab_on_v2_hover",
+    "use": "Selected tab",
+    "color": "gold",
+    "width": 384,
+    "height": 112,
+    "slice": [
+      56,
+      36,
+      328,
+      76
+    ],
+    "state": "hover"
+  },
+  {
+    "name": "tab_on_v2_pressed",
+    "use": "Selected tab",
+    "color": "gold",
+    "width": 384,
+    "height": 112,
+    "slice": [
+      56,
+      36,
+      328,
+      76
+    ],
+    "state": "pressed"
+  },
+  {
+    "name": "tab_off_v2_normal",
+    "use": "Unselected tab",
+    "color": "midnight",
+    "width": 384,
+    "height": 112,
+    "slice": [
+      56,
+      36,
+      328,
+      76
+    ],
+    "state": "normal"
+  },
+  {
+    "name": "tab_off_v2_hover",
+    "use": "Unselected tab",
+    "color": "midnight",
+    "width": 384,
+    "height": 112,
+    "slice": [
+      56,
+      36,
+      328,
+      76
+    ],
+    "state": "hover"
+  },
+  {
+    "name": "tab_off_v2_pressed",
+    "use": "Unselected tab",
+    "color": "midnight",
+    "width": 384,
+    "height": 112,
+    "slice": [
+      56,
+      36,
+      328,
+      76
+    ],
+    "state": "pressed"
+  },
+  {
+    "name": "card_glass_v2",
+    "use": "Rebirth overlay",
+    "width": 256,
+    "height": 256,
+    "slice": [
+      72,
+      72,
+      184,
+      184
+    ]
+  },
+  {
+    "name": "card_item_v2",
+    "use": "Store and crafting cards",
+    "width": 256,
+    "height": 256,
+    "slice": [
+      72,
+      72,
+      184,
+      184
+    ]
+  },
+  {
+    "name": "pedestal_v2",
+    "use": "Dragon menu",
+    "width": 512,
+    "height": 256,
+    "slice": null
+  },
+  {
+    "name": "pedestal_base_v2",
+    "use": "Optional clean base for separately tinted runes",
+    "width": 512,
+    "height": 256,
+    "slice": null
+  },
+  {
+    "name": "pedestal_runes_v2",
+    "use": "Optional white rune overlay, alpha 50%, same size and position as base",
+    "width": 512,
+    "height": 256,
+    "slice": null
+  }
+]
