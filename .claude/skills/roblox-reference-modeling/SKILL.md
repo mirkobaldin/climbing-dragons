@@ -94,6 +94,9 @@ Backend: **Stable Fast 3D** (Stability AI), chosen 2026-10-14 for the RTX 4070 L
 3. `image_to_3d_backend.py run --manifest <dir> --image refs/<image>` → GLB + peak VRAM in the result.
 4. `run_stage.py run import_init_mesh --manifest <dir> -- --as-model [--scale-m <m>] [--rotate-deg x,y,z]`
    → `GEN_ImageTo3D` (textured, renderable). Then continue with mesh_audit / uv_pbr / handoff.
+CPU path (cloud container without GPU): `bash SKILL/scripts/setup_image_to_3d_cpu.sh <dir>` installs in
+`/opt/sf3d` (venv, CPU build of texture_baker/uv_unwrapper, u2net) and writes the config with
+`device: cpu` (`run.py --device cpu`, texture 512). Weights need huggingface.co + its CDNs and `$HF_TOKEN`.
 If the GPU, drivers or network block a step, report the concrete blocker; do not fall back to
 procedural geometry. Details and limits: [references/optional-reconstruction.md](references/optional-reconstruction.md).
 Visual hull (≥ 2 calibrated views) stays optional: `run_stage.py run visual_hull`.

@@ -90,7 +90,19 @@ def check(mpath, cfg) -> list[str]:
     if "{weights}" in " ".join(cfg.get("command", [])):
         wd = Path(cfg.get("weights_dir") or "")
         if not (wd / "config.yaml").is_file() or not (wd / "model.safetensors").is_file():
-            problems.append(f"weights missing in {wd} (config.yaml + model.safetensors): rerun setup_image_to_3d.ps1")
+            problems.append(f"weights missing in {wd} (config.yaml + model.safetensors): rerun setup_image_to_3d.ps1 (Windows GPU) or setup_image_to_3d_cpu.sh (Linux CPU)")
+    if cfg.get("device") == "cpu":   # percorso CPU (SF3D: get_device()/--device cpu): niente controlli di VRAM
+        pass
+    else:
+        _check_vram(cfg, problems)
+    if not isinstance(cfg.get("command"), list) or "{image}" not in " ".join(cfg.get("command", [])):
+        problems.append("command must be a list containing {image} and {output_dir}")
+    if not cfg.get("license_verified_at"):
+        problems.append("license not verified: set license + license_verified_at after reading the official repo")
+    return problems
+
+
+def _check_vram(cfg, problems):
     need = float(cfg.get("vram_required_gb", 99))
     cap = float(cfg.get("max_vram_gb", 8))
     if need > cap:
@@ -100,11 +112,6 @@ def check(mpath, cfg) -> list[str]:
         problems.append("nvidia-smi unavailable; cannot verify free VRAM")
     elif free < need:
         problems.append(f"free VRAM {free:.1f} GB < required {need} GB (close other GPU apps, incl. Blender)")
-    if not isinstance(cfg.get("command"), list) or "{image}" not in " ".join(cfg.get("command", [])):
-        problems.append("command must be a list containing {image} and {output_dir}")
-    if not cfg.get("license_verified_at"):
-        problems.append("license not verified: set license + license_verified_at after reading the official repo")
-    return problems
 
 
 def run_backend(mpath, data, cfg, image) -> dict:
