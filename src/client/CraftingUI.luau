@@ -21,7 +21,7 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 		local card = Ui.template("RecipeCard", list)
 		card.LayoutOrder = k
 		-- carte colorate a turno (prima tutte uguali)
-		local tones = { Color3.fromRGB(215, 90, 50), Color3.fromRGB(60, 130, 230), Color3.fromRGB(150, 80, 220), Color3.fromRGB(50, 170, 110) }
+		local tones = { Theme.BAD, Theme.BLUE, Theme.PURPLE, Theme.GOOD }
 		Ui.tint(card, tones[(k - 1) % #tones + 1], false, 0.03)
 		local fill = card:FindFirstChild("Tinta") :: Frame?
 		if fill then
@@ -68,7 +68,7 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 			end
 			local owned = not recipe.consumable and Gear.has(player, recipe.id)
 			card.Craft.Text = if owned then "Owned" else "Craft"
-			card.Craft.BackgroundColor3 = if owned then Theme.MUTED elseif affordable then Theme.GOOD else Theme.CARD
+			Theme.action(card.Craft, "buy", owned or not affordable)
 		end
 		table.insert(refreshers, refresh)
 		card.Craft.Activated:Connect(function()

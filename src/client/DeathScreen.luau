@@ -9,6 +9,7 @@ local StarterGui = game:GetService("StarterGui")
 local Shared = RS:WaitForChild("Shared")
 local ShopConfig = require(Shared:WaitForChild("ShopConfig"))
 local Ui = require(Shared:WaitForChild("UiView"))
+local Theme = require(script.Parent.Theme)
 local player = Players.LocalPlayer
 local DeathScreen = {}
 local TIPS = {
@@ -22,7 +23,8 @@ local TIPS = {
 
 local function setBackpack(on: boolean)
 	pcall(function()
-		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, on)
+		local hud = player.PlayerGui:FindFirstChild("ClimbHUD")
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, on and not (hud and hud:GetAttribute("CustomToolBar")))
 	end)
 end
 
@@ -37,7 +39,7 @@ function DeathScreen.start()
 	if shade then
 		shade.Size = UDim2.fromScale(1, 1)
 		shade.Position = UDim2.fromScale(0, 0)
-		shade.BackgroundColor3 = Color3.fromRGB(8, 8, 14)
+		shade.BackgroundColor3 = Theme.CARD
 		shade.BackgroundTransparency = 0.04
 		shade.ZIndex = 0
 	end
@@ -48,7 +50,7 @@ function DeathScreen.start()
 	pc.CornerRadius = UDim.new(0, 18)
 	pc.Parent = panel
 	local ps = panel:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-	ps.Color = Color3.fromRGB(200, 50, 50)
+	ps.Color = Theme.BAD
 	ps.Thickness = 3
 	ps.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	ps.Parent = panel
@@ -68,42 +70,33 @@ function DeathScreen.start()
 	-- impaginazione: riquadro 560x360 al centro
 	local P = Ui.px
 	local function layout(vp: Vector2)
-		Ui.fitScale(gui, vp)
-		P(panel, 0.5, 0, 0.5, 0, 560, 360, 0.5, 0.5)
-		panel.BackgroundColor3 = Color3.fromRGB(22, 20, 30)
-		panel.BackgroundTransparency = 0.05
-		P(panel.Title, 0, 0, 0, 26, 560, 64)
-		Ui.text(panel.Title, 52, true)
-		panel.Title.TextColor3 = Color3.fromRGB(235, 60, 60)
-		panel.Title.TextXAlignment = Enum.TextXAlignment.Center
-		P(panel.Cause, 0, 30, 0, 98, 500, 30)
-		Ui.fit(panel.Cause, 22, 14, true)
-		panel.Cause.TextXAlignment = Enum.TextXAlignment.Center
-		panel.Cause.TextColor3 = Color3.fromRGB(240, 235, 225)
-		P(panel.Stats, 0, 30, 0, 136, 500, 26)
-		Ui.text(panel.Stats, 17, true)
-		panel.Stats.TextXAlignment = Enum.TextXAlignment.Center
-		panel.Stats.TextColor3 = Color3.fromRGB(255, 200, 90)
-		P(panel.Tip, 0, 40, 0, 176, 480, 44)
-		Ui.fit(panel.Tip, 15, 11)
-		panel.Tip.TextXAlignment = Enum.TextXAlignment.Center
-		panel.Tip.TextColor3 = Color3.fromRGB(170, 175, 190)
-		-- pulsanti: Respawn grande in mezzo (con Revive, due affiancati)
-		if revive.Visible then
-			P(respawn, 0.5, -8, 1, -28, 230, 68, 1, 1)
-			P(revive, 0.5, 8, 1, -28, 230, 68, 0, 1)
-		else
-			P(respawn, 0.5, 0, 1, -28, 320, 72, 0.5, 1)
-		end
-		for _, b in { respawn, revive } do
-			Ui.text(b, 26, true)
-			local lim = b:FindFirstChild("SizeLimit")
-			if lim then
-				lim:Destroy()
-			end
-		end
-		Ui.tint(respawn, Color3.fromRGB(70, 175, 80), false)
-		Ui.tint(revive, Color3.fromRGB(230, 160, 40), false)
+		local logical = Ui.fitScale(gui, vp)
+  local width, height = math.min(560, logical.X - 24), math.min(360, logical.Y - 24)
+  P(panel, 0.5, 0, 0.5, 0, width, height, 0.5, 0.5)
+  local limit = panel:FindFirstChildOfClass("UISizeConstraint")
+  if limit then limit:Destroy() end
+  panel.BackgroundColor3 = Theme.PANEL
+  panel.BackgroundTransparency = 0
+  P(panel.Title, 0, 12, 0, 12, width - 24, 58)
+  P(panel.Cause, 0, 18, 0, 76, width - 36, 32)
+  P(panel.Stats, 0, 18, 0, 112, width - 36, 32)
+  P(panel.Tip, 0, 18, 0, 150, width - 36, 60)
+  Theme.fitText(panel.Title, 44, false)
+  Theme.fitText(panel.Cause, 22, false)
+  Theme.fitText(panel.Stats, 17, false)
+  Theme.fitText(panel.Tip, 16, true)
+  for _, label in {panel.Title, panel.Cause, panel.Stats, panel.Tip} do
+   label.TextXAlignment = Enum.TextXAlignment.Center
+   label.TextColor3 = Theme.TEXT
+  end
+  if revive.Visible then
+   P(respawn, 0, 12, 1, -12, (width - 32) / 2, 56, 0, 1)
+   P(revive, 1, -12, 1, -12, (width - 32) / 2, 56, 1, 1)
+  else
+   P(respawn, 0.5, 0, 1, -12, math.min(320, width - 24), 56, 0.5, 1)
+  end
+  Theme.action(respawn, "buy")
+  Theme.action(revive, "main")
 	end
 	Ui.viewportChanged(layout)
 

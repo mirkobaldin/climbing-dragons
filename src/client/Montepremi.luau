@@ -10,10 +10,12 @@ local TweenService = game:GetService("TweenService")
 
 local Sfx = require(script.Parent.Sfx)
 
+local Theme = require(script.Parent.Theme)
+local Ui = require(game:GetService("ReplicatedStorage").Shared.UiView)
 local Montepremi = {}
 
-local GOLD = Color3.fromRGB(255, 200, 70)
-local PINK = Color3.fromRGB(255, 40, 130)
+local GOLD = Theme.ACCENT
+local PINK = Theme.BAD
 
 local function fmt(n: number): string
 	local s = tostring(math.floor(n))
@@ -34,8 +36,8 @@ function Montepremi.start()
 	box.Name = "Riquadro"
 	box.AnchorPoint = Vector2.new(0.5, 0)
 	box.Position = UDim2.new(0.5, 0, 0, 8)
-	box.Size = UDim2.fromOffset(230, 46)
-	box.BackgroundColor3 = Color3.fromRGB(12, 10, 16)
+	box.Size = UDim2.fromOffset(230, 26)
+	box.BackgroundColor3 = Theme.CARD
 	box.BackgroundTransparency = 0.15
 	box.Parent = gui
 	local corner = Instance.new("UICorner")
@@ -82,6 +84,14 @@ function Montepremi.start()
 	pop.TextTransparency = 1
 	pop.TextStrokeColor3 = Color3.new(0, 0, 0)
 	pop.Parent = gui
+	Theme.fitText(title, 12, false)
+	Theme.fitText(num, 18, false)
+	Theme.fitText(pop, 16, true)
+	local popY = 220
+	Ui.viewportChanged(function(vp)
+		popY = Ui.menuMetrics(vp).y + 144
+		pop.Size = UDim2.fromOffset(math.min(420, vp.X - 24), 48)
+	end)
 
 	-- il numero scorre fino al valore nuovo (come un contatore)
 	local shown = (workspace:GetAttribute("Montepremi") or 0) :: number
@@ -99,6 +109,11 @@ function Montepremi.start()
 		end
 	end)
 	RunService.RenderStepped:Connect(function(dt)
+		local pg = player.PlayerGui
+		local menu = pg:FindFirstChild("MainMenu")
+		local travel = pg:FindFirstChild("Teletrasporto")
+		local travelPanel = travel and travel:FindFirstChild("Panel") :: GuiObject?
+		gui.Enabled = not ((menu and menu:GetAttribute("MenuOpen") == true) or (travelPanel and travelPanel.Visible))
 		if math.abs(target - shown) < 0.5 then
 			if shown ~= target then
 				shown = target
@@ -119,10 +134,10 @@ function Montepremi.start()
 		version += 1
 		local mine = version
 		pop.Text = text
-		pop.Position = UDim2.new(0.5, 0, 0, 46)
+		pop.Position = UDim2.new(0.5, 0, 0, popY)
 		pop.TextTransparency = 0
 		pop.TextStrokeTransparency = 0.2
-		TweenService:Create(pop, TweenInfo.new(0.3, Enum.EasingStyle.Quad), { Position = UDim2.new(0.5, 0, 0, 58) }):Play()
+		TweenService:Create(pop, TweenInfo.new(0.3, Enum.EasingStyle.Quad), { Position = UDim2.new(0.5, 0, 0, popY) }):Play()
 		if string.find(text, "won") then
 			Sfx.play("Ruggito", nil, 1.2)
 		end
