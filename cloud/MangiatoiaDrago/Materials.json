@@ -1,0 +1,36 @@
+[
+ {
+  "name": "Carne",
+  "BaseColor": "../_Texture/Carne_BaseColor.png",
+  "Normal": "../_Texture/Carne_Normal.png",
+  "Roughness": "../_Texture/Carne_Roughness.png"
+ },
+ {
+  "name": "Cotto_Mangiatoia_Pietra",
+  "BaseColor": "Textures/Cotto_Mangiatoia_Pietra_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Mangiatoia_Pietra_Normal.png",
+  "Roughness": "Textures/Cotto_Mangiatoia_Pietra_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "MAT_Water",
+  "plain": true
+ },
+ {
+  "name": "OssoDrago",
+  "BaseColor": "../_Texture/OssoDrago_BaseColor.png",
+  "Normal": "../_Texture/OssoDrago_Normal.png",
+  "Roughness": "../_Texture/OssoDrago_Roughness.png"
+ },
+ {
+  "name": "Pesce",
+  "BaseColor": "../_Texture/Pesce_BaseColor.png",
+  "Normal": "../_Texture/Pesce_Normal.png",
+  "Roughness": "../_Texture/Pesce_Roughness.png"
+ }
+]

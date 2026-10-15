@@ -1,0 +1,56 @@
+[
+ {
+  "name": "Cotto_Pino1_Chioma",
+  "BaseColor": "Textures/Cotto_Pino1_Chioma_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Pino1_Chioma_Normal.png",
+  "Roughness": "Textures/Cotto_Pino1_Chioma_Roughness.png"
+ },
+ {
+  "name": "Cotto_Pino1_Neve",
+  "BaseColor": "Textures/Cotto_Pino1_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Pino1_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Pino1_Neve_Roughness.png"
+ },
+ {
+  "name": "Cotto_Pino1_Tronco",
+  "BaseColor": "Textures/Cotto_Pino1_Tronco_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Pino1_Tronco_Normal.png",
+  "Roughness": "Textures/Cotto_Pino1_Tronco_Roughness.png"
+ },
+ {
+  "name": "Cotto_Pino2_Chioma",
+  "BaseColor": "Textures/Cotto_Pino2_Chioma_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Pino2_Chioma_Normal.png",
+  "Roughness": "Textures/Cotto_Pino2_Chioma_Roughness.png"
+ },
+ {
+  "name": "Cotto_Pino2_Neve",
+  "BaseColor": "Textures/Cotto_Pino2_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Pino2_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Pino2_Neve_Roughness.png"
+ },
+ {
+  "name": "Cotto_Pino2_Tronco",
+  "BaseColor": "Textures/Cotto_Pino2_Tronco_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Pino2_Tronco_Normal.png",
+  "Roughness": "Textures/Cotto_Pino2_Tronco_Roughness.png"
+ },
+ {
+  "name": "Cotto_Pino3_Chioma",
+  "BaseColor": "Textures/Cotto_Pino3_Chioma_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Pino3_Chioma_Normal.png",
+  "Roughness": "Textures/Cotto_Pino3_Chioma_Roughness.png"
+ },
+ {
+  "name": "Cotto_Pino3_Neve",
+  "BaseColor": "Textures/Cotto_Pino3_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Pino3_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Pino3_Neve_Roughness.png"
+ },
+ {
+  "name": "Cotto_Pino3_Tronco",
+  "BaseColor": "Textures/Cotto_Pino3_Tronco_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Pino3_Tronco_Normal.png",
+  "Roughness": "Textures/Cotto_Pino3_Tronco_Roughness.png"
+ }
+]

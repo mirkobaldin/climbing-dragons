@@ -1,0 +1,26 @@
+[
+ {
+  "name": "SPOT_Pino1",
+  "position_y_up_m": [
+   -6.0,
+   0.0,
+   -0.0
+  ]
+ },
+ {
+  "name": "SPOT_Pino2",
+  "position_y_up_m": [
+   0.0,
+   0.0,
+   -0.0
+  ]
+ },
+ {
+  "name": "SPOT_Pino3",
+  "position_y_up_m": [
+   6.5,
+   0.0,
+   -0.0
+  ]
+ }
+]

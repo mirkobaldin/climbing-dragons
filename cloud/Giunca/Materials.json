@@ -1,0 +1,70 @@
+[
+ {
+  "name": "Bambu",
+  "BaseColor": "../_Texture/Bambu_BaseColor.png",
+  "Normal": "../_Texture/Bambu_Normal.png",
+  "Roughness": "../_Texture/Bambu_Roughness.png"
+ },
+ {
+  "name": "Basalto",
+  "BaseColor": "../_Texture/Basalto_BaseColor.png",
+  "Normal": "../_Texture/Basalto_Normal.png",
+  "Roughness": "../_Texture/Basalto_Roughness.png"
+ },
+ {
+  "name": "Corda",
+  "BaseColor": "../_Texture/Corda_BaseColor.png",
+  "Normal": "../_Texture/Corda_Normal.png",
+  "Roughness": "../_Texture/Corda_Roughness.png"
+ },
+ {
+  "name": "Cotto_Giunca_Ponte",
+  "BaseColor": "Textures/Cotto_Giunca_Ponte_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Giunca_Ponte_Normal.png",
+  "Roughness": "Textures/Cotto_Giunca_Ponte_Roughness.png"
+ },
+ {
+  "name": "Cotto_Giunca_Scafo",
+  "BaseColor": "Textures/Cotto_Giunca_Scafo_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Giunca_Scafo_Normal.png",
+  "Roughness": "Textures/Cotto_Giunca_Scafo_Roughness.png"
+ },
+ {
+  "name": "Cotto_Sampan_Ponte",
+  "BaseColor": "Textures/Cotto_Sampan_Ponte_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Sampan_Ponte_Normal.png",
+  "Roughness": "Textures/Cotto_Sampan_Ponte_Roughness.png"
+ },
+ {
+  "name": "Cotto_Sampan_Remo",
+  "BaseColor": "Textures/Cotto_Sampan_Remo_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Sampan_Remo_Normal.png",
+  "Roughness": "Textures/Cotto_Sampan_Remo_Roughness.png"
+ },
+ {
+  "name": "Cotto_Sampan_Scafo",
+  "BaseColor": "Textures/Cotto_Sampan_Scafo_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Sampan_Scafo_Normal.png",
+  "Roughness": "Textures/Cotto_Sampan_Scafo_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "MAT_Gold",
+  "plain": true
+ },
+ {
+  "name": "MAT_WarmLight",
+  "plain": true
+ },
+ {
+  "name": "VelaGiunca",
+  "BaseColor": "../_Texture/VelaGiunca_BaseColor.png",
+  "Normal": "../_Texture/VelaGiunca_Normal.png",
+  "Roughness": "../_Texture/VelaGiunca_Roughness.png"
+ }
+]

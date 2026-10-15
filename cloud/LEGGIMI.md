@@ -8,7 +8,27 @@ I due draghi scheletrici della prima arena sono tolti (il vecchio `tools/blender
 solo come storia; la cartella `cloud/ArenaDraghi` non c'e' piu').
 
 ## Cosa c'e'
-TABELLA
+| Modello | Misure (m) | Triangoli | Marcatori | Voti |
+|---|---|---|---|---|
+| `IsolaDraghi` | 708 x 612 x 270 | 369158 | SPOT_Posatoio2, SPOT_Posatoio3, SPOT_Posatoio4, SPOT_Posatoio5, SPOT_Posatoio6, SPOT_Posatoio7 ... | 4/4/4/4/3/4 |
+| `PosatoioDrago` | 4 x 6 x 4 | 6436 | SPOT_Posatoio | 4/4/4/4/4/5 |
+| `MangiatoiaDrago` | 5 x 1,2 x 1,6 | 5672 | FX_Light_Acqua, SPOT_Cibo, SPOT_Acqua | 3/4/4/4/4/5 |
+| `PonteTibetano` | tratto 6 x 2 x 1,6 (lungo Y), testata 3,2 x 3,2 x 2,7 | 8342 | SPOT_Inizio, SPOT_Fine | 4/4/4/5/4/5 |
+| `BivaccoAlto` | 5 x 3 x 3 (lungo Y; porta verso -Y) | 14416 | FX_Light_Bivacco, SPOT_Porta | 5/4/4/5/4/5 |
+| `StatuaDrago` | 3 x 5 x 3 con la statua (piedistallo 2,9 x 1,5 x 2,9) | 928 | SPOT_Statua | 3/4/4/4/3/5 |
+| `SantuarioVetta` | 4 x 4 x 4 | 5032 | FX_Light_Candela, SPOT_Campana | 4/4/4/4/4/5 |
+| `BandierePreghiera` | 8 x 4 x 0,2 | 2718 | SPOT_Bandiere | 4/4/4/5/4/5 |
+| `PinoInnevato` | 4 x 9 / 11,5 / 14 x 4 | 17424 | SPOT_Pino1, SPOT_Pino2, SPOT_Pino3 | 4/4/4/5/4/5 |
+| `RocceSet` | 2 / 3 / 4,5 / 6 (lastra) / 12 (sperone) / 8 (sporgenza) | 16328 | SPOT_Roccia1, SPOT_Roccia2, SPOT_Roccia3, SPOT_Roccia4, SPOT_Roccia5, SPOT_Roccia6 | 4/4/4/5/4/5 |
+| `CarrelloMiniera` | carrello 2 x 1,5 x 1,2; binari 4 m (dritto), curva r 8 m 30 gradi, salita 4 m +0,5 m; scartamento 0,9 | 7624 | SPOT_BinariDritto_Inizio, SPOT_BinariDritto_Fine, SPOT_BinariCurva_Inizio, SPOT_BinariCurva_Fine, SPOT_BinariSalita_Inizio, SPOT_BinariSalita_Fine | 4/4/4/5/4/5 |
+| `IngressoMiniera` | 6 x 5 x 3 | 7504 | FX_Light_Lanterna1, FX_Light_Lanterna2, SPOT_Galleria | 4/4/4/4/4/5 |
+| `Incubatrice` | 3 x 1,5 x 3 | 4140 | SPOT_Uovo, FX_Fire_Incubatrice, FX_Light_Incubatrice | 4/4/4/4/4/5 |
+| `StallaDraghi` | 14 x 9 x 10 (aperta verso -Y) | 16968 | FX_Light_Stalla1, FX_Light_Stalla2, SPOT_Drago | 4/4/4/5/4/5 |
+| `BancarellaMercato` | 4 x 3 x 2,5 ciascuna | 12860 | FX_Light_Bancarella1_1, FX_Light_Bancarella1_2, SPOT_Bancarella1, FX_Light_Bancarella2_1, FX_Light_Bancarella2_2, SPOT_Bancarella2 ... | 4/4/4/5/4/5 |
+| `Teleferica` | pilone 3 x 14 x 3, cabina 2 x 2,3 x 2,4, funi lunghe 50 m (lungo Y) | 2972 | SPOT_Cabina | 5/4/4/5/4/5 |
+| `FaroScogliera` | 5 x 18 x 5 | 9026 | FX_Light_Faro, SPOT_Porta | 5/4/4/5/4/5 |
+| `FossiliDrago` | lastra 9 x 1,6 x 6; fossili da Meshy (vedi MESHY_PROMPT.md) | 2592 | SPOT_Fossile_Teschio, SPOT_Fossile_Vertebre, SPOT_Fossile_Artiglio, SPOT_Fossile_Ala | 3/3/4/4/3/5 |
+| `Giunca` | giunca 18 x 12 x 5 (lunga X, prua +X); sampan 7 x 2,5 x 2 a +Y | 7434 | FX_Light_Giunca1, FX_Light_Giunca2, SPOT_Ormeggio_Giunca, SPOT_Ormeggio_Sampan | 5/4/4/5/4/5 |
 
 Voti (1-5): sagoma / dettagli / materiali / proporzioni / qualita' / budget. Ogni cartella ha
 `CONTROLLO.md` con le anteprime (davanti, 3/4, dietro, alto, dettaglio, con il manichino di 1,7 m).
@@ -59,7 +79,7 @@ Ogni cartella `cloud/<Nome>/`:
   sentiero, arrivo, piano centrale dell'isola (300 x 300 m). **Le colline del prato verso il bordo
   non hanno scatole**: per camminarci dare a `Isola_Prato` CollisionFidelity = PreciseConvexDecomposition
   (o Default) oppure coprirle col Terrain.
-- Triangoli: circa 360.000 senza i pezzi Meshy (lasciano ~40.000 per statue, teste e corna).
+- Triangoli: 369.158 senza i pezzi Meshy (lasciano ~40.000 per statue, teste e corna).
 
 ## Cosa provare in Studio
 1. Scala 2,94: il manichino del giocatore deve passare dalle porte del palco (1,6 x 3 m) e i gradini

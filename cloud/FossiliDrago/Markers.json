@@ -1,0 +1,34 @@
+[
+ {
+  "name": "SPOT_Fossile_Teschio",
+  "position_y_up_m": [
+   -2.6,
+   0.9,
+   -0.2
+  ]
+ },
+ {
+  "name": "SPOT_Fossile_Vertebre",
+  "position_y_up_m": [
+   0.45,
+   0.6,
+   -0.0
+  ]
+ },
+ {
+  "name": "SPOT_Fossile_Artiglio",
+  "position_y_up_m": [
+   2.8,
+   0.6,
+   1.4
+  ]
+ },
+ {
+  "name": "SPOT_Fossile_Ala",
+  "position_y_up_m": [
+   1.5,
+   0.55,
+   -1.6
+  ]
+ }
+]

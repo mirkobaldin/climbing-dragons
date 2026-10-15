@@ -1,0 +1,39 @@
+{
+ "nome": "FossiliDrago",
+ "triangoli": 2592,
+ "parti": [
+  {
+   "nome": "Fossili_Roccia",
+   "materiale": "RocciaIsola",
+   "triangoli": 2472
+  },
+  {
+   "nome": "PLACEHOLDER_Fossili",
+   "materiale": "OssoDrago",
+   "triangoli": 120
+  }
+ ],
+ "ingombro_m": [
+  9.24,
+  8.01,
+  2.02
+ ],
+ "min_blender": [
+  -4.78,
+  -4.09,
+  -0.52
+ ],
+ "max_blender": [
+  4.46,
+  3.92,
+  1.5
+ ],
+ "collisioni": 1,
+ "marcatori": [
+  "SPOT_Fossile_Teschio",
+  "SPOT_Fossile_Vertebre",
+  "SPOT_Fossile_Artiglio",
+  "SPOT_Fossile_Ala"
+ ],
+ "misure_m": "lastra 9 x 1,6 x 6; fossili da Meshy (vedi MESHY_PROMPT.md)"
+}

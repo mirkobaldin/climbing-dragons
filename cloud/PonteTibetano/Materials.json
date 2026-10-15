@@ -1,0 +1,32 @@
+[
+ {
+  "name": "Corda",
+  "BaseColor": "../_Texture/Corda_BaseColor.png",
+  "Normal": "../_Texture/Corda_Normal.png",
+  "Roughness": "../_Texture/Corda_Roughness.png"
+ },
+ {
+  "name": "Cotto_Ponte_Testa_Legno",
+  "BaseColor": "Textures/Cotto_Ponte_Testa_Legno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Ponte_Testa_Legno_Normal.png",
+  "Roughness": "Textures/Cotto_Ponte_Testa_Legno_Roughness.png"
+ },
+ {
+  "name": "Cotto_Ponte_Testa_Pietra",
+  "BaseColor": "Textures/Cotto_Ponte_Testa_Pietra_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Ponte_Testa_Pietra_Normal.png",
+  "Roughness": "Textures/Cotto_Ponte_Testa_Pietra_Roughness.png"
+ },
+ {
+  "name": "Cotto_Ponte_Tratto_Assi",
+  "BaseColor": "Textures/Cotto_Ponte_Tratto_Assi_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Ponte_Tratto_Assi_Normal.png",
+  "Roughness": "Textures/Cotto_Ponte_Tratto_Assi_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ }
+]

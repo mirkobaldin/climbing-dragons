@@ -1,0 +1,81 @@
+{
+ "nome": "Teleferica",
+ "triangoli": 2972,
+ "parti": [
+  {
+   "nome": "Teleferica_Traliccio",
+   "materiale": "FerroBattuto",
+   "triangoli": 2436
+  },
+  {
+   "nome": "Teleferica_Plinti",
+   "materiale": "Cotto_Teleferica_Plinti",
+   "triangoli": 168
+  },
+  {
+   "nome": "Teleferica_Cabina",
+   "materiale": "Cotto_Teleferica_Cabina",
+   "triangoli": 296
+  },
+  {
+   "nome": "Teleferica_Vetri",
+   "materiale": "MAT_Glass",
+   "triangoli": 72
+  }
+ ],
+ "ingombro_m": [
+  5.75,
+  50.0,
+  14.9
+ ],
+ "min_blender": [
+  -2.5,
+  -25.0,
+  -0.1
+ ],
+ "max_blender": [
+  3.25,
+  25.0,
+  14.8
+ ],
+ "collisioni": 2,
+ "marcatori": [
+  "SPOT_Cabina"
+ ],
+ "misure_m": "pilone 3 x 14 x 3, cabina 2 x 2,3 x 2,4, funi lunghe 50 m (lungo Y)",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    6.0,
+    -11.0,
+    9.5
+   ],
+   [
+    2.2,
+    -6.0,
+    9.5
+   ],
+   30
+  ],
+  "tre_quarti": [
+   [
+    18,
+    -22,
+    14
+   ],
+   [
+    0,
+    -3,
+    7
+   ],
+   30
+  ]
+ },
+ "umani": [
+  [
+   2.5,
+   -1.5,
+   0.0
+  ]
+ ]
+}

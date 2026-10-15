@@ -1,0 +1,118 @@
+{
+ "nome": "RocceSet",
+ "triangoli": 16328,
+ "parti": [
+  {
+   "nome": "Roccia1",
+   "materiale": "Cotto_Roccia1",
+   "triangoli": 1024
+  },
+  {
+   "nome": "Roccia1_Neve",
+   "materiale": "Cotto_Roccia1_Neve",
+   "triangoli": 306
+  },
+  {
+   "nome": "Roccia2",
+   "materiale": "Cotto_Roccia2",
+   "triangoli": 2304
+  },
+  {
+   "nome": "Roccia2_Neve",
+   "materiale": "Cotto_Roccia2_Neve",
+   "triangoli": 660
+  },
+  {
+   "nome": "Roccia3",
+   "materiale": "Cotto_Roccia3",
+   "triangoli": 2304
+  },
+  {
+   "nome": "Roccia3_Neve",
+   "materiale": "Cotto_Roccia3_Neve",
+   "triangoli": 480
+  },
+  {
+   "nome": "Roccia4",
+   "materiale": "Cotto_Roccia4",
+   "triangoli": 2304
+  },
+  {
+   "nome": "Roccia4_Neve",
+   "materiale": "Cotto_Roccia4_Neve",
+   "triangoli": 976
+  },
+  {
+   "nome": "Roccia5",
+   "materiale": "Cotto_Roccia5",
+   "triangoli": 2704
+  },
+  {
+   "nome": "Roccia5_Neve",
+   "materiale": "Cotto_Roccia5_Neve",
+   "triangoli": 22
+  },
+  {
+   "nome": "Roccia6",
+   "materiale": "Cotto_Roccia6",
+   "triangoli": 2304
+  },
+  {
+   "nome": "Roccia6_Neve",
+   "materiale": "Cotto_Roccia6_Neve",
+   "triangoli": 940
+  }
+ ],
+ "ingombro_m": [
+  35.02,
+  5.52,
+  12.08
+ ],
+ "min_blender": [
+  -15.75,
+  -2.85,
+  -0.08
+ ],
+ "max_blender": [
+  19.27,
+  2.67,
+  11.99
+ ],
+ "collisioni": 6,
+ "marcatori": [
+  "SPOT_Roccia1",
+  "SPOT_Roccia2",
+  "SPOT_Roccia3",
+  "SPOT_Roccia4",
+  "SPOT_Roccia5",
+  "SPOT_Roccia6"
+ ],
+ "misure_m": "2 / 3 / 4,5 / 6 (lastra) / 12 (sperone) / 8 (sporgenza)",
+ "umani": [
+  [
+   -16.9,
+   -2.0,
+   0.0
+  ],
+  [
+   -6.450000000000001,
+   -3.2,
+   0.0
+  ]
+ ],
+ "viste_extra": {
+  "dettaglio": [
+   [
+    -3.450000000000001,
+    -8.0,
+    3.0
+   ],
+   [
+    -5.450000000000001,
+    0,
+    1.2
+   ],
+   35
+  ]
+ }
+}

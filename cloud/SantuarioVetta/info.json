@@ -1,0 +1,72 @@
+{
+ "nome": "SantuarioVetta",
+ "triangoli": 5032,
+ "parti": [
+  {
+   "nome": "Santuario_Pietra",
+   "materiale": "Cotto_Santuario_Pietra",
+   "triangoli": 2462
+  },
+  {
+   "nome": "Santuario_Legno",
+   "materiale": "Cotto_Santuario_Legno",
+   "triangoli": 56
+  },
+  {
+   "nome": "Santuario_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 430
+  },
+  {
+   "nome": "Santuario_Neve",
+   "materiale": "Cotto_Santuario_Neve",
+   "triangoli": 580
+  },
+  {
+   "nome": "Santuario_Ometto",
+   "materiale": "Cotto_Santuario_Ometto",
+   "triangoli": 1476
+  },
+  {
+   "nome": "Santuario_Candela",
+   "materiale": "MAT_WarmLight",
+   "triangoli": 28
+  }
+ ],
+ "ingombro_m": [
+  4.08,
+  4.08,
+  4.07
+ ],
+ "min_blender": [
+  -2.04,
+  -2.04,
+  -0.19
+ ],
+ "max_blender": [
+  2.04,
+  2.04,
+  3.88
+ ],
+ "collisioni": 6,
+ "marcatori": [
+  "FX_Light_Candela",
+  "SPOT_Campana"
+ ],
+ "misure_m": "4 x 4 x 4",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    0.8,
+    -1.6,
+    1.9
+   ],
+   [
+    0,
+    0.4,
+    2.2
+   ],
+   30
+  ]
+ }
+}

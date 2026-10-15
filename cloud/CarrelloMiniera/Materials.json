@@ -1,0 +1,26 @@
+[
+ {
+  "name": "Cotto_Binari_Legno",
+  "BaseColor": "Textures/Cotto_Binari_Legno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Binari_Legno_Normal.png",
+  "Roughness": "Textures/Cotto_Binari_Legno_Roughness.png"
+ },
+ {
+  "name": "Cotto_Carrello_Legno",
+  "BaseColor": "Textures/Cotto_Carrello_Legno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Carrello_Legno_Normal.png",
+  "Roughness": "Textures/Cotto_Carrello_Legno_Roughness.png"
+ },
+ {
+  "name": "Cotto_Carrello_Minerale",
+  "BaseColor": "Textures/Cotto_Carrello_Minerale_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Carrello_Minerale_Normal.png",
+  "Roughness": "Textures/Cotto_Carrello_Minerale_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ }
+]

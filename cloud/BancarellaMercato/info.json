@@ -1,0 +1,161 @@
+{
+ "nome": "BancarellaMercato",
+ "triangoli": 12860,
+ "parti": [
+  {
+   "nome": "Bancarella1_Legno",
+   "materiale": "Cotto_Bancarella1_Legno",
+   "triangoli": 1012
+  },
+  {
+   "nome": "Bancarella1_Tenda",
+   "materiale": "TendaRighe",
+   "triangoli": 84
+  },
+  {
+   "nome": "Bancarella1_Lanterne",
+   "materiale": "MAT_WarmLight",
+   "triangoli": 288
+  },
+  {
+   "nome": "Bancarella1_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 264
+  },
+  {
+   "nome": "Bancarella1_Ceste",
+   "materiale": "Bambu",
+   "triangoli": 672
+  },
+  {
+   "nome": "Bancarella1_FruttaRossa",
+   "materiale": "FruttaRossa",
+   "triangoli": 2240
+  },
+  {
+   "nome": "Bancarella1_FruttaArancio",
+   "materiale": "FruttaArancio",
+   "triangoli": 1120
+  },
+  {
+   "nome": "Bancarella1_FruttaVerde",
+   "materiale": "FruttaVerde",
+   "triangoli": 1120
+  },
+  {
+   "nome": "Bancarella2_Legno",
+   "materiale": "Cotto_Bancarella2_Legno",
+   "triangoli": 1012
+  },
+  {
+   "nome": "Bancarella2_Tenda",
+   "materiale": "TendaRighe",
+   "triangoli": 84
+  },
+  {
+   "nome": "Bancarella2_Lanterne",
+   "materiale": "MAT_WarmLight",
+   "triangoli": 288
+  },
+  {
+   "nome": "Bancarella2_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 264
+  },
+  {
+   "nome": "Bancarella2_CeramicaVerde",
+   "materiale": "CeramicaVerde",
+   "triangoli": 980
+  },
+  {
+   "nome": "Bancarella2_Ceramica",
+   "materiale": "Ceramica",
+   "triangoli": 1344
+  },
+  {
+   "nome": "Bancarella3_Legno",
+   "materiale": "Cotto_Bancarella3_Legno",
+   "triangoli": 1012
+  },
+  {
+   "nome": "Bancarella3_Tenda",
+   "materiale": "TendaRighe",
+   "triangoli": 84
+  },
+  {
+   "nome": "Bancarella3_Lanterne",
+   "materiale": "MAT_WarmLight",
+   "triangoli": 288
+  },
+  {
+   "nome": "Bancarella3_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 264
+  },
+  {
+   "nome": "Bancarella3_TelaRossa",
+   "materiale": "TelaRossa",
+   "triangoli": 132
+  },
+  {
+   "nome": "Bancarella3_TelaBlu",
+   "materiale": "TelaBlu",
+   "triangoli": 220
+  },
+  {
+   "nome": "Bancarella3_VelaGiunca",
+   "materiale": "VelaGiunca",
+   "triangoli": 88
+  }
+ ],
+ "ingombro_m": [
+  16.3,
+  2.52,
+  2.65
+ ],
+ "min_blender": [
+  -8.15,
+  -1.52,
+  0.0
+ ],
+ "max_blender": [
+  8.15,
+  1.0,
+  2.65
+ ],
+ "collisioni": 6,
+ "marcatori": [
+  "FX_Light_Bancarella1_1",
+  "FX_Light_Bancarella1_2",
+  "SPOT_Bancarella1",
+  "FX_Light_Bancarella2_1",
+  "FX_Light_Bancarella2_2",
+  "SPOT_Bancarella2",
+  "FX_Light_Bancarella3_1",
+  "FX_Light_Bancarella3_2",
+  "SPOT_Bancarella3"
+ ],
+ "misure_m": "4 x 3 x 2,5 ciascuna",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    -4.0,
+    -4.2,
+    2.0
+   ],
+   [
+    -6.0,
+    -0.2,
+    1.1
+   ],
+   30
+  ]
+ },
+ "umani": [
+  [
+   -3.0,
+   -2.2,
+   0.0
+  ]
+ ]
+}

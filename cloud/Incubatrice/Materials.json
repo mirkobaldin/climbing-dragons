@@ -1,0 +1,24 @@
+[
+ {
+  "name": "Basalto",
+  "BaseColor": "../_Texture/Basalto_BaseColor.png",
+  "Normal": "../_Texture/Basalto_Normal.png",
+  "Roughness": "../_Texture/Basalto_Roughness.png"
+ },
+ {
+  "name": "Bronzo",
+  "BaseColor": "../_Texture/Bronzo_BaseColor.png",
+  "Normal": "../_Texture/Bronzo_Normal.png",
+  "Roughness": "../_Texture/Bronzo_Roughness.png"
+ },
+ {
+  "name": "Cotto_Incubatrice_Pietra",
+  "BaseColor": "Textures/Cotto_Incubatrice_Pietra_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Incubatrice_Pietra_Normal.png",
+  "Roughness": "Textures/Cotto_Incubatrice_Pietra_Roughness.png"
+ },
+ {
+  "name": "MAT_Ember",
+  "plain": true
+ }
+]

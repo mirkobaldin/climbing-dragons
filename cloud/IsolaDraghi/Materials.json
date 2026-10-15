@@ -1,0 +1,186 @@
+[
+ {
+  "name": "Basalto",
+  "BaseColor": "../_Texture/Basalto_BaseColor.png",
+  "Normal": "../_Texture/Basalto_Normal.png",
+  "Roughness": "../_Texture/Basalto_Roughness.png"
+ },
+ {
+  "name": "Bronzo",
+  "BaseColor": "../_Texture/Bronzo_BaseColor.png",
+  "Normal": "../_Texture/Bronzo_Normal.png",
+  "Roughness": "../_Texture/Bronzo_Roughness.png"
+ },
+ {
+  "name": "Cotto_Arena_Altare",
+  "BaseColor": "Textures/Cotto_Arena_Altare_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Arena_Altare_Normal.png",
+  "Roughness": "Textures/Cotto_Arena_Altare_Roughness.png"
+ },
+ {
+  "name": "Cotto_Arena_Palco",
+  "BaseColor": "Textures/Cotto_Arena_Palco_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Arena_Palco_Normal.png",
+  "Roughness": "Textures/Cotto_Arena_Palco_Roughness.png"
+ },
+ {
+  "name": "Cotto_Arena_Pavimento_Cerchio",
+  "BaseColor": "Textures/Cotto_Arena_Pavimento_Cerchio_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Arena_Pavimento_Cerchio_Normal.png",
+  "Roughness": "Textures/Cotto_Arena_Pavimento_Cerchio_Roughness.png"
+ },
+ {
+  "name": "Cotto_Arena_Portale",
+  "BaseColor": "Textures/Cotto_Arena_Portale_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Arena_Portale_Normal.png",
+  "Roughness": "Textures/Cotto_Arena_Portale_Roughness.png"
+ },
+ {
+  "name": "Cotto_Arena_Portale_Passaggio",
+  "BaseColor": "Textures/Cotto_Arena_Portale_Passaggio_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Arena_Portale_Passaggio_Normal.png",
+  "Roughness": "Textures/Cotto_Arena_Portale_Passaggio_Roughness.png"
+ },
+ {
+  "name": "Cotto_Arena_Portale_Volta",
+  "BaseColor": "Textures/Cotto_Arena_Portale_Volta_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Arena_Portale_Volta_Normal.png",
+  "Roughness": "Textures/Cotto_Arena_Portale_Volta_Roughness.png"
+ },
+ {
+  "name": "Cotto_Arrivo",
+  "BaseColor": "Textures/Cotto_Arrivo_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Arrivo_Normal.png",
+  "Roughness": "Textures/Cotto_Arrivo_Roughness.png"
+ },
+ {
+  "name": "Cotto_Isola_Sentiero",
+  "BaseColor": "Textures/Cotto_Isola_Sentiero_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Isola_Sentiero_Normal.png",
+  "Roughness": "Textures/Cotto_Isola_Sentiero_Roughness.png"
+ },
+ {
+  "name": "Cotto_Isolette_Rovine",
+  "BaseColor": "Textures/Cotto_Isolette_Rovine_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Isolette_Rovine_Normal.png",
+  "Roughness": "Textures/Cotto_Isolette_Rovine_Roughness.png"
+ },
+ {
+  "name": "Cotto_mura_A_EsternoAlto",
+  "BaseColor": "Textures/Cotto_mura_A_EsternoAlto_BaseColor.jpg",
+  "Normal": "Textures/Cotto_mura_A_EsternoAlto_Normal.png",
+  "Roughness": "Textures/Cotto_mura_A_EsternoAlto_Roughness.png"
+ },
+ {
+  "name": "Cotto_mura_A_EsternoBasso",
+  "BaseColor": "Textures/Cotto_mura_A_EsternoBasso_BaseColor.jpg",
+  "Normal": "Textures/Cotto_mura_A_EsternoBasso_Normal.png",
+  "Roughness": "Textures/Cotto_mura_A_EsternoBasso_Roughness.png"
+ },
+ {
+  "name": "Cotto_mura_A_Interno",
+  "BaseColor": "Textures/Cotto_mura_A_Interno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_mura_A_Interno_Normal.png",
+  "Roughness": "Textures/Cotto_mura_A_Interno_Roughness.png"
+ },
+ {
+  "name": "Cotto_mura_B_EsternoAlto",
+  "BaseColor": "Textures/Cotto_mura_B_EsternoAlto_BaseColor.jpg",
+  "Normal": "Textures/Cotto_mura_B_EsternoAlto_Normal.png",
+  "Roughness": "Textures/Cotto_mura_B_EsternoAlto_Roughness.png"
+ },
+ {
+  "name": "Cotto_mura_B_EsternoBasso",
+  "BaseColor": "Textures/Cotto_mura_B_EsternoBasso_BaseColor.jpg",
+  "Normal": "Textures/Cotto_mura_B_EsternoBasso_Normal.png",
+  "Roughness": "Textures/Cotto_mura_B_EsternoBasso_Roughness.png"
+ },
+ {
+  "name": "Cotto_mura_B_Interno",
+  "BaseColor": "Textures/Cotto_mura_B_Interno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_mura_B_Interno_Normal.png",
+  "Roughness": "Textures/Cotto_mura_B_Interno_Roughness.png"
+ },
+ {
+  "name": "Cotto_mura_Portale_EsternoAlto",
+  "BaseColor": "Textures/Cotto_mura_Portale_EsternoAlto_BaseColor.jpg",
+  "Normal": "Textures/Cotto_mura_Portale_EsternoAlto_Normal.png",
+  "Roughness": "Textures/Cotto_mura_Portale_EsternoAlto_Roughness.png"
+ },
+ {
+  "name": "Cotto_mura_Portale_EsternoBasso",
+  "BaseColor": "Textures/Cotto_mura_Portale_EsternoBasso_BaseColor.jpg",
+  "Normal": "Textures/Cotto_mura_Portale_EsternoBasso_Normal.png",
+  "Roughness": "Textures/Cotto_mura_Portale_EsternoBasso_Roughness.png"
+ },
+ {
+  "name": "Cotto_mura_Portale_Interno",
+  "BaseColor": "Textures/Cotto_mura_Portale_Interno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_mura_Portale_Interno_Normal.png",
+  "Roughness": "Textures/Cotto_mura_Portale_Interno_Roughness.png"
+ },
+ {
+  "name": "Cotto_torre",
+  "BaseColor": "Textures/Cotto_torre_BaseColor.jpg",
+  "Normal": "Textures/Cotto_torre_Normal.png",
+  "Roughness": "Textures/Cotto_torre_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "LegnoScuro",
+  "BaseColor": "../_Texture/LegnoScuro_BaseColor.png",
+  "Normal": "../_Texture/LegnoScuro_Normal.png",
+  "Roughness": "../_Texture/LegnoScuro_Roughness.png"
+ },
+ {
+  "name": "MAT_Ember",
+  "plain": true
+ },
+ {
+  "name": "OroAntico",
+  "BaseColor": "../_Texture/OroAntico_BaseColor.png",
+  "Normal": "../_Texture/OroAntico_Normal.png",
+  "Roughness": "../_Texture/OroAntico_Roughness.png"
+ },
+ {
+  "name": "PratoAlto",
+  "BaseColor": "../_Texture/PratoAlto_BaseColor.png",
+  "Normal": "../_Texture/PratoAlto_Normal.png",
+  "Roughness": "../_Texture/PratoAlto_Roughness.png"
+ },
+ {
+  "name": "RocciaIsola",
+  "BaseColor": "../_Texture/RocciaIsola_BaseColor.png",
+  "Normal": "../_Texture/RocciaIsola_Normal.png",
+  "Roughness": "../_Texture/RocciaIsola_Roughness.png"
+ },
+ {
+  "name": "SabbiaDuello",
+  "BaseColor": "../_Texture/SabbiaDuello_BaseColor.png",
+  "Normal": "../_Texture/SabbiaDuello_Normal.png",
+  "Roughness": "../_Texture/SabbiaDuello_Roughness.png"
+ },
+ {
+  "name": "Spicchi",
+  "BaseColor": "../_Texture/Spicchi_BaseColor.png",
+  "Normal": "../_Texture/Spicchi_Normal.png",
+  "Roughness": "../_Texture/Spicchi_Roughness.png"
+ },
+ {
+  "name": "Stendardi",
+  "BaseColor": "../_Texture/Stendardi_BaseColor.png",
+  "Normal": "../_Texture/Stendardi_Normal.png",
+  "Roughness": "../_Texture/Stendardi_Roughness.png"
+ },
+ {
+  "name": "TelaRossa",
+  "BaseColor": "../_Texture/TelaRossa_BaseColor.png",
+  "Normal": "../_Texture/TelaRossa_Normal.png",
+  "Roughness": "../_Texture/TelaRossa_Roughness.png"
+ }
+]

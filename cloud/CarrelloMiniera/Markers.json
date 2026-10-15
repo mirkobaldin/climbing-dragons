@@ -1,0 +1,50 @@
+[
+ {
+  "name": "SPOT_BinariDritto_Inizio",
+  "position_y_up_m": [
+   3.0,
+   0.0,
+   2.0
+  ]
+ },
+ {
+  "name": "SPOT_BinariDritto_Fine",
+  "position_y_up_m": [
+   3.0,
+   0.0,
+   -2.0
+  ]
+ },
+ {
+  "name": "SPOT_BinariCurva_Inizio",
+  "position_y_up_m": [
+   6.0,
+   0.0,
+   2.0
+  ]
+ },
+ {
+  "name": "SPOT_BinariCurva_Fine",
+  "position_y_up_m": [
+   7.072,
+   0.0,
+   -2.0
+  ]
+ },
+ {
+  "name": "SPOT_BinariSalita_Inizio",
+  "position_y_up_m": [
+   10.5,
+   0.0,
+   2.0
+  ]
+ },
+ {
+  "name": "SPOT_BinariSalita_Fine",
+  "position_y_up_m": [
+   10.5,
+   0.5,
+   -2.0
+  ]
+ }
+]

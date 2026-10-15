@@ -1,0 +1,63 @@
+{
+ "nome": "Incubatrice",
+ "triangoli": 4140,
+ "parti": [
+  {
+   "nome": "Incubatrice_Pietra",
+   "materiale": "Cotto_Incubatrice_Pietra",
+   "triangoli": 1492
+  },
+  {
+   "nome": "Incubatrice_Bronzo",
+   "materiale": "Bronzo",
+   "triangoli": 192
+  },
+  {
+   "nome": "Incubatrice_Braci",
+   "materiale": "MAT_Ember",
+   "triangoli": 792
+  },
+  {
+   "nome": "Incubatrice_Sassi",
+   "materiale": "Basalto",
+   "triangoli": 1664
+  }
+ ],
+ "ingombro_m": [
+  3.12,
+  3.07,
+  1.32
+ ],
+ "min_blender": [
+  -1.54,
+  -1.53,
+  0.01
+ ],
+ "max_blender": [
+  1.59,
+  1.54,
+  1.33
+ ],
+ "collisioni": 2,
+ "marcatori": [
+  "SPOT_Uovo",
+  "FX_Fire_Incubatrice",
+  "FX_Light_Incubatrice"
+ ],
+ "misure_m": "3 x 1,5 x 3",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    1.2,
+    -1.9,
+    2.3
+   ],
+   [
+    0,
+    0,
+    0.9
+   ],
+   35
+  ]
+ }
+}

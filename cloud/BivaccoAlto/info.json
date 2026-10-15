@@ -1,0 +1,103 @@
+{
+ "nome": "BivaccoAlto",
+ "triangoli": 14416,
+ "parti": [
+  {
+   "nome": "Bivacco_Lamiera",
+   "materiale": "Cotto_Bivacco_Lamiera",
+   "triangoli": 9472
+  },
+  {
+   "nome": "Bivacco_Legno",
+   "materiale": "Cotto_Bivacco_Legno",
+   "triangoli": 1696
+  },
+  {
+   "nome": "Bivacco_Interno",
+   "materiale": "LegnoChiaro",
+   "triangoli": 32
+  },
+  {
+   "nome": "Bivacco_Pietra",
+   "materiale": "Cotto_Bivacco_Pietra",
+   "triangoli": 428
+  },
+  {
+   "nome": "Bivacco_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 2184
+  },
+  {
+   "nome": "Bivacco_Brande",
+   "materiale": "TelaGrigia",
+   "triangoli": 352
+  },
+  {
+   "nome": "Bivacco_Coperte",
+   "materiale": "TelaRossa",
+   "triangoli": 176
+  },
+  {
+   "nome": "Bivacco_Vetro",
+   "materiale": "MAT_Glass",
+   "triangoli": 76
+  }
+ ],
+ "ingombro_m": [
+  5.6,
+  6.58,
+  3.79
+ ],
+ "min_blender": [
+  -2.8,
+  -3.63,
+  -0.12
+ ],
+ "max_blender": [
+  2.8,
+  2.95,
+  3.67
+ ],
+ "collisioni": 10,
+ "marcatori": [
+  "FX_Light_Bivacco",
+  "SPOT_Porta"
+ ],
+ "misure_m": "5 x 3 x 3 (lungo Y; porta verso -Y)",
+ "viste_extra": {
+  "dettaglio": [
+   [
+    1.4,
+    -5.2,
+    1.4
+   ],
+   [
+    0,
+    -2.2,
+    1.3
+   ],
+   28
+  ],
+  "dentro": [
+   [
+    0.0,
+    -2.25,
+    1.6
+   ],
+   [
+    0,
+    1.0,
+    1.1
+   ],
+   16
+  ]
+ },
+ "umani": [
+  [
+   1.0,
+   -3.6,
+   0.0,
+   0.3
+  ]
+ ]
+}

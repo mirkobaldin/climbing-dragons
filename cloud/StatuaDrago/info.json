@@ -1,0 +1,100 @@
+{
+ "nome": "StatuaDrago",
+ "triangoli": 928,
+ "parti": [
+  {
+   "nome": "StatuaDrago_Piedistallo",
+   "materiale": "Cotto_StatuaDrago_Piedistallo",
+   "triangoli": 824
+  },
+  {
+   "nome": "StatuaDrago_Targa_Roccia",
+   "materiale": "Targhe",
+   "triangoli": 10
+  },
+  {
+   "nome": "StatuaDrago_Targa_Gelo",
+   "materiale": "Targhe",
+   "triangoli": 10
+  },
+  {
+   "nome": "StatuaDrago_Targa_Cosmico",
+   "materiale": "Targhe",
+   "triangoli": 10
+  },
+  {
+   "nome": "StatuaDrago_Targa_Tempesta",
+   "materiale": "Targhe",
+   "triangoli": 10
+  },
+  {
+   "nome": "StatuaDrago_Targa_Eclissi",
+   "materiale": "Targhe",
+   "triangoli": 10
+  },
+  {
+   "nome": "StatuaDrago_Targa_Fulmine",
+   "materiale": "Targhe",
+   "triangoli": 10
+  },
+  {
+   "nome": "StatuaDrago_Targa_Ossa",
+   "materiale": "Targhe",
+   "triangoli": 10
+  },
+  {
+   "nome": "StatuaDrago_Targa_Gas",
+   "materiale": "Targhe",
+   "triangoli": 10
+  },
+  {
+   "nome": "PLACEHOLDER_StatuaDrago",
+   "materiale": "Basalto",
+   "triangoli": 24
+  }
+ ],
+ "ingombro_m": [
+  2.9,
+  2.9,
+  4.7
+ ],
+ "min_blender": [
+  -1.45,
+  -1.45,
+  0.0
+ ],
+ "max_blender": [
+  1.45,
+  1.45,
+  4.7
+ ],
+ "collisioni": 1,
+ "marcatori": [
+  "SPOT_Statua"
+ ],
+ "misure_m": "3 x 5 x 3 con la statua (piedistallo 2,9 x 1,5 x 2,9)",
+ "nascondi_in_anteprima": [
+  "StatuaDrago_Targa_Gelo",
+  "StatuaDrago_Targa_Cosmico",
+  "StatuaDrago_Targa_Tempesta",
+  "StatuaDrago_Targa_Eclissi",
+  "StatuaDrago_Targa_Fulmine",
+  "StatuaDrago_Targa_Ossa",
+  "StatuaDrago_Targa_Gas"
+ ],
+ "viste_extra": {
+  "dettaglio": [
+   [
+    0.9,
+    -3.4,
+    1.4
+   ],
+   [
+    0,
+    -1.1,
+    0.95
+   ],
+   35
+  ]
+ }
+}

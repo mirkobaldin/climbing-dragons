@@ -1,0 +1,24 @@
+[
+ {
+  "name": "Cotto_Teleferica_Cabina",
+  "BaseColor": "Textures/Cotto_Teleferica_Cabina_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Teleferica_Cabina_Normal.png",
+  "Roughness": "Textures/Cotto_Teleferica_Cabina_Roughness.png"
+ },
+ {
+  "name": "Cotto_Teleferica_Plinti",
+  "BaseColor": "Textures/Cotto_Teleferica_Plinti_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Teleferica_Plinti_Normal.png",
+  "Roughness": "Textures/Cotto_Teleferica_Plinti_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "MAT_Glass",
+  "plain": true
+ }
+]

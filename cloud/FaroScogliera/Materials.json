@@ -1,0 +1,40 @@
+[
+ {
+  "name": "Cotto_Faro_Fasce",
+  "BaseColor": "Textures/Cotto_Faro_Fasce_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Faro_Fasce_Normal.png",
+  "Roughness": "Textures/Cotto_Faro_Fasce_Roughness.png"
+ },
+ {
+  "name": "Cotto_Faro_Pietra",
+  "BaseColor": "Textures/Cotto_Faro_Pietra_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Faro_Pietra_Normal.png",
+  "Roughness": "Textures/Cotto_Faro_Pietra_Roughness.png"
+ },
+ {
+  "name": "Cotto_Faro_Porta",
+  "BaseColor": "Textures/Cotto_Faro_Porta_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Faro_Porta_Normal.png",
+  "Roughness": "Textures/Cotto_Faro_Porta_Roughness.png"
+ },
+ {
+  "name": "Cotto_Faro_Scogli",
+  "BaseColor": "Textures/Cotto_Faro_Scogli_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Faro_Scogli_Normal.png",
+  "Roughness": "Textures/Cotto_Faro_Scogli_Roughness.png"
+ },
+ {
+  "name": "FerroBattuto",
+  "BaseColor": "../_Texture/FerroBattuto_BaseColor.png",
+  "Normal": "../_Texture/FerroBattuto_Normal.png",
+  "Roughness": "../_Texture/FerroBattuto_Roughness.png"
+ },
+ {
+  "name": "MAT_Glass",
+  "plain": true
+ },
+ {
+  "name": "MAT_WarmLight",
+  "plain": true
+ }
+]

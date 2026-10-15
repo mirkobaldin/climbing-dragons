@@ -1,0 +1,466 @@
+[
+ {
+  "name": "SPOT_Posatoio2",
+  "position_y_up_m": [
+   66.185,
+   27.6,
+   66.185
+  ]
+ },
+ {
+  "name": "SPOT_Posatoio3",
+  "position_y_up_m": [
+   93.6,
+   27.6,
+   0.0
+  ]
+ },
+ {
+  "name": "SPOT_Posatoio4",
+  "position_y_up_m": [
+   66.185,
+   27.6,
+   -66.185
+  ]
+ },
+ {
+  "name": "SPOT_Posatoio5",
+  "position_y_up_m": [
+   0.0,
+   27.6,
+   -93.6
+  ]
+ },
+ {
+  "name": "SPOT_Posatoio6",
+  "position_y_up_m": [
+   -66.185,
+   27.6,
+   -66.185
+  ]
+ },
+ {
+  "name": "SPOT_Posatoio7",
+  "position_y_up_m": [
+   -93.6,
+   27.6,
+   0.0
+  ]
+ },
+ {
+  "name": "SPOT_Posatoio8",
+  "position_y_up_m": [
+   -66.185,
+   27.6,
+   66.185
+  ]
+ },
+ {
+  "name": "FX_Fire_Roccia",
+  "position_y_up_m": [
+   36.355,
+   40.3,
+   87.769
+  ]
+ },
+ {
+  "name": "FX_Light_Roccia",
+  "position_y_up_m": [
+   36.355,
+   41.6,
+   87.769
+  ]
+ },
+ {
+  "name": "SPOT_Statua_Roccia",
+  "position_y_up_m": [
+   39.493,
+   38.0,
+   95.344
+  ]
+ },
+ {
+  "name": "FX_Fire_Gelo",
+  "position_y_up_m": [
+   87.769,
+   40.3,
+   36.355
+  ]
+ },
+ {
+  "name": "FX_Light_Gelo",
+  "position_y_up_m": [
+   87.769,
+   41.6,
+   36.355
+  ]
+ },
+ {
+  "name": "SPOT_Statua_Gelo",
+  "position_y_up_m": [
+   95.344,
+   38.0,
+   39.493
+  ]
+ },
+ {
+  "name": "FX_Fire_Cosmico",
+  "position_y_up_m": [
+   87.769,
+   40.3,
+   -36.355
+  ]
+ },
+ {
+  "name": "FX_Light_Cosmico",
+  "position_y_up_m": [
+   87.769,
+   41.6,
+   -36.355
+  ]
+ },
+ {
+  "name": "SPOT_Statua_Cosmico",
+  "position_y_up_m": [
+   95.344,
+   38.0,
+   -39.493
+  ]
+ },
+ {
+  "name": "FX_Fire_Tempesta",
+  "position_y_up_m": [
+   36.355,
+   40.3,
+   -87.769
+  ]
+ },
+ {
+  "name": "FX_Light_Tempesta",
+  "position_y_up_m": [
+   36.355,
+   41.6,
+   -87.769
+  ]
+ },
+ {
+  "name": "SPOT_Statua_Tempesta",
+  "position_y_up_m": [
+   39.493,
+   38.0,
+   -95.344
+  ]
+ },
+ {
+  "name": "FX_Fire_Eclissi",
+  "position_y_up_m": [
+   -36.355,
+   40.3,
+   -87.769
+  ]
+ },
+ {
+  "name": "FX_Light_Eclissi",
+  "position_y_up_m": [
+   -36.355,
+   41.6,
+   -87.769
+  ]
+ },
+ {
+  "name": "SPOT_Statua_Eclissi",
+  "position_y_up_m": [
+   -39.493,
+   38.0,
+   -95.344
+  ]
+ },
+ {
+  "name": "FX_Fire_Fulmine",
+  "position_y_up_m": [
+   -87.769,
+   40.3,
+   -36.355
+  ]
+ },
+ {
+  "name": "FX_Light_Fulmine",
+  "position_y_up_m": [
+   -87.769,
+   41.6,
+   -36.355
+  ]
+ },
+ {
+  "name": "SPOT_Statua_Fulmine",
+  "position_y_up_m": [
+   -95.344,
+   38.0,
+   -39.493
+  ]
+ },
+ {
+  "name": "FX_Fire_Ossa",
+  "position_y_up_m": [
+   -87.769,
+   40.3,
+   36.355
+  ]
+ },
+ {
+  "name": "FX_Light_Ossa",
+  "position_y_up_m": [
+   -87.769,
+   41.6,
+   36.355
+  ]
+ },
+ {
+  "name": "SPOT_Statua_Ossa",
+  "position_y_up_m": [
+   -95.344,
+   38.0,
+   39.493
+  ]
+ },
+ {
+  "name": "FX_Fire_Gas",
+  "position_y_up_m": [
+   -36.355,
+   40.3,
+   87.769
+  ]
+ },
+ {
+  "name": "FX_Light_Gas",
+  "position_y_up_m": [
+   -36.355,
+   41.6,
+   87.769
+  ]
+ },
+ {
+  "name": "SPOT_Statua_Gas",
+  "position_y_up_m": [
+   -39.493,
+   38.0,
+   95.344
+  ]
+ },
+ {
+  "name": "SPOT_TestaDrago_Sx",
+  "position_y_up_m": [
+   -17.0,
+   27.5,
+   100.0
+  ]
+ },
+ {
+  "name": "SPOT_TestaDrago_Dx",
+  "position_y_up_m": [
+   17.0,
+   27.5,
+   100.0
+  ]
+ },
+ {
+  "name": "FX_Fire_Palco1",
+  "position_y_up_m": [
+   -12.5,
+   13.55,
+   69.4
+  ]
+ },
+ {
+  "name": "FX_Fire_Palco2",
+  "position_y_up_m": [
+   12.5,
+   13.55,
+   69.4
+  ]
+ },
+ {
+  "name": "SPOT_Domatore",
+  "position_y_up_m": [
+   0.0,
+   12.0,
+   71.75
+  ]
+ },
+ {
+  "name": "FX_Fire_Altare",
+  "position_y_up_m": [
+   0.0,
+   2.85,
+   53.0
+  ]
+ },
+ {
+  "name": "SPOT_Altare",
+  "position_y_up_m": [
+   0.0,
+   0.9,
+   54.6
+  ]
+ },
+ {
+  "name": "SPOT_Posatoio1",
+  "position_y_up_m": [
+   0.0,
+   44.8,
+   98.0
+  ]
+ },
+ {
+  "name": "SPOT_Cascata1",
+  "position_y_up_m": [
+   -183.958,
+   -3.88,
+   66.955
+  ]
+ },
+ {
+  "name": "SPOT_Cascata2",
+  "position_y_up_m": [
+   190.695,
+   -3.178,
+   110.098
+  ]
+ },
+ {
+  "name": "SPOT_Cascata3",
+  "position_y_up_m": [
+   198.784,
+   -4.097,
+   -92.694
+  ]
+ },
+ {
+  "name": "SPOT_Cascata4",
+  "position_y_up_m": [
+   -66.089,
+   -4.335,
+   -181.579
+  ]
+ },
+ {
+  "name": "FX_Fire_Sentiero1",
+  "position_y_up_m": [
+   -3.6,
+   2.7,
+   144.4
+  ]
+ },
+ {
+  "name": "FX_Fire_Sentiero2",
+  "position_y_up_m": [
+   3.6,
+   2.7,
+   144.4
+  ]
+ },
+ {
+  "name": "FX_Fire_Sentiero3",
+  "position_y_up_m": [
+   -3.6,
+   2.7,
+   122.4
+  ]
+ },
+ {
+  "name": "FX_Fire_Sentiero4",
+  "position_y_up_m": [
+   3.6,
+   2.7,
+   122.4
+  ]
+ },
+ {
+  "name": "FX_Fire_Arrivo1",
+  "position_y_up_m": [
+   6.647,
+   4.1,
+   158.353
+  ]
+ },
+ {
+  "name": "FX_Fire_Arrivo2",
+  "position_y_up_m": [
+   -6.647,
+   4.1,
+   158.353
+  ]
+ },
+ {
+  "name": "FX_Fire_Arrivo3",
+  "position_y_up_m": [
+   -6.647,
+   4.1,
+   171.647
+  ]
+ },
+ {
+  "name": "FX_Fire_Arrivo4",
+  "position_y_up_m": [
+   6.647,
+   4.1,
+   171.647
+  ]
+ },
+ {
+  "name": "SPOT_Arrivo",
+  "position_y_up_m": [
+   0.0,
+   0.9,
+   165.0
+  ]
+ },
+ {
+  "name": "FX_Light_Arrivo",
+  "position_y_up_m": [
+   0.0,
+   3.0,
+   165.0
+  ]
+ },
+ {
+  "name": "SPOT_PosatoioIsola1",
+  "position_y_up_m": [
+   -300.173,
+   29.4,
+   144.303
+  ]
+ },
+ {
+  "name": "SPOT_PosatoioIsola2",
+  "position_y_up_m": [
+   -334.381,
+   -15.6,
+   -121.028
+  ]
+ },
+ {
+  "name": "SPOT_PosatoioIsola3",
+  "position_y_up_m": [
+   57.332,
+   44.4,
+   -332.844
+  ]
+ },
+ {
+  "name": "SPOT_PosatoioIsola4",
+  "position_y_up_m": [
+   310.354,
+   9.4,
+   -195.99
+  ]
+ },
+ {
+  "name": "SPOT_PosatoioIsola5",
+  "position_y_up_m": [
+   299.628,
+   -30.6,
+   233.279
+  ]
+ }
+]

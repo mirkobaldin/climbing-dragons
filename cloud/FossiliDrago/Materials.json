@@ -1,0 +1,14 @@
+[
+ {
+  "name": "OssoDrago",
+  "BaseColor": "../_Texture/OssoDrago_BaseColor.png",
+  "Normal": "../_Texture/OssoDrago_Normal.png",
+  "Roughness": "../_Texture/OssoDrago_Roughness.png"
+ },
+ {
+  "name": "RocciaIsola",
+  "BaseColor": "../_Texture/RocciaIsola_BaseColor.png",
+  "Normal": "../_Texture/RocciaIsola_Normal.png",
+  "Roughness": "../_Texture/RocciaIsola_Roughness.png"
+ }
+]

@@ -1,0 +1,78 @@
+{
+ "nome": "MangiatoiaDrago",
+ "triangoli": 5672,
+ "parti": [
+  {
+   "nome": "Mangiatoia_Pietra",
+   "materiale": "Cotto_Mangiatoia_Pietra",
+   "triangoli": 1664
+  },
+  {
+   "nome": "Mangiatoia_Acqua",
+   "materiale": "MAT_Water",
+   "triangoli": 12
+  },
+  {
+   "nome": "Mangiatoia_Pesci",
+   "materiale": "Pesce",
+   "triangoli": 2072
+  },
+  {
+   "nome": "Mangiatoia_Pinne",
+   "materiale": "Pesce",
+   "triangoli": 392
+  },
+  {
+   "nome": "Mangiatoia_Carne",
+   "materiale": "Carne",
+   "triangoli": 348
+  },
+  {
+   "nome": "Mangiatoia_Ossa",
+   "materiale": "OssoDrago",
+   "triangoli": 560
+  },
+  {
+   "nome": "Mangiatoia_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 624
+  }
+ ],
+ "ingombro_m": [
+  5.16,
+  2.06,
+  1.35
+ ],
+ "min_blender": [
+  -2.58,
+  -1.03,
+  0.0
+ ],
+ "max_blender": [
+  2.58,
+  1.03,
+  1.35
+ ],
+ "collisioni": 1,
+ "marcatori": [
+  "FX_Light_Acqua",
+  "SPOT_Cibo",
+  "SPOT_Acqua"
+ ],
+ "viste_extra": {
+  "dettaglio": [
+   [
+    -0.6,
+    -2.2,
+    2.4
+   ],
+   [
+    -1.3,
+    0.0,
+    0.9
+   ],
+   35
+  ]
+ },
+ "misure_m": "5 x 1,2 x 1,6"
+}

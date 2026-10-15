@@ -1,0 +1,46 @@
+{
+ "nome": "PosatoioDrago",
+ "triangoli": 6436,
+ "parti": [
+  {
+   "nome": "Posatoio_Base",
+   "materiale": "Cotto_Posatoio_Base",
+   "triangoli": 816
+  },
+  {
+   "nome": "Posatoio_Tronco",
+   "materiale": "Cotto_Posatoio_Tronco",
+   "triangoli": 1808
+  },
+  {
+   "nome": "Posatoio_Tagli",
+   "materiale": "LegnoTaglio",
+   "triangoli": 164
+  },
+  {
+   "nome": "Posatoio_Ferro",
+   "materiale": "FerroBattuto",
+   "triangoli": 3648
+  }
+ ],
+ "ingombro_m": [
+  3.81,
+  3.91,
+  6.36
+ ],
+ "min_blender": [
+  -1.95,
+  -1.97,
+  -0.29
+ ],
+ "max_blender": [
+  1.86,
+  1.93,
+  6.07
+ ],
+ "collisioni": 4,
+ "marcatori": [
+  "SPOT_Posatoio"
+ ],
+ "misure_m": "4 x 6 x 4"
+}

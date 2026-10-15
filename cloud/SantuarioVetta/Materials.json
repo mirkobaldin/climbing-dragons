@@ -1,0 +1,36 @@
+[
+ {
+  "name": "Bronzo",
+  "BaseColor": "../_Texture/Bronzo_BaseColor.png",
+  "Normal": "../_Texture/Bronzo_Normal.png",
+  "Roughness": "../_Texture/Bronzo_Roughness.png"
+ },
+ {
+  "name": "Cotto_Santuario_Legno",
+  "BaseColor": "Textures/Cotto_Santuario_Legno_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Santuario_Legno_Normal.png",
+  "Roughness": "Textures/Cotto_Santuario_Legno_Roughness.png"
+ },
+ {
+  "name": "Cotto_Santuario_Neve",
+  "BaseColor": "Textures/Cotto_Santuario_Neve_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Santuario_Neve_Normal.png",
+  "Roughness": "Textures/Cotto_Santuario_Neve_Roughness.png"
+ },
+ {
+  "name": "Cotto_Santuario_Ometto",
+  "BaseColor": "Textures/Cotto_Santuario_Ometto_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Santuario_Ometto_Normal.png",
+  "Roughness": "Textures/Cotto_Santuario_Ometto_Roughness.png"
+ },
+ {
+  "name": "Cotto_Santuario_Pietra",
+  "BaseColor": "Textures/Cotto_Santuario_Pietra_BaseColor.jpg",
+  "Normal": "Textures/Cotto_Santuario_Pietra_Normal.png",
+  "Roughness": "Textures/Cotto_Santuario_Pietra_Roughness.png"
+ },
+ {
+  "name": "MAT_WarmLight",
+  "plain": true
+ }
+]

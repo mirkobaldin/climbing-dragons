@@ -1,0 +1,18 @@
+[
+ {
+  "name": "SPOT_Inizio",
+  "position_y_up_m": [
+   0.0,
+   0.05,
+   3.0
+  ]
+ },
+ {
+  "name": "SPOT_Fine",
+  "position_y_up_m": [
+   0.0,
+   0.05,
+   -3.0
+  ]
+ }
+]
