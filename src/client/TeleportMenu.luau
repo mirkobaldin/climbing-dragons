@@ -52,6 +52,12 @@ function TeleportMenu.start()
 	local panel, open = Ui.node(gui, "Panel"), Ui.node(gui, "Open")
 	open.Visible = player.PlayerGui:FindFirstChild("MainMenu") == nil
 	local destinations = panel.Destinations
+	-- fondo scuro come le altre finestre (stile Black Ops 2), righe colorate sopra
+	Ui.tint(panel, Theme.DARK, false, 0)
+	local veil = panel:FindFirstChild("Tinta") :: Frame?
+	if veil then
+		veil.BackgroundTransparency = 0.1
+	end
  local bound: { [Instance]: boolean } = {}
 	local function bind(i: number)
 		local b = destinations["Destination" .. i]
@@ -93,11 +99,14 @@ function TeleportMenu.start()
     b.Icon.Position = UDim2.fromOffset(8, 8)
     b.Icon.Size = UDim2.fromOffset(44, 44)
     b.Distance.AnchorPoint = Vector2.new(1, 0.5)
-    b.Distance.Position = UDim2.new(1, -8, 0.5, 0)
-    b.Distance.Size = UDim2.fromOffset(94, 32)
-    b.Distance.TextXAlignment = Enum.TextXAlignment.Center
-    Theme.fitText(b.Title, 20, false)
-    Theme.fitText(b.Distance, 16, false)
+    b.Distance.Position = UDim2.new(1, -14, 0.5, 0)
+    b.Distance.Size = UDim2.fromOffset(100, 32)
+    b.Distance.TextXAlignment = Enum.TextXAlignment.Right
+    b.Title.TextXAlignment = Enum.TextXAlignment.Left
+    Theme.fitText(b.Title, 22, false)
+    Theme.fitText(b.Distance, 18, false)
+    -- riga piatta colorata: niente PNG con la sua cornice dentro un'altra cornice
+    b:SetAttribute("UiNative", true)
     Theme.action(b, "alt")
     bind(i)
    end
@@ -128,16 +137,21 @@ function TeleportMenu.start()
    local pos = destination(i)
    b.Distance.Text = if locked then "Locked" elseif homeFar then "◷ 60 s"
     elseif root and pos then string.format("%d m", math.floor((root.Position - pos).Magnitude)) else "—"
-   b.Distance.BackgroundColor3 = if locked then Theme.DISABLED else Theme.PANEL
-   b.Distance.BackgroundTransparency = 0
-   Theme.action(b, "alt", locked)
+   -- distanza / "Locked" come semplice scritta a destra (prima un riquadro col bordo)
+   b.Distance.Text = if locked then "" else b.Distance.Text
+   b.Distance.BackgroundTransparency = 1
+   local ds = b.Distance:FindFirstChildOfClass("UIStroke")
+   if ds then ds.Enabled = false end
+   Theme.action(b, if i == 2 then "main" else "alt", locked)
+   b.Title.TextTransparency = if locked then 0.35 else 0
    local lock = b:FindFirstChild("Lock") :: ImageLabel?
    if not lock then
     lock = Instance.new("ImageLabel")
     lock.Name = "Lock"
     lock.BackgroundTransparency = 1
-    lock.Position = UDim2.fromOffset(36, 32)
-    lock.Size = UDim2.fromOffset(18, 18)
+    lock.AnchorPoint = Vector2.new(1, 0.5)
+    lock.Position = UDim2.new(1, -16, 0.5, 0)
+    lock.Size = UDim2.fromOffset(30, 30)
     lock.ZIndex = 4
     lock.Parent = b
    end

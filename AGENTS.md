@@ -136,3 +136,19 @@ Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, anim
   la collisione precisa della mesh copriva la piattaforma d'arrivo e si cadeva. UI v3 di Codex unita
   (ID in UiAssets), lo sfondo `bg_menu` delle finestre resta visibile (MainMenu). Prove sui draghi:
   `docs/ANIMAZIONI_PROCEDURALI.md` giro 4 (attributo `ProceduraleSpento` per confrontare).
+
+## Aggiunte del 2026-10-15 (giro 5)
+- **Gusti di Mirko: `gusti/`** (vault Obsidian, note in markdown con screenshot/video e voto
+  buono/sbagliato). Leggila PRIMA di lavorare su VFX, animazioni, UI o mappa; quando Mirko boccia
+  o approva qualcosa aggiungi una riga nella nota giusta.
+- UI: niente cornici doppie (`UiView.tint` riempie tutto il riquadro e spegne il bordo,
+  `Theme.action` senza contorno, bordi dorati dei modelli spenti da `Theme.paint`). Fondi scuri
+  stile menu zombie di Black Ops 2 (`Theme.DARK*`, `client/UiGlow`: anelli e raggi che girano,
+  `darkBackground` con fumo, brace e scintille). Zaino = inventario a caselle trascinabili con
+  Drop 1/Drop all (Shop "discard", ordine salvato in Progression `bag`, attributo BagOrder).
+- Isola dei Draghi: persistente (ModelStreamingMode), isola allargata (`ISLAND_H`/`ISLAND_V`),
+  prato = Terrain Grass liscio (occupazione frazionaria) al posto della mesh, 70 alberi del bosco.
+  Forma di drago: altare arancio nell'arena (prompt "Become your dragon", server/Riding
+  `setupForm`, attributo DragonForm): sei il drago adulto, cammini, Spazio vola, click colpisce, H esci.
+- Elementi tolti Sole/Ombra/Brace: `DragonConfig.RETIRED` li converte quando nasce un uovo.
+  Uova nuove e sfondi scuri: `docs/CODEX_UOVA_E_SFONDI.md` (Codex).

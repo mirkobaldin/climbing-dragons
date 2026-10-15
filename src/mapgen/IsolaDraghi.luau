@@ -13,6 +13,8 @@
 --   require(game.ServerStorage.MapGen:Clone().IsolaDraghi).build()
 
 local ServerStorage = game:GetService("ServerStorage")
+-- subito: la copia di MapGen da cui si fa require puo' sparire durante le attese della costruzione
+local Forest = require(script.Parent.Forest)
 
 local IsolaDraghi = {}
 
@@ -25,7 +27,15 @@ IsolaDraghi.ORIGIN = CFrame.new(-4300, 820, -150)
 -- elementi delle torri, dal portale in senso antiorario visto dall'alto (come nel modello)
 IsolaDraghi.TOWERS = { "Roccia", "Gelo", "Cosmico", "Tempesta", "Eclissi", "Fulmine", "Ossa", "Gas" }
 
+-- l'isola attorno all'arena e' piu' grande del modello del cloud (Mirko 15/10: "troppo
+-- piccola"): prato, rocce e isolette si allargano di ISLAND_H e si alzano di ISLAND_V attorno al
+-- centro dell'arena; arena, piattaforma d'arrivo e sentiero restano come sono
+IsolaDraghi.ISLAND_H = 1.7
+IsolaDraghi.ISLAND_V = 1.3
+IsolaDraghi.TREES = 70
+
 local M = IsolaDraghi.SCALE
+local SH, SV = IsolaDraghi.ISLAND_H, IsolaDraghi.ISLAND_V
 local ARENA_IN = 75 -- apotema interno dell'ottagono (m)
 local WALL_T = 20 -- spessore delle mura con i gradoni (m)
 local WALL_H = 22
@@ -197,6 +207,32 @@ local function buildReal(folder: Instance, origin: CFrame, template: Model): { [
 	end
 	m:PivotTo(CFrame.identity)
 	m:ScaleTo(M)
+	-- isola piu' grande: le parti dell'isola (non dell'arena) si allargano attorno al centro;
+	-- il prato del modello si nasconde, al suo posto c'e' l'erba vera del Terrain (pratoTerreno)
+	local spread = Vector3.new(SH, SV, SH)
+	local function isIsland(name: string): boolean
+		return string.find(name, "^Isol") ~= nil or string.find(name, "^COL_Prato") ~= nil or string.find(name, "^COL_Isoletta") ~= nil
+	end
+	for _, folderName in { "Mesh", "Collisione" } do
+		local f = m:FindFirstChild(folderName)
+		for _, p in (if f then f:GetDescendants() else {}) :: { Instance } do
+			if p:IsA("BasePart") and isIsland(p.Name) then
+				p.Size *= spread
+				p.CFrame = p.CFrame.Rotation + p.Position * spread
+				if p.Name == "Isola_Prato" or string.find(p.Name, "^COL_Prato") then
+					p.Transparency = 1
+					p.CanCollide = false
+					p.CanQuery = false
+				end
+			end
+		end
+	end
+	local lights = m:FindFirstChild("Luci")
+	for _, a in (if lights then lights:GetChildren() else {}) :: { Instance } do
+		if a:IsA("Attachment") and (string.find(a.Name, "^SPOT_PosatoioIsola") or string.find(a.Name, "^SPOT_Cascata")) then
+			a.WorldPosition *= spread
+		end
+	end
 	-- le luci sono in metri (attributo RangeM, vedi carica_modelli.luau); i bracieri delle torri
 	-- (FX_Fire_<Elemento>) hanno fuoco e luce del colore dell'elemento, grandi da vedersi da lontano
 	for _, l in m:GetDescendants() do
@@ -225,8 +261,11 @@ local function buildReal(folder: Instance, origin: CFrame, template: Model): { [
 		oldCol:Destroy()
 	end
 	m:PivotTo(origin)
+	-- sempre presente su ogni client: con lo streaming il modello lontano diventava una mesh
+	-- semplificata (StreamingMesh) che da davanti non si vedeva (Mirko 15/10: "invisibile da davanti")
 	pcall(function()
-		(m :: any).LevelOfDetail = Enum.ModelLevelOfDetail.StreamingMesh
+		(m :: any).ModelStreamingMode = Enum.ModelStreamingMode.Persistent;
+		(m :: any).LevelOfDetail = Enum.ModelLevelOfDetail.Disabled
 	end)
 	m.Name = "Modello"
 	m.Parent = folder
@@ -263,38 +302,209 @@ end
 -- segue le altezze della mesh. Le altezze stanno nel modello (StringValue "PratoAltezze", griglia
 -- in metri ricavata dal JSON di Isola_Prato: tools/modelli, vedi AGENTS.md) e il terreno si rifa'
 -- a ogni build (Generate() cancella il Terrain).
-local function pratoTerreno(template: Model, origin: CFrame): number
+local function pratoTerreno(template: Model, origin: CFrame): (number, ((number, number) -> number?)?)
 	local sv = template:FindFirstChild("PratoAltezze")
 	if not (sv and sv:IsA("StringValue")) then
-		return 0
+		return 0, nil
 	end
 	local ok, g = pcall(function()
 		return game:GetService("HttpService"):JSONDecode(sv.Value)
 	end)
 	if not ok or type(g) ~= "table" then
-		return 0
+		return 0, nil
 	end
-	local cell = g.step * M
-	local thick = 14
-	local terrain = workspace.Terrain
-	local n = 0
-	local k = 0
+	-- griglia delle altezze (metri, spazio del modello prima dell'allargamento)
+	local H: { [number]: number } = {}
+	local count = 0
 	for value in string.gmatch(g.h .. ",", "([^,]*),") do
 		if value ~= "" then
-			local i, j = k // g.nz, k % g.nz
-			local x, z = g.minX + i * g.step, g.minZ + j * g.step
-			local top = (tonumber(value) :: number) / 10 * M - 0.8 -- appena sotto l'erba della mesh
-			local p = origin:PointToWorldSpace(Vector3.new(x * M, top - thick / 2, z * M))
-			terrain:FillBlock(CFrame.new(p), Vector3.new(cell + 1, thick, cell + 1), Enum.Material.LeafyGrass)
-			n += 1
-			if n % 2000 == 0 then
-				task.wait()
+			H[count] = (tonumber(value) :: number) / 10
+		end
+		count += 1
+	end
+	local nz: number = g.nz
+	local nx = count // nz
+	-- altezza del prato (metri) in un punto del modello, interpolata fra le 4 celle vicine; nil
+	-- fuori dal prato (servono almeno 3 celle piene: il bordo resta morbido)
+	local function height(mx: number, mz: number): number?
+		local fi, fj = (mx - g.minX) / g.step, (mz - g.minZ) / g.step
+		local i0, j0 = math.floor(fi), math.floor(fj)
+		if i0 < 0 or j0 < 0 or i0 + 1 >= nx or j0 + 1 >= nz then
+			return nil
+		end
+		local tx, tz = fi - i0, fj - j0
+		local sum, wsum, n = 0, 0, 0
+		for _, c in { { 0, 0, (1 - tx) * (1 - tz) }, { 1, 0, tx * (1 - tz) }, { 0, 1, (1 - tx) * tz }, { 1, 1, tx * tz } } do
+			local h = H[(i0 + c[1]) * nz + j0 + c[2]]
+			if h then
+				sum += h * c[3]
+				wsum += c[3]
+				n += 1
 			end
 		end
-		k += 1
+		return if n >= 3 and wsum > 0 then sum / wsum else nil
 	end
-	return n
+	local o = origin.Position
+	local k = M * SH
+	local arenaR = (ARENA_IN + WALL_T - 2) * M
+	-- quota del prato in studs nel mondo (con l'isola allargata), nil fuori o sotto l'arena
+	local function topAt(wx: number, wz: number): number?
+		local dx, dz = wx - o.X, wz - o.Z
+		if dx * dx + dz * dz < arenaR * arenaR then
+			return nil
+		end
+		local hm = height(dx / k, dz / k)
+		-- il prato del modello ha un buco attorno all'arena: allargato col resto dell'isola
+		-- lasciava un anello di roccia nuda. Li' l'erba sta alla quota del pavimento
+		if not hm and (dx * dx + dz * dz) < (150 * k) ^ 2 then
+			hm = 0
+		end
+		return if hm then o.Y + hm * M * SV - 0.3 else nil
+	end
+	local terrain = workspace.Terrain
+	local x0 = math.floor((o.X + g.minX * k) / 4) * 4 - 8
+	local x1 = math.ceil((o.X + (g.minX + nx * g.step) * k) / 4) * 4 + 8
+	local z0 = math.floor((o.Z + g.minZ * k) / 4) * 4 - 8
+	local z1 = math.ceil((o.Z + (g.minZ + nz * g.step) * k) / 4) * 4 + 8
+	-- via il terreno vecchio dell'isola (prima era a gradini di 8 studs, LeafyGrass)
+	terrain:FillRegion(Region3.new(Vector3.new(x0, o.Y - 120, z0), Vector3.new(x1, o.Y + 200, z1)):ExpandToGrid(4), 4, Enum.Material.Air)
+	-- erba vera (Grass: col Decoration del Terrain ha i fili d'erba) con la superficie liscia:
+	-- il voxel in cima e' pieno solo in parte (occupazione = quanto entra sotto la quota)
+	local THICK = 16
+	local CH = 16 -- voxel per lato di ogni blocco scritto
+	local filled = 0
+	for cx = x0, x1 - 1, CH * 4 do
+		for cz = z0, z1 - 1, CH * 4 do
+			local tops: { [number]: number } = {}
+			local ymin, ymax = math.huge, -math.huge
+			for ix = 0, CH - 1 do
+				for iz = 0, CH - 1 do
+					local t = topAt(cx + ix * 4 + 2, cz + iz * 4 + 2)
+					if t then
+						tops[ix * CH + iz] = t
+						ymin = math.min(ymin, t - THICK)
+						ymax = math.max(ymax, t)
+					end
+				end
+			end
+			if ymax < ymin then
+				continue
+			end
+			local yb = math.floor(ymin / 4) * 4
+			local yt = math.ceil(ymax / 4) * 4 + 4
+			local ny = (yt - yb) // 4
+			local mats, occs = {}, {}
+			for ix = 1, CH do
+				local mcol, ocol = {}, {}
+				for iy = 1, ny do
+					local mrow, orow = {}, {}
+					local vb = yb + (iy - 1) * 4
+					for iz = 1, CH do
+						local t = tops[(ix - 1) * CH + iz - 1]
+						local occ = 0
+						if t and vb + 4 > t - THICK then
+							occ = math.clamp((t - vb) / 4, 0, 1)
+							if occ < 0.2 then
+								occ = 0 -- mai voxel sottilissimi (fanno lame sospese)
+							end
+						end
+						mrow[iz] = if occ > 0 then Enum.Material.Grass else Enum.Material.Air
+						orow[iz] = occ
+						if occ > 0 then
+							filled += 1
+						end
+					end
+					mcol[iy] = mrow
+					ocol[iy] = orow
+				end
+				mats[ix], occs[ix] = mcol, ocol
+			end
+			terrain:WriteVoxels(Region3.new(Vector3.new(cx, yb, cz), Vector3.new(cx + CH * 4, yt, cz + CH * 4)), 4, mats, occs)
+			task.wait()
+		end
+	end
+	return filled, topAt
 end
+
+-- Alberi sul prato (gli stessi modelli del bosco della mappa, mapgen/Forest): a macchie lungo il
+-- bordo e fra le colline, lontani dall'arena, dal sentiero e dalla piattaforma d'arrivo
+local function alberi(folder: Instance, origin: CFrame, topAt: (number, number) -> number?): number
+	local templates = Forest.loadTemplates()
+	local all: { Model } = {}
+	for _, list in { templates.cherry, templates.other, templates.pine } do
+		for _, t in list do
+			-- isola verde: niente pini innevati
+			local lower = string.lower(t.Name)
+			if not (string.find(lower, "innev") or string.find(lower, "snow")) then
+				table.insert(all, t)
+			end
+		end
+	end
+	if #all == 0 then
+		return 0
+	end
+	local trees = Instance.new("Folder")
+	trees.Name = "Alberi"
+	local rng = Random.new(1717)
+	local o = origin.Position
+	local reach = 205 * M * SH -- raggio del prato (circa)
+	local inner = (ARENA_IN + WALL_T + 14) * M
+	local arrival = origin:PointToWorldSpace(Vector3.new(0, 0, 160) * M)
+	local placed: { Vector3 } = {}
+	local tries = 0
+	while #placed < IsolaDraghi.TREES and tries < IsolaDraghi.TREES * 30 do
+		tries += 1
+		local a = rng:NextNumber(0, 2 * math.pi)
+		local r = math.sqrt(rng:NextNumber((inner / reach) ^ 2, 1)) * reach
+		local x, z = o.X + math.sin(a) * r, o.Z + math.cos(a) * r
+		-- niente sul sentiero (striscia davanti al portale) ne' sull'arrivo
+		local lx, lz = (x - o.X) / M, (z - o.Z) / M
+		if math.abs(lx) < 22 and lz > 0 then
+			continue
+		end
+		if (Vector3.new(x, arrival.Y, z) - arrival).Magnitude < 30 * M then
+			continue
+		end
+		local top = topAt(x, z)
+		local edge = topAt(x + 40, z) and topAt(x - 40, z) and topAt(x, z + 40) and topAt(x, z - 40)
+		if not top or not edge then
+			continue
+		end
+		local base = Vector3.new(x, top, z)
+		local close = false
+		for _, p in placed do
+			if (p - base).Magnitude < 34 then
+				close = true
+				break
+			end
+		end
+		if close then
+			continue
+		end
+		table.insert(placed, base)
+		local template = all[rng:NextInteger(1, #all)]
+		local height = rng:NextNumber(42, 78)
+		local scale = height / ((template:GetAttribute("TemplateHeight") or 20) :: number)
+		local tree = template:Clone()
+		tree:PivotTo(CFrame.new(base - Vector3.new(0, 0.8, 0)) * CFrame.Angles(0, rng:NextNumber(0, 2 * math.pi), 0))
+		tree:ScaleTo(tree:GetScale() * scale)
+		if #placed % 6 ~= 0 then
+			for _, d in tree:GetDescendants() do
+				if d:IsA("ParticleEmitter") then
+					d:Destroy()
+				end
+			end
+		end
+		Forest.trunkCollider(tree, base, height)
+		pcall(function()
+			(tree :: any).ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+		end)
+		tree.Parent = trees
+	end
+	trees.Parent = folder
+	return #placed
+end
+
 
 function IsolaDraghi.build(): Folder
 	local old = workspace:FindFirstChild("IsolaDraghi")
@@ -312,7 +522,11 @@ function IsolaDraghi.build(): Folder
 			spots[name] = p
 		end
 		folder:SetAttribute("Provvisoria", false)
-		folder:SetAttribute("CelleTerreno", pratoTerreno(template, origin))
+		local cells, topAt = pratoTerreno(template, origin)
+		folder:SetAttribute("CelleTerreno", cells)
+		if topAt then
+			folder:SetAttribute("Alberi", alberi(folder, origin, topAt))
+		end
 	else
 		buildPlaceholder(folder, origin)
 		folder:SetAttribute("Provvisoria", true)

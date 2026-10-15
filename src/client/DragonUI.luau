@@ -17,6 +17,7 @@ local UpgradeConfig = require(Shared:WaitForChild("UpgradeConfig"))
 local Names = require(Shared:WaitForChild("Names"))
 local Ui = require(Shared:WaitForChild("UiView"))
 local Theme = require(script.Parent.Theme)
+local UiGlow = require(script.Parent.UiGlow)
 local player = Players.LocalPlayer
 local DragonUI = {}
 
@@ -228,18 +229,24 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.CellPadding = UDim2.fromOffset(8, 8)
 	layout.Parent = grid
+	-- fondo scuro stile Black Ops 2 (carbone, fumo, brace): prima riquadri blu e verdi pieni
+	gridBox.BackgroundTransparency = 1
+	UiGlow.darkBackground(gridBox, Theme.EMBER, 10)
+	grid.ZIndex = 2
+	local detailBack = Theme.frame(body, Theme.DARK, 1)
+	detailBack.Name = "FondoScheda"
+	Theme.corner(detailBack, 12)
+	UiGlow.darkBackground(detailBack, Theme.EMBER, 22)
 	local detailScroll = Theme.scroll(body)
- detailScroll.Name = "DragonDetails"
- detailScroll.BackgroundColor3 = Theme.PANEL
- detailScroll.BackgroundTransparency = 0
- detailScroll.ScrollBarThickness = 6
- local detail = Theme.frame(detailScroll, Theme.PANEL, 0)
- detail.Size = UDim2.new(1, -8, 0, 490)
+	detailScroll.Name = "DragonDetails"
+	detailScroll.BackgroundTransparency = 1
+	detailScroll.ScrollBarThickness = 6
+	local detail = Theme.frame(detailScroll, Theme.DARK, 1)
+	detail.Size = UDim2.new(1, -8, 0, 490)
 	detailScroll.AnchorPoint = Vector2.new(1, 0)
 	detailScroll.Position = UDim2.fromScale(1, 0)
 	detailScroll.Size = UDim2.new(0.58, 0, 1, 0)
-	Theme.corner(detail, 12)
-	Theme.stroke(detail, Theme.ACCENT, 2, 0.6)
+	detailScroll.ZIndex = 2
 
 	local function arrange()
   local narrow = body.AbsoluteSize.X < 520
@@ -247,6 +254,9 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
   gridBox.Size = if narrow then UDim2.new(1, 0, 0.30, -4) else UDim2.new(0.42, -8, 1, 0)
   detailScroll.Position = if narrow then UDim2.fromScale(1, 0.30) else UDim2.fromScale(1, 0)
   detailScroll.Size = if narrow then UDim2.fromScale(1, 0.70) else UDim2.new(0.58, 0, 1, 0)
+  detailBack.AnchorPoint = detailScroll.AnchorPoint
+  detailBack.Position = detailScroll.Position
+  detailBack.Size = detailScroll.Size
   tabDragons.Size = UDim2.new(0.3, -4, 1, 0)
   tabNest.Position = UDim2.fromScale(0.3, 0)
   tabNest.Size = UDim2.new(0.25, -4, 1, 0)
@@ -317,72 +327,105 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		ovr.Position = UDim2.new(1, -12, 0, 6)
 		ovr.Size = UDim2.new(0, 70, 0, 38)
 		local element = DragonConfig.element(d.element)
-  local tone = Theme.ELEMENT[d.element] or Theme.BLUE
-  local stageBox = Theme.frame(detail, tone, 0)
-  stageBox.Position = UDim2.fromOffset(10, 64)
-  stageBox.Size = UDim2.new(1, -20, 0, 100)
-  Theme.corner(stageBox, 12)
-  Theme.gradient(stageBox, Theme.TEXT, Theme.PANEL:Lerp(Theme.TEXT, 0.5), 90)
-  halo(stageBox, tone)
-  dragonView(stageBox, d, true).Size = UDim2.fromScale(1, 1)
-  local stats = Theme.frame(detail, Theme.CARD, 1)
-  stats.Position = UDim2.fromOffset(10, 172)
-  stats.Size = UDim2.new(1, -20, 0, 150)
-  local rows = {
-   {"Grade", grade, "elem_" .. d.element},
-   {"Power", tostring(math.floor(DragonConfig.attack(d))), "item_UpgradeUncino"},
-   {"Level", string.format("%d / %d", level, DragonConfig.MAX_LEVEL), "icon_quest"},
-   {"Coins/min at home", tostring((EconomyConfig.ROOST_RATE[d.rarity] or 1) * d.stage), "icon_coin"},
-  }
-  if nextStage then
-   table.insert(rows, {"Evolve", if not maxed then string.format("Reach Lv %d", DragonConfig.MAX_LEVEL)
-    else string.format("%d / %d stones", math.min(data.stones or 0, nextStage.stones), nextStage.stones), "ore_Cristallo"})
-  else
-   local attack = UpgradeConfig.RIDE_ELEMENT[d.element]
-   table.insert(rows, {"Ride attack", if attack then attack.text else "—", "elem_" .. d.element})
-  end
-  table.insert(rows, {"Status", if following then "Following" else "Resting", "elem_" .. d.element})
-  for i, r in rows do
-   local cell = Theme.frame(stats, Theme.CARD, 0.4)
-   cell.Position = UDim2.new((i - 1) % 2 * 0.5, if i % 2 == 0 then 4 else 0, 0, math.floor((i - 1) / 2) * 50)
-   cell.Size = UDim2.new(0.5, -4, 0, 46)
-   Theme.corner(cell, 10)
-   local icon = Instance.new("ImageLabel")
-   icon.BackgroundTransparency = 1
-   icon.Position = UDim2.new(1, -24, 0, 24)
-   icon.Size = UDim2.fromOffset(18, 18)
-   icon.Parent = cell
-   Ui.asset(icon, r[3])
-   local key = label(cell, r[1], 12, Theme.MUTED, true)
-   key.Position = UDim2.fromOffset(6, 2)
-   key.Size = UDim2.new(1, -12, 0, 20)
-   local value = label(cell, r[2], 18, if i == 1 then GRADE_COLORS[grade] else Theme.TEXT, true)
-   value.Position = UDim2.fromOffset(6, 22)
-   value.Size = UDim2.new(1, -36, 0, 22)
-  end
-  local ability = Theme.frame(detail, tone, 0)
-  ability.Name = "SpecialAbility"
-  ability.Position = UDim2.fromOffset(10, 326)
-  ability.Size = UDim2.new(1, -20, 0, 92)
-  Theme.corner(ability, 12)
-  local abilityIcon = Instance.new("ImageLabel")
-  abilityIcon.BackgroundTransparency = 1
-  abilityIcon.Position = UDim2.fromOffset(8, 8)
-  abilityIcon.Size = UDim2.fromOffset(32, 32)
-  abilityIcon.Parent = ability
-  Ui.asset(abilityIcon, "elem_" .. d.element)
-  local heading = label(ability, "Special ability", 20, Theme.TEXT, true)
-  heading.Position = UDim2.fromOffset(44, 8)
-  heading.Size = UDim2.new(1, -52, 0, 28)
-  local description = label(ability, if element then element.ability else "—", 18, Theme.TEXT, true)
-  description.Position = UDim2.fromOffset(8, 36)
-  description.Size = UDim2.new(1, -16, 0, 48)
-  Theme.fitText(description, 18, true)
-
+		local tone = Theme.ELEMENT[d.element] or Theme.BLUE
+		-- larghezza vera della scheda in pixel logici (senza la scala della schermata)
+		local gui = detail:FindFirstAncestorWhichIsA("ScreenGui")
+		local su = gui and gui:FindFirstChild("ScalaUI")
+		local scale = if su and su:IsA("UIScale") and su.Scale > 0 then su.Scale else 1
+		local W = math.max(260, detailScroll.AbsoluteSize.X / scale - 8)
+		local wide = W >= 470
+		-- palco QUADRATO (prima una striscia larga e bassa): a sinistra, statistiche a destra;
+		-- sulle schede strette il quadrato sta in mezzo e le statistiche sotto
+		local S = if wide then math.floor(math.min(270, W * 0.46)) else math.floor(math.min(230, W - 20))
+		local stageBox = Theme.frame(detail, Theme.DARK, 0.35)
+		stageBox.Name = "Palco"
+		stageBox.Position = if wide then UDim2.fromOffset(10, 66) else UDim2.new(0.5, -S / 2, 0, 66)
+		stageBox.Size = UDim2.fromOffset(S, S)
+		Theme.corner(stageBox, 14)
+		UiGlow.rays(stageBox, tone, 8, 8)
+		halo(stageBox, tone)
+		local view = dragonView(stageBox, d, true)
+		view.Size = UDim2.fromScale(1, 1)
+		view.ZIndex = 3
+		UiGlow.ring(stageBox, tone, { round = false, speed = 70, thickness = 2, pad = 0 })
+		local rows = {
+			{"Grade", grade, "elem_" .. d.element},
+			{"Power", tostring(math.floor(DragonConfig.attack(d))), "item_UpgradeUncino"},
+			{"Level", string.format("%d / %d", level, DragonConfig.MAX_LEVEL), "icon_quest"},
+			{"Coins/min at home", tostring((EconomyConfig.ROOST_RATE[d.rarity] or 1) * d.stage), "icon_coin"},
+		}
+		if nextStage then
+			table.insert(rows, {"Evolve", if not maxed then string.format("Reach Lv %d", DragonConfig.MAX_LEVEL)
+				else string.format("%d / %d stones", math.min(data.stones or 0, nextStage.stones), nextStage.stones), "ore_Cristallo"})
+		else
+			local attack = UpgradeConfig.RIDE_ELEMENT[d.element]
+			table.insert(rows, {"Ride attack", if attack then attack.text else "—", "elem_" .. d.element})
+		end
+		table.insert(rows, {"Status", if following then "Following" else "Resting", "elem_" .. d.element})
+		-- statistiche: righe semplici (nome a sinistra, valore a destra, una linea sottile sotto),
+		-- niente riquadri dentro riquadri
+		local statsX = if wide then 10 + S + 14 else 10
+		local statsY = if wide then 66 else 66 + S + 10
+		local statsW = if wide then W - S - 34 else W - 20
+		local rowH = if wide then math.floor(S / #rows) else 38
+		local twoCols = not wide and statsW >= 360
+		local perCol = if twoCols then math.ceil(#rows / 2) else #rows
+		local colW = if twoCols then (statsW - 12) / 2 else statsW
+		for i, r in rows do
+			local col = if twoCols and i > perCol then 1 else 0
+			local line = Theme.frame(detail, Theme.DARK, 1)
+			line.Position = UDim2.fromOffset(statsX + col * (colW + 12), statsY + ((i - 1) % perCol) * rowH)
+			line.Size = UDim2.fromOffset(colW, rowH)
+			local sep = Theme.frame(line, Theme.DARK3, 0.2)
+			sep.AnchorPoint = Vector2.new(0, 1)
+			sep.Position = UDim2.fromScale(0, 1)
+			sep.Size = UDim2.new(1, 0, 0, 1)
+			local icon = Instance.new("ImageLabel")
+			icon.BackgroundTransparency = 1
+			icon.AnchorPoint = Vector2.new(0, 0.5)
+			icon.Position = UDim2.new(0, 0, 0.5, 0)
+			icon.Size = UDim2.fromOffset(20, 20)
+			icon.Parent = line
+			Ui.asset(icon, r[3])
+			local key = label(line, r[1], 14, Theme.MUTED, false)
+			key.AnchorPoint = Vector2.new(0, 0.5)
+			key.Position = UDim2.new(0, 26, 0.5, 0)
+			key.Size = UDim2.new(0.5, -26, 0, 22)
+			local value = label(line, r[2], 18, if i == 1 then GRADE_COLORS[grade] else Theme.TEXT, true, Enum.TextXAlignment.Right)
+			value.AnchorPoint = Vector2.new(1, 0.5)
+			value.Position = UDim2.new(1, 0, 0.5, 0)
+			value.Size = UDim2.new(0.5, 0, 0, 24)
+		end
+		local statsBottom = statsY + perCol * rowH
+		local abilityY = math.max(66 + (if wide then S else 0), statsBottom) + 12
+		-- abilita' speciale: fondo scuro con una barra del colore dell'elemento a sinistra (prima
+		-- un riquadro verde pieno)
+		local ability = Theme.frame(detail, Theme.DARK2, 0.25)
+		ability.Name = "SpecialAbility"
+		ability.Position = UDim2.fromOffset(10, abilityY)
+		ability.Size = UDim2.new(1, -20, 0, 84)
+		Theme.corner(ability, 10)
+		local accent = Theme.frame(ability, tone, 0)
+		accent.Size = UDim2.new(0, 5, 1, 0)
+		local abilityIcon = Instance.new("ImageLabel")
+		abilityIcon.BackgroundTransparency = 1
+		abilityIcon.Position = UDim2.fromOffset(16, 10)
+		abilityIcon.Size = UDim2.fromOffset(30, 30)
+		abilityIcon.Parent = ability
+		Ui.asset(abilityIcon, "elem_" .. d.element)
+		local heading = label(ability, "Special ability", 18, tone, true)
+		heading.Position = UDim2.fromOffset(52, 10)
+		heading.Size = UDim2.new(1, -60, 0, 28)
+		local description = label(ability, if element then element.ability else "—", 17, Theme.TEXT, false)
+		description.Position = UDim2.fromOffset(16, 42)
+		description.Size = UDim2.new(1, -28, 0, 36)
+		Theme.fitText(description, 17, true)
+		local rowY = abilityY + 84 + 12 + 52
+		detail.Size = UDim2.new(1, -8, 0, rowY + 10)
 		-- pulsanti grandi in fondo
 		local row = Theme.frame(detail, Color3.new(), 1)
 		row.AnchorPoint = Vector2.new(0, 1)
-		row.Position = UDim2.new(0, 10, 0, 482)
+		row.Position = UDim2.new(0, 10, 0, rowY)
 		row.Size = UDim2.new(1, -20, 0, 52)
 		local follow = bigButton(row, if following then "Rest" else "Follow", if following then Theme.DISABLED else Theme.GOOD)
 		follow.Activated:Connect(function()
@@ -436,11 +479,26 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		tile.Text = ""
 		tile.AutoButtonColor = true
 		tile.LayoutOrder = (if following then 0 else 1000) + index
-		tile.BackgroundColor3 = colors[1]
+		-- tessera scura con un bagliore del colore della rarita' dal basso (prima arancio/blu pieno)
+		tile.BackgroundColor3 = Theme.DARK2
+		tile.BackgroundTransparency = 0.15
 		tile.Parent = grid
 		Theme.corner(tile, 12)
-		Theme.gradient(tile, colors[1], colors[2], 90)
+		Theme.gradient(tile, Color3.fromRGB(255, 255, 255), Color3.fromRGB(140, 135, 145), 90)
 		tile.ClipsDescendants = true
+		local glow = Theme.frame(tile, colors[1], 0)
+		glow.Name = "Bagliore"
+		glow.AnchorPoint = Vector2.new(0.5, 1)
+		glow.Position = UDim2.fromScale(0.5, 1)
+		glow.Size = UDim2.fromScale(1, 0.6)
+		local gg = Instance.new("UIGradient")
+		gg.Rotation = 90
+		gg.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0.45) })
+		gg.Parent = glow
+		local strip = Theme.frame(tile, colors[1], 0)
+		strip.AnchorPoint = Vector2.new(0, 1)
+		strip.Position = UDim2.fromScale(0, 1)
+		strip.Size = UDim2.new(1, 0, 0, 3)
   local abilityIcon = Instance.new("ImageLabel")
   abilityIcon.Name = "AbilityIcon"
   abilityIcon.BackgroundTransparency = 1
@@ -450,15 +508,17 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
   abilityIcon.Parent = tile
   Ui.asset(abilityIcon, "elem_" .. d.element)
   local isSel = selected == d.id
-		-- scelto: bordo dorato (prima bianco e invadente)
-		Theme.stroke(tile, if isSel then Theme.ACCENT elseif following then Theme.GOOD else colors[1]:Lerp(Color3.new(0, 0, 0), 0.3), if isSel then 3 else 2, 0)
+		-- scelto: anello luminoso che gira (niente bordi fissi attorno a ogni tessera)
+		if isSel then
+			UiGlow.ring(tile, Theme.ACCENT, { round = false, speed = 140, thickness = 3, pad = -2 })
+		end
 		local vf = dragonView(tile, d, false)
 		vf.Position = UDim2.fromScale(0.03, 0.04)
 		vf.Size = UDim2.fromScale(0.94, 0.74)
 		local lv = label(tile, "Lv " .. tostring(d.level or 1), 15, Color3.new(1, 1, 1), true, Enum.TextXAlignment.Left)
 		lv.Position = UDim2.new(0, 6, 1, -24)
 		lv.Size = UDim2.new(0.6, 0, 0, 20)
-		local stageTag = label(tile, ({ "Baby", "Young", "Adult" })[math.clamp(d.stage or 1, 1, 3)], 13, Theme.PINK, true, Enum.TextXAlignment.Right)
+		local stageTag = label(tile, ({ "Baby", "Young", "Adult" })[math.clamp(d.stage or 1, 1, 3)], 13, colors[1], true, Enum.TextXAlignment.Right)
 		stageTag.Position = UDim2.new(0.4, -6, 1, -24)
 		stageTag.Size = UDim2.new(0.6, 0, 0, 20)
 		if following then
@@ -467,13 +527,10 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			tick.Size = UDim2.fromOffset(26, 24)
 		end
 		if d.shiny then
-   local border = tile:FindFirstChildOfClass("UIStroke")
-   if border then
-    local rainbow = Instance.new("UIGradient")
-    rainbow.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.PINK), ColorSequenceKeypoint.new(0.33, Theme.ACCENT), ColorSequenceKeypoint.new(0.66, Theme.TEAL), ColorSequenceKeypoint.new(1, Theme.PURPLE)})
-    rainbow.Parent = border
-   end
-   local sh = label(tile, "✦", 18, Theme.ACCENT, true)
+			local rainbow = Instance.new("UIGradient")
+			rainbow.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.PINK), ColorSequenceKeypoint.new(0.33, Theme.ACCENT), ColorSequenceKeypoint.new(0.66, Theme.TEAL), ColorSequenceKeypoint.new(1, Theme.PURPLE)})
+			rainbow.Parent = strip
+			local sh = label(tile, "✦", 18, Theme.ACCENT, true)
 			sh.Position = UDim2.fromOffset(6, 2)
 			sh.Size = UDim2.fromOffset(24, 24)
 		end
@@ -487,10 +544,18 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	-- una tessera del nido (uovo, tempo, Hatch)
 	local function eggTile(egg: any, index: number)
 		local colors = RARITY_COLORS[egg.rarity] or RARITY_COLORS.Comune
-		local tile = Theme.frame(grid, colors[1], 0)
+		local tile = Theme.frame(grid, Theme.DARK2, 0.15)
 		tile.LayoutOrder = index
 		Theme.corner(tile, 12)
-		Theme.gradient(tile, colors[1], colors[2], 90)
+		local glow = Theme.frame(tile, colors[1], 0)
+		glow.AnchorPoint = Vector2.new(0.5, 0)
+		glow.Position = UDim2.fromScale(0.5, 0)
+		glow.Size = UDim2.fromScale(1, 0.45)
+		local gg = Instance.new("UIGradient")
+		gg.Rotation = 90
+		gg.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 1) })
+		gg.Parent = glow
+		UiGlow.rays(glow, colors[1], 6, 12).Position = UDim2.fromScale(0.5, 0.6)
 		local vf = Theme.viewport(tile, preview("Eggs", egg.element), UDim2.fromScale(0.8, 0.28), true)
 		vf.Position = UDim2.fromScale(0.1, 0.04)
 		local name = label(tile, Names.t(egg.element) .. " egg", 15, Color3.new(1, 1, 1), true, Enum.TextXAlignment.Center)

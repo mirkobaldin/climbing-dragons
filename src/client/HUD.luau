@@ -119,6 +119,12 @@ local function toolBar(gui: ScreenGui)
 		bar.Size = UDim2.fromOffset(math.min(4 * 92 - 6, logical.X - 24), 84)
 	end)
 	gui:SetAttribute("CustomToolBar", true)
+	-- in groppa o nella forma di drago gli attrezzi non si usano: barra nascosta
+	local function ridingBar()
+		bar.Visible = player:GetAttribute("Riding") ~= true
+	end
+	player:GetAttributeChangedSignal("Riding"):Connect(ridingBar)
+	ridingBar()
 end
 
 function HUD.start()

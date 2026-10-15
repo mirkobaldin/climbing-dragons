@@ -56,6 +56,9 @@ local CATEGORY_WORDS = {
 	pine = { "pine", "pino", "fir", "abete", "spruce", "conifer" },
 }
 local TREE_WORDS = { "tree", "albero", "sakura", "cherry", "pine", "pino", "oak", "quercia", "abete" }
+-- nomi che contengono una parola da albero ma non lo sono ("Rampino" contiene "pino": il rampino
+-- finiva piantato fra gli alberi)
+local NOT_TREE_WORDS = { "rampino", "grappl", "hook", "uncino" }
 
 local function hasWord(name: string, words: { string }): boolean
 	local lower = string.lower(name)
@@ -96,7 +99,7 @@ local function loadTemplates(): Templates
 	local t: Templates = { cherry = {}, pine = {}, other = {} }
 	local function scan(parent: Instance)
 		for _, child in parent:GetChildren() do
-			if child:IsA("Model") and hasWord(child.Name, TREE_WORDS) and child:FindFirstChildWhichIsA("BasePart", true) then
+			if child:IsA("Model") and hasWord(child.Name, TREE_WORDS) and not hasWord(child.Name, NOT_TREE_WORDS) and child:FindFirstChildWhichIsA("BasePart", true) then
 				local kind = if hasWord(child.Name, CATEGORY_WORDS.cherry)
 					then "cherry"
 					elseif hasWord(child.Name, CATEGORY_WORDS.pine) then "pine"
@@ -270,5 +273,10 @@ function Forest.plant(map: Heightmap.Map, yield: () -> (), progress: (string, nu
 		progress("Bosco", (x - x0) / (x1 - x0))
 	end
 end
+
+
+-- anche per altri generatori (mapgen/IsolaDraghi: alberi sull'isola)
+Forest.loadTemplates = loadTemplates
+Forest.trunkCollider = trunkCollider
 
 return Forest

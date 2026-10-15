@@ -6,6 +6,8 @@ Quando il branch e' unito in `main`, togli la riga.
 
 | Chi | Branch | Compito | File toccati |
 |---|---|---|---|
+| Codex | codex/uova-sfondi-20261015 | IN CORSO (15/10): otto uova per Meshy e quattro immagini menu scuri, come docs/CODEX_UOVA_E_SFONDI.md | artifacts/uova-20261015/**, artifacts/ui-scuro-20261015/**; src/shared/UiAssets.luau solo quattro chiavi nuove (riservate dal prompt); nessun controller o arena |
+| Claude | main | (15/10 giro 5) UI senza cornici e fondi scuri BO2, zaino trascinabile, Isola dei Draghi piu' grande con erba vera e alberi, forma di drago nell'arena, uova di elementi tolti | src/client/{MainMenu,DragonUI,Theme,UiGlow,HUD,Combat,DragonRide,PetAnimator,TeleportMenu}, src/shared/{UiView,DragonConfig}, src/server/{Riding,Shop,Progression,Eggs,Dragons}, src/mapgen/{IsolaDraghi,Forest}, gusti/** |
 | Claude | main | (15/10) UI v3 unita e ID caricati (bg_menu di nuovo visibile), Isola dei Draghi e 18 modelli del cloud in ServerStorage.CaseCodex, isola montata col Terrain sotto il prato, draghi: IK morbida, posto accanto senza giri, correzioni delle zampe ammorbidite | src/client/{PetAnimator,DragonProcedural,MainMenu}, src/mapgen/IsolaDraghi, tools/modelli/** |
 | Claude (cloud) | cloud/modelli-20261014 | UNITO E CARICATO (15/10): isola e 18 modelli in ServerStorage.CaseCodex. Prossimo: pezzi Meshy (teste del portale, statue, corna, fossili) | solo cloud/** e tools/blender/**; nessun file src |
 | Claude | main | bug draghi (terreno, monta, colpo in volo), attacchi per elemento, VFX, animazioni, UI telefono e colori, contatore | src/** |

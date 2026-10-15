@@ -590,7 +590,8 @@ function PetAnimator.start()
 			local anchored = owner == Players.LocalPlayer and ClientState.petAnchor ~= nil
 			-- nell'arena entra solo il drago del posto 1 (quello che si addestra): col gamepass
 			-- ExtraDragon il secondo prima volava nello stesso punto e si incastravano
-			local benched = anchored and pet.slot ~= 1
+			-- (anche nella forma di drago: sei il drago del posto 1, gli altri coprivano la visuale)
+			local benched = (anchored or (owner :: Player):GetAttribute("DragonForm") == true) and pet.slot ~= 1
 			if benched ~= (model:GetAttribute("Benched") == true) then
 				model:SetAttribute("Benched", benched)
 				for _, d in model:GetDescendants() do
@@ -740,18 +741,32 @@ function PetAnimator.start()
 				local hips = r.Position - Vector3.new(0, 1.4, 0)
 				-- si inclina nelle virate e punta il muso su o giu' quando sale e scende; il perno
 				-- e' il posto di chi monta, cosi' il giocatore resta attaccato al collo
-				local roll = math.clamp(pet.turn * 0.35, -0.6, 0.6)
-				local nose = math.clamp(vel.Y * 0.008, -0.4, 0.35)
+				-- forma di drago (server/Riding, isola dei draghi): a terra il drago cammina, in aria
+				-- vola. A terra = la pancia del drago a pochi studs dal suolo sotto di lui
+				local form = owner:GetAttribute("DragonForm") == true
+				local airWant = 1
+				if form then
+					local bcf, bsize = model:GetBoundingBox()
+					local params = RaycastParams.new()
+					params.FilterType = Enum.RaycastFilterType.Exclude
+					params.FilterDescendantsInstances = { model, owner.Character :: Instance }
+					local hit = workspace:Raycast(bcf.Position, Vector3.new(0, -(bsize.Y / 2 + 10), 0), params)
+					airWant = if hit and (bcf.Position.Y - bsize.Y / 2 - hit.Position.Y) < 4 then 0 else 1
+				end
+				pet.airBlend += (airWant - pet.airBlend) * math.min(1, dt * 5)
+				local roll = math.clamp(pet.turn * 0.35, -0.6, 0.6) * pet.airBlend
+				local nose = math.clamp(vel.Y * 0.008, -0.4, 0.35) * pet.airBlend
 				-- la sella si sposta col petto (DragonProcedural): il drago si muove sotto chi monta
 				local shift = (pet.fix :: CFrame):VectorToWorldSpace(DragonProcedural.seatShift(model))
 				if shift ~= shift then
 					shift = Vector3.zero -- mai un NaN nella posizione del drago
 				end
 				cf = CFrame.lookAt(hips, hips + face.Unit) * CFrame.Angles(nose, 0, roll) * CFrame.new(-((pet.seat :: Vector3) + shift))
-				pet.airBlend = 1
 				pitch = 0
 				bank = 0
-				if not pet.wasRidden then
+				if not pet.wasRidden and form then
+					pet.wasRidden = true -- forma di drago: si parte a terra, niente decollo
+				elseif not pet.wasRidden then
 					pet.wasRidden = true
 					DragonProcedural.impulse(model, "decollo")
 					local tr = (actsOf[model] or {}).Takeoff

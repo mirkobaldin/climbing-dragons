@@ -37,6 +37,27 @@ local sitTrack: AnimationTrack? = nil
 local riding = false
 local faceYaw: number? = nil -- direzione del drago in groppa, girata piano verso quella voluta
 local TURN_RATE = 4 -- quanto in fretta segue la direzione voluta (1/s)
+-- forma di drago (server/Riding, arena dell'Isola dei Draghi): sei il drago. A terra cammina
+-- (Shift corre), Spazio decolla, vicino al suolo senza Spazio atterra
+local WALK, RUN = 30, 58
+local formAir = false
+local savedZoom: number? = nil
+
+local function form(): boolean
+	return player:GetAttribute("DragonForm") == true
+end
+
+-- il tuo drago al seguito (posto 1)
+local function leadDragon(): Model?
+	local pets = workspace:FindFirstChild("Pets")
+	local mine = pets and pets:FindFirstChild(tostring(player.UserId))
+	for _, m in (if mine then mine:GetChildren() else {}) :: { Instance } do
+		if m:IsA("Model") and (m:GetAttribute("Slot") or 1) == 1 then
+			return m
+		end
+	end
+	return nil
+end
 
 local function remote(): RemoteEvent?
 	return ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("DragonRide") :: RemoteEvent?
@@ -62,6 +83,11 @@ local function cleanup()
 	riding = false
 	ClientState.riding = false
 	ClientState.noFallUntil = os.clock() + 2
+	formAir = false
+	if savedZoom then
+		player.CameraMinZoomDistance = savedZoom
+		savedZoom = nil
+	end
 	pcall(function()
 		game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, true)
 	end)
@@ -92,8 +118,14 @@ local function mount()
 	lv.Attachment0 = a
 	lv.MaxForce = 1e6
 	lv.RelativeTo = Enum.ActuatorRelativeTo.World
-	lv.VectorVelocity = Vector3.new(0, 25, 0) -- decollo
+	lv.VectorVelocity = if form() then Vector3.zero else Vector3.new(0, 25, 0) -- decollo
 	lv.Parent = root
+	formAir = false
+	if form() then
+		-- sei il drago: camera piu' lontana, alle spalle del drago e non del collo
+		savedZoom = player.CameraMinZoomDistance
+		player.CameraMinZoomDistance = 34
+	end
 	mover = lv
 	local ao = Instance.new("AlignOrientation")
 	ao.Mode = Enum.OrientationAlignmentMode.OneAttachment
@@ -105,7 +137,7 @@ local function mount()
 	ao.Parent = root
 	turner = ao
 	local animator = humanoid:FindFirstChildOfClass("Animator")
-	if animator then
+	if animator and not form() then
 		local anim = Instance.new("Animation")
 		anim.AnimationId = SIT_ANIM
 		local ok, tr = pcall(function()
@@ -235,28 +267,30 @@ function DragonRide.start()
 	btn.AnchorPoint = Vector2.new(1, 1)
 	btn.Size = UDim2.fromOffset(84, 40)
 	btn.Position = if UserInputService.TouchEnabled then UDim2.new(1, -24, 0.5, 0) else UDim2.new(1, -24, 1, -120)
-	btn.BackgroundColor3 = Color3.fromRGB(24, 30, 46)
-	btn.BackgroundTransparency = 0.1
+	-- pillola arancio piena, senza la cornice dorata attorno (Mirko: "cornici inutili")
+	btn.BackgroundColor3 = Color3.fromRGB(255, 138, 42)
+	btn.BackgroundTransparency = 0
 	btn.Font = Enum.Font.GothamBlack
 	btn.TextSize = 16
-	btn.TextColor3 = Color3.fromRGB(255, 214, 120)
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.TextStrokeColor3 = Color3.fromRGB(11, 22, 51)
+	btn.TextStrokeTransparency = 0.2
 	btn.Text = "Ride"
 	btn.Visible = false
 	btn.Parent = gui
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 12)
+	corner.CornerRadius = UDim.new(0.5, 0)
 	corner.Parent = btn
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(255, 196, 80)
-	stroke.Thickness = 2
-	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- sul bordo, non sulle lettere (sembravano sfocate)
-	stroke.Parent = btn
+	local shine = Instance.new("UIGradient")
+	shine.Rotation = 90
+	shine.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(200, 170, 150))
+	shine.Parent = btn
 	btn.Activated:Connect(toggle)
 	-- sul telefono: pulsante del colpo (sopra quello per scendere)
 	local fire = btn:Clone()
 	fire.Name = "Fire"
 	fire.Text = "Fire"
-	fire.TextColor3 = Color3.fromRGB(255, 160, 110)
+	fire.BackgroundColor3 = Color3.fromRGB(255, 77, 94)
 	fire.Position = btn.Position - UDim2.fromOffset(0, 52)
 	fire.Visible = false
 	fire.Parent = gui
@@ -352,8 +386,8 @@ function DragonRide.start()
 			-- sul telefono Ride e Fire stanno nell'arco dei comandi (MobileControls): qui prima
 			-- finivano a meta' schermo a destra, sotto il riquadro del meteo
 			local touch = Ui.touch()
-			btn.Visible = can and not touch
-			btn.Text = if player:GetAttribute("Riding") then "Land (H)" else "Ride (H)"
+			btn.Visible = (can or form()) and not touch
+			btn.Text = if form() then "Leave (H)" elseif player:GetAttribute("Riding") then "Land (H)" else "Ride (H)"
 			fire.Visible = false
 		end
 		if not riding or not mover then
@@ -400,7 +434,48 @@ function DragonRide.start()
 			want = Vector3.new(0, math.sin(os.clock() * 2) * 1.5, 0) -- in volo fermo: ondeggia appena
 		end
 		local lv = mover :: LinearVelocity
-		lv.VectorVelocity = lv.VectorVelocity:Lerp(want, math.min(1, dt * 3))
+		if form() then
+			-- quanto manca fra la pancia del drago e il suolo sotto di lui
+			local dragon = leadDragon()
+			local gap: number? = nil
+			if dragon then
+				local bcf, bsize = dragon:GetBoundingBox()
+				local params = RaycastParams.new()
+				params.FilterType = Enum.RaycastFilterType.Exclude
+				params.FilterDescendantsInstances = { dragon, character :: Instance }
+				local hit = workspace:Raycast(bcf.Position, Vector3.new(0, -600, 0), params)
+				if hit then
+					gap = (bcf.Position.Y - bsize.Y / 2) - hit.Position.Y
+				end
+			end
+			local jump = UserInputService:IsKeyDown(Enum.KeyCode.Space) or humanoid.Jump
+			if not formAir then
+				if jump then
+					formAir = true -- decollo
+					Sfx.play("Ruggito", root.Position, 0.6)
+				else
+					-- a terra: passo o corsa nella direzione dei comandi, e il drago resta coi piedi
+					-- sul suolo (sale e scende col terreno)
+					local walk = if move.Magnitude > 0.05 then move.Unit * (if fast then RUN else WALK) * math.min(1, move.Magnitude) else Vector3.zero
+					local vy = if gap then math.clamp(-gap * 8, -80, 45) else -60
+					local flatV = Vector3.new(lv.VectorVelocity.X, 0, lv.VectorVelocity.Z):Lerp(walk, math.min(1, dt * 6))
+					lv.VectorVelocity = Vector3.new(flatV.X, vy, flatV.Z)
+					want = walk
+				end
+			end
+			if formAir then
+				if jump then
+					want = Vector3.new(want.X, math.max(want.Y, CLIMB), want.Z)
+				end
+				-- vicino al suolo senza Spazio: atterra
+				if gap and gap < 3 and not jump and want.Y <= 1 then
+					formAir = false
+				end
+				lv.VectorVelocity = lv.VectorVelocity:Lerp(want, math.min(1, dt * 3))
+			end
+		else
+			lv.VectorVelocity = lv.VectorVelocity:Lerp(want, math.min(1, dt * 3))
+		end
 		local face = if want.Magnitude > 5 then Vector3.new(want.X, 0, want.Z) else flat
 		if face.Magnitude > 0.1 and turner then
 			-- virata morbida: l'angolo si avvicina a quello voluto senza oscillare

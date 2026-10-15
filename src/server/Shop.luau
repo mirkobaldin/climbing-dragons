@@ -37,8 +37,13 @@ local function roll(odds: { [string]: number }): string
 end
 
 local function randomElement(): string
-	local list = DragonConfig.ELEMENTS
-	return list[rng:NextInteger(1, #list)].id
+	local list = {}
+	for _, e in DragonConfig.ELEMENTS do
+		if not DragonConfig.RETIRED[e.id] then
+			table.insert(list, e.id)
+		end
+	end
+	return list[rng:NextInteger(1, #list)]
 end
 
 local function buy(player: Player, id: string): (boolean, string)
@@ -97,6 +102,24 @@ local function handle(player: Player, action: any, id: any, amount: any): (boole
 		return buy(player, id)
 	elseif action == "sellOre" and type(id) == "string" then
 		return sellOre(player, id, amount)
+	elseif action == "discard" and type(id) == "string" then
+		-- butta via minerali o materiali dallo zaino (client/MainMenu, pulsanti Drop 1 / Drop all)
+		local kind, name = string.match(id, "^(%a+):(.+)$")
+		local folder = player:FindFirstChild(if kind == "ore" then "Ores" elseif kind == "mat" then "Materiali" else "")
+		local v = folder and name and folder:FindFirstChild(name)
+		if not v or not v:IsA("IntValue") or v.Value <= 0 then
+			return false, "You don't have any"
+		end
+		local n = if amount == "all" then v.Value else math.clamp(math.floor(tonumber(amount) or 1), 1, v.Value)
+		v.Value -= n
+		if kind == "ore" then
+			local stats = player:FindFirstChild("leaderstats")
+			local total = stats and stats:FindFirstChild("Ores") :: IntValue?
+			if total then
+				total.Value = math.max(0, total.Value - n)
+			end
+		end
+		return true, string.format("Dropped %d %s", n, Names.t(name :: string))
 	elseif action == "sellEgg" then
 		local _, rarity = Eggs.takeCarried(player)
 		if not rarity then

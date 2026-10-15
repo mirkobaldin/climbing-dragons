@@ -94,6 +94,7 @@ local function save(player: Player)
 		economy = Economy.serialize(player),
 		tutorial = player:GetAttribute("TutorialStep"),
 		controls = player:GetAttribute("ControlsLayout"), -- tasti del telefono spostati (client/ControlsEditor)
+		bag = player:GetAttribute("BagOrder"), -- ordine delle caselle dello zaino (client/MainMenu)
 		missions = player:GetAttribute("MissionStep"),
 		upgrades = Upgrades.serialize(player), -- potenziamenti, statistiche, taglie, rinascite
 		materials = (function() -- materiali raccolti (drop dei nemici)
@@ -172,6 +173,9 @@ local function load(player: Player)
 			tutorial = data.tutorial
 			if type(data.controls) == "string" and #data.controls < 2000 then
 				player:SetAttribute("ControlsLayout", data.controls)
+			end
+			if type(data.bag) == "string" and #data.bag < 4000 then
+				player:SetAttribute("BagOrder", data.bag)
 			end
 			missions = data.missions
 			upgradeData = data.upgrades
@@ -381,6 +385,18 @@ function Progression.setup(remotes: { [string]: RemoteEvent })
 			return game:GetService("HttpService"):JSONDecode(layout)
 		end) then
 			player:SetAttribute("ControlsLayout", layout)
+		end
+	end)
+
+	-- ordine delle caselle dello zaino (trascinate dal giocatore): lista JSON di chiavi corte
+	local saveBag = Instance.new("RemoteEvent")
+	saveBag.Name = "SaveBagOrder"
+	saveBag.Parent = ReplicatedStorage:WaitForChild("Remotes")
+	saveBag.OnServerEvent:Connect(function(player, order)
+		if type(order) == "string" and #order < 4000 and pcall(function()
+			return game:GetService("HttpService"):JSONDecode(order)
+		end) then
+			player:SetAttribute("BagOrder", order)
 		end
 	end)
 

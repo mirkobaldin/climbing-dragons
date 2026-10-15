@@ -15,6 +15,7 @@ local Theme = require(script.Parent.Theme)
 local CraftingUI = require(script.Parent.CraftingUI)
 local DragonUI = require(script.Parent.DragonUI)
 local UpgradeUI = require(script.Parent.UpgradeUI)
+local UiGlow = require(script.Parent.UiGlow)
 local player = Players.LocalPlayer
 local remotes = RS:WaitForChild("Remotes")
 local MainMenu = {}
@@ -90,22 +91,6 @@ local CARD_TONES = {
 	Theme.GOOD, Theme.BAD, Theme.TEAL,
 }
 
--- riquadro a tessere dentro una lista (zaino): griglia a celle fisse, alta quanto serve
-local function tiles(parent: Instance, order: number): Frame
-	local f = Instance.new("Frame")
-	f.Name = "Tessere"
-	f.BackgroundTransparency = 1
-	f.Size = UDim2.new(1, -12, 0, 0)
-	f.AutomaticSize = Enum.AutomaticSize.Y
-	f.LayoutOrder = order
-	local g = Instance.new("UIGridLayout")
-	g.CellSize = UDim2.fromOffset(136, 148)
-	g.CellPadding = UDim2.fromOffset(10, 10)
-	g.SortOrder = Enum.SortOrder.LayoutOrder
-	g.Parent = f
-	f.Parent = parent
-	return f
-end
 local function mountShop(container: Frame, status: (string, boolean) -> ()): () -> ()
 	local list = Ui.node(container, "List")
 	cards(list, 220, 330)
@@ -214,72 +199,356 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 	end
 	return render
 end
-local function mountInventory(container: Frame): () -> ()
-	local list = Ui.node(container, "List")
+-- Zaino: caselle in griglia come un vero inventario (Mirko 15/10: "solo immagini fisse, non puoi
+-- spostare item, rimuoverli ne' niente"). Trascini una casella su un'altra per spostarla (sul
+-- telefono tieni premuto un attimo), clic per sceglierla: sotto compare la scheda con nome,
+-- descrizione e i pulsanti Drop 1 / Drop all. L'ordine si salva (attributo BagOrder, Progression).
+-- Il riquadro di testo in cima (monete, casa, pitons...) e' sparito: era tutto nell'HUD.
+local function mountInventory(container: Frame, status: (string, boolean) -> ()): () -> ()
+	local UIS = game:GetService("UserInputService")
+	local HttpService = game:GetService("HttpService")
+	local GuiService = game:GetService("GuiService")
+	local list = Ui.node(container, "List") :: ScrollingFrame
 	rows(list)
-	return function()
-		Ui.clear(list)
-		local summary = Ui.template("TextCard", list)
-		summary.LayoutOrder = 0
-		local grid = tiles(list, 1)
-		local house = EconomyConfig.HOUSES[(player:GetAttribute("HouseLevel") or 0) :: number]
-		summary.Text.Text = string.format(
-			"%d coins\nHouse: %s\nDragons at home: %d coins/min\nPitons: %d · Warmth: %d%%",
-			player:GetAttribute("Coins") or 0,
-			if house then Names.t(house.name) else "none (buy the Tent on your plot)",
-			player:GetAttribute("RoostRate") or 0,
-			player:GetAttribute("Pitons") or 0,
-			math.floor((player:GetAttribute("Warmth") or 100) :: number)
-		)
-		local order = 0
-		local function item(title: string, count: string, asset: string, model: Instance?, id: string?): any
-			order += 1
-			local c = Ui.template("InventoryCard", grid)
-			c.LayoutOrder = order
-			c.Title.Text, c.Count.Text = title, count
-			if asset == "" and Theme.ITEM_ICONS[id or ""] then
-				Theme.itemIcon(c.Icon, id :: string, model)
-			else
-				Theme.assetPreview(c.Icon, asset, model)
+	local old = list:FindFirstChildOfClass("UIListLayout")
+	if old then
+		old:Destroy()
+	end
+	local grid = Instance.new("UIGridLayout")
+	grid.CellSize = UDim2.fromOffset(112, 124)
+	grid.CellPadding = UDim2.fromOffset(10, 10)
+	grid.SortOrder = Enum.SortOrder.LayoutOrder
+	grid.Parent = list
+	list.Position = UDim2.fromOffset(0, 0)
+	list.Size = UDim2.new(1, 0, 1, -122)
+	-- scheda dell'oggetto scelto, in fondo
+	local info = Theme.frame(container, Theme.DARK2, 0.2)
+	info.Name = "SchedaOggetto"
+	info.AnchorPoint = Vector2.new(0, 1)
+	info.Position = UDim2.fromScale(0, 1)
+	info.Size = UDim2.new(1, 0, 0, 110)
+	Theme.corner(info, 12)
+	local infoIcon = Instance.new("ImageLabel")
+	infoIcon.BackgroundTransparency = 1
+	infoIcon.Position = UDim2.fromOffset(14, 13)
+	infoIcon.Size = UDim2.fromOffset(84, 84)
+	infoIcon.Parent = info
+	local infoTitle = Theme.label(info, "", 22, Theme.TEXT, true)
+	infoTitle.Position = UDim2.fromOffset(112, 14)
+	infoTitle.Size = UDim2.new(1, -112 - 300, 0, 30)
+	local infoText = Theme.label(info, "", 16, Theme.MUTED, false)
+	infoText.Position = UDim2.fromOffset(112, 46)
+	infoText.Size = UDim2.new(1, -112 - 300, 0, 50)
+	infoText.TextYAlignment = Enum.TextYAlignment.Top
+	Theme.fitText(infoText, 16, true)
+	local dropOne = Theme.button(info, "Drop 1", Theme.BAD, UDim2.fromOffset(130, 52))
+	dropOne.AnchorPoint = Vector2.new(1, 0.5)
+	dropOne.Position = UDim2.new(1, -152, 0.5, 0)
+	local dropAll = Theme.button(info, "Drop all", Theme.BAD, UDim2.fromOffset(130, 52))
+	dropAll.AnchorPoint = Vector2.new(1, 0.5)
+	dropAll.Position = UDim2.new(1, -12, 0.5, 0)
+	for _, b in { dropOne, dropAll } do
+		b:SetAttribute("UiNative", true)
+		Theme.action(b, "sell")
+	end
+
+	type Item = { key: string, title: string, count: number, asset: string, model: Instance?, id: string?, text: string, drop: string? }
+	local selectedKey: string? = nil
+	local confirmAll = false
+	local items: { Item } = {}
+	local render: () -> ()
+
+	local function savedOrder(): { string }
+		local raw = player:GetAttribute("BagOrder")
+		if type(raw) == "string" then
+			local ok, t = pcall(HttpService.JSONDecode, HttpService, raw)
+			if ok and type(t) == "table" then
+				return t
 			end
-			return c
 		end
+		return {}
+	end
+	local function collect(): { Item }
+		local out: { Item } = {}
 		for _, ore in ORES do
-			item(Names.t(ore), "x" .. oreCount(ore), "ore_" .. ore, Theme.oreModel(ore))
+			local n = oreCount(ore)
+			if n > 0 then
+				table.insert(out, { key = "ore:" .. ore, title = Names.t(ore), count = n, asset = "ore_" .. ore, model = Theme.oreModel(ore),
+					text = string.format("Ore. Sell it at the shop (%d coins each) or use it at the workbench.", EconomyConfig.ORE_PRICES[ore] or 1), drop = ore })
+			end
 		end
 		local mats = player:FindFirstChild("Materiali")
 		local icons = RS:FindFirstChild("DropIcone")
 		local names = icons and icons:FindFirstChild("Nomi")
-		local drops = if mats then mats:GetChildren() else {}
-		table.sort(drops, function(a, b)
-			return a.Name < b.Name
-		end)
-		for _, v in drops do
+		for _, v in (if mats then mats:GetChildren() else {}) do
 			if v:IsA("IntValue") and v.Value > 0 then
 				local shown = names and names:GetAttribute(v.Name)
-				item(
-					if type(shown) == "string" then shown else Names.t(v.Name),
-					"x" .. v.Value,
-					"",
-					icons and icons:FindFirstChild(v.Name)
-				)
+				table.insert(out, { key = "mat:" .. v.Name, title = if type(shown) == "string" then shown else Names.t(v.Name), count = v.Value,
+					asset = "", model = icons and icons:FindFirstChild(v.Name), text = "Dropped by monsters. Used to craft gear.", drop = v.Name })
 			end
 		end
 		for _, recipe in Gear.RECIPES do
-			local owned = Gear.has(player, recipe.id)
-			local c = item(
-				recipe.name,
-				if owned then "Owned" else "",
-				"",
-				Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT),
-				recipe.id
-			)
-			-- attrezzi che non hai ancora: sbiaditi (si fanno al banco, scheda Crafting)
-			c.Count.TextColor3 = Theme.GOOD
-			c.Icon.ImageTransparency = if owned then 0 else 0.6
-			c.Title.TextTransparency = if owned then 0 else 0.4
+			if Gear.has(player, recipe.id) then
+				table.insert(out, { key = "gear:" .. recipe.id, title = recipe.name, count = 1, asset = "", id = recipe.id,
+					model = Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT), text = recipe.description })
+			end
+		end
+		-- ordine scelto dal giocatore, i nuovi in fondo
+		local rank: { [string]: number } = {}
+		for i, k in savedOrder() do
+			rank[k] = i
+		end
+		local base: { [string]: number } = {}
+		for i, it in out do
+			base[it.key] = i
+		end
+		table.sort(out, function(a, b)
+			return (rank[a.key] or (10000 + base[a.key])) < (rank[b.key] or (10000 + base[b.key]))
+		end)
+		return out
+	end
+	local function saveOrder(keys: { string })
+		-- le chiavi che ora non si vedono (finite, poi tornano) restano dopo, nel loro ordine
+		local seen: { [string]: boolean } = {}
+		for _, k in keys do
+			seen[k] = true
+		end
+		for _, k in savedOrder() do
+			if not seen[k] and #keys < 120 then
+				table.insert(keys, k)
+				seen[k] = true
+			end
+		end
+		local json = HttpService:JSONEncode(keys)
+		player:SetAttribute("BagOrder", json) -- subito sul client, poi il server lo salva
+		local remote = remotes:FindFirstChild("SaveBagOrder") :: RemoteEvent?
+		if remote then
+			remote:FireServer(json)
 		end
 	end
+	local function chosen(): Item?
+		for _, x in items do
+			if x.key == selectedKey then
+				return x
+			end
+		end
+		return nil
+	end
+
+	local function showInfo()
+		local it = chosen()
+		if not it then
+			infoIcon.Visible = false
+			infoTitle.Text = "Backpack"
+			infoText.Text = "Click an item to see it. Drag it onto another slot to move it."
+			dropOne.Visible, dropAll.Visible = false, false
+			return
+		end
+		local item = it :: Item
+		if item.id and Theme.ITEM_ICONS[item.id] then
+			Theme.itemIcon(infoIcon, item.id, item.model)
+		else
+			Theme.assetPreview(infoIcon, item.asset, item.model)
+		end
+		infoTitle.Text = if item.drop then string.format("%s  x%d", item.title, item.count) else item.title
+		infoText.Text = item.text
+		dropOne.Visible = item.drop ~= nil
+		dropAll.Visible = item.drop ~= nil
+		dropAll.Text = if confirmAll then "Sure?" else "Drop all"
+	end
+	local function drop(amount: any)
+		local it = chosen()
+		if not it or not it.drop then
+			return
+		end
+		local ok, message = (remotes:WaitForChild("Shop") :: RemoteFunction):InvokeServer("discard", it.key, amount)
+		status(message or "", ok)
+	end
+	dropOne.Activated:Connect(function()
+		confirmAll = false
+		drop(1)
+	end)
+	dropAll.Activated:Connect(function()
+		if confirmAll then
+			confirmAll = false
+			drop("all")
+		else
+			confirmAll = true
+			showInfo()
+		end
+	end)
+
+	-- trascinamento: una copia della casella segue il puntatore su una schermata a parte
+	local dragGui = Instance.new("ScreenGui")
+	dragGui.Name = "TrascinaZaino"
+	dragGui.DisplayOrder = 50
+	dragGui.ResetOnSpawn = false
+	dragGui.Parent = player:WaitForChild("PlayerGui")
+	local menuGui = container:FindFirstAncestorWhichIsA("ScreenGui")
+	local slots: { GuiObject } = {}
+	local function uiScale(): number
+		local su = menuGui and menuGui:FindFirstChild("ScalaUI")
+		return if su and su:IsA("UIScale") and su.Scale > 0 then su.Scale else 1
+	end
+	local function slotAt(p: Vector2): number?
+		-- le posizioni dell'input sono sotto la barra di Roblox, quelle delle caselle no se la
+		-- schermata la ignora
+		local inset = if menuGui and menuGui.IgnoreGuiInset then GuiService:GetGuiInset() else Vector2.zero
+		local q = p + inset
+		for i, s in slots do
+			local a, z = s.AbsolutePosition, s.AbsoluteSize
+			if q.X >= a.X and q.X <= a.X + z.X and q.Y >= a.Y and q.Y <= a.Y + z.Y then
+				return i
+			end
+		end
+		return nil
+	end
+	local function startDrag(index: number, slot: GuiObject, input: InputObject)
+		local item = items[index]
+		local ghost = slot:Clone()
+		local ring = ghost:FindFirstChild("AnelloLuce")
+		if ring then
+			ring:Destroy()
+		end
+		ghost.Size = UDim2.fromOffset(slot.AbsoluteSize.X, slot.AbsoluteSize.Y)
+		ghost.AnchorPoint = Vector2.new(0.5, 0.5)
+		ghost.Rotation = 4
+		ghost.Parent = dragGui
+		slot.BackgroundTransparency = 0.7
+		list.ScrollingEnabled = false
+		local move: RBXScriptConnection
+		local finish: RBXScriptConnection
+		local function at(p: Vector3)
+			ghost.Position = UDim2.fromOffset(p.X, p.Y)
+		end
+		at(input.Position)
+		move = UIS.InputChanged:Connect(function(i)
+			if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then
+				at(i.Position)
+			end
+		end)
+		finish = UIS.InputEnded:Connect(function(i)
+			if i.UserInputType ~= Enum.UserInputType.MouseButton1 and i.UserInputType ~= Enum.UserInputType.Touch then
+				return
+			end
+			move:Disconnect()
+			finish:Disconnect()
+			ghost:Destroy()
+			list.ScrollingEnabled = true
+			local target = slotAt(Vector2.new(i.Position.X, i.Position.Y))
+			if target and target ~= index then
+				local keys = {}
+				for _, x in items do
+					table.insert(keys, x.key)
+				end
+				table.remove(keys, index)
+				table.insert(keys, math.min(target, #keys + 1), item.key)
+				selectedKey = item.key
+				saveOrder(keys)
+			end
+			render()
+		end)
+	end
+
+	render = function()
+		Ui.clear(list)
+		table.clear(slots)
+		items = collect()
+		-- caselle vuote fino a riempire almeno tre file: sembra uno zaino, non una lista
+		local cols = math.max(1, math.floor((list.AbsoluteSize.X / uiScale() - 4) / 122))
+		local total = math.max(cols * 3, math.ceil((#items + 1) / cols) * cols)
+		for i = 1, total do
+			local it = items[i]
+			local slot = Instance.new("TextButton")
+			slot.Name = "Casella" .. i
+			slot.Text = ""
+			slot.AutoButtonColor = it ~= nil
+			slot.LayoutOrder = i
+			slot.BackgroundColor3 = if it then Theme.DARK3 else Theme.DARK2
+			slot.BackgroundTransparency = if it then 0.15 else 0.45
+			slot.Parent = list
+			Theme.corner(slot, 12)
+			table.insert(slots, slot)
+			if not it then
+				continue
+			end
+			local item = it :: Item
+			local icon = Instance.new("ImageLabel")
+			icon.BackgroundTransparency = 1
+			icon.AnchorPoint = Vector2.new(0.5, 0)
+			icon.Position = UDim2.new(0.5, 0, 0, 10)
+			icon.Size = UDim2.fromOffset(70, 70)
+			icon.Parent = slot
+			if item.id and Theme.ITEM_ICONS[item.id] then
+				Theme.itemIcon(icon, item.id, item.model)
+			else
+				Theme.assetPreview(icon, item.asset, item.model)
+			end
+			local name = Theme.label(slot, item.title, 13, Theme.TEXT, true)
+			name.AnchorPoint = Vector2.new(0.5, 1)
+			name.Position = UDim2.new(0.5, 0, 1, -6)
+			name.Size = UDim2.new(1, -8, 0, 30)
+			name.TextXAlignment = Enum.TextXAlignment.Center
+			Theme.fitText(name, 13, true)
+			if item.drop then
+				local count = Theme.label(slot, "x" .. item.count, 15, Theme.ACCENT, true)
+				count.AnchorPoint = Vector2.new(1, 0)
+				count.Position = UDim2.new(1, -6, 0, 4)
+				count.Size = UDim2.fromOffset(60, 20)
+				count.TextXAlignment = Enum.TextXAlignment.Right
+				count.ZIndex = 4
+			end
+			if item.key == selectedKey then
+				UiGlow.ring(slot, Theme.ACCENT, { round = false, speed = 150, thickness = 3, pad = 0 })
+			end
+			-- clic = scegli; trascina (mouse) o tieni premuto (dito) = sposta
+			slot.InputBegan:Connect(function(input)
+				local touch = input.UserInputType == Enum.UserInputType.Touch
+				if input.UserInputType ~= Enum.UserInputType.MouseButton1 and not touch then
+					return
+				end
+				local from = input.Position
+				local done = false
+				local watch: RBXScriptConnection
+				local stop: RBXScriptConnection
+				local function close()
+					done = true
+					watch:Disconnect()
+					stop:Disconnect()
+				end
+				local function begin()
+					if done then
+						return
+					end
+					close()
+					startDrag(i, slot, input)
+				end
+				watch = UIS.InputChanged:Connect(function(m)
+					if m.UserInputType == Enum.UserInputType.MouseMovement or m.UserInputType == Enum.UserInputType.Touch then
+						local moved = (m.Position - from).Magnitude
+						if not touch and moved > 8 then
+							begin()
+						elseif touch and moved > 14 then
+							close() -- il dito scorre la lista: niente trascinamento
+						end
+					end
+				end)
+				stop = UIS.InputEnded:Connect(function(m)
+					if m.UserInputType == input.UserInputType and not done then
+						close()
+						confirmAll = false
+						selectedKey = item.key
+						render()
+					end
+				end)
+				if touch then
+					task.delay(0.35, begin)
+				end
+			end)
+		end
+		showInfo()
+	end
+	return render
 end
 -- colori delle schede del menu (pulsanti della colonna e sfondo della finestra)
 local MENU_COLORS = Theme.MENU
@@ -435,12 +704,28 @@ function MainMenu.start()
 		end
 		-- finestra e titolo del colore della scheda (sfondo sfumato sotto la cornice)
 		local tone = MENU_COLORS[name] or Theme.BLUE
-		Ui.tint(window, tone, false, 0.012)
+		-- velo scuro (stile menu zombie di Black Ops 2): lo sfondo illustrato si intravede, il
+		-- colore della scheda resta solo nel titolo e nei pulsanti (Mirko 15/10: "lo sfondo
+		-- colorato fa schifo")
+		Ui.tint(window, Theme.DARK, false, 0)
 		local fill = window:FindFirstChild("Tinta") :: Frame?
 		if fill then
-			-- velo leggero: lo sfondo illustrato della finestra deve vedersi (piace ai giocatori)
-			fill.BackgroundTransparency = 0.78
+			fill.BackgroundTransparency = 0.22
 		end
+		-- sfondo scuro dipinto da Codex (docs/CODEX_UOVA_E_SFONDI.md): quando ha l'ID prende il posto
+		-- dell'illustrazione della montagna e il velo diventa leggero
+		if Ui.asset(window.Background, "bg_menu_dark") then
+			window.Background.Visible = true
+			window.Background.ImageTransparency = 0
+			if fill then
+				fill.BackgroundTransparency = 0.55
+			end
+		else
+			Ui.asset(window.Background, "bg_menu")
+			window.Background.Visible = true
+		end
+		-- l'immagine sotto il velo (tint porta tutti i figli sopra al colore)
+		window.Background.ZIndex = 0
 		Ui.tint(window.Title, tone, false, 0.1)
 		gui:SetAttribute("MenuOpen", true)
 		window.Title.Text = if name == "Store" then "Shop" else name
@@ -452,7 +737,7 @@ function MainMenu.start()
 			local c = content[name]
 			refreshers[name] = if name == "Store"
 				then mountShop(c, status)
-				elseif name == "Backpack" then mountInventory(c)
+				elseif name == "Backpack" then mountInventory(c, status)
 				elseif name == "Dragons" then DragonUI.mount(c, status)
 				elseif name == "Upgrades" then UpgradeUI.mount(c, status)
 				else CraftingUI.mount(c, status)

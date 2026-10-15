@@ -27,6 +27,7 @@ local MeshFX = require(script.Parent.MeshFX)
 local ClientState = require(script.Parent.ClientState)
 local Sfx = require(script.Parent.Sfx)
 local Theme = require(script.Parent.Theme)
+local UiGlow = require(script.Parent.UiGlow)
 local Ui = require(ReplicatedStorage:WaitForChild("Shared").UiView)
 
 local Combat = {}
@@ -594,7 +595,29 @@ function Combat.start()
 	-- Il pulsante mantiene nome e azione; il modello e la cornice si modificano in Studio.
 	local gui = Ui.screen("CombatHUD")
 	local spBtn = Ui.node(gui, "Speciale")
-	local spStroke = spBtn.Stroke
+	-- niente cornice dorata: un anello luminoso che gira quando lo speciale e' pronto
+	spBtn.Stroke.Enabled = false
+	-- via anche il riquadro quadrato dietro l'icona tonda (immagine del pulsante)
+	spBtn:SetAttribute("UiAsset", nil)
+	for _, n in { "AssetSurface", "AssetCaption" } do
+		local o = spBtn:FindFirstChild(n)
+		if o then
+			o:Destroy()
+		end
+	end
+	-- pulsante tondo scuro (l'icona si legge su qualsiasi sfondo), l'anello gira attorno
+	spBtn.BackgroundColor3 = Theme.DARK
+	spBtn.BackgroundTransparency = 0.2
+	spBtn.TextTransparency = 1
+	local round = spBtn:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0.5, 0)
+	round.Parent = spBtn
+	-- la ricarica copre l'icona tonda: tonda anche lei (prima un quadrato scuro)
+	local coolCorner = spBtn.Cooldown:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+	coolCorner.CornerRadius = UDim.new(0.5, 0)
+	coolCorner.Parent = spBtn.Cooldown
+	local spRing = UiGlow.ring(spBtn, Theme.ACCENT, { round = true, thickness = 3, pad = 2 })
+	local spReady: boolean? = nil
 	local spCool = spBtn.Cooldown
 	spBtn.Key.Text = if Ui.touch() then "Roar" else "Z"
 	spBtn.Activated:Connect(special)
@@ -634,7 +657,10 @@ function Combat.start()
 		local left = ((player:GetAttribute("SpecialReady") or 0) :: number) - workspace:GetServerTimeNow()
 		spCool.Visible = left > 0
 		spCool.Text = if left > 0 then tostring(math.ceil(left)) else ""
-		spStroke.Color = if left > 0 then Theme.MUTED else Theme.ACCENT
+		if spReady ~= (left <= 0) then
+			spReady = left <= 0
+			UiGlow.color(spRing, if spReady then Theme.ACCENT else Theme.MUTED, not spReady)
+		end
 		-- discesa a tempo
 		local started = player:GetAttribute("DescentStart")
 		if type(started) == "number" then

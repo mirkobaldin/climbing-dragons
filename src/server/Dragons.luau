@@ -280,6 +280,7 @@ end
 
 -- Mette un uovo nel nido; false se il nido e' pieno. seconds = tempo di cova forzato
 function Dragons.incubate(player: Player, element: string, rarity: string, seconds: number?): boolean
+	element = DragonConfig.RETIRED[element] or element
 	local s = Dragons.state(player)
 	if #s.nest >= Dragons.nestSlots(player) then
 		return false

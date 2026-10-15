@@ -22,7 +22,10 @@ local DragonConfig = {}
 
 -- Solo gli elementi che hanno un uovo vero (i modelli Uovo_<Elemento> in ServerStorage.Uova)
 DragonConfig.ALTAR_RESPAWN = 600 -- secondi prima che sugli altari ricompaia l'uovo leggendario
-DragonConfig.SUMMIT_EGG = "Sole" -- elemento dell'uovo leggendario sull'altare della vetta
+DragonConfig.SUMMIT_EGG = "Cosmico" -- elemento dell'uovo leggendario sull'altare della vetta
+-- elementi tolti (Mirko: restano solo 8 draghi). Le voci in ELEMENTS restano per i draghi gia'
+-- salvati, ma nessun uovo nuovo nasce di questi elementi: diventano quello a destra
+DragonConfig.RETIRED = { Sole = "Cosmico", Ombra = "Eclissi", Brace = "Roccia" } :: { [string]: string }
 DragonConfig.STARTER_DRAGON = "Eclissi" -- il drago che ricevi al primo accesso
 
 DragonConfig.ELEMENTS = {

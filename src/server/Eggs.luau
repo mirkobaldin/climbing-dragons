@@ -161,6 +161,7 @@ end
 
 -- Uovo nel mondo con il prompt per raccoglierlo
 local function placeEgg(pos: Vector3, element: string, rarity: string, extra: { [string]: any }?): Model
+	element = DragonConfig.RETIRED[element] or element -- niente uova di Sole, Ombra, Brace
 	local model = DragonModels.egg(element, rarity)
 	local _, size = model:GetBoundingBox()
 	model:PivotTo(CFrame.new(pos + Vector3.new(0, size.Y / 2 - 0.2, 0)) * CFrame.Angles(0, rng:NextNumber(0, 6.28), rng:NextNumber(-0.2, 0.2)))

@@ -185,13 +185,29 @@ function UiView.tint(target: GuiObject, color: Color3, round: boolean?, inset: n
 	local f = fill :: Frame
 	target.ClipsDescendants = true
 	local k = inset or (if round then 0.11 else 0.06)
+	-- senza immagine sotto (pannelli nativi) il colore riempie tutto il riquadro e la cornice
+	-- esterna sparisce: prima c'era un riquadro dentro un altro col bordo dorato (Mirko 15/10:
+	-- "un botto di cornici inutili" su giocatore, drago, monete, meteo)
+	local plain = not target:FindFirstChild("AssetSurface")
+	if plain then
+		k = 0
+		local outer = target:FindFirstChildOfClass("UIStroke")
+		if outer then
+			outer.Enabled = false
+		end
+		local grad = target:FindFirstChildOfClass("UIGradient")
+		if grad then
+			grad.Enabled = false
+		end
+	end
 	f.AnchorPoint = Vector2.new(0.5, 0.5)
 	f.Position = UDim2.fromScale(0.5, 0.5)
 	f.Size = UDim2.fromScale(1 - k * 2, 1 - k * 2)
 	f.BackgroundColor3 = Color3.new(1, 1, 1)
 	f.BackgroundTransparency = 0.08
 	local corner = f:FindFirstChildOfClass("UICorner") :: UICorner
-	corner.CornerRadius = if round then UDim.new(0.5, 0) else UDim.new(0, 8)
+	local own = target:FindFirstChildOfClass("UICorner")
+	corner.CornerRadius = if round then UDim.new(0.5, 0) elseif plain and own then own.CornerRadius else UDim.new(0, 8)
 	local h, s, v = color:ToHSV()
 	local light = Color3.fromHSV(h, math.max(0, s * 0.75), math.min(1, v * 1.25 + 0.08))
 	local dark = Color3.fromHSV(h, math.min(1, s * 1.1), v * 0.85)

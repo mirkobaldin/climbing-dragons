@@ -25,6 +25,12 @@ Theme.PURPLE = Color3.fromRGB(155, 91, 255)
 Theme.PINK = Color3.fromRGB(255, 111, 181)
 Theme.DISABLED = Color3.fromRGB(185, 200, 221)
 Theme.COIN = Theme.ACCENT
+-- fondi scuri dei menu, stile menu zombie di Black Ops 2 (Mirko 15/10: "lo sfondo colorato fa
+-- schifo"): carbone quasi nero, fumo, bagliore di brace in basso; i pulsanti restano colorati
+Theme.DARK = Color3.fromRGB(14, 13, 16)
+Theme.DARK2 = Color3.fromRGB(28, 26, 30)
+Theme.DARK3 = Color3.fromRGB(44, 40, 44)
+Theme.EMBER = Color3.fromRGB(255, 106, 36)
 Theme.GRADE = { C = Theme.DISABLED, B = Theme.BLUE, A = Theme.GOOD, S = Theme.ACCENT }
 Theme.RARITY = {
 	Comune = { Theme.DISABLED, Color3.fromRGB(100, 130, 170) },
@@ -78,6 +84,25 @@ function Theme.action(button: TextButton, kind: string, disabled: boolean?)
 	corner.CornerRadius = UDim.new(0, 12)
 	corner.Parent = button
 	UiView.skin(button, "btn_" .. k .. "_v3_normal")
+	-- niente contorno: col PNG del pulsante faceva una seconda cornice (barra attrezzi, menu in
+	-- alto, Travel), sui pulsanti nativi basta il colore pieno con un riflesso in alto
+	stroke.Enabled = false
+	local shine = button:FindFirstChild("Lucido") :: UIGradient?
+	if button:FindFirstChild("AssetSurface") == nil then
+		if not shine then
+			local g = Instance.new("UIGradient")
+			g.Name = "Lucido"
+			g.Rotation = 90
+			g.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+				ColorSequenceKeypoint.new(0.45, Color3.fromRGB(235, 235, 240)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(175, 175, 190)),
+			})
+			g.Parent = button
+		end
+	elseif shine then
+		shine:Destroy()
+	end
 	Theme.fitText(button, 22, false)
 end
 
@@ -411,6 +436,13 @@ function Theme.paint(root: Instance)
 		if o:FindFirstAncestor("Templates") then continue end
 		if o:IsA("TextLabel") or o:IsA("TextButton") then
 			Theme.fitText(o, math.max(12, o.TextSize), o.TextWrapped)
+		end
+		-- bordi dorati sottili dei modelli (barre di salute/stamina/XP, riquadri): cornici in piu'
+		if o:IsA("UIStroke") and o.ApplyStrokeMode == Enum.ApplyStrokeMode.Border and not o:GetAttribute("KeepStroke") then
+			local c = o.Color
+			if c.R > 0.9 and c.G > 0.7 and c.G < 0.85 and c.B < 0.4 then
+				o.Enabled = false
+			end
 		end
 		if o:IsA("GuiObject") then
 			local asset = o:GetAttribute("UiAsset")
