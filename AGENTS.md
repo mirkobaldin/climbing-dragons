@@ -128,3 +128,11 @@ Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, anim
   primo drago) e punto di viaggio all'arrivo. Banco da lavoro: arriva con la Tenda (Economy.buildForge),
   tolto quello accanto all'emporio. Tutorial: l'uovo si prende prima di andare al campo. Case dei
   borghi in scala 3 (monumenti 4). UI da rifare: `docs/CODEX_UI_RIFACIMENTO.md`.
+- Giro 4 (2026-10-15): modelli del cloud caricati con tools/modelli (JSON in una cartella temporanea,
+  336 texture caricate, matids.json): `ServerStorage.CaseCodex.<Nome>` per l'Isola dei Draghi e 18
+  modelli della mappa (non ancora messi in mappa). L'isola la monta `mapgen/IsolaDraghi` (scala 5/1,7,
+  fuochi colorati FX_Fire_<Elemento>, posatoi `PosatoioDrago` sulle isolette); sotto le colline del
+  prato c'e' Terrain (altezze in `CaseCodex.IsolaDraghi.PratoAltezze`, da `tools/modelli/prato_altezze.js`):
+  la collisione precisa della mesh copriva la piattaforma d'arrivo e si cadeva. UI v3 di Codex unita
+  (ID in UiAssets), lo sfondo `bg_menu` delle finestre resta visibile (MainMenu). Prove sui draghi:
+  `docs/ANIMAZIONI_PROCEDURALI.md` giro 4 (attributo `ProceduraleSpento` per confrontare).

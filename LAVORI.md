@@ -6,9 +6,8 @@ Quando il branch e' unito in `main`, togli la riga.
 
 | Chi | Branch | Compito | File toccati |
 |---|---|---|---|
-| Codex | codex/ui-rifacimento-20261014 | DA FARE: rifare tutta la UI colorata e pulita, icone giuste, scheda del drago (docs/CODEX_UI_RIFACIMENTO.md). I pulsanti v2 sono gia' in main | src/gui/**, client UI (vedi elenco nel doc), src/shared/{UiView,UiAssets,UiFallback}, tools/ui/**, artifacts/ui-v3-20261014/** |
-| Claude | main | officina piccola vicino allo shop, teletrasporto prima della missione dell'uovo, case giapponesi in scala 3, base dell'Isola dei Draghi, prova draghi in Play | src/server/{Missions,Tutorial,Economy,...}, src/mapgen/{Borghi,Isole,IsolaDraghi}, NON i file UI del rifacimento |
-| Claude (cloud) | cloud/modelli-20261014 | Isola dei Draghi con arena (giro 2: rifare col metodo e i controlli di docs/CLOUD_SESSIONE.md) e modelli della mappa | solo tools/blender/{arena,mappa}.py e cloud/**; nessun file src |
+| Claude | main | (15/10) UI v3 unita e ID caricati (bg_menu di nuovo visibile), Isola dei Draghi e 18 modelli del cloud in ServerStorage.CaseCodex, isola montata col Terrain sotto il prato, draghi: IK morbida, posto accanto senza giri, correzioni delle zampe ammorbidite | src/client/{PetAnimator,DragonProcedural,MainMenu}, src/mapgen/IsolaDraghi, tools/modelli/** |
+| Claude (cloud) | cloud/modelli-20261014 | UNITO E CARICATO (15/10): isola e 18 modelli in ServerStorage.CaseCodex. Prossimo: pezzi Meshy (teste del portale, statue, corna, fossili) | solo cloud/** e tools/blender/**; nessun file src |
 | Claude | main | bug draghi (terreno, monta, colpo in volo), attacchi per elemento, VFX, animazioni, UI telefono e colori, contatore | src/** |
 | Codex | codex/discord-community-20261013 | IN CORSO: server Discord configurato, immagini e AutoMod pubblicati, bot online; verifica finale di gerarchia ruoli e permessi | artifacts/discord-community-20261013/** nel worktree; copia consegna Desktop/Climbing & Dragons Discord/**; nessun file src |
 | Codex | codex/alpine-assets-20261013 | PRONTO: otto asset Blender esportati e verificati, catalogo in MegaChalet/SET_ALPINO.html; import e Play da provare in Studio | artifacts/alpine-assets-20261013/** nel worktree; esportazioni richieste in main/{Tent,Campfire,StoneCabin,ModernChalet,MegaChalet,Gliders}/**; nessun file src |

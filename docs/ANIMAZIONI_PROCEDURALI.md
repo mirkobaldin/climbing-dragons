@@ -132,3 +132,33 @@ h = altezza del piede (osso della caviglia) dal terreno, in zampe.
 - Nessun controllo delle collisioni fra ali e giocatore in monta.
 - Non ancora usati: `setJaw` (ruggito, soffio, morso: Combat/Enemies), `riderLean` (piegare il
   personaggio), `impulse("atterraggio")` e `"colpito"`.
+
+## Giro 4 (2026-10-15): zampe che girano, discesa, draghi che girano attorno
+Mirko: "in discesa le zampe si distendono all'indietro; quando mi fermo zampe e unghie ruotano
+velocissime per qualche secondo e poi restano storte o alzate; quando il personaggio gira i draghi
+gli girano attorno come accessori; in arrampicata dovrebbero stare piu' lontani".
+Misura usata: rotazione delle ossa delle zampe **rispetto al corpo** in gradi al secondo, frame
+oltre 720 gradi/s (due giri al secondo), con e senza procedurale (attributo di workspace
+`ProceduraleSpento = true`: resta solo l'animazione a keyframe, comodo per confrontare).
+| Prova (4 s) | prima | solo keyframe | ora |
+|---|---|---|---|
+| discesa 17 gradi + 3 s fermo | 113-152 frame | 14-28 | 11-22 |
+| piano + stop | 23-30 frame (dopo lo stop) | 14-16 | 11-12 |
+| salita: piedi sotto terra (casi) | - | 245 | 39 |
+| giro sul posto di 360 gradi: spostamento del drago | ti girava attorno | - | 0,2-0,4 studs |
+Cause e correzioni (DragonProcedural salvo dove detto):
+- vicino alla zampa tesa l'IK e' in una singolarita' (il ginocchio salta di 40-80 gradi per uno
+  spostamento minimo): **IK morbida**, oltre il 90% la distanza cresce sempre piu' piano;
+- a zampa quasi dritta l'asse del ginocchio cambiava verso: si ricorda il verso (`bendSign`) e a
+  ginocchio dritto non lo si raddrizza piu';
+- il piede bloccato si staccava e si ribloccava nel frame dopo, a frame alterni: non si riblocca
+  finche' non e' rientrato nell'animazione; si stacca solo se il bersaglio e' oltre il 97%;
+- l'IK partiva solo oltre una soglia minima (accesa/spenta a frame alterni): ora sempre;
+- **la correzione di ogni osso delle zampe si ammorbidisce nel tempo** (`legBone`/`corr`, 16/s):
+  e' la modifica che ha tolto quasi tutto il tremolio sul pendio;
+- da fermo niente piede bloccato; l'anca ruota al massimo 50 gradi per frame;
+- PetAnimator: il posto accanto al padrone segue la direzione in cui **cammina** (`followYaw`, al
+  massimo 120 gradi/s), non dove guarda; il drago resta dal lato in cui e' (`sideSign`); niente giro
+  automatico attorno per i draghi che camminano; in parete stanno piu' lontani (~35 studs).
+Da guardare a occhio: la camminata in discesa (le zampe dietro all'indietro), il drago seduto sul
+pendio (giro 3) e se la lunghezza in parete va bene.

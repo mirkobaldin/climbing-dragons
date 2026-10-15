@@ -56,6 +56,8 @@ type Pet = {
 	seat: Vector3?, -- dove si siede chi monta (spazio del corpo: -Z muso, +Y su)
 	yaw: number?, -- direzione dell'ultimo fotogramma (per le virate in monta)
 	velS: Vector3?, -- velocita' del padrone filtrata
+	followYaw: number?, -- direzione in cui il padrone cammina (il posto accanto a lui)
+	sideSign: number?, -- da che lato del padrone sta il drago a terra (1 destra, -1 sinistra)
 	turn: number, -- velocita' di virata filtrata (rad/s, + a sinistra)
 	wasRidden: boolean?,
 	lift: number, -- quanto si alza a terra perche' la posa non affondi
@@ -602,7 +604,8 @@ function PetAnimator.start()
 			if benched then
 				continue
 			end
-			local orbiting = not anchored and t >= pet.nextOrbit and t < pet.nextOrbit + 3
+			-- (non i draghi che camminano: a terra il giro sembrava un accessorio che ruota attorno)
+			local orbiting = not anchored and not (pet.quad or pet.tracks) and t >= pet.nextOrbit and t < pet.nextOrbit + 3
 			if orbiting then
 				local a = (t - pet.nextOrbit) / 3 * math.pi * 2
 				local radius = math.max(4, offset.Magnitude)
@@ -610,7 +613,31 @@ function PetAnimator.start()
 			elseif t >= pet.nextOrbit + 3 then
 				pet.nextOrbit = t + 15 + math.random() * 15
 			end
-			local target = r.CFrame * CFrame.new(offset)
+			-- il posto accanto al padrone segue la direzione in cui CAMMINA, non dove guarda: prima,
+			-- girandosi sul posto, il posto girava attorno a lui e i draghi sembravano accessori che
+			-- ruotano. Da fermo la direzione resta quella di prima. In parete si usa la parete
+			-- (dove guarda chi arrampica) e i draghi stanno piu' lontani, per non stare addosso
+			local climbing = r:FindFirstChild("ClimbAttachment") ~= nil
+			do
+				local v0 = r.AssemblyLinearVelocity
+				local want = if climbing then math.atan2(-r.CFrame.LookVector.X, -r.CFrame.LookVector.Z)
+					elseif v0 == v0 and Vector3.new(v0.X, 0, v0.Z).Magnitude > 3 then math.atan2(-v0.X, -v0.Z)
+					else nil
+				if pet.followYaw == nil then
+					pet.followYaw = want or math.atan2(-r.CFrame.LookVector.X, -r.CFrame.LookVector.Z)
+				elseif want then
+					-- al massimo 120 gradi al secondo: se no il posto girava di colpo e il drago
+					-- correva a 100 studs/s per raggiungerlo (zampe che sbattevano)
+					local d = (want - pet.followYaw + math.pi) % (2 * math.pi) - math.pi
+					local stepMax = dt * (if climbing then 6 else 2.1)
+					pet.followYaw += math.clamp(d * math.min(1, dt * (if climbing then 8 else 3)), -stepMax, stepMax)
+				end
+			end
+			local frame = CFrame.new(r.Position) * CFrame.Angles(0, pet.followYaw :: number, 0)
+			if climbing then
+				offset = Vector3.new(offset.X * 1.4, offset.Y + s * 0.6, offset.Z + 4 + s * 1.2)
+			end
+			local target = frame * CFrame.new(offset)
 			-- quadrupede (o drago animato): se il padrone e' a terra e non arrampica, cammina sul
 			-- terreno al suo fianco; i draghi grandi stanno piu' di lato
 			if pet.quad or pet.tracks then
@@ -618,7 +645,15 @@ function PetAnimator.start()
 				local grounded = hum ~= nil and hum.FloorMaterial ~= Enum.Material.Air and not r:FindFirstChild("ClimbAttachment")
 				pet.airBlend += ((if grounded and not anchored then 0 else 1) - pet.airBlend) * math.min(1, dt * 3)
 				if grounded and not anchored then
-					local beside = r.CFrame * CFrame.new(side * (3 + s * (if s > 3 then 2.2 else 1.5)), 0, if s > 3 then 1 + s * 0.4 else 2 + s)
+					-- resta dal lato in cui e' gia' (rispetto a dove cammina il padrone): prima, quando il
+					-- padrone partiva in un'altra direzione, il drago gli passava davanti di corsa
+					local rel = (if pet.cf then (pet.cf :: CFrame).Position else r.Position) - r.Position
+					local across = rel:Dot(frame.RightVector)
+					if math.abs(across) > 2 then
+						pet.sideSign = if across > 0 then 1 else -1
+					end
+					local besideSide = pet.sideSign or side
+					local beside = frame * CFrame.new(besideSide * (3 + s * (if s > 3 then 2.2 else 1.5)), 0, if s > 3 then 1 + s * 0.4 else 2 + s)
 					-- terreno e parti solide (la pedana della casa: sotto non c'e' terreno e prima il
 					-- drago ci spariva sotto); il raggio parte alto, perche' in salita il punto a fianco
 					-- puo' stare sopra il padrone e un raggio nato dentro il terreno non lo trova
@@ -661,7 +696,7 @@ function PetAnimator.start()
 			pet.velS = (pet.velS or rawVel):Lerp(rawVel, math.min(1, dt * 5))
 			local vel = pet.velS :: Vector3
 			local flat = Vector3.new(vel.X, 0, vel.Z)
-			local look = if flat.Magnitude > 2 then flat.Unit else Vector3.new(r.CFrame.LookVector.X, 0, r.CFrame.LookVector.Z)
+			local look = if flat.Magnitude > 2 then flat.Unit else frame.LookVector
 			-- il drago guarda dove va lui: quando il padrone si gira il suo posto passa dall'altra parte
 			-- e prima ci andava camminando all'indietro
 			local own = (pos - current.Position) / math.max(dt, 1 / 240)

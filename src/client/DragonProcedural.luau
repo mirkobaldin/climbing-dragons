@@ -44,6 +44,7 @@ type Leg = {
 	fadeFrom: Vector3?, -- da dove torna verso l'animazione dopo lo stacco
 	fade: number,
 	strained: boolean, -- l'ultima IK non arrivava al bersaglio (si stacca il piede)
+	bendSign: number?, -- da che parte piega il ginocchio (ricordato: a zampa quasi tesa l'asse non si capisce)
 }
 type Axes = { up: Vector3, right: Vector3, fwd: Vector3 } -- assi del corpo nello spazio a riposo dell'osso
 type Rig = {
@@ -59,6 +60,8 @@ type Rig = {
 	legs: { Leg },
 	base: { [number]: CFrame }, -- posa dell'animazione (prima di noi)
 	written: { [number]: CFrame }, -- cosa abbiamo scritto l'ultima volta
+	legBone: { [number]: boolean }?, -- ossa delle zampe (la loro correzione si ammorbidisce)
+	corr: { [number]: CFrame }?, -- correzione ammorbidita delle ossa delle zampe (sull'animazione)
 	cur: { CFrame }, -- posa di lavoro del frame
 	W: { CFrame }, -- mondo del frame
 	-- moto
@@ -337,9 +340,8 @@ local function solveLeg(r: Rig, leg: Leg, target: Vector3, weight: number): bool
 	local A = r.W[chain[1]].Position
 	local C = r.W[footI].Position
 	local goal = C:Lerp(target, math.clamp(weight, 0, 1))
-	if (goal - C).Magnitude < leg.len * 0.002 then
-		return true
-	end
+	-- (niente uscita "bersaglio gia' raggiunto": con l'IK morbida la posa cambia anche a bersaglio
+	-- fermo, e saltare l'IK in certi frame e non in altri faceva sfarfallare le zampe da fermo)
 	local axisAC = C - A
 	local kb, best = 2, -1
 	if axisAC.Magnitude > 1e-6 then
@@ -357,22 +359,55 @@ local function solveLeg(r: Rig, leg: Leg, target: Vector3, weight: number): bool
 	local ok = true
 	if a > 1e-5 and b > 1e-5 then
 		local want = (goal - A).Magnitude
-		local d = math.clamp(want, math.abs(a - b) + 1e-3, (a + b) * 0.985)
-		ok = want <= (a + b) * 0.93 -- oltre: zampa quasi tesa, il piede si stacca (meglio un passo che una zampa dritta)
+		-- IK morbida: oltre il 90% della zampa la distanza cresce sempre piu' piano e non arriva mai
+		-- a zampa tesa. Vicino alla zampa tesa l'angolo del ginocchio cambia moltissimo per spostamenti
+		-- minimi del bersaglio: in camminata le zampe davanti (gia' all'87-90% a riposo) arrivavano al
+		-- 98% e il ginocchio saltava di 40-80 gradi in un frame (zampe e unghie che giravano)
+		local reach = a + b
+		local soft = reach * 0.9
+		local d = want
+		if want > soft then
+			d = soft + reach * 0.07 * (1 - math.exp(-(want - soft) / (reach * 0.07)))
+		end
+		d = math.max(d, math.abs(a - b) + 1e-3)
+		-- oltre: il bersaglio e' fuori portata anche per l'IK morbida, il piede si stacca (meglio un
+		-- passo che una zampa dritta); con 0,9 si staccava e ribloccava di continuo in frenata
+		ok = want <= reach * 0.97
 		local u, v = A - B, C - B
 		local nrm = u:Cross(v)
-		if nrm.Magnitude < 1e-6 then
-			-- zampa dritta nell'animazione: si piega come un ginocchio (avanti per le zampe dietro)
-			nrm = r.predict * r.model:GetPivot():VectorToWorldSpace(r.sk.right) * (if leg.front then -1 else 1)
+		-- asse del ginocchio: quello dell'animazione finche' il ginocchio e' ben piegato; a zampa quasi
+		-- tesa il prodotto vettoriale e' minuscolo e cambiava verso da un frame all'altro (il ginocchio
+		-- si ribaltava: zampe e unghie che giravano velocissime da fermo). Allora si usa il fianco del
+		-- drago col verso ricordato
+		local rightW = r.model:GetPivot():VectorToWorldSpace(r.sk.right)
+		local sinK = nrm.Magnitude / math.max(u.Magnitude * v.Magnitude, 1e-9)
+		if sinK > 0.25 then
+			leg.bendSign = if nrm:Dot(rightW) >= 0 then 1 else -1
 		end
-		nrm = nrm.Unit
+		local sign = leg.bendSign or (if leg.front then -1 else 1)
 		local th0 = math.acos(math.clamp(u.Unit:Dot(v.Unit), -1, 1))
 		local th = math.acos(math.clamp((a * a + b * b - d * d) / (2 * a * b), -1, 1))
-		applyWorld(r, chain[kb], about(B, CFrame.fromAxisAngle(nrm, th - th0)))
-		refreshChain(r, chain, kb + 1)
+		-- ginocchio quasi dritto nell'animazione e bersaglio piu' lontano: niente raddrizzamento
+		-- (l'asse non si capisce); si piega solo se serve accorciare la zampa
+		local straightish = sinK <= 0.25 or nrm:Dot(rightW) * sign < 0
+		if not (straightish and th > th0) then
+			if straightish then
+				nrm = rightW * sign
+			end
+			nrm = nrm.Unit
+			applyWorld(r, chain[kb], about(B, CFrame.fromAxisAngle(nrm, th - th0)))
+			refreshChain(r, chain, kb + 1)
+		end
 	end
 	C = r.W[footI].Position
-	applyWorld(r, chain[1], about(A, fromTo(C - A, goal - A)))
+	-- l'anca ruota al massimo di 50 gradi per frame: con il piede bloccato dall'altra parte
+	-- dell'attacco la zampa intera girava su se stessa
+	local swing = fromTo(C - A, goal - A)
+	local sAxis, sAngle = swing:ToAxisAngle()
+	if sAngle > 0.87 then
+		swing = CFrame.fromAxisAngle(sAxis, 0.87)
+	end
+	applyWorld(r, chain[1], about(A, swing))
 	refreshChain(r, chain, 2)
 	-- il piede torna orientato come nell'animazione
 	local F = r.W[footI]
@@ -394,7 +429,8 @@ end
 
 local function post(r: Rig, dt: number)
 	local model = r.model
-	if not DragonProcedural.enabled or not model.Parent or dt <= 0 then
+	-- workspace.ProceduraleSpento = true: solo l'animazione a keyframe (per confrontare nelle prove)
+	if not DragonProcedural.enabled or workspace:GetAttribute("ProceduraleSpento") == true or not model.Parent or dt <= 0 then
 		return
 	end
 	dt = math.min(dt, 1 / 20)
@@ -657,26 +693,33 @@ local function post(r: Rig, dt: number)
 			-- appoggio: il piede resta fermo nel mondo (non scivola) finche' l'animazione lo stacca
 			-- o finche' si allontana troppo (il drago gira sul posto o la zampa non ci arriva piu');
 			-- poi torna morbido verso l'animazione
-			local contact = hT < leg.len * 0.015 and groundW > 0.5
-			if contact then
+			-- da fermo niente blocco (la posa ferma non scivola): a fine camminata il piede restava
+			-- bloccato a meta' passo, la zampa si stirava, si staccava e si ribloccava per secondi
+			local contact = hT < leg.len * 0.015 and groundW > 0.5 and speed > size * 0.03
+			-- dopo uno stacco il piede non si riblocca finche' non e' rientrato nell'animazione: in
+			-- frenata si staccava, si ribloccava nel frame dopo (mentre rientrava), si ristaccava... e
+			-- la zampa saltava fra due pose a ogni frame (20-30 gradi a frame: zampe che giravano)
+			if contact and (leg.lock or leg.fade <= 0) then
 				if not leg.lock then
 					local lg = groundAt(r, T, leg.len * 0.5)
 					leg.lock = if lg then Vector3.new(T.X, (lg :: Vector3).Y + h0 + hT, T.Z) else T
 				end
 				local lk = leg.lock :: Vector3
 				local flatD = Vector3.new(lk.X - T.X, 0, lk.Z - T.Z).Magnitude
-				if flatD > leg.len * 0.2 or leg.strained then
+				-- nel frame dello stacco il piede resta dov'era: il rientro morbido parte dal frame dopo
+				T = lk
+				if flatD > leg.len * 0.12 or leg.strained then
 					leg.fadeFrom, leg.fade, leg.lock = lk, 1, nil
-				else
-					T = lk
 				end
 			elseif leg.lock then
+				T = leg.lock :: Vector3
 				leg.fadeFrom, leg.fade, leg.lock = leg.lock, 1, nil
 			end
 			leg.strained = false
-			if (T - F).Magnitude > leg.len * 0.004 then
-				leg.strained = not solveLeg(r, leg, T, 1)
-			end
+			-- sempre, anche a bersaglio vicinissimo: la soglia di prima accendeva e spegneva l'IK da un
+			-- frame all'altro e da fermo zampe e unghie giravano (prova del 2026-10-15: solo keyframe
+			-- 0 frame oltre 720 gradi/s, col procedurale 23-30 in 4 secondi)
+			leg.strained = not solveLeg(r, leg, T, 1)
 			-- appoggiato su un pendio: il piede segue il terreno
 			local touch = math.clamp(1 - hT / math.max(leg.len * 0.1, 1e-3), 0, 1) * groundW
 			local nx = DragonGait.spring(spring(r, "normX" .. i), nrm.X, dt, 10, 1)
@@ -720,10 +763,36 @@ local function post(r: Rig, dt: number)
 		end
 	end
 
+	-- la correzione delle zampe (IK, terreno, piede bloccato) si ammorbidisce nel tempo: sul pendio
+	-- e in frenata passava da una soluzione all'altra in un frame e le zampe tremavano o giravano
+	-- (prova del 2026-10-15 in discesa: 113-152 frame su 276 oltre 720 gradi/s, solo keyframe 25-28)
+	if not r.legBone then
+		local set = {}
+		for _, leg in r.legs do
+			for _, bi in leg.chain do
+				set[bi] = true
+			end
+		end
+		r.legBone = set
+		r.corr = {}
+	end
+	local legBone = r.legBone :: { [number]: boolean }
+	local corrs = r.corr :: { [number]: CFrame }
+	local kc = 1 - math.exp(-dt * 16)
 	-- scrive solo le ossa cambiate
 	for i, b in r.bones do
 		local c = r.cur[i]
 		local base = r.base[i]
+		if base and legBone[i] then
+			local corr = (base :: CFrame):Inverse() * c
+			local prev = corrs[i]
+			if prev then
+				corr = prev:Lerp(corr, kc)
+			end
+			corrs[i] = corr
+			c = (base :: CFrame) * corr
+			r.cur[i] = c
+		end
 		if not base or c ~= (base :: CFrame) or r.written[i] then
 			b.Transform = c
 			r.written[i] = c
