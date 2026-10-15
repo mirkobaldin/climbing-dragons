@@ -287,7 +287,11 @@ local MENU_COLORS = Theme.MENU
 function MainMenu.start()
 	local gui = Ui.screen("MainMenu")
 	local column, window = Ui.node(gui, "Column"), Ui.node(gui, "Window")
-	window.Background.Visible = false
+	-- lo sfondo illustrato della montagna (bg_menu) resta: piace a Mirko e ai giocatori (la v3 lo
+	-- nascondeva e dietro le finestre si vedeva il gioco)
+	window.Background.Visible = true
+	window.Background.ImageTransparency = 0.15
+	window.Background.ScaleType = Enum.ScaleType.Crop
 	-- colonna del menu: pulsanti tondi a icona (prima pillole lunghe in una lista a scorrimento)
 	column.ScrollingEnabled = false
 	column.ScrollBarThickness = 0
