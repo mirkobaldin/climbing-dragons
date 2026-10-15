@@ -84,12 +84,14 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> ()): () 
 			c.LayoutOrder = k
 			local level = Config.level(player, u.id)
 			local maxed = level >= u.max
-			c.Icon.Text = ICONS[u.id] or "★"
-			local dots = ""
-			for i = 1, u.max do
-				dots ..= if i <= level then "●" else "○"
-			end
-			c.Title.Text = u.name .. " " .. dots
+			c.Icon.Text = ""
+   local icon = Instance.new("ImageLabel")
+   icon.Name = "UpgradeIcon"
+   icon.Size = UDim2.fromScale(1, 1)
+   icon.BackgroundTransparency = 1
+   icon.Parent = c.Icon
+   Theme.assetPreview(icon, "item_Upgrade" .. u.id, nil)
+			c.Title.Text = string.format("%s  Lv %d/%d", u.name, level, u.max)
 			c.Description.Text = u.description
 			-- "ora" grigio, "dopo" verde: si vede subito cosa si guadagna
 			c.Effect.Text = if maxed
@@ -98,7 +100,7 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> ()): () 
 			c.Cost.Text = if maxed then "MAX LEVEL" else costText(u.costs[level + 1].coins, u.costs[level + 1].items)
 			c.Action.Visible = not maxed
 			c.Action.Text = if level == 0 then "Unlock" else "Upgrade"
-			Ui.tint(c, Color3.fromRGB(70, 110, 190), false, 0.02)
+			Ui.tint(c, Theme.BLUE, false, 0.02)
 			local fill = c:FindFirstChild("Tinta") :: Frame?
 			if fill then
 				fill.BackgroundTransparency = 0.55
@@ -162,9 +164,9 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> ()): () 
 		local coins = (player:GetAttribute("Coins") or 0) :: number
 		local summitOk, coinsOk = since >= 1, coins >= R.MIN_COINS
 		local ready = summitOk and coinsOk
-		local GOLD = Color3.fromRGB(255, 205, 90)
+		local GOLD = Theme.ACCENT
 		local function glass(parent: Instance, h: number, order: number): Frame
-			local f = Theme.frame(parent, Color3.fromRGB(10, 14, 26), 0.35)
+			local f = Theme.frame(parent, Theme.CARD, 0.35)
 			f.Size = UDim2.new(1, -12, 0, h)
 			f.LayoutOrder = order
 			Theme.corner(f, 16)
@@ -179,9 +181,9 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> ()): () 
 			l.Size = UDim2.new(w.Scale, w.Offset, 0, h)
 			l.TextXAlignment = align or Enum.TextXAlignment.Left
 			l.TextStrokeTransparency = 0.25
-			local c = Instance.new("UITextSizeConstraint")
+			local c = l:FindFirstChildOfClass("UITextSizeConstraint") or Instance.new("UITextSizeConstraint")
 			c.MaxTextSize = size
-			c.MinTextSize = math.floor(size * 0.6)
+			c.MinTextSize = 12
 			c.Parent = l
 			return l
 		end
@@ -191,24 +193,24 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> ()): () 
 		text(hero, string.format("Level %d  →  %d", n, n + 1), 22, Color3.new(1, 1, 1), 24, 66, UDim.new(0.6, 0), 28)
 		-- ora / dopo
 		local function bonus(x: number, title: string, k: number, color: Color3)
-			local box = Theme.frame(hero, Color3.fromRGB(20, 26, 44), 0.2)
+			local box = Theme.frame(hero, Theme.CARD, 0.2)
 			box.Position = UDim2.new(x, if x == 0 then 24 else 8, 0, 108)
 			box.Size = UDim2.new(0.5, -32, 0, 110)
 			Theme.corner(box, 12)
 			Theme.stroke(box, color, 2, 0.4)
-			local t = text(box, title, 16, Color3.fromRGB(190, 196, 214), 14, 8, UDim.new(1, -28), 20)
+			local t = text(box, title, 16, Theme.MUTED, 14, 8, UDim.new(1, -28), 20)
 			t.TextXAlignment = Enum.TextXAlignment.Center
 			text(box, string.format("+%d%% coins", math.floor(k * R.COIN_BONUS * 100 + 0.5)), 30, color, 14, 32, UDim.new(1, -28), 36, Enum.TextXAlignment.Center)
 			text(box, string.format("+%d%% dragon XP", math.floor(k * R.XP_BONUS * 100 + 0.5)), 20, color, 14, 72, UDim.new(1, -28), 26, Enum.TextXAlignment.Center)
 		end
-		bonus(0, "NOW", n, Color3.fromRGB(200, 205, 220))
-		bonus(0.5, "AFTER REBIRTH", n + 1, Color3.fromRGB(120, 230, 140))
+		bonus(0, "NOW", n, Theme.MUTED)
+		bonus(0.5, "AFTER REBIRTH", n + 1, Theme.GOOD)
 		-- tieni / perdi
-		text(hero, "✔  You keep: dragons, gear, your house", 18, Color3.fromRGB(120, 230, 140), 24, 232, UDim.new(1, -48), 24)
-		text(hero, "✖  You lose: coins, ores, upgrades", 18, Color3.fromRGB(240, 110, 100), 24, 260, UDim.new(1, -48), 24)
+		text(hero, "✔  You keep: dragons, gear, your house", 18, Theme.GOOD, 24, 232, UDim.new(1, -48), 24)
+		text(hero, "✖  You lose: coins, ores, upgrades", 18, Theme.BAD, 24, 260, UDim.new(1, -48), 24)
 		-- requisiti
 		local function need(ok: boolean, str: string, y: number)
-			text(hero, (if ok then "✔  " else "✖  ") .. str, 18, if ok then Color3.fromRGB(120, 230, 140) else Color3.fromRGB(255, 200, 90), 24, y, UDim.new(1, -48), 24)
+			text(hero, (if ok then "✔  " else "✖  ") .. str, 18, if ok then Theme.GOOD else Theme.ACCENT, 24, y, UDim.new(1, -48), 24)
 		end
 		need(summitOk, "Reach the summit", 300)
 		need(coinsOk, string.format("Have %d coins  (you have %d)", R.MIN_COINS, math.floor(coins)), 328)
@@ -216,22 +218,22 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> ()): () 
 		local btn = Instance.new("TextButton")
 		btn.AnchorPoint = Vector2.new(0.5, 1)
 		btn.Position = UDim2.new(0.5, 0, 1, -16)
-		btn.Size = UDim2.new(0, 320, 0, 60)
+		btn.Size = UDim2.new(1, -48, 0, 60)
 		btn.Font = Enum.Font.GothamBlack
 		btn.TextScaled = true
 		btn.Text = if ready then "REBIRTH" else "NOT READY YET"
 		btn.TextColor3 = Color3.new(1, 1, 1)
 		btn.TextStrokeTransparency = 0.2
-		btn.BackgroundColor3 = if ready then Color3.fromRGB(220, 70, 50) else Color3.fromRGB(70, 74, 90)
+		Theme.action(btn, "main", not ready)
 		btn.AutoButtonColor = ready
 		btn.Parent = hero
 		Theme.corner(btn, 14)
-		Theme.gradient(btn, Color3.new(1, 1, 1), Color3.fromRGB(170, 170, 180), 90)
-		Theme.stroke(btn, GOLD, 3, if ready then 0 else 0.6)
-		local bc = Instance.new("UITextSizeConstraint")
+		Theme.gradient(btn, Color3.new(1, 1, 1), Theme.MUTED, 90)
+		local bc = btn:FindFirstChildOfClass("UITextSizeConstraint") or Instance.new("UITextSizeConstraint")
 		bc.MaxTextSize = 28
+		bc.MinTextSize = 12
 		bc.Parent = btn
-		local bp = Instance.new("UIPadding")
+		local bp = btn:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
 		bp.PaddingTop, bp.PaddingBottom = UDim.new(0.18, 0), UDim.new(0.18, 0)
 		bp.Parent = btn
 		local armed = false
@@ -264,13 +266,13 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> ()): () 
 			if type(best) == "number" then string.format("%.1f s", best) else "-"), 17, Color3.new(1, 1, 1), 20, 12, UDim.new(1, -40), 22)
 		text(stats, "Fastest descents", 16, GOLD, 20, 38, UDim.new(1, -40), 20)
 		if #top == 0 then
-			text(stats, "No records yet: be the first!", 16, Color3.fromRGB(200, 206, 222), 20, 62, UDim.new(1, -40), 22)
+			text(stats, "No records yet: be the first!", 16, Theme.MUTED, 20, 62, UDim.new(1, -40), 22)
 		end
 		for i, e in top do
 			if i > 5 then
 				break
 			end
-			text(stats, string.format("%d.  %s  —  %.1f s", i, e.name, e.seconds), 16, Color3.fromRGB(220, 226, 240), 20, 32 + 30 * i, UDim.new(1, -40), 22)
+			text(stats, string.format("%d.  %s  —  %.1f s", i, e.name, e.seconds), 16, Theme.TEXT, 20, 32 + 30 * i, UDim.new(1, -40), 22)
 		end
 	end
 	refresh = function()

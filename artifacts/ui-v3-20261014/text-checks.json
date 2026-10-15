@@ -1,0 +1,3480 @@
+{
+  "measurements": 345,
+  "failures": [],
+  "checks": [
+    {
+      "text": "Shop",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Shop"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Backpack",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Backpack"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragons",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Dragons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crafting",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Crafting"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrades",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Upgrades"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Travel",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Travel"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ice Axe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Ice Axe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pickaxe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crampons",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crampons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thermal Suit",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thermal Suit"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Reinforced Pickaxe",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Reinforced",
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Paraglider",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Paraglider"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Saddle",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Dragon Saddle"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pitons (+4)",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Pitons (+4)"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bandages",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bandages"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rock",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rock"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ember",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ember"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Frost",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Frost"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cosmic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cosmic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sun",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sun"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Shadow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Shadow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Eclipse",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Eclipse"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Black",
+        "Lightning"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bone",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bone"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gas",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gas"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Common",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Common"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rare",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rare"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Epic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Epic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Legendary",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Legendary"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Hatchling",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Hatchling"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Young",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Young"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Adult",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Adult"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Coal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Iron",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Iron"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gold",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gold"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crystal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crystal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ruby",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ruby"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Tent",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Tent"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cabin",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cabin"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sky Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sky Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Workbench",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Workbench"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Anywhere",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Anywhere"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Clear",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Clear"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cloudy",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cloudy"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rain",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rain"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thunderstorm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thunderstorm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Snow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Snow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base camp",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base camp"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Home",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon arena",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon arena"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Muscle Beach",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Muscle Beach"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Island",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon Island"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base Camp 99",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base Camp 99"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Not ready yet",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Not ready yet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "SURE? TAP AGAIN",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "SURE? TAP AGAIN"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sell 999999",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Sell 999999"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrade",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Upgrade"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Follow",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Follow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coins/min at home",
+      "w": 287.84,
+      "h": 20,
+      "size": 12,
+      "lines": [
+        "Coins/min at home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning Dragon",
+      "w": 537.68,
+      "h": 30,
+      "size": 22,
+      "lines": [
+        "Black Lightning Dragon"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook recharges twice as fast and you run faster",
+      "w": 591.68,
+      "h": 48,
+      "size": 18,
+      "lines": [
+        "Grappling Hook recharges twice as fast and you run faster"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Double jump (Space in mid-air)",
+      "w": 591.68,
+      "h": 48,
+      "size": 18,
+      "lines": [
+        "Double jump (Space in mid-air)"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Shop",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Shop"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Backpack",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Backpack"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragons",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Dragons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crafting",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Crafting"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrades",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Upgrades"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Travel",
+      "w": 142,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Travel"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ice Axe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Ice Axe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pickaxe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crampons",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crampons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thermal Suit",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thermal Suit"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Reinforced Pickaxe",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Reinforced",
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Paraglider",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Paraglider"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Saddle",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Dragon Saddle"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pitons (+4)",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Pitons (+4)"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bandages",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bandages"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rock",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rock"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ember",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ember"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Frost",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Frost"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cosmic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cosmic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sun",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sun"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Shadow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Shadow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Eclipse",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Eclipse"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Black",
+        "Lightning"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bone",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bone"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gas",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gas"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Common",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Common"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rare",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rare"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Epic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Epic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Legendary",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Legendary"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Hatchling",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Hatchling"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Young",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Young"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Adult",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Adult"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Coal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Iron",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Iron"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gold",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gold"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crystal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crystal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ruby",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ruby"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Tent",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Tent"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cabin",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cabin"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sky Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sky Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Workbench",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Workbench"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Anywhere",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Anywhere"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Clear",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Clear"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cloudy",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cloudy"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rain",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rain"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thunderstorm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thunderstorm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Snow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Snow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base camp",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base camp"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Home",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon arena",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon arena"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Muscle Beach",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Muscle Beach"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Island",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon Island"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base Camp 99",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base Camp 99"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Not ready yet",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Not ready yet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "SURE? TAP AGAIN",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "SURE? TAP AGAIN"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sell 999999",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Sell 999999"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrade",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Upgrade"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Follow",
+      "w": 235,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Follow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coins/min at home",
+      "w": 287.84,
+      "h": 20,
+      "size": 12,
+      "lines": [
+        "Coins/min at home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning Dragon",
+      "w": 537.68,
+      "h": 30,
+      "size": 22,
+      "lines": [
+        "Black Lightning Dragon"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook recharges twice as fast and you run faster",
+      "w": 591.68,
+      "h": 48,
+      "size": 18,
+      "lines": [
+        "Grappling Hook recharges twice as fast and you run faster"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Double jump (Space in mid-air)",
+      "w": 591.68,
+      "h": 48,
+      "size": 18,
+      "lines": [
+        "Double jump (Space in mid-air)"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Shop",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Shop"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Backpack",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Backpack"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragons",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Dragons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crafting",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Crafting"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrades",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Upgrades"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Travel",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Travel"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ice Axe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Ice Axe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pickaxe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crampons",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crampons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thermal Suit",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thermal Suit"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Reinforced Pickaxe",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Reinforced",
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Paraglider",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Paraglider"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Saddle",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Dragon Saddle"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pitons (+4)",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Pitons (+4)"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bandages",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bandages"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rock",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rock"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ember",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ember"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Frost",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Frost"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cosmic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cosmic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sun",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sun"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Shadow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Shadow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Eclipse",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Eclipse"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Black",
+        "Lightning"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bone",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bone"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gas",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gas"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Common",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Common"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rare",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rare"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Epic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Epic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Legendary",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Legendary"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Hatchling",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Hatchling"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Young",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Young"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Adult",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Adult"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Coal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Iron",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Iron"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gold",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gold"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crystal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crystal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ruby",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ruby"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Tent",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Tent"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cabin",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cabin"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sky Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sky Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Workbench",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Workbench"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Anywhere",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Anywhere"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Clear",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Clear"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cloudy",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cloudy"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rain",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rain"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thunderstorm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thunderstorm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Snow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Snow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base camp",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base camp"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Home",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon arena",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon arena"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Muscle Beach",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Muscle Beach"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Island",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon Island"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base Camp 99",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base Camp 99"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Not ready yet",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Not ready yet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "SURE? TAP AGAIN",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "SURE? TAP AGAIN"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sell 999999",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Sell 999999"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrade",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Upgrade"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Follow",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Follow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coins/min at home",
+      "w": 203.16,
+      "h": 20,
+      "size": 12,
+      "lines": [
+        "Coins/min at home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning Dragon",
+      "w": 368.32,
+      "h": 30,
+      "size": 22,
+      "lines": [
+        "Black Lightning Dragon"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook recharges twice as fast and you run faster",
+      "w": 422.32,
+      "h": 48,
+      "size": 18,
+      "lines": [
+        "Grappling Hook recharges twice as fast",
+        "and you run faster"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Double jump (Space in mid-air)",
+      "w": 422.32,
+      "h": 48,
+      "size": 18,
+      "lines": [
+        "Double jump (Space in mid-air)"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Shop",
+      "w": 111.333333,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Shop"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Backpack",
+      "w": 111.333333,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Backpack"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragons",
+      "w": 111.333333,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Dragons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crafting",
+      "w": 111.333333,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Crafting"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrades",
+      "w": 111.333333,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Upgrades"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Travel",
+      "w": 111.333333,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Travel"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ice Axe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Ice Axe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pickaxe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crampons",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crampons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thermal Suit",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thermal Suit"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Reinforced Pickaxe",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Reinforced",
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Paraglider",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Paraglider"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Saddle",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Dragon Saddle"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pitons (+4)",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Pitons (+4)"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bandages",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bandages"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rock",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rock"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ember",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ember"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Frost",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Frost"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cosmic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cosmic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sun",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sun"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Shadow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Shadow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Eclipse",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Eclipse"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Black",
+        "Lightning"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bone",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bone"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gas",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gas"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Common",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Common"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rare",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rare"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Epic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Epic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Legendary",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Legendary"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Hatchling",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Hatchling"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Young",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Young"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Adult",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Adult"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Coal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Iron",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Iron"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gold",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gold"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crystal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crystal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ruby",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ruby"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Tent",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Tent"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cabin",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cabin"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sky Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sky Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Workbench",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Workbench"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Anywhere",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Anywhere"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Clear",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Clear"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cloudy",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cloudy"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rain",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rain"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thunderstorm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thunderstorm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Snow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Snow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base camp",
+      "w": 174,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base camp"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Home",
+      "w": 174,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon arena",
+      "w": 174,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon arena"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Muscle Beach",
+      "w": 174,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Muscle Beach"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Island",
+      "w": 174,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon Island"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base Camp 99",
+      "w": 174,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base Camp 99"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Not ready yet",
+      "w": 308,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Not ready yet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "SURE? TAP AGAIN",
+      "w": 308,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "SURE? TAP AGAIN"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sell 999999",
+      "w": 308,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Sell 999999"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrade",
+      "w": 308,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Upgrade"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Follow",
+      "w": 308,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Follow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coins/min at home",
+      "w": 145,
+      "h": 20,
+      "size": 12,
+      "lines": [
+        "Coins/min at home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning Dragon",
+      "w": 252,
+      "h": 30,
+      "size": 18,
+      "lines": [
+        "Black Lightning Dragon"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook recharges twice as fast and you run faster",
+      "w": 306,
+      "h": 48,
+      "size": 17,
+      "lines": [
+        "Grappling Hook recharges",
+        "twice as fast and you run faster"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Double jump (Space in mid-air)",
+      "w": 306,
+      "h": 48,
+      "size": 18,
+      "lines": [
+        "Double jump (Space in",
+        "mid-air)"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Shop",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Shop"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Backpack",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Backpack"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragons",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Dragons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crafting",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Crafting"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrades",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Upgrades"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Travel",
+      "w": 123.33333300000001,
+      "h": 22,
+      "size": 15,
+      "lines": [
+        "Travel"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ice Axe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Ice Axe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pickaxe",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 80,
+      "h": 36,
+      "size": 12,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crampons",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crampons"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thermal Suit",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thermal Suit"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Grappling",
+        "Hook"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Reinforced Pickaxe",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Reinforced",
+        "Pickaxe"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Paraglider",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Paraglider"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Saddle",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Dragon Saddle"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Pitons (+4)",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Pitons (+4)"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Torch",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Torch"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bandages",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bandages"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rock",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rock"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ember",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ember"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Frost",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Frost"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cosmic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cosmic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sun",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sun"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Shadow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Shadow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Eclipse",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Eclipse"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Black",
+        "Lightning"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Bone",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Bone"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gas",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gas"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Common",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Common"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rare",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rare"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Epic",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Epic"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Legendary",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Legendary"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Hatchling",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Hatchling"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Young",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Young"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Adult",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Adult"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Coal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Iron",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Iron"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Gold",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Gold"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Crystal",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Crystal"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Ruby",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Ruby"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Tent",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Tent"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cabin",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cabin"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sky Chalet",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Sky Chalet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Workbench",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Workbench"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Anywhere",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Anywhere"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Clear",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Clear"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Cloudy",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Cloudy"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Rain",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Rain"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Thunderstorm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Thunderstorm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Storm",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Storm"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Snow",
+      "w": 120,
+      "h": 40,
+      "size": 14,
+      "lines": [
+        "Snow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base camp",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base camp"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Home",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon arena",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon arena"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Muscle Beach",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Muscle Beach"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Dragon Island",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Dragon Island"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Base Camp 99",
+      "w": 480,
+      "h": 44,
+      "size": 20,
+      "lines": [
+        "Base Camp 99"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Not ready yet",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Not ready yet"
+      ],
+      "ok": true
+    },
+    {
+      "text": "SURE? TAP AGAIN",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "SURE? TAP AGAIN"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Sell 999999",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Sell 999999"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Upgrade",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Upgrade"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Follow",
+      "w": 228,
+      "h": 44,
+      "size": 22,
+      "lines": [
+        "Follow"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Coins/min at home",
+      "w": 203.16,
+      "h": 20,
+      "size": 12,
+      "lines": [
+        "Coins/min at home"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Black Lightning Dragon",
+      "w": 368.32,
+      "h": 30,
+      "size": 22,
+      "lines": [
+        "Black Lightning Dragon"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Grappling Hook recharges twice as fast and you run faster",
+      "w": 422.32,
+      "h": 48,
+      "size": 18,
+      "lines": [
+        "Grappling Hook recharges twice as fast",
+        "and you run faster"
+      ],
+      "ok": true
+    },
+    {
+      "text": "Double jump (Space in mid-air)",
+      "w": 422.32,
+      "h": 48,
+      "size": 18,
+      "lines": [
+        "Double jump (Space in mid-air)"
+      ],
+      "ok": true
+    }
+  ]
+}

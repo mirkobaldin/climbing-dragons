@@ -29,14 +29,9 @@ local MAX_ATTACK = DragonConfig.attack({ stage = #DragonConfig.STAGES, level = D
 local function overall(d: any): number
 	return math.clamp(math.floor(40 + 59 * math.sqrt(DragonConfig.attack(d) / MAX_ATTACK) + 0.5), 40, 99)
 end
-local GRADE_COLORS = { S = Color3.fromRGB(255, 215, 94), A = Color3.fromRGB(127, 224, 138), B = Color3.fromRGB(143, 200, 255), C = Color3.fromRGB(201, 201, 201) }
+local GRADE_COLORS = Theme.GRADE
 -- colori per rarita' (tessere e nome): grigio, blu, viola, oro
-local RARITY_COLORS: { [string]: { Color3 } } = {
-	Comune = { Color3.fromRGB(120, 130, 145), Color3.fromRGB(52, 58, 70) },
-	Raro = { Color3.fromRGB(70, 150, 240), Color3.fromRGB(24, 52, 110) },
-	Epico = { Color3.fromRGB(175, 90, 245), Color3.fromRGB(62, 24, 110) },
-	Leggendario = { Color3.fromRGB(255, 190, 60), Color3.fromRGB(130, 64, 10) },
-}
+local RARITY_COLORS = Theme.RARITY
 local PREVIEW_KIND = { "Dragons", "DragonsYoung", "DragonsAdult" }
 
 local function preview(kind: string, element: string): Instance?
@@ -77,6 +72,9 @@ local function dragonView(parent: Instance, d: any, spin: boolean): ViewportFram
 	local world = Instance.new("WorldModel")
 	world.Parent = vf
 	local clone = object:Clone() :: Model
+	for _, child in clone:GetDescendants() do
+		if child:IsA("LuaSourceContainer") then child:Destroy() end
+	end
 	clone.Parent = world
 	local cf, size = clone:GetBoundingBox()
 	-- davanti: verso la testa
@@ -149,8 +147,7 @@ local function halo(parent: Instance, color: Color3)
 	g.BackgroundTransparency = 0.7
 	g.BorderSizePixel = 0
 	g.Parent = parent
-	local ar = Instance.new("UIAspectRatioConstraint")
-	ar.Parent = g
+	-- Ellisse contenuta nel palco, senza vincoli che ne allarghino i bordi.
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0.5, 0)
 	c.Parent = g
@@ -165,15 +162,12 @@ local function label(parent: Instance, str: string, size: number, color: Color3?
 	l.TextWrapped = true
 	l.TextXAlignment = align or Enum.TextXAlignment.Left
 	l.Font = if bold then Enum.Font.GothamBlack else Enum.Font.GothamBold
-	local c = Instance.new("UITextSizeConstraint")
-	c.MaxTextSize = size
-	c.MinTextSize = math.max(9, math.floor(size * 0.55))
-	c.Parent = l
+	Theme.fitText(l, size, false)
 	return l
 end
 
 local function bar(parent: Instance, k: number, color: Color3): Frame
-	local back = Theme.frame(parent, Color3.fromRGB(14, 16, 24), 0.1)
+	local back = Theme.frame(parent, Theme.CARD, 0.1)
 	Theme.corner(back, 6)
 	local fill = Theme.frame(back, color, 0)
 	fill.Size = UDim2.fromScale(math.clamp(k, 0, 1), 1)
@@ -183,29 +177,9 @@ end
 
 -- pulsante grande colorato (facile da premere col pollice)
 local function bigButton(parent: Instance, text: string, color: Color3): TextButton
-	local b = Instance.new("TextButton")
-	b.Text = text
-	b.Font = Enum.Font.GothamBlack
-	b.TextScaled = true
-	b.TextColor3 = Color3.new(1, 1, 1)
-	b.TextStrokeTransparency = 0.4
-	b.BackgroundColor3 = color
-	b.AutoButtonColor = true
-	b.Parent = parent
-	Theme.corner(b, 12)
-	Theme.gradient(b, Color3.new(1, 1, 1), Color3.fromRGB(175, 175, 185), 90)
-	Theme.stroke(b, Color3.new(1, 1, 1), 2, 0.55)
-	local c = Instance.new("UITextSizeConstraint")
-	c.MaxTextSize = 24
-	c.MinTextSize = 12
-	c.Parent = b
-	local pad = Instance.new("UIPadding")
-	pad.PaddingTop = UDim.new(0.18, 0)
-	pad.PaddingBottom = UDim.new(0.18, 0)
-	pad.PaddingLeft = UDim.new(0, 6)
-	pad.PaddingRight = UDim.new(0, 6)
-	pad.Parent = b
-	return b
+ local button = Theme.button(parent, text, color)
+ Theme.paint(button)
+ return button
 end
 
 function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -> ()
@@ -227,10 +201,11 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 
 	-- barra in alto: schede e contatori
 	local top = Theme.frame(root, Color3.new(), 1)
+	top.Name = "Tabs"
 	top.Size = UDim2.new(1, 0, 0, 44)
-	local tabDragons = bigButton(top, "Dragons", Color3.fromRGB(150, 70, 220))
+	local tabDragons = bigButton(top, "Dragons", Theme.PURPLE)
 	tabDragons.Size = UDim2.new(0, 170, 1, 0)
-	local tabNest = bigButton(top, "Nest", Color3.fromRGB(60, 70, 90))
+	local tabNest = bigButton(top, "Nest", Theme.DISABLED)
 	tabNest.Position = UDim2.new(0, 180, 0, 0)
 	tabNest.Size = UDim2.new(0, 150, 1, 0)
 	local counters = label(top, "", 18, Theme.ACCENT, true, Enum.TextXAlignment.Right)
@@ -242,8 +217,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	local body = Theme.frame(root, Color3.new(), 1)
 	body.Position = UDim2.new(0, 0, 0, 54)
 	body.Size = UDim2.new(1, 0, 1, -54)
-	local gridBox = Theme.frame(body, Color3.fromRGB(10, 12, 20), 0.35)
-	gridBox.Size = UDim2.new(0.6, -8, 1, 0)
+	local gridBox = Theme.frame(body, Theme.CARD, 0.35)
+	gridBox.Size = UDim2.new(0.42, -8, 1, 0)
 	Theme.corner(gridBox, 12)
 	local grid = Theme.scroll(gridBox)
 	grid.Size = UDim2.new(1, -12, 1, -12)
@@ -253,12 +228,32 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.CellPadding = UDim2.fromOffset(8, 8)
 	layout.Parent = grid
-	local detail = Theme.frame(body, Color3.fromRGB(16, 18, 30), 0.1)
-	detail.AnchorPoint = Vector2.new(1, 0)
-	detail.Position = UDim2.fromScale(1, 0)
-	detail.Size = UDim2.new(0.4, 0, 1, 0)
+	local detailScroll = Theme.scroll(body)
+ detailScroll.Name = "DragonDetails"
+ detailScroll.BackgroundColor3 = Theme.PANEL
+ detailScroll.BackgroundTransparency = 0
+ detailScroll.ScrollBarThickness = 6
+ local detail = Theme.frame(detailScroll, Theme.PANEL, 0)
+ detail.Size = UDim2.new(1, -8, 0, 490)
+	detailScroll.AnchorPoint = Vector2.new(1, 0)
+	detailScroll.Position = UDim2.fromScale(1, 0)
+	detailScroll.Size = UDim2.new(0.58, 0, 1, 0)
 	Theme.corner(detail, 12)
-	Theme.stroke(detail, Color3.fromRGB(255, 200, 90), 2, 0.6)
+	Theme.stroke(detail, Theme.ACCENT, 2, 0.6)
+
+	local function arrange()
+  local narrow = body.AbsoluteSize.X < 520
+  gridBox.Position = UDim2.fromScale(0, 0)
+  gridBox.Size = if narrow then UDim2.new(1, 0, 0.30, -4) else UDim2.new(0.42, -8, 1, 0)
+  detailScroll.Position = if narrow then UDim2.fromScale(1, 0.30) else UDim2.fromScale(1, 0)
+  detailScroll.Size = if narrow then UDim2.fromScale(1, 0.70) else UDim2.new(0.58, 0, 1, 0)
+  tabDragons.Size = UDim2.new(0.3, -4, 1, 0)
+  tabNest.Position = UDim2.fromScale(0.3, 0)
+  tabNest.Size = UDim2.new(0.25, -4, 1, 0)
+  counters.Size = UDim2.new(0.45, -8, 1, -4)
+ end
+ body:GetPropertyChangedSignal("AbsoluteSize"):Connect(arrange)
+ arrange()
 
 	local tab = "Dragons"
 	local autoTab = true -- finche' non scegli tu: uovo pronto (o nessun drago) -> Nest
@@ -269,8 +264,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 
 	local function setTab(name: string)
 		tab = name
-		tabDragons.BackgroundColor3 = if name == "Dragons" then Color3.fromRGB(150, 70, 220) else Color3.fromRGB(60, 70, 90)
-		tabNest.BackgroundColor3 = if name == "Nest" then Color3.fromRGB(230, 150, 40) else Color3.fromRGB(60, 70, 90)
+		Ui.selected(tabDragons, name == "Dragons", Theme.ACCENT, Theme.BLUE)
+		Ui.selected(tabNest, name == "Nest", Theme.ACCENT, Theme.BLUE)
 		render()
 	end
 	tabDragons.Activated:Connect(function()
@@ -285,9 +280,9 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	-- celle della griglia: 3-5 colonne secondo la larghezza
 	local function sizeGrid(aspect: number)
 		local width = math.max(grid.AbsoluteSize.X - 12, 160)
-		local cols = math.clamp(math.floor(width / 128), 3, 5)
+		local cols = math.clamp(math.floor(width / 150), 1, 5)
 		local cell = (width - (cols - 1) * 8) / cols
-		layout.CellSize = UDim2.fromOffset(cell, cell * aspect)
+		layout.CellSize = UDim2.fromOffset(cell, math.max(if aspect > 1.3 then 300 else 220, cell * aspect))
 	end
 
 	-- pannello di destra: il drago scelto
@@ -321,75 +316,88 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		ovr.AnchorPoint = Vector2.new(1, 0)
 		ovr.Position = UDim2.new(1, -12, 0, 6)
 		ovr.Size = UDim2.new(0, 70, 0, 38)
-		local gr = label(detail, grade, 16, GRADE_COLORS[grade], true, Enum.TextXAlignment.Right)
-		gr.AnchorPoint = Vector2.new(1, 0)
-		gr.Position = UDim2.new(1, -12, 0, 42)
-		gr.Size = UDim2.new(0, 70, 0, 18)
-		-- palco col modello che gira
-		local stageBox = Theme.frame(detail, colors[2], 0)
-		stageBox.Position = UDim2.new(0, 10, 0, 64)
-		stageBox.Size = UDim2.new(1, -20, 0.42, -20)
-		stageBox.ClipsDescendants = true
-		Theme.corner(stageBox, 12)
-		Theme.gradient(stageBox, colors[2]:Lerp(Color3.new(0, 0, 0), 0.2), Color3.fromRGB(8, 8, 14), 90)
-		halo(stageBox, colors[1])
-		local vf = dragonView(stageBox, d, true)
-		vf.Size = UDim2.fromScale(1, 1)
-		-- livello ed esperienza
-		local info = Theme.frame(detail, Color3.new(), 1)
-		info.Position = UDim2.new(0, 14, 0.42, 50)
-		info.Size = UDim2.new(1, -28, 0.58, -130)
-		local lv = label(info, string.format("Lv. %d / %d", level, DragonConfig.MAX_LEVEL), 20, Color3.new(1, 1, 1), true)
-		lv.Size = UDim2.new(0.5, 0, 0, 24)
-		local state = label(info, if following then "Following you" else "Resting", 15, if following then Theme.GOOD else Theme.MUTED, true, Enum.TextXAlignment.Right)
-		state.Position = UDim2.new(0.5, 0, 0, 2)
-		state.Size = UDim2.new(0.5, 0, 0, 20)
-		local xpBar = bar(info, level / DragonConfig.MAX_LEVEL, Theme.BLUE)
-		xpBar.Position = UDim2.new(0, 0, 0, 28)
-		xpBar.Size = UDim2.new(1, 0, 0, 10)
-		-- tre righe: attacco, cosa fa in monta / come evolve
-		local rows = {
-			{ "Power", tostring(math.floor(DragonConfig.attack(d))) },
-			{ "Coins/min at home", tostring((EconomyConfig.ROOST_RATE[d.rarity] or 1) * d.stage) },
-		}
-		if nextStage then
-			local stones = data.stones or 0
-			table.insert(rows, {
-				"Evolve",
-				if not maxed then string.format("reach Lv %d", DragonConfig.MAX_LEVEL)
-					else string.format("%d / %d stones", math.min(stones, nextStage.stones), nextStage.stones),
-			})
-		else
-			local el = UpgradeConfig.RIDE_ELEMENT[d.element]
-			table.insert(rows, { "Ride attack", if el then el.text else "fire ball" })
-		end
-		for k, r in rows do
-			local y = 46 + (k - 1) * 30
-			local key = label(info, r[1], 15, Theme.MUTED, true)
-			key.Position = UDim2.new(0, 0, 0, y)
-			key.Size = UDim2.new(0.42, 0, 0, 24)
-			local val = label(info, r[2], 16, Color3.new(1, 1, 1), true, Enum.TextXAlignment.Right)
-			val.Position = UDim2.new(0.42, 0, 0, y)
-			val.Size = UDim2.new(0.58, 0, 0, 24)
-		end
+		local element = DragonConfig.element(d.element)
+  local tone = Theme.ELEMENT[d.element] or Theme.BLUE
+  local stageBox = Theme.frame(detail, tone, 0)
+  stageBox.Position = UDim2.fromOffset(10, 64)
+  stageBox.Size = UDim2.new(1, -20, 0, 100)
+  Theme.corner(stageBox, 12)
+  Theme.gradient(stageBox, Theme.TEXT, Theme.PANEL:Lerp(Theme.TEXT, 0.5), 90)
+  halo(stageBox, tone)
+  dragonView(stageBox, d, true).Size = UDim2.fromScale(1, 1)
+  local stats = Theme.frame(detail, Theme.CARD, 1)
+  stats.Position = UDim2.fromOffset(10, 172)
+  stats.Size = UDim2.new(1, -20, 0, 150)
+  local rows = {
+   {"Grade", grade, "elem_" .. d.element},
+   {"Power", tostring(math.floor(DragonConfig.attack(d))), "item_UpgradeUncino"},
+   {"Level", string.format("%d / %d", level, DragonConfig.MAX_LEVEL), "icon_quest"},
+   {"Coins/min at home", tostring((EconomyConfig.ROOST_RATE[d.rarity] or 1) * d.stage), "icon_coin"},
+  }
+  if nextStage then
+   table.insert(rows, {"Evolve", if not maxed then string.format("Reach Lv %d", DragonConfig.MAX_LEVEL)
+    else string.format("%d / %d stones", math.min(data.stones or 0, nextStage.stones), nextStage.stones), "ore_Cristallo"})
+  else
+   local attack = UpgradeConfig.RIDE_ELEMENT[d.element]
+   table.insert(rows, {"Ride attack", if attack then attack.text else "—", "elem_" .. d.element})
+  end
+  table.insert(rows, {"Status", if following then "Following" else "Resting", "elem_" .. d.element})
+  for i, r in rows do
+   local cell = Theme.frame(stats, Theme.CARD, 0.4)
+   cell.Position = UDim2.new((i - 1) % 2 * 0.5, if i % 2 == 0 then 4 else 0, 0, math.floor((i - 1) / 2) * 50)
+   cell.Size = UDim2.new(0.5, -4, 0, 46)
+   Theme.corner(cell, 10)
+   local icon = Instance.new("ImageLabel")
+   icon.BackgroundTransparency = 1
+   icon.Position = UDim2.new(1, -24, 0, 24)
+   icon.Size = UDim2.fromOffset(18, 18)
+   icon.Parent = cell
+   Ui.asset(icon, r[3])
+   local key = label(cell, r[1], 12, Theme.MUTED, true)
+   key.Position = UDim2.fromOffset(6, 2)
+   key.Size = UDim2.new(1, -12, 0, 20)
+   local value = label(cell, r[2], 18, if i == 1 then GRADE_COLORS[grade] else Theme.TEXT, true)
+   value.Position = UDim2.fromOffset(6, 22)
+   value.Size = UDim2.new(1, -36, 0, 22)
+  end
+  local ability = Theme.frame(detail, tone, 0)
+  ability.Name = "SpecialAbility"
+  ability.Position = UDim2.fromOffset(10, 326)
+  ability.Size = UDim2.new(1, -20, 0, 92)
+  Theme.corner(ability, 12)
+  local abilityIcon = Instance.new("ImageLabel")
+  abilityIcon.BackgroundTransparency = 1
+  abilityIcon.Position = UDim2.fromOffset(8, 8)
+  abilityIcon.Size = UDim2.fromOffset(32, 32)
+  abilityIcon.Parent = ability
+  Ui.asset(abilityIcon, "elem_" .. d.element)
+  local heading = label(ability, "Special ability", 20, Theme.TEXT, true)
+  heading.Position = UDim2.fromOffset(44, 8)
+  heading.Size = UDim2.new(1, -52, 0, 28)
+  local description = label(ability, if element then element.ability else "—", 18, Theme.TEXT, true)
+  description.Position = UDim2.fromOffset(8, 36)
+  description.Size = UDim2.new(1, -16, 0, 48)
+  Theme.fitText(description, 18, true)
+
 		-- pulsanti grandi in fondo
 		local row = Theme.frame(detail, Color3.new(), 1)
 		row.AnchorPoint = Vector2.new(0, 1)
-		row.Position = UDim2.new(0, 10, 1, -10)
-		row.Size = UDim2.new(1, -20, 0, 56)
-		local follow = bigButton(row, if following then "Rest" else "Follow", if following then Color3.fromRGB(90, 100, 120) else Color3.fromRGB(60, 180, 80))
+		row.Position = UDim2.new(0, 10, 0, 482)
+		row.Size = UDim2.new(1, -20, 0, 52)
+		local follow = bigButton(row, if following then "Rest" else "Follow", if following then Theme.DISABLED else Theme.GOOD)
 		follow.Activated:Connect(function()
 			act(if following then "unequip" else "equip", d.id)
 		end)
 		local middle: TextButton
 		if nextStage then
 			local ready = maxed and (data.stones or 0) >= nextStage.stones
-			middle = bigButton(row, "Evolve", if ready then Color3.fromRGB(170, 80, 240) else Color3.fromRGB(80, 70, 100))
+			middle = bigButton(row, "Evolve", if ready then Theme.PURPLE else Theme.DISABLED)
+			Theme.action(middle, "main", not ready)
 			middle.Activated:Connect(function()
 				act("evolve", d.id)
 			end)
 		else
-			middle = bigButton(row, "Ride", Color3.fromRGB(50, 130, 230))
+			middle = bigButton(row, "Ride", Theme.BLUE)
 			middle.Activated:Connect(function()
 				local remote = RS.Remotes:FindFirstChild("DragonRide") :: RemoteEvent?
 				if remote then
@@ -402,7 +410,7 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			end)
 		end
 		local price = (EconomyConfig.DRAGON_PRICES[d.rarity] or 20) * d.stage
-		local sell = bigButton(row, if confirmSell == d.id then "Sure?" else "Sell " .. price, Color3.fromRGB(215, 60, 55))
+		local sell = bigButton(row, if confirmSell == d.id then "Sure?" else "Sell " .. price, Theme.BAD)
 		sell.Activated:Connect(function()
 			if confirmSell == d.id then
 				confirmSell = nil
@@ -432,16 +440,25 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		tile.Parent = grid
 		Theme.corner(tile, 12)
 		Theme.gradient(tile, colors[1], colors[2], 90)
-		local isSel = selected == d.id
+		tile.ClipsDescendants = true
+  local abilityIcon = Instance.new("ImageLabel")
+  abilityIcon.Name = "AbilityIcon"
+  abilityIcon.BackgroundTransparency = 1
+  abilityIcon.Position = UDim2.fromOffset(6, 30)
+  abilityIcon.Size = UDim2.fromOffset(28, 28)
+  abilityIcon.ZIndex = 3
+  abilityIcon.Parent = tile
+  Ui.asset(abilityIcon, "elem_" .. d.element)
+  local isSel = selected == d.id
 		-- scelto: bordo dorato (prima bianco e invadente)
-		Theme.stroke(tile, if isSel then Color3.fromRGB(255, 210, 90) elseif following then Theme.GOOD else colors[1]:Lerp(Color3.new(0, 0, 0), 0.3), if isSel then 3 else 2, 0)
+		Theme.stroke(tile, if isSel then Theme.ACCENT elseif following then Theme.GOOD else colors[1]:Lerp(Color3.new(0, 0, 0), 0.3), if isSel then 3 else 2, 0)
 		local vf = dragonView(tile, d, false)
 		vf.Position = UDim2.fromScale(0.03, 0.04)
 		vf.Size = UDim2.fromScale(0.94, 0.74)
 		local lv = label(tile, "Lv " .. tostring(d.level or 1), 15, Color3.new(1, 1, 1), true, Enum.TextXAlignment.Left)
 		lv.Position = UDim2.new(0, 6, 1, -24)
 		lv.Size = UDim2.new(0.6, 0, 0, 20)
-		local stageTag = label(tile, ({ "Baby", "Young", "Adult" })[math.clamp(d.stage or 1, 1, 3)], 13, Color3.fromRGB(255, 235, 200), true, Enum.TextXAlignment.Right)
+		local stageTag = label(tile, ({ "Baby", "Young", "Adult" })[math.clamp(d.stage or 1, 1, 3)], 13, Theme.PINK, true, Enum.TextXAlignment.Right)
 		stageTag.Position = UDim2.new(0.4, -6, 1, -24)
 		stageTag.Size = UDim2.new(0.6, 0, 0, 20)
 		if following then
@@ -450,7 +467,13 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			tick.Size = UDim2.fromOffset(26, 24)
 		end
 		if d.shiny then
-			local sh = label(tile, "✦", 18, Color3.fromRGB(255, 230, 120), true)
+   local border = tile:FindFirstChildOfClass("UIStroke")
+   if border then
+    local rainbow = Instance.new("UIGradient")
+    rainbow.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.PINK), ColorSequenceKeypoint.new(0.33, Theme.ACCENT), ColorSequenceKeypoint.new(0.66, Theme.TEAL), ColorSequenceKeypoint.new(1, Theme.PURPLE)})
+    rainbow.Parent = border
+   end
+   local sh = label(tile, "✦", 18, Theme.ACCENT, true)
 			sh.Position = UDim2.fromOffset(6, 2)
 			sh.Size = UDim2.fromOffset(24, 24)
 		end
@@ -468,18 +491,24 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		tile.LayoutOrder = index
 		Theme.corner(tile, 12)
 		Theme.gradient(tile, colors[1], colors[2], 90)
-		local vf = Theme.viewport(tile, preview("Eggs", egg.element), UDim2.fromScale(0.8, 0.5), true)
+		local vf = Theme.viewport(tile, preview("Eggs", egg.element), UDim2.fromScale(0.8, 0.28), true)
 		vf.Position = UDim2.fromScale(0.1, 0.04)
 		local name = label(tile, Names.t(egg.element) .. " egg", 15, Color3.new(1, 1, 1), true, Enum.TextXAlignment.Center)
-		name.Position = UDim2.fromScale(0.04, 0.55)
+		name.Position = UDim2.fromScale(0.04, 0.58)
 		name.Size = UDim2.fromScale(0.92, 0.13)
+  local element = DragonConfig.element(egg.element)
+  local ability = label(tile, if element then element.ability else "", 12, Theme.TEXT, true)
+  ability.Name = "HatchAbility"
+  ability.Position = UDim2.fromScale(0.04, 0.33)
+  ability.Size = UDim2.fromScale(0.92, 0.24)
+  Theme.fitText(ability, 12, true)
 		local left = math.max(0, egg.readyAt - os.time())
 		local time = label(tile, "", 14, Theme.ACCENT, true, Enum.TextXAlignment.Center)
 		time.Position = UDim2.fromScale(0.04, 0.69)
 		time.Size = UDim2.fromScale(0.92, 0.11)
-		local hatch = bigButton(tile, "Hatch!", Color3.fromRGB(60, 180, 80))
-		hatch.Position = UDim2.fromScale(0.08, 0.8)
-		hatch.Size = UDim2.fromScale(0.84, 0.17)
+		local hatch = bigButton(tile, "Hatch!", Theme.GOOD)
+		hatch.Position = UDim2.new(0.08, 0, 1, -54)
+		hatch.Size = UDim2.new(0.84, 0, 0, 48)
 		hatch.Visible = left <= 0
 		time.Visible = left > 0
 		time.Text = string.format("Ready in %d:%02d", left // 60, left % 60)
@@ -509,10 +538,10 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 				end
 			end
 			tab = if ready then "Nest" else "Dragons"
-			tabDragons.BackgroundColor3 = if tab == "Dragons" then Color3.fromRGB(150, 70, 220) else Color3.fromRGB(60, 70, 90)
-			tabNest.BackgroundColor3 = if tab == "Nest" then Color3.fromRGB(230, 150, 40) else Color3.fromRGB(60, 70, 90)
+			Ui.selected(tabDragons, tab == "Dragons", Theme.ACCENT, Theme.BLUE)
+			Ui.selected(tabNest, tab == "Nest", Theme.ACCENT, Theme.BLUE)
 		end
-		counters.Text = string.format("💎 %d stones   ·   🐉 %d/%d following", data.stones or 0, #data.equipped, data.maxEquipped or 1)
+		counters.Text = string.format("%d stones · %d/%d", data.stones or 0, #data.equipped, data.maxEquipped or 1)
 		tabDragons.Text = string.format("Dragons %d", #data.dragons)
 		tabNest.Text = string.format("Nest %d/%d", #data.nest, data.nestSlots or 0)
 		if tab == "Nest" then

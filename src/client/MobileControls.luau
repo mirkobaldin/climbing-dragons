@@ -7,6 +7,7 @@ local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local Shared = RS:WaitForChild("Shared")
 local Ui = require(Shared:WaitForChild("UiView"))
+local Theme = require(script.Parent.Theme)
 local Config = require(Shared:WaitForChild("ClimbConfig"))
 local Climbing = require(script.Parent.Climbing)
 local ClientState = require(script.Parent.ClientState)
@@ -22,18 +23,18 @@ local MobileControls = {}
 local ORDER = { "Fire", "Glide", "Throw", "Mine", "Grapple", "Climb", "JumpOff", "Piton", "Release", "Shoot", "Ride", "Run" }
 -- un colore per comando: prima erano tutti uguali (blu scuro) e non si distinguevano
 local COLORS: { [string]: Color3 } = {
-	Fire = Color3.fromRGB(226, 72, 44),
-	Shoot = Color3.fromRGB(226, 72, 44),
-	Glide = Color3.fromRGB(46, 156, 222),
-	Ride = Color3.fromRGB(214, 160, 40),
-	Throw = Color3.fromRGB(232, 128, 40),
-	Mine = Color3.fromRGB(150, 104, 66),
-	Grapple = Color3.fromRGB(32, 168, 150),
-	Climb = Color3.fromRGB(70, 170, 80),
-	JumpOff = Color3.fromRGB(200, 170, 40),
-	Piton = Color3.fromRGB(140, 90, 210),
-	Release = Color3.fromRGB(90, 110, 140),
-	Run = Color3.fromRGB(60, 110, 220),
+	Fire = Theme.BAD,
+	Shoot = Theme.BAD,
+	Glide = Theme.BLUE,
+	Ride = Theme.ORANGE,
+	Throw = Theme.ORANGE,
+	Mine = Theme.BAD,
+	Grapple = Theme.TEAL,
+	Climb = Theme.GOOD,
+	JumpOff = Theme.ORANGE,
+	Piton = Theme.PURPLE,
+	Release = Theme.GOOD,
+	Run = Theme.BLUE,
 }
 
 function MobileControls.start()
@@ -144,11 +145,18 @@ function MobileControls.start()
 		local b = actions[name] :: TextButton
 		b.AnchorPoint = Vector2.new(0.5, 0.5)
 		b.Font = Enum.Font.GothamBlack
+		b.TextYAlignment = Enum.TextYAlignment.Bottom
+		local icon = b:FindFirstChild("Icon") :: ImageLabel?
+		if icon then
+			icon.AnchorPoint = Vector2.new(0.5, 0)
+			icon.Position = UDim2.new(0.5, 0, 0, 4)
+			icon.Size = UDim2.fromOffset(28, 28)
+		end
 		local corner = b:FindFirstChildOfClass("UICorner")
 		if corner then
 			corner.CornerRadius = UDim.new(0.5, 0)
 		end
-		Ui.tint(b, COLORS[name] or Color3.fromRGB(60, 110, 220), true)
+		Ui.tint(b, COLORS[name] or Theme.BLUE, true)
 	end
 
 	local vp = Vector2.new(844, 390)
@@ -179,7 +187,11 @@ function MobileControls.start()
 	loadCustom()
 	local function refresh()
 		local touch = Ui.touch()
-		gui.Enabled = touch
+		local pg = player.PlayerGui
+  local menu = pg:FindFirstChild("MainMenu")
+  local travel = pg:FindFirstChild("Teletrasporto")
+  local panel = travel and travel:FindFirstChild("Panel") :: GuiObject?
+  gui.Enabled = touch and not ((menu and menu:GetAttribute("MenuOpen") == true) or (panel and panel.Visible))
 		if not touch then
 			return
 		end
@@ -261,7 +273,7 @@ function MobileControls.start()
 	gear.TextScaled = true
 	gear.Font = Enum.Font.GothamBlack
 	gear.TextColor3 = Color3.new(1, 1, 1)
-	gear.BackgroundColor3 = Color3.fromRGB(30, 34, 48)
+	gear.BackgroundColor3 = Theme.CARD
 	gear.BackgroundTransparency = 0.2
 	gear.Parent = gui
 	local gc = Instance.new("UICorner")
@@ -272,7 +284,7 @@ function MobileControls.start()
 	panel.AnchorPoint = Vector2.new(0.5, 0)
 	panel.Position = UDim2.new(0.5, 0, 0, 70)
 	panel.Size = UDim2.fromOffset(360, 96)
-	panel.BackgroundColor3 = Color3.fromRGB(16, 18, 28)
+	panel.BackgroundColor3 = Theme.CARD
 	panel.BackgroundTransparency = 0.1
 	panel.Visible = false
 	panel.Parent = gui
@@ -304,8 +316,8 @@ function MobileControls.start()
 		c.Parent = b
 		return b
 	end
-	local reset = panelButton("Reset", Color3.fromRGB(200, 70, 60), 0.26)
-	local done = panelButton("Done", Color3.fromRGB(60, 175, 80), 0.74)
+	local reset = panelButton("Reset", Theme.BAD, 0.26)
+	local done = panelButton("Done", Theme.GOOD, 0.74)
 	local function setEditing(on: boolean)
 		editing = on
 		ClientState.editingControls = on

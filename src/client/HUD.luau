@@ -24,6 +24,103 @@ local WEATHER_NAMES =
 
 local Ui = require(ReplicatedStorage.Shared.UiView)
 
+-- Barra degli attrezzi: stessi Tool e Humanoid del backpack Roblox, con icona e nome separati.
+local function toolBar(gui: ScreenGui)
+	local UIS = game:GetService("UserInputService")
+	local UiAssets = require(ReplicatedStorage.Shared.UiAssets)
+	local order = { ClimbConfig.TOOL_NAME, ClimbConfig.PICKAXE_NAME, ClimbConfig.GRAPPLE_NAME, ClimbConfig.TORCH_NAME }
+	local icons = { "item_Piccozza", "item_Piccone", "item_Rampino", "item_Torcia" }
+	local bar = Theme.scroll(gui)
+	bar.Name = "ToolBar"
+	bar.AnchorPoint = Vector2.new(0.5, 1)
+	bar.ScrollingDirection = Enum.ScrollingDirection.X
+	bar.AutomaticCanvasSize = Enum.AutomaticSize.X
+	bar.ScrollBarThickness = 3
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.Padding = UDim.new(0, 6)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = bar
+	local tools: {Tool} = {}
+	local function equip(index: number)
+		if not gui.Enabled then return end
+		local tool = tools[index]
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if not tool or not humanoid or humanoid.Health <= 0 then return end
+		if tool.Parent == character then humanoid:UnequipTools() else humanoid:EquipTool(tool) end
+	end
+	local function refresh()
+		Ui.clear(bar)
+		table.clear(tools)
+		for _, parent in { player:FindFirstChildOfClass("Backpack"), player.Character } do
+			if parent then
+				for _, tool in parent:GetChildren() do
+					if tool:IsA("Tool") then table.insert(tools, tool) end
+				end
+			end
+		end
+		table.sort(tools, function(a, b)
+			local x, y = table.find(order, a.Name) or 99, table.find(order, b.Name) or 99
+			return if x == y then a.Name < b.Name else x < y
+		end)
+		for i, tool in tools do
+			local button = Theme.button(bar, "", Theme.BLUE, UDim2.fromOffset(86, 80))
+			button.LayoutOrder = i
+			Theme.action(button, if tool.Parent == player.Character then "main" else "alt")
+			local icon = Instance.new("ImageLabel")
+			icon.BackgroundTransparency = 1
+			icon.Position = UDim2.new(0.5, -17, 0, 4)
+			icon.Size = UDim2.fromOffset(34, 34)
+			icon.ZIndex = 3
+			icon.Parent = button
+			local known = table.find(order, tool.Name)
+			local id = known and UiAssets.get(icons[known])
+			icon.Image = id or tool.TextureId
+			local name = Theme.label(button, tool.Name, 12, Theme.TEXT, true)
+			name.Position = UDim2.fromOffset(3, 40)
+			name.Size = UDim2.new(1, -6, 0, 36)
+			name.ZIndex = 3
+			name.TextXAlignment = Enum.TextXAlignment.Center
+			Theme.fitText(name, 12, true)
+			local key = Theme.label(button, tostring(i), 12, Theme.TEXT, true)
+			key.Size = UDim2.fromOffset(20, 20)
+			key.ZIndex = 4
+			button.Activated:Connect(function() equip(i) end)
+		end
+	end
+	local pending = false
+	local function queue()
+		if pending then return end
+		pending = true
+		task.defer(function() pending = false; refresh() end)
+	end
+	local connections: {RBXScriptConnection} = {}
+	local function characterAdded(character: Model)
+		for _, c in connections do c:Disconnect() end
+		table.clear(connections)
+		for _, parent in { player:WaitForChild("Backpack"), character } do
+			table.insert(connections, parent.ChildAdded:Connect(queue))
+			table.insert(connections, parent.ChildRemoved:Connect(queue))
+		end
+		queue()
+	end
+	player.CharacterAdded:Connect(characterAdded)
+	if player.Character then task.spawn(characterAdded, player.Character) end
+	local keys = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three, Enum.KeyCode.Four, Enum.KeyCode.Five, Enum.KeyCode.Six, Enum.KeyCode.Seven, Enum.KeyCode.Eight, Enum.KeyCode.Nine }
+	UIS.InputBegan:Connect(function(input, processed)
+		if processed or UIS:GetFocusedTextBox() then return end
+		local i = table.find(keys, input.KeyCode)
+		if i then equip(i) end
+	end)
+	Ui.viewportChanged(function(vp)
+		local logical = Ui.fitScale(gui, vp)
+		bar.Position = UDim2.new(0.5, 0, 1, if logical.X < 600 then -190 else -8)
+		bar.Size = UDim2.fromOffset(math.min(4 * 92 - 6, logical.X - 24), 84)
+	end)
+	gui:SetAttribute("CustomToolBar", true)
+end
+
 function HUD.start()
 	-- la salute la mostra la nostra HUD (cuore e barra): quella di Roblox (barra in alto e bordo
 	-- rosso quando prendi danni) si spegne all'avvio, a ogni respawn e ogni 2 secondi, perche' le
@@ -31,6 +128,7 @@ function HUD.start()
 	-- riaccendevano: un giocatore la vedeva sovrapposta alla nostra
 	local function hideRobloxHealth()
 		pcall(function()
+			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 			if StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.Health) then
 				StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
 			end
@@ -47,6 +145,7 @@ function HUD.start()
 		end
 	end)
 	local gui = Ui.screen("ClimbHUD")
+	toolBar(gui)
 	local me, coins, info, pet, quest =
 		Ui.node(gui, "Player"),
 		Ui.node(gui, "Coins"),
@@ -55,7 +154,7 @@ function HUD.start()
 		Ui.node(gui, "Quest")
 	local coinText, pitonText = coins.Text, coins.Pitons
 	-- un colore per riquadro (prima tutti blu scuro uguali): sfumatura leggera sotto la cornice
-	for panel, tone in { [me] = Color3.fromRGB(200, 60, 60), [coins] = Color3.fromRGB(225, 165, 40), [pet] = Color3.fromRGB(140, 70, 210), [info] = Color3.fromRGB(50, 140, 220) } do
+	for panel, tone in { [me] = Theme.BAD, [coins] = Theme.ORANGE, [pet] = Theme.PURPLE, [info] = Theme.BLUE } do
 		Ui.tint(panel, tone, false, 0.03)
 		local fill = panel:FindFirstChild("Tinta") :: Frame?
 		if fill then
@@ -89,7 +188,7 @@ function HUD.start()
 		local version = noticeVersion
 		noticePanel.Text.Text = message
 		local goal = noticePosition
-		noticePanel.Position = UDim2.fromScale(goal.X.Scale, goal.Y.Scale - 0.04)
+		noticePanel.Position = goal - UDim2.fromOffset(0, 8)
 		Ui.open(noticePanel)
 		game:GetService("TweenService"):Create(noticePanel, TweenInfo.new(0.18), { Position = goal }):Play()
 		task.delay(4, function()
@@ -111,17 +210,17 @@ function HUD.start()
 	-- le monete. Sul telefono tutto piu' stretto e basso (UiView.compact).
 	local function layoutPlayer()
 		local x, w = if compact then 10 else 16, if compact then 250 else 340
-		local y0 = if compact then 8 else 16
+		local y0 = Ui.menuMetrics(logical).y
 		local h
 		if compact then
-			h = if shieldOn then 96 else 80
+			h = if shieldOn then 100 else 80
 			P(me, 0, x, 0, y0, w, h)
 			P(Ui.node(me, "Name"), 0, 46, 0, 9, 192, 20)
 			P(me.HealthIcon, 0, 14, 0, 32, 24, 24)
 			P(me.Health, 0, 46, 0, 34, 192, 20)
 			P(me.StaminaIcon, 0, 16, 0, 57, 20, 20)
-			P(me.Stamina, 0, 46, 0, 59, 192, 14)
-			P(me.Shield, 0, 46, 0, 77, 192, 14)
+			P(me.Stamina, 0, 46, 0, 59, 192, 18)
+			P(me.Shield, 0, 46, 0, 79, 192, 18)
 		else
 			-- (il nome toccava la cornice in alto: piu' giu' e pannello piu' alto)
 			h = if shieldOn then 144 else 120
@@ -141,7 +240,7 @@ function HUD.start()
 				P(pet.Element, 0, 10, 0, 9, 40, 40)
 				P(petName, 0, 58, 0, 5, 184, 20)
 				P(petLevel, 0, 58, 0, 25, 184, 16)
-				P(pet.XP, 0, 58, 0, 43, 180, 13)
+				P(pet.XP, 0, 58, 0, 43, 180, 18)
 			else
 				P(pet.Element, 0, 16, 0, 12, 44, 44)
 				P(petName, 0, 70, 0, 10, 254, 22)
@@ -209,7 +308,7 @@ function HUD.start()
 	local chevron = Instance.new("TextLabel")
 	chevron.Name = "Piega"
 	chevron.BackgroundTransparency = 1
-	chevron.TextColor3 = Color3.fromRGB(200, 210, 230)
+	chevron.TextColor3 = Theme.TEXT
 	chevron.Font = Enum.Font.GothamBlack
 	chevron.TextSize = 14
 	chevron.AnchorPoint = Vector2.new(1, 0)
@@ -222,15 +321,15 @@ function HUD.start()
 		altitude.Visible = not folded
 		if compact and folded then
 			local h = 58 + (if frozen then 22 else 0)
-			P(info, 1, -10, 0, 8, 190, h, 1, 0)
+			P(info, 1, -10, 0, Ui.menuMetrics(logical).y, 190, h, 1, 0)
 			P(weatherIcon, 0, 8, 0, 7, 44, 44)
 			P(weatherFallback, 0, 8, 0, 7, 44, 44)
 			P(timeBig, 0, 58, 0, 5, 120, 26)
 			P(clock, 0, 58, 0, 31, 120, 18)
-			P(warmthBack, 0, 10, 0, 58, 170, 14)
+			P(warmthBack, 0, 10, 0, 58, 170, 18)
 		elseif folded then
 			local h = 84 + (if frozen then 30 else 0)
-			P(info, 1, -16, 0, 16, 240, h, 1, 0)
+			P(info, 1, -16, 0, Ui.menuMetrics(logical).y, 240, h, 1, 0)
 			P(weatherIcon, 0, 12, 0, 13, 58, 58)
 			P(weatherFallback, 0, 12, 0, 13, 58, 58)
 			P(timeBig, 0, 82, 0, 12, 140, 34)
@@ -238,17 +337,17 @@ function HUD.start()
 			P(warmthBack, 0, 16, 0, 84, 208, 18)
 		elseif compact then
 			local h = 76 + (if warmthBack.Visible then 22 else 0) + (if finder.Visible then 34 else 0)
-			P(info, 1, -10, 0, 8, 226, h, 1, 0)
+			P(info, 1, -10, 0, Ui.menuMetrics(logical).y, 226, h, 1, 0)
 			P(weatherIcon, 0, 10, 0, 10, 44, 44)
 			P(weatherFallback, 0, 10, 0, 10, 44, 44)
 			P(timeBig, 0, 62, 0, 6, 142, 26)
 			P(clock, 0, 62, 0, 32, 142, 16)
 			P(altitude, 0, 62, 0, 50, 142, 18)
-			P(warmthBack, 0, 12, 0, 76, 190, 14)
+			P(warmthBack, 0, 12, 0, 76, 190, 18)
 			P(finder, 0, 12, 0, h - 34, 202, 28)
 		else
 			local h = 122 + (if warmthBack.Visible then 30 else 0) + (if finder.Visible then 42 else 0)
-			P(info, 1, -16, 0, 16, 272, h, 1, 0)
+			P(info, 1, -16, 0, Ui.menuMetrics(logical).y, 272, h, 1, 0)
 			P(weatherIcon, 0, 16, 0, 16, 58, 58)
 			P(weatherFallback, 0, 16, 0, 16, 58, 58)
 			P(timeBig, 0, 88, 0, 14, 148, 34)
@@ -257,8 +356,13 @@ function HUD.start()
 			P(warmthBack, 0, 20, 0, 118, 232, 18)
 			P(finder, 0, 20, 0, h - 42, 232, 36)
 		end
-	end
-	local relayingWeather = false
+  if logical.X < 600 then
+   info.AnchorPoint = Vector2.zero
+   info.Position = UDim2.fromOffset(10, ((gui:GetAttribute("LeftBottom") or 300) :: number) + 4)
+   info.Size = UDim2.fromOffset(logical.X - 20, 80)
+  end
+ end
+ local relayingWeather = false
 	local function relayWeather()
 		if relayingWeather then
 			return
@@ -281,35 +385,24 @@ function HUD.start()
 		texts()
 		layoutPlayer()
 		layoutWeather()
-		if compact then
-			-- missione sotto la fila delle icone del menu, fra la colonna e il meteo
-			local x = 272
-			local w = math.clamp(logical.X - x - 234, 260, 470)
-			P(quest, 0, x, 0, 82, w, 66)
-			P(quest.Icon, 0, 10, 0, 10, 30, 30)
-			P(questTitle, 0, 48, 0, 6, w - 170, 20)
-			P(skip, 1, -8, 0, 6, 112, 26, 1, 0)
-			P(questText, 0, 48, 0, 28, w - 58, 34)
-			P(noticePanel, 0, x, 0, 154, w, 46)
-			P(noticePanel.Text, 0, 14, 0, 4, w - 28, 38)
-			P(hint, 0.5, 0, 1, -150, math.min(560, logical.X - 32), 26, 0.5, 1)
-		else
-			local portrait = logical.X < 340 + 470 + 252 + 64
-			if portrait then
-				-- schermo stretto: la missione sotto la colonna di sinistra
-				local below = (gui:GetAttribute("LeftBottom") or 300) :: number
-				P(quest, 0, 16, 0, below, math.min(470, logical.X - 32), 100)
-			else
-				P(quest, 0.5, 0, 0, 16, 470, 100, 0.5, 0)
-			end
-			P(quest.Icon, 0, 16, 0, 16, 40, 40)
-			P(questTitle, 0, 66, 0, 12, 250, 24)
-			P(skip, 1, -16, 0, 12, 130, 32, 1, 0)
-			P(questText, 0, 66, 0, 40, 388, 50)
-			P(noticePanel, 0.5, 0, 0, if portrait then 16 else 124, math.min(520, logical.X - 32), 58, 0.5, 0)
-			P(noticePanel.Text, 0, 22, 0, 6, math.min(520, logical.X - 32) - 44, 46)
-			P(hint, 0.5, 0, 1, -120, math.min(640, logical.X - 32), 32, 0.5, 1)
-		end
+		local portrait = logical.X < 600
+  local top = Ui.menuMetrics(logical).y
+  local x = if portrait then 10 elseif compact then 270 else 370
+  local w = if portrait then logical.X - 20 else math.max(220, logical.X - x - (if compact then 210 else 300))
+  local y = if portrait then ((gui:GetAttribute("LeftBottom") or 300) :: number) + 92 else top
+  P(quest, 0, x, 0, y, w, 136)
+  P(quest.Icon, 0, 10, 0, 10, 30, 30)
+  P(questTitle, 0, 46, 0, 8, w - 58, 28)
+  P(questText, 0, 10, 0, 42, w - 20, 44)
+  P(skip, 1, -10, 1, -6, math.min(150, w - 20), 44, 1, 1)
+  P(noticePanel, 0, x, 0, y + 144, w, 44)
+  P(noticePanel.Text, 0, 8, 0, 6, w - 16, 32)
+  P(hint, 0.5, 0, 1, -90, math.min(560, logical.X - 32), 40, 0.5, 1)
+  if portrait then
+   me.Size = UDim2.fromOffset(logical.X - 20, me.Size.Y.Offset)
+   pet.Size = UDim2.fromOffset(logical.X - 20, pet.Size.Y.Offset)
+   coins.Size = UDim2.fromOffset(logical.X - 20, coins.Size.Y.Offset)
+  end
 		noticePosition = noticePanel.Position
 	end
 	Ui.viewportChanged(function(vp)
@@ -387,6 +480,13 @@ function HUD.start()
 	local lastWeather = ""
 
 	RunService.RenderStepped:Connect(function(dt)
+  local pg = player.PlayerGui
+  local menu = pg:FindFirstChild("MainMenu")
+  local travel = pg:FindFirstChild("Teletrasporto")
+  local death = pg:FindFirstChild("DeathScreen")
+  local travelPanel = travel and travel:FindFirstChild("Panel") :: GuiObject?
+  gui.Enabled = not ((menu and menu:GetAttribute("MenuOpen") == true)
+   or (travelPanel and travelPanel.Visible) or (death and death:IsA("ScreenGui") and death.Enabled))
 		local character = player.Character
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -405,9 +505,9 @@ function HUD.start()
 		staminaBack.Visible = true
 		staminaFill.Size = UDim2.new(ratio, 0, 1, 0)
 		staminaFill.BackgroundColor3 = if ratio > 0.5
-			then Color3.fromRGB(120, 200, 110)
-			elseif ratio > 0.2 then Color3.fromRGB(230, 190, 70)
-			else Color3.fromRGB(220, 70, 60)
+			then Theme.GOOD
+			elseif ratio > 0.2 then Theme.ACCENT
+			else Theme.BAD
 		staminaText.Text = string.format("%d%%", math.floor(ratio * 100))
 		local shieldMax = (player:GetAttribute("ShieldMax") or 0) :: number
 		if (shieldMax > 0) ~= shieldBack.Visible then
@@ -453,8 +553,8 @@ function HUD.start()
 		warmthBack.Visible = if folded then warmth < 40 else (warmth < 99.5 or alt > Gear.COLD_ALTITUDE - 20)
 		warmthFill.Size = UDim2.new(math.clamp(warmth / 100, 0, 1), 0, 1, 0)
 		warmthFill.BackgroundColor3 = if warmth > 40
-			then Color3.fromRGB(255, 150, 70)
-			else Color3.fromRGB(110, 170, 255)
+			then Theme.ORANGE
+			else Theme.BLUE
 		warmthText.Text = if warmth <= 0
 			then "🥶 Freezing!"
 			else string.format("🌡️ Warmth %d%%", math.floor(warmth))
@@ -513,6 +613,7 @@ function HUD.start()
 		hint.Text = if os.clock() - hintTime < 4 then lastHint else ""
 		local combat = gui.Parent and gui.Parent:FindFirstChild("CombatHUD")
 		hint.Visible = not combat or (Ui.node(combat, "Timer").Text == "" and Ui.node(combat, "Event").Text == "")
+		if compact and (quest.Visible or noticePanel.Visible) then hint.Visible = false end
 	end)
 end
 

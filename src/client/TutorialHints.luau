@@ -10,6 +10,7 @@ local RunService = game:GetService("RunService")
 
 local Ui = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UiView"))
 
+local Theme = require(script.Parent.Theme)
 local TutorialHints = {}
 
 function TutorialHints.start()
@@ -27,10 +28,10 @@ function TutorialHints.start()
 	ring.Visible = false
 	ring.Parent = gui
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0.5, 0)
+	corner.CornerRadius = UDim.new(0, 10)
 	corner.Parent = ring
 	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(255, 220, 80)
+	stroke.Color = Theme.ACCENT
 	stroke.Thickness = 5
 	stroke.Parent = ring
 	local hand = Instance.new("TextLabel")
@@ -43,6 +44,7 @@ function TutorialHints.start()
 	hand.Text = "👇"
 	hand.Visible = false
 	hand.Parent = gui
+	Theme.fitText(hand, 20, false)
 
 	RunService.RenderStepped:Connect(function()
 		local text = player:GetAttribute("TutorialText") or player:GetAttribute("MissionText")
@@ -63,10 +65,11 @@ function TutorialHints.start()
 		local size = math.max(b.AbsoluteSize.X, b.AbsoluteSize.Y)
 		local center = b.AbsolutePosition + b.AbsoluteSize / 2 + game:GetService("GuiService"):GetGuiInset()
 		ring.Position = UDim2.fromOffset(center.X, center.Y)
-		ring.Size = UDim2.fromOffset(size * (1.1 + pulse * 0.25), size * (1.1 + pulse * 0.25))
+		ring.Size = UDim2.fromOffset(math.max(1, b.AbsoluteSize.X - 8), math.max(1, b.AbsoluteSize.Y - 8))
 		stroke.Transparency = pulse * 0.5
 		-- la manina sopra il pulsante, che va su e giu'
-		hand.Position = UDim2.fromOffset(center.X, center.Y - size * 0.55 + math.sin(t * 6) * 8)
+		hand.Size = UDim2.fromOffset(22, 22)
+		hand.Position = UDim2.fromOffset(center.X + b.AbsoluteSize.X / 2 - 16, center.Y + 3)
 	end)
 end
 

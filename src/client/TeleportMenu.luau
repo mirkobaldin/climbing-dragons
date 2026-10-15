@@ -6,6 +6,7 @@ local CAS = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local Ui = require(RS:WaitForChild("Shared").UiView)
+local Theme = require(script.Parent.Theme)
 local player = Players.LocalPlayer
 local TeleportMenu = {}
 local FIXED = { "Base camp (hub)", "My camp", "Dragon training", "Muscle Beach (gym)", "Dragon Island" }
@@ -50,9 +51,10 @@ function TeleportMenu.start()
 	local gui = Ui.screen("Teletrasporto")
 	local panel, open = Ui.node(gui, "Panel"), Ui.node(gui, "Open")
 	open.Visible = player.PlayerGui:FindFirstChild("MainMenu") == nil
-	local bound: { [Instance]: boolean } = {}
+	local destinations = panel.Destinations
+ local bound: { [Instance]: boolean } = {}
 	local function bind(i: number)
-		local b = panel["Destination" .. i]
+		local b = destinations["Destination" .. i]
 		if b and not bound[b] then
 			bound[b] = true
 			b.Activated:Connect(function()
@@ -68,33 +70,43 @@ function TeleportMenu.start()
 		for _, n in campNumbers() do
 			table.insert(NAMES, "Base Camp " .. n)
 		end
-		local template = panel:FindFirstChild("Destination4")
-		for i = 5, #NAMES do -- nella GUI ci sono 4 pulsanti: gli altri sono copie del quarto
-			if not panel:FindFirstChild("Destination" .. i) and template then
+		local template = destinations:FindFirstChild("Destination4")
+		for i = 6, #NAMES do -- nella GUI ci sono 4 pulsanti: gli altri sono copie del quarto
+			if not destinations:FindFirstChild("Destination" .. i) and template then
 				local c = template:Clone()
 				c.Name = "Destination" .. i
-				c.Parent = panel
+				c.Parent = destinations
 			end
 			bind(i)
 		end
 		local count = #NAMES
-		local cols = if count > 4 then 2 else 1
-		local rows = math.ceil(count / cols)
-		local h = math.min(0.18, 0.78 / rows - 0.02)
-		local w = if cols == 2 then 0.44 else 0.9
-		for i = 1, count do
-			local b = panel:FindFirstChild("Destination" .. i)
-			if b then
-				local col = if cols == 2 then (i - 1) % 2 else 0
-				local row = if cols == 2 then (i - 1) // 2 else i - 1
-				b.Position = UDim2.fromScale(0.05 + col * 0.46, 0.18 + row * (h + 0.02))
-				b.Size = UDim2.fromScale(w, h)
-				b.Visible = true
-			end
-		end
+  for i = 1, count do
+   local b = destinations:FindFirstChild("Destination" .. i)
+   if b then
+    b.Position = UDim2.fromOffset(4, (i - 1) * 68 + 4)
+    b.Size = UDim2.new(1, -16, 0, 60)
+    b.Visible = true
+    b.Text = ""
+    b.Title.Position = UDim2.fromOffset(58, 8)
+    b.Title.Size = UDim2.new(1, -168, 1, -16)
+    b.Title.TextWrapped = false
+    b.Icon.Position = UDim2.fromOffset(8, 8)
+    b.Icon.Size = UDim2.fromOffset(44, 44)
+    b.Distance.AnchorPoint = Vector2.new(1, 0.5)
+    b.Distance.Position = UDim2.new(1, -8, 0.5, 0)
+    b.Distance.Size = UDim2.fromOffset(94, 32)
+    b.Distance.TextXAlignment = Enum.TextXAlignment.Center
+    Theme.fitText(b.Title, 20, false)
+    Theme.fitText(b.Distance, 16, false)
+    Theme.action(b, "alt")
+    bind(i)
+   end
+  end
+  destinations.CanvasSize = UDim2.fromOffset(0, count * 68 + 8)
+
 		local k = count + 1
-		while panel:FindFirstChild("Destination" .. k) do
-			panel["Destination" .. k].Visible = false
+		while destinations:FindFirstChild("Destination" .. k) do
+			destinations["Destination" .. k].Visible = false
 			k += 1
 		end
 	end
@@ -103,27 +115,45 @@ function TeleportMenu.start()
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 		local here = player:GetAttribute("AtWaypoint") == true
-		panel.Title.Text = if here then "Teleport" else "Teleport · from here only Home"
-		for i, name in NAMES do
-			local b = panel["Destination" .. i]
-			local locked = (i == 3 or i == 5) and ((player:GetAttribute("DragonCount") or 0) :: number) < 1
-			local homeFar = name == "My camp" and not here
-			b.Title.Text = (if name == "My camp" then "Home" else name)
-				.. (if locked then "\nFirst dragon required" elseif homeFar then "\nfrom anywhere · 60 s" elseif not here then "\nfrom a travel point" else "")
-			Ui.asset(b.Icon, if locked then "icon_lock" else "icon_teleport")
-			local pos = destination(i)
-			b.Distance.Text = if root and pos
-				then string.format("%d m", math.floor((root.Position - pos).Magnitude))
-				else ""
-		end
+		panel.Title.Text = "Travel"
+  local titles = {"Base camp", "Home", "Dragon arena", "Muscle Beach", "Dragon Island"}
+  local icons = {"TravelHub", "TravelHome", "TravelArena", "TravelGym", "TravelIsland"}
+  for i, name in NAMES do
+   local b = destinations["Destination" .. i]
+   local locked = ((i == 3 or i == 5) and ((player:GetAttribute("DragonCount") or 0) :: number) < 1)
+    or (not here and i ~= 2)
+   local homeFar = name == "My camp" and not here
+   b.Title.Text = titles[i] or name
+   Theme.assetPreview(b.Icon, "item_" .. (icons[i] or "TravelCamp"), nil)
+   local pos = destination(i)
+   b.Distance.Text = if locked then "Locked" elseif homeFar then "◷ 60 s"
+    elseif root and pos then string.format("%d m", math.floor((root.Position - pos).Magnitude)) else "—"
+   b.Distance.BackgroundColor3 = if locked then Theme.DISABLED else Theme.PANEL
+   b.Distance.BackgroundTransparency = 0
+   Theme.action(b, "alt", locked)
+   local lock = b:FindFirstChild("Lock") :: ImageLabel?
+   if not lock then
+    lock = Instance.new("ImageLabel")
+    lock.Name = "Lock"
+    lock.BackgroundTransparency = 1
+    lock.Position = UDim2.fromOffset(36, 32)
+    lock.Size = UDim2.fromOffset(18, 18)
+    lock.ZIndex = 4
+    lock.Parent = b
+   end
+   Ui.asset(lock :: ImageLabel, "icon_lock")
+   lock.Visible = locked
+  end
 	end
-	for i = 1, 4 do -- il quinto (isola) lo crea e lo collega layout()
+	for i = 1, 5 do -- il quinto (isola) lo crea e lo collega layout()
 		bind(i)
 	end
 	local function toggle()
 		if panel.Visible then
 			panel.Visible = false
 		else
+			local menu = player.PlayerGui:FindFirstChild("MainMenu")
+			if menu then menu:SetAttribute("MenuOpen", false) end
 			refresh()
 			Ui.open(panel)
 		end
@@ -147,9 +177,16 @@ function TeleportMenu.start()
 		player:GetAttributeChangedSignal(attr):Connect(refresh)
 	end
 	Ui.viewportChanged(function(vp)
-		panel.Position = UDim2.fromScale(if vp.X < vp.Y then 0.04 else 0.2, 0.1)
-		panel.Size = UDim2.fromScale(if vp.X < vp.Y then 0.92 else 0.65, 0.8)
-	end)
+  local logical = Ui.fitScale(gui, vp)
+  local m = Ui.menuMetrics(logical)
+  local width = math.min(680, m.width)
+  Ui.px(panel, 0.5, 0, 0, m.y, width, m.height, 0.5, 0)
+  panel.Title.Position = UDim2.fromOffset(12, 8)
+  panel.Title.Size = UDim2.new(1, -80, 0, 44)
+  Ui.px(panel.Close, 1, -8, 0, 8, 44, 44, 1, 0)
+  destinations.Position = UDim2.fromOffset(8, 60)
+  destinations.Size = UDim2.new(1, -16, 1, -68)
+ end)
 	refresh()
 end
 return TeleportMenu

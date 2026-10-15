@@ -44,7 +44,8 @@
             "String": "panel_card"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -175,10 +176,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 15
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Description",
@@ -221,10 +271,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 12
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Cost",
@@ -267,10 +366,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 13
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Buy",
@@ -318,14 +466,23 @@
                 0.9490196078431372
               ]
             },
-            "TextWrapped": true,
-            "TextStrokeTransparency": 0.6,
+            "TextWrapped": false,
+            "TextStrokeTransparency": 0,
             "AutoButtonColor": true,
             "Attributes": {
               "UiAsset": {
                 "String": "btn_primary_normal"
               }
-            }
+            },
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            },
+            "ClipsDescendants": true
           },
           "children": [
             {
@@ -375,6 +532,46 @@
                 }
               },
               "children": []
+            },
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 14
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
             }
           ]
         },
@@ -414,7 +611,8 @@
                 0.18823529411764706
               ]
             },
-            "BackgroundTransparency": 1
+            "BackgroundTransparency": 1,
+            "ClipsDescendants": true
           },
           "children": [
             {
@@ -463,14 +661,23 @@
                     0.9490196078431372
                   ]
                 },
-                "TextWrapped": true,
-                "TextStrokeTransparency": 0.6,
+                "TextWrapped": false,
+                "TextStrokeTransparency": 0,
                 "AutoButtonColor": true,
                 "Attributes": {
                   "UiAsset": {
                     "String": "btn_secondary_normal"
                   }
-                }
+                },
+                "TextScaled": true,
+                "TextStrokeColor3": {
+                  "Color3": [
+                    0.043137254901960784,
+                    0.08627450980392157,
+                    0.2
+                  ]
+                },
+                "ClipsDescendants": true
               },
               "children": [
                 {
@@ -516,6 +723,46 @@
                       "Vector2": [
                         10000,
                         10000
+                      ]
+                    }
+                  },
+                  "children": []
+                },
+                {
+                  "name": "TextLimit",
+                  "className": "UITextSizeConstraint",
+                  "properties": {
+                    "MinTextSize": 12,
+                    "MaxTextSize": 14
+                  },
+                  "children": []
+                },
+                {
+                  "name": "TextPadding",
+                  "className": "UIPadding",
+                  "properties": {
+                    "PaddingLeft": {
+                      "UDim": [
+                        0,
+                        4
+                      ]
+                    },
+                    "PaddingRight": {
+                      "UDim": [
+                        0,
+                        4
+                      ]
+                    },
+                    "PaddingTop": {
+                      "UDim": [
+                        0,
+                        2
+                      ]
+                    },
+                    "PaddingBottom": {
+                      "UDim": [
+                        0,
+                        2
                       ]
                     }
                   },
@@ -569,14 +816,23 @@
                     0.9490196078431372
                   ]
                 },
-                "TextWrapped": true,
-                "TextStrokeTransparency": 0.6,
+                "TextWrapped": false,
+                "TextStrokeTransparency": 0,
                 "AutoButtonColor": true,
                 "Attributes": {
                   "UiAsset": {
                     "String": "btn_secondary_normal"
                   }
-                }
+                },
+                "TextScaled": true,
+                "TextStrokeColor3": {
+                  "Color3": [
+                    0.043137254901960784,
+                    0.08627450980392157,
+                    0.2
+                  ]
+                },
+                "ClipsDescendants": true
               },
               "children": [
                 {
@@ -626,6 +882,46 @@
                     }
                   },
                   "children": []
+                },
+                {
+                  "name": "TextLimit",
+                  "className": "UITextSizeConstraint",
+                  "properties": {
+                    "MinTextSize": 12,
+                    "MaxTextSize": 14
+                  },
+                  "children": []
+                },
+                {
+                  "name": "TextPadding",
+                  "className": "UIPadding",
+                  "properties": {
+                    "PaddingLeft": {
+                      "UDim": [
+                        0,
+                        4
+                      ]
+                    },
+                    "PaddingRight": {
+                      "UDim": [
+                        0,
+                        4
+                      ]
+                    },
+                    "PaddingTop": {
+                      "UDim": [
+                        0,
+                        2
+                      ]
+                    },
+                    "PaddingBottom": {
+                      "UDim": [
+                        0,
+                        2
+                      ]
+                    }
+                  },
+                  "children": []
                 }
               ]
             }
@@ -667,7 +963,8 @@
                 "String": "icon_coin"
               }
             }
-          }
+          },
+          "children": []
         }
       ]
     },
@@ -713,7 +1010,8 @@
             "String": "panel_card"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -844,10 +1142,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 13
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Count",
@@ -890,10 +1237,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Right"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Right",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 13
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         }
       ]
     },
@@ -939,7 +1335,8 @@
             "String": "panel_card"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -1026,7 +1423,8 @@
                 0.18823529411764706
               ]
             },
-            "BackgroundTransparency": 1
+            "BackgroundTransparency": 1,
+            "ClipsDescendants": true
           },
           "children": []
         },
@@ -1071,10 +1469,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 15
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Description",
@@ -1117,10 +1564,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 12
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Materials",
@@ -1158,7 +1654,8 @@
                 0.18823529411764706
               ]
             },
-            "BackgroundTransparency": 1
+            "BackgroundTransparency": 1,
+            "ClipsDescendants": true
           },
           "children": []
         },
@@ -1208,14 +1705,23 @@
                 0.9490196078431372
               ]
             },
-            "TextWrapped": true,
-            "TextStrokeTransparency": 0.6,
+            "TextWrapped": false,
+            "TextStrokeTransparency": 0,
             "AutoButtonColor": true,
             "Attributes": {
               "UiAsset": {
                 "String": "btn_primary_normal"
               }
-            }
+            },
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            },
+            "ClipsDescendants": true
           },
           "children": [
             {
@@ -1261,6 +1767,46 @@
                   "Vector2": [
                     10000,
                     10000
+                  ]
+                }
+              },
+              "children": []
+            },
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 14
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
                   ]
                 }
               },
@@ -1312,7 +1858,8 @@
             "String": "panel_card"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -1443,10 +1990,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 12
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         }
       ]
     },
@@ -1492,7 +2088,8 @@
             "String": "panel_card"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -1584,10 +2181,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 30
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Title",
@@ -1630,10 +2276,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 15
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Description",
@@ -1676,10 +2371,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 12
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Effect",
@@ -1722,10 +2466,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 12
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Cost",
@@ -1768,10 +2561,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 12
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Action",
@@ -1819,14 +2661,23 @@
                 0.9490196078431372
               ]
             },
-            "TextWrapped": true,
-            "TextStrokeTransparency": 0.6,
+            "TextWrapped": false,
+            "TextStrokeTransparency": 0,
             "AutoButtonColor": true,
             "Attributes": {
               "UiAsset": {
                 "String": "btn_primary_normal"
               }
-            }
+            },
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            },
+            "ClipsDescendants": true
           },
           "children": [
             {
@@ -1872,6 +2723,46 @@
                   "Vector2": [
                     10000,
                     10000
+                  ]
+                }
+              },
+              "children": []
+            },
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 14
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
                   ]
                 }
               },
@@ -1923,7 +2814,8 @@
             "String": "panel_card"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -2015,10 +2907,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 15
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Progress",
@@ -2061,7 +3002,8 @@
               "UiAsset": {
                 "String": ""
               }
-            }
+            },
+            "ClipsDescendants": true
           },
           "children": [
             {
@@ -2129,7 +3071,8 @@
                     1
                   ]
                 },
-                "BackgroundTransparency": 0
+                "BackgroundTransparency": 0,
+                "ClipsDescendants": true
               },
               "children": []
             },
@@ -2174,11 +3117,60 @@
                 },
                 "TextWrapped": true,
                 "RichText": true,
-                "TextStrokeTransparency": 0.6,
+                "TextStrokeTransparency": 0,
                 "TextXAlignment": "Center",
-                "ZIndex": 3
+                "ZIndex": 3,
+                "TextScaled": true,
+                "TextStrokeColor3": {
+                  "Color3": [
+                    0.043137254901960784,
+                    0.08627450980392157,
+                    0.2
+                  ]
+                }
               },
-              "children": []
+              "children": [
+                {
+                  "name": "TextLimit",
+                  "className": "UITextSizeConstraint",
+                  "properties": {
+                    "MinTextSize": 12,
+                    "MaxTextSize": 12
+                  },
+                  "children": []
+                },
+                {
+                  "name": "TextPadding",
+                  "className": "UIPadding",
+                  "properties": {
+                    "PaddingLeft": {
+                      "UDim": [
+                        0,
+                        4
+                      ]
+                    },
+                    "PaddingRight": {
+                      "UDim": [
+                        0,
+                        4
+                      ]
+                    },
+                    "PaddingTop": {
+                      "UDim": [
+                        0,
+                        2
+                      ]
+                    },
+                    "PaddingBottom": {
+                      "UDim": [
+                        0,
+                        2
+                      ]
+                    }
+                  },
+                  "children": []
+                }
+              ]
             }
           ]
         },
@@ -2223,10 +3215,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 12
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         },
         {
           "name": "Claim",
@@ -2274,14 +3315,23 @@
                 0.9490196078431372
               ]
             },
-            "TextWrapped": true,
-            "TextStrokeTransparency": 0.6,
+            "TextWrapped": false,
+            "TextStrokeTransparency": 0,
             "AutoButtonColor": true,
             "Attributes": {
               "UiAsset": {
                 "String": "btn_primary_normal"
               }
-            }
+            },
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            },
+            "ClipsDescendants": true
           },
           "children": [
             {
@@ -2327,6 +3377,46 @@
                   "Vector2": [
                     10000,
                     10000
+                  ]
+                }
+              },
+              "children": []
+            },
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 14
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
                   ]
                 }
               },
@@ -2378,7 +3468,8 @@
             "String": "panel_card"
           }
         },
-        "Visible": false
+        "Visible": false,
+        "ClipsDescendants": true
       },
       "children": [
         {
@@ -2470,10 +3561,59 @@
             },
             "TextWrapped": true,
             "RichText": true,
-            "TextStrokeTransparency": 0.6,
-            "TextXAlignment": "Left"
+            "TextStrokeTransparency": 0,
+            "TextXAlignment": "Left",
+            "TextScaled": true,
+            "TextStrokeColor3": {
+              "Color3": [
+                0.043137254901960784,
+                0.08627450980392157,
+                0.2
+              ]
+            }
           },
-          "children": []
+          "children": [
+            {
+              "name": "TextLimit",
+              "className": "UITextSizeConstraint",
+              "properties": {
+                "MinTextSize": 12,
+                "MaxTextSize": 13
+              },
+              "children": []
+            },
+            {
+              "name": "TextPadding",
+              "className": "UIPadding",
+              "properties": {
+                "PaddingLeft": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingRight": {
+                  "UDim": [
+                    0,
+                    4
+                  ]
+                },
+                "PaddingTop": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                },
+                "PaddingBottom": {
+                  "UDim": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              "children": []
+            }
+          ]
         }
       ]
     },
@@ -2518,9 +3658,17 @@
         },
         "TextWrapped": true,
         "RichText": true,
-        "TextStrokeTransparency": 0.6,
+        "TextStrokeTransparency": 0,
         "TextXAlignment": "Left",
-        "Visible": false
+        "Visible": false,
+        "TextScaled": true,
+        "TextStrokeColor3": {
+          "Color3": [
+            0.043137254901960784,
+            0.08627450980392157,
+            0.2
+          ]
+        }
       },
       "children": [
         {
@@ -2537,6 +3685,46 @@
               "Vector2": [
                 10000,
                 36
+              ]
+            }
+          },
+          "children": []
+        },
+        {
+          "name": "TextLimit",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12,
+            "MaxTextSize": 15
+          },
+          "children": []
+        },
+        {
+          "name": "TextPadding",
+          "className": "UIPadding",
+          "properties": {
+            "PaddingLeft": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingRight": {
+              "UDim": [
+                0,
+                4
+              ]
+            },
+            "PaddingTop": {
+              "UDim": [
+                0,
+                2
+              ]
+            },
+            "PaddingBottom": {
+              "UDim": [
+                0,
+                2
               ]
             }
           },

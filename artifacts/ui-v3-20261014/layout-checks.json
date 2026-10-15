@@ -1,0 +1,245 @@
+{
+  "labels": 107,
+  "buttons": 41,
+  "viewports": [
+    {
+      "width": 1920,
+      "height": 1080,
+      "scale": 1.5,
+      "cols": 6,
+      "cell": 150,
+      "navWidth": 940,
+      "navHeight": 56,
+      "x": 80,
+      "y": 72,
+      "w": 1120,
+      "h": 640
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "scale": 1.067187,
+      "cols": 6,
+      "cell": 150,
+      "navWidth": 940,
+      "navHeight": 56,
+      "x": 80,
+      "y": 72,
+      "w": 1120,
+      "h": 639.648609
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "scale": 1,
+      "cols": 6,
+      "cell": 131.333333,
+      "navWidth": 828,
+      "navHeight": 56,
+      "x": 8,
+      "y": 72,
+      "w": 828,
+      "h": 310
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scale": 1,
+      "cols": 3,
+      "cell": 119.333333,
+      "navWidth": 374,
+      "navHeight": 120,
+      "x": 8,
+      "y": 136,
+      "w": 374,
+      "h": 700
+    },
+    {
+      "width": 844,
+      "height": 354,
+      "scale": 1,
+      "cols": 6,
+      "cell": 131.333333,
+      "navWidth": 828,
+      "navHeight": 56,
+      "x": 8,
+      "y": 72,
+      "w": 828,
+      "h": 274
+    }
+  ],
+  "names": [
+    "Rock",
+    "Ember",
+    "Frost",
+    "Cosmic",
+    "Storm",
+    "Sun",
+    "Shadow",
+    "Eclipse",
+    "Black Lightning",
+    "Bone",
+    "Gas",
+    "Common",
+    "Rare",
+    "Epic",
+    "Legendary",
+    "Hatchling",
+    "Young",
+    "Adult",
+    "Coal",
+    "Iron",
+    "Gold",
+    "Crystal",
+    "Ruby",
+    "Tent",
+    "Cabin",
+    "Chalet",
+    "Sky Chalet",
+    "Workbench",
+    "Anywhere",
+    "Clear",
+    "Cloudy",
+    "Rain",
+    "Thunderstorm",
+    "Storm",
+    "Snow"
+  ],
+  "tools": [
+    "Ice Axe",
+    "Pickaxe",
+    "Grappling Hook",
+    "Torch"
+  ],
+  "gear": [
+    {
+      "id": "Ramponi",
+      "name": "Crampons",
+      "description": "Steel-spiked boots: climb ice without slipping."
+    },
+    {
+      "id": "Tuta",
+      "name": "Thermal Suit",
+      "description": "High-altitude cold drains your warmth 4 times slower."
+    },
+    {
+      "id": "Rampino",
+      "name": "Grappling Hook",
+      "description": "Click a distant wall: the rope pulls you up. Gets you past smooth walls."
+    },
+    {
+      "id": "PiccoRinforzato",
+      "name": "Reinforced Pickaxe",
+      "description": "Gold and crystal tip: mines Ruby and Cosmic ore."
+    },
+    {
+      "id": "Parapendio",
+      "name": "Paraglider",
+      "description": "Press Space while falling to open it and glide down the mountain."
+    },
+    {
+      "id": "Sella",
+      "name": "Dragon Saddle",
+      "description": "Ride your adult dragon: press H (or Ride) and fly anywhere."
+    },
+    {
+      "id": "Chiodi",
+      "name": "Pitons (+4)",
+      "description": "Forge four wall pitons from the iron in your pack."
+    },
+    {
+      "id": "Torcia",
+      "name": "Torch",
+      "description": "Lights up caves and the night, and warms your hands a little."
+    },
+    {
+      "id": "Bende",
+      "name": "Bandages",
+      "description": "Patch yourself up after a fall: +40 health."
+    }
+  ],
+  "shop": [
+    {
+      "id": "Pitons",
+      "name": "Pitons (refill)",
+      "description": "Refills your stock of rock pitons.",
+      "price": 25
+    },
+    {
+      "id": "Medkit",
+      "name": "Medkit",
+      "description": "Full health, right now.",
+      "price": 40
+    },
+    {
+      "id": "Thermos",
+      "name": "Hot Flask",
+      "description": "Warmth back to 100% (handy up high).",
+      "price": 30
+    },
+    {
+      "id": "MysteryEgg",
+      "name": "Mystery Egg",
+      "description": "Random element. 75% Common, 22% Rare, 3% Epic. Goes into your nest.",
+      "price": 300
+    },
+    {
+      "id": "RareEgg",
+      "name": "Rare Egg",
+      "description": "Random element. 85% Rare, 13% Epic, 2% Legendary. Goes into your nest.",
+      "price": 1200
+    }
+  ],
+  "upgrades": [
+    {
+      "id": "Rampino",
+      "name": "Grapple Range",
+      "description": "Your Grappling Hook reaches farther."
+    },
+    {
+      "id": "Uncino",
+      "name": "Grapple Strike",
+      "description": "Grapple an enemy: you fly at it, hit it and stun it. Upgrades make it hit harder."
+    },
+    {
+      "id": "Lancio",
+      "name": "Axe Throw",
+      "description": "Thrown Ice Axe (Q): more damage, more range, bounces to other enemies."
+    },
+    {
+      "id": "Esoscheletro",
+      "name": "Exoskeleton",
+      "description": "Frame on your back: stamina lasts longer and falls hurt less."
+    },
+    {
+      "id": "Scudo",
+      "name": "Frost Shield",
+      "description": "Ice shield that soaks up hits and recharges when you're safe."
+    },
+    {
+      "id": "Stivali",
+      "name": "Swift Boots",
+      "description": "Lighter boots: you walk and run faster."
+    },
+    {
+      "id": "Picchiata",
+      "name": "Plunge Attack",
+      "description": "Land on enemies from high up: shockwave damage and no fall damage."
+    }
+  ],
+  "travel": [
+    "Base camp",
+    "Home",
+    "Dragon arena",
+    "Muscle Beach",
+    "Dragon Island",
+    "Base Camp 99"
+  ],
+  "actions": [
+    "Not ready yet",
+    "SURE? TAP AGAIN",
+    "Sell 999999",
+    "Upgrade",
+    "Follow"
+  ]
+}

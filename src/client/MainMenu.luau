@@ -78,16 +78,16 @@ local function cards(list: ScrollingFrame, minW: number, h: number)
 		if w < 50 then
 			return
 		end
-		local cols = math.clamp(math.floor(w / minW), 2, 6)
-		g.CellSize = UDim2.fromOffset(math.floor((w - (cols - 1) * 10) / cols), h)
+		local cols = math.clamp(math.floor(w / minW), 1, 6)
+		g.CellSize = UDim2.fromOffset(math.floor((w - (cols - 1) * 10) / cols), if gui and gui:GetAttribute("ShortUI") then 166 else h)
 	end
 	list:GetPropertyChangedSignal("AbsoluteSize"):Connect(size)
 	size()
 end
 -- colori delle carte (a turno): prima erano tutte blu scuro uguali
 local CARD_TONES = {
-	Color3.fromRGB(60, 130, 230), Color3.fromRGB(150, 80, 220), Color3.fromRGB(230, 140, 40),
-	Color3.fromRGB(50, 170, 110), Color3.fromRGB(220, 70, 80), Color3.fromRGB(40, 170, 200),
+	Theme.BLUE, Theme.PURPLE, Theme.ORANGE,
+	Theme.GOOD, Theme.BAD, Theme.TEAL,
 }
 
 -- riquadro a tessere dentro una lista (zaino): griglia a celle fisse, alta quanto serve
@@ -108,7 +108,7 @@ local function tiles(parent: Instance, order: number): Frame
 end
 local function mountShop(container: Frame, status: (string, boolean) -> ()): () -> ()
 	local list = Ui.node(container, "List")
-	cards(list, 210, 290)
+	cards(list, 220, 330)
 	local sub = "Buy"
 	local render: () -> ()
 	local function call(action: string, id: string?, amount: any?)
@@ -126,7 +126,7 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 		if fill then
 			fill.BackgroundTransparency = 0.25
 		end
-		Ui.tint(c.Buy, Color3.fromRGB(60, 180, 80), false)
+		Ui.tint(c.Buy, Theme.GOOD, false)
 		return c
 	end
 	render = function()
@@ -282,18 +282,12 @@ local function mountInventory(container: Frame): () -> ()
 	end
 end
 -- colori delle schede del menu (pulsanti della colonna e sfondo della finestra)
-local MENU_COLORS: { [string]: Color3 } = {
-	Store = Color3.fromRGB(230, 170, 40),
-	Backpack = Color3.fromRGB(205, 110, 50),
-	Dragons = Color3.fromRGB(150, 70, 220),
-	Crafting = Color3.fromRGB(215, 65, 55),
-	Upgrades = Color3.fromRGB(60, 175, 90),
-	Teleport = Color3.fromRGB(40, 170, 220),
-}
+local MENU_COLORS = Theme.MENU
 
 function MainMenu.start()
 	local gui = Ui.screen("MainMenu")
 	local column, window = Ui.node(gui, "Column"), Ui.node(gui, "Window")
+	window.Background.Visible = false
 	-- colonna del menu: pulsanti tondi a icona (prima pillole lunghe in una lista a scorrimento)
 	column.ScrollingEnabled = false
 	column.ScrollBarThickness = 0
@@ -316,46 +310,35 @@ function MainMenu.start()
 	toggle.Parent = gui
 	toggle.Visible = true
 	Ui.text(toggle, 16, true)
-	toggle.TextColor3 = Color3.fromRGB(240, 240, 242)
+	toggle.TextColor3 = Theme.TEXT
 	if not column.Teleport:FindFirstChild("Icon") then
 		local icon = column.Store.Icon:Clone()
 		icon.Parent = column.Teleport
 		Ui.asset(icon, "icon_teleport")
 	end
 	for _, n in { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" } do
-		local btn = column[n]
-		btn:SetAttribute("UiAsset", "btn_round_normal")
-		Ui.skin(btn, "btn_round_normal")
-		-- un colore per pulsante: prima erano tutti blu scuro uguali
-		Ui.tint(btn, MENU_COLORS[n], true)
-		btn.TextSize = 12
-		btn.TextScaled = false
-		btn.Size = UDim2.fromOffset(78, 78)
-		local icon = btn:FindFirstChild("Icon")
-		if icon then
-			icon.AnchorPoint = Vector2.new(0.5, 0)
-			icon.Position = UDim2.fromScale(0.5, 0.12)
-			icon.Size = UDim2.fromScale(0.56, 0.56)
-			icon.ZIndex = 3
-		end
-		local caption = btn:FindFirstChild("AssetCaption")
-		if caption then
-			-- scritta piu' grande e un po' piu' larga del pulsante (si rimpicciolisce se non ci sta):
-			-- "Crafting (N)" a 13 px era illeggibile
-			caption.Position = UDim2.fromScale(-0.04, 0.7)
-			caption.Size = UDim2.fromScale(1.08, 0.28)
-			caption.TextScaled = true
-			local fit = caption:FindFirstChildOfClass("UITextSizeConstraint") or Instance.new("UITextSizeConstraint")
-			fit.MaxTextSize = 14
-			fit.MinTextSize = 10
-			fit.Parent = caption
-			caption.TextStrokeTransparency = 0.3
-			caption.Font = Enum.Font.GothamBlack
-			caption.TextXAlignment = Enum.TextXAlignment.Center
-			caption.ZIndex = 4
-		end
-	end
-	column.Teleport.Text = if UIS.TouchEnabled then "Travel" else "Travel (T)"
+  local btn = column[n]
+  btn:SetAttribute("UiNative", true)
+  Theme.action(btn, "alt")
+  btn.BackgroundColor3 = Theme.MENU[n]
+  btn.Text = ""
+  btn.ClipsDescendants = true
+  local title = Theme.label(btn, if n == "Store" then "Shop" elseif n == "Teleport" then "Travel" else n, 16, Theme.TEXT, true)
+  title.Name = "NavTitle"
+  title.Position = UDim2.new(0, 4, 1, -24)
+  title.Size = UDim2.new(1, -8, 0, 22)
+  title.TextXAlignment = Enum.TextXAlignment.Center
+  title.ZIndex = 4
+  local icon = btn:FindFirstChild("Icon")
+  if icon then
+   icon.AnchorPoint = Vector2.new(0.5, 0)
+   icon.Position = UDim2.new(0.5, 0, 0, 3)
+   icon.Size = UDim2.fromOffset(28, 28)
+   icon.ZIndex = 3
+  end
+ end
+ toggle.Visible = false
+
 	local content = window.Content
 	-- la finestra sopra l'HUD (prima il meteo le restava disegnato sopra)
 	local hudGui = player.PlayerGui:FindFirstChild("ClimbHUD")
@@ -363,7 +346,8 @@ function MainMenu.start()
 		gui.DisplayOrder = math.max(gui.DisplayOrder, hudGui.DisplayOrder + 1)
 	end
 	-- impaginazione interna in pixel: titolo, chiusura, contenuto, stato
-	Ui.px(window.Title, 0.5, 0, 0, 12, 420, 46, 0.5, 0)
+	window.Title.Position = UDim2.fromOffset(12, 8)
+	window.Title.Size = UDim2.new(1, -80, 0, 44)
 	window.Title.TextXAlignment = Enum.TextXAlignment.Center
 	Ui.px(window.Close, 1, -12, 0, 10, 50, 50, 1, 0)
 	local closeLimit = window.Close:FindFirstChild("SizeLimit")
@@ -373,8 +357,8 @@ function MainMenu.start()
 	Ui.px(window.Status, 0, 18, 1, -8, 600, 28, 0, 1)
 	window.Status.Size = UDim2.new(1, -36, 0, 28)
 	Ui.text(window.Status, 15, true)
-	content.Position = UDim2.fromOffset(18, 70)
-	content.Size = UDim2.new(1, -36, 1, -110)
+	content.Position = UDim2.fromOffset(12, 62)
+	content.Size = UDim2.new(1, -24, 1, -96)
 	local windowLimit = window:FindFirstChild("SizeLimit")
 	if windowLimit then
 		windowLimit:Destroy()
@@ -437,13 +421,16 @@ function MainMenu.start()
 			return
 		end
 		current = name
+		local travel = player.PlayerGui:FindFirstChild("Teletrasporto")
+		local travelPanel = travel and travel:FindFirstChild("Panel") :: GuiObject?
+		if travelPanel then travelPanel.Visible = false end
 		-- il tutorial vuole sapere quando apri il Crafting (server/Tutorial)
 		local opened = RS:FindFirstChild("Remotes") and RS.Remotes:FindFirstChild("MenuOpened")
 		if opened then
 			(opened :: RemoteEvent):FireServer(name)
 		end
 		-- finestra e titolo del colore della scheda (sfondo sfumato sotto la cornice)
-		local tone = MENU_COLORS[name] or Color3.fromRGB(60, 110, 220)
+		local tone = MENU_COLORS[name] or Theme.BLUE
 		Ui.tint(window, tone, false, 0.012)
 		local fill = window:FindFirstChild("Tinta") :: Frame?
 		if fill then
@@ -477,8 +464,7 @@ function MainMenu.start()
 	end)
 	for k, name in names do
 		local b = column[name]
-		b.Text = (if name == "Store" then "Shop" else name)
-			.. (if UIS.TouchEnabled then "" else " (" .. keys[k].Name .. ")")
+		b.Text = ""
 		b.Activated:Connect(function()
 			open(name)
 		end)
@@ -501,7 +487,7 @@ function MainMenu.start()
 	end)
 	local expanded = true
 	local function showIcons()
-		column.Visible = expanded
+		column.Visible = true
 		toggle.Text = if expanded then "Hide" else "Menu"
 	end
 	toggle.Activated:Connect(function()
@@ -509,62 +495,17 @@ function MainMenu.start()
 		showIcons()
 	end)
 	showIcons()
-	local logical, compact = Vector2.new(1280, 680), false
 	Ui.viewportChanged(function(vp)
-		-- stessa scala dell'HUD (pixel logici). Computer: icone in colonna sotto il pannello del
-		-- drago (attributo LeftBottom dell'HUD), finestra a destra della colonna. Telefono: icone
-		-- in fila in alto fra i pannelli di sinistra e il meteo (in basso ci sono joystick e salto),
-		-- finestra a tutto schermo.
-		logical = Ui.fitScale(gui, vp)
-		compact = Ui.compact(vp)
-		local hud = player.PlayerGui:FindFirstChild("ClimbHUD")
-		local function place()
-			local cell = if compact then 58 else 78
-			local step = cell + 8
-			grid.CellSize = UDim2.fromOffset(cell, cell)
-			for _, n in { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" } do
-				column[n].Size = UDim2.fromOffset(cell, cell)
-				local cap = column[n]:FindFirstChild("AssetCaption")
-				local fit = cap and cap:FindFirstChildOfClass("UITextSizeConstraint")
-				if fit then
-					fit.MaxTextSize = if compact then 12 else 14
-				end
-			end
-			local wx, wy, ww, wh
-			if compact then
-				local x0 = 272
-				local room = logical.X - 230 - (x0 + 66)
-				local cols = math.clamp(math.floor(room / step), 3, 6)
-				Ui.px(toggle, 0, x0, 0, 8, 58, 28)
-				Ui.px(column, 0, x0 + 66, 0, 8, cols * step, math.ceil(6 / cols) * step)
-				wx, wy, ww, wh = 8, 8, logical.X - 16, logical.Y - 16
-			else
-				local top = ((hud and hud:GetAttribute("LeftBottom")) or 300) :: number
-				Ui.px(toggle, 0, 16, 0, top, 96, 30)
-				local rowsFit = math.clamp(math.floor((logical.Y - top - 40 - 16 + 8) / step), 1, 6)
-				local cols = math.ceil(6 / rowsFit)
-				Ui.px(column, 0, 16, 0, top + 38, cols * step, math.ceil(6 / cols) * step)
-				local x = math.max(356, 16 + cols * step) + 14
-				ww = math.min(logical.X - x - 16, 1060)
-				wx, wy, wh = x + (logical.X - x - 16 - ww) / 2, 16, logical.Y - 32
-			end
-			window.AnchorPoint = Vector2.zero
-			window.Position = UDim2.fromOffset(wx, wy)
-			window.Size = UDim2.fromOffset(ww, wh)
-			-- draghi: nido e collezione affiancati, uno sopra l'altro se la finestra e' stretta
-			local narrow = ww < 720
-			local body = content.Dragons.Body
-			body.Nest.Position = UDim2.fromScale(0, 0)
-			body.Nest.Size = UDim2.fromScale(if narrow then 1 else 0.34, if narrow then 0.36 else 1)
-			body.Dragons.Position = UDim2.fromScale(if narrow then 0 else 0.36, if narrow then 0.39 else 0)
-			body.Dragons.Size = UDim2.fromScale(if narrow then 1 else 0.64, if narrow then 0.61 else 1)
-		end
-		place()
-		if hud and not hud:GetAttribute("MenuBound") then
-			hud:SetAttribute("MenuBound", true)
-			hud:GetAttributeChangedSignal("LeftBottom"):Connect(place)
-		end
-	end)
+		gui:SetAttribute("ShortUI", vp.Y < 560)
+  local logical = Ui.fitScale(gui, vp)
+  local m = Ui.menuMetrics(logical)
+  grid.FillDirectionMaxCells = m.cols
+  grid.CellSize = UDim2.fromOffset(m.cell, 56)
+  Ui.px(column, 0.5, 0, 0, 8, m.navWidth, m.navHeight, 0.5, 0)
+  Ui.px(window, 0, m.x, 0, m.y, m.width, m.height)
+  toggle.Visible = false
+ end)
+
 	for eventName, tabName in { OpenShop = "Store", OpenCrafting = "Crafting", OpenDragons = "Dragons" } do
 		(remotes:WaitForChild(eventName) :: RemoteEvent).OnClientEvent:Connect(function()
 			if current ~= tabName then

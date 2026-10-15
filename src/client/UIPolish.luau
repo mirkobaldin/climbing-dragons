@@ -32,6 +32,9 @@ local function polish(b: Instance)
 	local key = b:GetAttribute("UiAsset")
 	local base = if type(key) == "string" then string.gsub(key, "_normal$", "") else ""
 	local function update()
+		key = b:GetAttribute("UiAsset")
+		base = if type(key) == "string" then key:gsub("_normal$", ""):gsub("_hover$", ""):gsub("_pressed$", "") else ""
+		if b:GetAttribute("UiDisabled") then hover, pressed = false, false end
 		generation += 1
 		local version = generation
 		if tween then
