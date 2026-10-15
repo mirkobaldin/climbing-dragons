@@ -19,6 +19,7 @@ local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
 local Names = require(ReplicatedStorage.Shared.Names)
 local DragonModels = require(script.Parent.DragonModels)
+local Guardia = require(script.Parent.Guardia)
 
 local Dragons = {}
 
@@ -460,7 +461,13 @@ function Dragons.setup()
 	local fn = Instance.new("RemoteFunction")
 	fn.Name = "DragonAction"
 	fn.Parent = ReplicatedStorage:WaitForChild("Remotes")
-	fn.OnServerInvoke = action
+	-- limite: al massimo 6 azioni al secondo per giocatore (server/Guardia)
+	fn.OnServerInvoke = function(player: Player, ...: any)
+		if not Guardia.ok(player, "dragon", 6) then
+			return false, ""
+		end
+		return action(player, ...)
+	end
 
 	Players.PlayerAdded:Connect(function(player)
 		player.CharacterAdded:Connect(function()

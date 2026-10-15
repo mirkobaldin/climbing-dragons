@@ -21,6 +21,7 @@ local Dragons = require(script.Parent.Dragons)
 local Economy = require(script.Parent.Economy)
 local Survival = require(script.Parent.Survival)
 local Upgrades = require(script.Parent.Upgrades)
+local Guardia = require(script.Parent.Guardia)
 
 local Progression = {}
 
@@ -403,7 +404,13 @@ function Progression.setup(remotes: { [string]: RemoteEvent })
 	local craftFn = Instance.new("RemoteFunction")
 	craftFn.Name = "Craft"
 	craftFn.Parent = ReplicatedStorage:WaitForChild("Remotes")
-	craftFn.OnServerInvoke = craft
+	-- limite: al massimo 4 al secondo per giocatore (server/Guardia)
+	craftFn.OnServerInvoke = function(player: Player, id: any): (boolean, string)
+		if not Guardia.ok(player, "craft", 4) then
+			return false, ""
+		end
+		return craft(player, id)
+	end
 
 	-- Banchi da lavoro: aprono il menu sul client
 	local function bindBench(bench: Instance)

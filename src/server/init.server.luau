@@ -2,6 +2,7 @@
 -- Avvio dei sistemi di gioco lato server.
 
 local Remotes = require(script.Remotes)
+local Guardia = require(script.Guardia)
 local Tools = require(script.Tools)
 local Ropes = require(script.Ropes)
 local Hazards = require(script.Hazards)
@@ -36,6 +37,7 @@ local Riding = require(script.Riding)
 
 local remotes = Remotes.setup()
 Unstuck.setup() -- per primo: non deve dipendere da quello che viene dopo
+Guardia.setup() -- anti-flood dei remote e remote sconosciuti (backdoor), vedi server/Guardia
 task.defer(function() -- dopo l'avvio: non deve rubare tempo al resto
 	local ok, err = pcall(CinematicSpots.setup)
 	if not ok then

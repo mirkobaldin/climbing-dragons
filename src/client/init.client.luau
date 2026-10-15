@@ -28,6 +28,7 @@ local GymAnim = require(script.GymAnim)
 local PickaxeThrow = require(script.PickaxeThrow)
 local CrystalFX = require(script.CrystalFX)
 local Culling = require(script.Culling)
+local Prestazioni = require(script.Prestazioni)
 local Combat = require(script.Combat)
 local Glider = require(script.Glider)
 local Montepremi = require(script.Montepremi)
@@ -63,6 +64,7 @@ GymAnim.start()
 PickaxeThrow.start()
 CrystalFX.start()
 Culling.start() -- luci e particelle lontane spente (meno lag)
+task.delay(3, Prestazioni.start) -- telefono/PC deboli: niente ombre di alberi e case, effetti leggeri
 Combat.start() -- attacco del drago (Z), draghi volanti, scudo, discesa, eventi
 Glider.start() -- parapendio (Spazio mentre cadi)
 Montepremi.start() -- montepremi stile Squid Game in alto al centro

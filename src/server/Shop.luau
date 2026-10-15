@@ -16,6 +16,7 @@ local Dragons = require(script.Parent.Dragons)
 local Economy = require(script.Parent.Economy)
 local Eggs = require(script.Parent.Eggs)
 local Ropes = require(script.Parent.Ropes)
+local Guardia = require(script.Parent.Guardia)
 
 local Shop = {}
 
@@ -173,7 +174,13 @@ function Shop.setup(remotes: { [string]: RemoteEvent })
 	local fn = Instance.new("RemoteFunction")
 	fn.Name = "Shop"
 	fn.Parent = ReplicatedStorage:WaitForChild("Remotes")
-	fn.OnServerInvoke = handle
+	-- limite: al massimo 8 azioni al secondo per giocatore (server/Guardia)
+	fn.OnServerInvoke = function(player: Player, action: any, id: any, amount: any): (boolean, string)
+		if not Guardia.ok(player, "shop", 8) then
+			return false, ""
+		end
+		return handle(player, action, id, amount)
+	end
 
 	-- il bancone apre il negozio
 	local function bindCounter(counter: Instance)
