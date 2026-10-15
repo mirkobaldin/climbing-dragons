@@ -197,13 +197,32 @@ local function buildReal(folder: Instance, origin: CFrame, template: Model): { [
 	end
 	m:PivotTo(CFrame.identity)
 	m:ScaleTo(M)
-	-- le luci sono in metri (attributo RangeM, vedi carica_modelli.luau)
+	-- le luci sono in metri (attributo RangeM, vedi carica_modelli.luau); i bracieri delle torri
+	-- (FX_Fire_<Elemento>) hanno fuoco e luce del colore dell'elemento, grandi da vedersi da lontano
 	for _, l in m:GetDescendants() do
 		if l:IsA("PointLight") and l:GetAttribute("RangeM") then
 			l.Range = math.min(60, (l:GetAttribute("RangeM") :: number) * M)
 		elseif l:IsA("Fire") then
-			l.Size = math.min(30, l.Size * M)
+			local el = string.match(l.Parent and l.Parent.Name or "", "^FX_Fire_(.+)$")
+			local color = el and ELEMENT_COLORS[el]
+			l.Size = if color then 22 else math.min(30, l.Size * M)
+			l.Heat = if color then 18 else l.Heat
+			if color then
+				l.Color = color
+				l.SecondaryColor = color:Lerp(Color3.new(1, 1, 1), 0.4)
+				local glow = Instance.new("PointLight")
+				glow.Color = color
+				glow.Range = 45
+				glow.Brightness = 3
+				glow.Shadows = false
+				glow.Parent = l.Parent
+			end
 		end
+	end
+	-- (le colline del prato non hanno scatole di collisione: ci pensa il Terrain, vedi pratoTerreno)
+	local oldCol = m:FindFirstChild("PratoCollisione")
+	if oldCol then
+		oldCol:Destroy()
 	end
 	m:PivotTo(origin)
 	pcall(function()
@@ -214,12 +233,67 @@ local function buildReal(folder: Instance, origin: CFrame, template: Model): { [
 	-- i marcatori SPOT_* del modello (in metri, spazio del modello) al posto di quelli stimati
 	local spots: { [string]: Vector3 } = {}
 	local holder = m:FindFirstChild("Luci")
+	local store = template.Parent
+	local perch = store and store:FindFirstChild("PosatoioDrago")
 	for _, a in (if holder then holder:GetChildren() else {}) :: { Instance } do
 		if a:IsA("Attachment") and string.sub(a.Name, 1, 5) == "SPOT_" then
 			spots[a.Name] = origin:PointToObjectSpace(a.WorldPosition) / M
+			-- sulle isolette: il posatoio del cloud (tronco con la base di pietra)
+			if perch and perch:IsA("Model") and string.find(a.Name, "^SPOT_PosatoioIsola") then
+				local p = perch:Clone()
+				for _, d in p:GetDescendants() do
+					if d:IsA("LuaSourceContainer") then
+						d:Destroy()
+					end
+				end
+				p:PivotTo(CFrame.identity)
+				p:ScaleTo(M)
+				p:PivotTo(CFrame.new(a.WorldPosition) * origin.Rotation)
+				p.Name = "Posatoio_" .. string.sub(a.Name, 6)
+				p.Parent = m
+			end
 		end
 	end
 	return spots
+end
+
+-- Le colline del prato non hanno collisioni (scheda del cloud). La collisione precisa della mesh
+-- riempiva le conche con scafi convessi e copriva perfino la piattaforma d'arrivo (il giocatore
+-- nasceva dentro e cadeva nell'oceano): sotto il prato si stende invece uno strato di Terrain che
+-- segue le altezze della mesh. Le altezze stanno nel modello (StringValue "PratoAltezze", griglia
+-- in metri ricavata dal JSON di Isola_Prato: tools/modelli, vedi AGENTS.md) e il terreno si rifa'
+-- a ogni build (Generate() cancella il Terrain).
+local function pratoTerreno(template: Model, origin: CFrame): number
+	local sv = template:FindFirstChild("PratoAltezze")
+	if not (sv and sv:IsA("StringValue")) then
+		return 0
+	end
+	local ok, g = pcall(function()
+		return game:GetService("HttpService"):JSONDecode(sv.Value)
+	end)
+	if not ok or type(g) ~= "table" then
+		return 0
+	end
+	local cell = g.step * M
+	local thick = 14
+	local terrain = workspace.Terrain
+	local n = 0
+	local k = 0
+	for value in string.gmatch(g.h .. ",", "([^,]*),") do
+		if value ~= "" then
+			local i, j = k // g.nz, k % g.nz
+			local x, z = g.minX + i * g.step, g.minZ + j * g.step
+			local top = (tonumber(value) :: number) / 10 * M - 0.8 -- appena sotto l'erba della mesh
+			local p = origin:PointToWorldSpace(Vector3.new(x * M, top - thick / 2, z * M))
+			terrain:FillBlock(CFrame.new(p), Vector3.new(cell + 1, thick, cell + 1), Enum.Material.LeafyGrass)
+			n += 1
+			if n % 2000 == 0 then
+				task.wait()
+			end
+		end
+		k += 1
+	end
+	return n
 end
 
 function IsolaDraghi.build(): Folder
@@ -238,6 +312,7 @@ function IsolaDraghi.build(): Folder
 			spots[name] = p
 		end
 		folder:SetAttribute("Provvisoria", false)
+		folder:SetAttribute("CelleTerreno", pratoTerreno(template, origin))
 	else
 		buildPlaceholder(folder, origin)
 		folder:SetAttribute("Provvisoria", true)

@@ -33,6 +33,7 @@ function box(points) {
 const textures = {}
 for (const [model, dir] of Object.entries(DIRS)) {
 	const file = path.join(out, model, "index.json")
+	if (!fs.existsSync(file)) continue // modello non esportato in questa cartella
 	const ix = JSON.parse(fs.readFileSync(file, "utf8"))
 	ix.boxes = []
 	for (const col of ix.collision) {
