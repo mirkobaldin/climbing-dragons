@@ -248,7 +248,16 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	detailScroll.Size = UDim2.new(0.58, 0, 1, 0)
 	detailScroll.ZIndex = 2
 
+	-- telefono (attributo ShortUI della schermata, schermi bassi): schede basse, tessere e palco piccoli
+	local function short(): boolean
+		local gui = container:FindFirstAncestorWhichIsA("ScreenGui")
+		return gui ~= nil and gui:GetAttribute("ShortUI") == true
+	end
 	local function arrange()
+		local tabH = if short() then 34 else 44
+		top.Size = UDim2.new(1, 0, 0, tabH)
+		body.Position = UDim2.new(0, 0, 0, tabH + 8)
+		body.Size = UDim2.new(1, 0, 1, -(tabH + 8))
   local narrow = body.AbsoluteSize.X < 520
   gridBox.Position = UDim2.fromScale(0, 0)
   gridBox.Size = if narrow then UDim2.new(1, 0, 0.30, -4) else UDim2.new(0.42, -8, 1, 0)
@@ -292,7 +301,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		local width = math.max(grid.AbsoluteSize.X - 12, 160)
 		local cols = math.clamp(math.floor(width / 150), 1, 5)
 		local cell = (width - (cols - 1) * 8) / cols
-		layout.CellSize = UDim2.fromOffset(cell, math.max(if aspect > 1.3 then 300 else 220, cell * aspect))
+		local minH = if short() then (if aspect > 1.3 then 200 else 130) else (if aspect > 1.3 then 300 else 220)
+		layout.CellSize = UDim2.fromOffset(cell, math.max(minH, cell * aspect))
 	end
 
 	-- pannello di destra: il drago scelto
@@ -337,6 +347,9 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		-- palco QUADRATO (prima una striscia larga e bassa): a sinistra, statistiche a destra;
 		-- sulle schede strette il quadrato sta in mezzo e le statistiche sotto
 		local S = if wide then math.floor(math.min(270, W * 0.46)) else math.floor(math.min(230, W - 20))
+		if short() then
+			S = math.min(S, 170) -- telefono: il palco non riempie tutta la finestra
+		end
 		local stageBox = Theme.frame(detail, Theme.DARK, 0.35)
 		stageBox.Name = "Palco"
 		stageBox.Position = if wide then UDim2.fromOffset(10, 66) else UDim2.new(0.5, -S / 2, 0, 66)

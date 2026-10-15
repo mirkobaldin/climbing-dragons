@@ -106,11 +106,13 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 		c.LayoutOrder = order
 		c.SellActions.Visible, c.Buy.Visible = false, false
 		c.Coin.Visible = false
-		Ui.tint(c, CARD_TONES[(order - 1) % #CARD_TONES + 1], false, 0.03)
+		-- carta scura come nei mockup (prima colorata a turno: troppi colori insieme)
+		Ui.tint(c, Theme.DARK2, false, 0)
 		local fill = c:FindFirstChild("Tinta") :: Frame?
 		if fill then
-			fill.BackgroundTransparency = 0.25
+			fill.BackgroundTransparency = 0.1
 		end
+		local _ = CARD_TONES
 		Ui.tint(c.Buy, Theme.GOOD, false)
 		return c
 	end
@@ -248,8 +250,7 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 	dropAll.AnchorPoint = Vector2.new(1, 0.5)
 	dropAll.Position = UDim2.new(1, -12, 0.5, 0)
 	for _, b in { dropOne, dropAll } do
-		b:SetAttribute("UiNative", true)
-		Theme.action(b, "sell")
+		Theme.action(b, "sell") -- cornice tonda dei pulsanti (Mirko: "le vecchie cornici tonde")
 	end
 
 	type Item = { key: string, title: string, count: number, asset: string, model: Instance?, id: string?, text: string, drop: string? }
@@ -556,6 +557,7 @@ local MENU_COLORS = Theme.MENU
 function MainMenu.start()
 	local gui = Ui.screen("MainMenu")
 	local column, window = Ui.node(gui, "Column"), Ui.node(gui, "Window")
+	local NAV = { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" }
 	-- lo sfondo illustrato della montagna (bg_menu) resta: piace a Mirko e ai giocatori (la v3 lo
 	-- nascondeva e dietro le finestre si vedeva il gioco)
 	window.Background.Visible = true
@@ -589,28 +591,32 @@ function MainMenu.start()
 		icon.Parent = column.Teleport
 		Ui.asset(icon, "icon_teleport")
 	end
-	for _, n in { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" } do
-  local btn = column[n]
-  btn:SetAttribute("UiNative", true)
-  Theme.action(btn, "alt")
-  btn.BackgroundColor3 = Theme.MENU[n]
-  btn.Text = ""
-  btn.ClipsDescendants = true
-  local title = Theme.label(btn, if n == "Store" then "Shop" elseif n == "Teleport" then "Travel" else n, 16, Theme.TEXT, true)
-  title.Name = "NavTitle"
-  title.Position = UDim2.new(0, 4, 1, -24)
-  title.Size = UDim2.new(1, -8, 0, 22)
-  title.TextXAlignment = Enum.TextXAlignment.Center
-  title.ZIndex = 4
-  local icon = btn:FindFirstChild("Icon")
-  if icon then
-   icon.AnchorPoint = Vector2.new(0.5, 0)
-   icon.Position = UDim2.new(0.5, 0, 0, 3)
-   icon.Size = UDim2.fromOffset(28, 28)
-   icon.ZIndex = 3
-  end
- end
- toggle.Visible = false
+	-- pulsanti del menu: pillole tonde (icona + nome) sul computer, cerchi con la sola icona sul
+	-- telefono (Mirko 15/10: "su telefono e' ingiocabile, i pulsanti coprono 2/3 dello schermo").
+	-- Spenti = blu notte con l'icona colorata, quello aperto = colore pieno (come i mockup)
+	for _, n in NAV do
+		local btn = column[n]
+		btn:SetAttribute("UiNative", true)
+		Theme.action(btn, "alt")
+		btn.Text = ""
+		btn.ClipsDescendants = true
+		local corner = btn:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0.5, 0)
+		corner.Parent = btn
+		local title = Theme.label(btn, if n == "Store" then "Shop" elseif n == "Teleport" then "Travel" else n, 17, Theme.TEXT, true)
+		title.Name = "NavTitle"
+		title.ZIndex = 4
+		local icon = btn:FindFirstChild("Icon")
+		if icon then
+			icon.ZIndex = 3
+		end
+	end
+	-- Hide: piega la fila dei pulsanti in un solo tasto tondo (soprattutto per il telefono)
+	toggle:SetAttribute("UiNative", true)
+	Theme.action(toggle, "alt")
+	local tcorner = toggle:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+	tcorner.CornerRadius = UDim.new(0.5, 0)
+	tcorner.Parent = toggle
 
 	local content = window.Content
 	-- la finestra sopra l'HUD (prima il meteo le restava disegnato sopra)
@@ -674,6 +680,27 @@ function MainMenu.start()
 	end
 	Ui.text(window.Title, 24, true)
 	Ui.skin(window.Title, "panel_header")
+	window.Title.BackgroundTransparency = 1
+	window.Title.TextXAlignment = Enum.TextXAlignment.Left
+	-- monete nell'intestazione della finestra
+	local coinsBox = Instance.new("Frame")
+	coinsBox.Name = "MoneteFinestra"
+	coinsBox.BackgroundTransparency = 1
+	coinsBox.AnchorPoint = Vector2.new(1, 0)
+	coinsBox.Parent = window
+	local coinIcon = Instance.new("ImageLabel")
+	coinIcon.BackgroundTransparency = 1
+	coinIcon.Size = UDim2.fromOffset(24, 24)
+	coinIcon.AnchorPoint = Vector2.new(0, 0.5)
+	coinIcon.Position = UDim2.fromScale(0, 0.5)
+	coinIcon.Parent = coinsBox
+	Ui.asset(coinIcon, "icon_coin")
+	local coinsLabel = Theme.label(coinsBox, "0", 20, Theme.TEXT, true)
+	coinsLabel.Position = UDim2.new(0, 30, 0, 0)
+	coinsLabel.Size = UDim2.new(1, -30, 1, 0)
+	player:GetAttributeChangedSignal("Coins"):Connect(function()
+		coinsLabel.Text = string.format("%d", (player:GetAttribute("Coins") or 0) :: number)
+	end)
 	local caption = window.Title:FindFirstChild("AssetCaption")
 	if caption and caption:IsA("TextLabel") then
 		caption.TextXAlignment = Enum.TextXAlignment.Center
@@ -686,14 +713,17 @@ function MainMenu.start()
 	local keys = { Enum.KeyCode.B, Enum.KeyCode.I, Enum.KeyCode.G, Enum.KeyCode.N, Enum.KeyCode.U }
 	local refreshers: { [string]: () -> () } = {}
 	local current: string? = nil
+	local styleNav: () -> () = function() end
 	local function open(name: string?)
 		if not name or current == name then
 			window.Visible = false
 			current = nil
 			gui:SetAttribute("MenuOpen", false)
+			styleNav()
 			return
 		end
 		current = name
+		styleNav()
 		local travel = player.PlayerGui:FindFirstChild("Teletrasporto")
 		local travelPanel = travel and travel:FindFirstChild("Panel") :: GuiObject?
 		if travelPanel then travelPanel.Visible = false end
@@ -726,7 +756,15 @@ function MainMenu.start()
 		end
 		-- l'immagine sotto il velo (tint porta tutti i figli sopra al colore)
 		window.Background.ZIndex = 0
-		Ui.tint(window.Title, tone, false, 0.1)
+		-- intestazione come i mockup: titolo a sinistra sul fondo scuro (prima una fascia colorata
+		-- piena alta 44), monete accanto alla X
+		window.Title.BackgroundTransparency = 1
+		local band = window.Title:FindFirstChild("Tinta")
+		if band then
+			band:Destroy()
+		end
+		window.Title.TextColor3 = tone
+		coinsLabel.Text = string.format("%d", (player:GetAttribute("Coins") or 0) :: number)
 		gui:SetAttribute("MenuOpen", true)
 		window.Title.Text = if name == "Store" then "Shop" else name
 		window.Status.Text = ""
@@ -774,26 +812,82 @@ function MainMenu.start()
 			Ui.open(Ui.node(teleport, "Panel"))
 		end
 	end)
+	-- fila nascosta col tasto Hide: restano il tasto e (se aperta) la finestra
 	local expanded = true
-	local function showIcons()
-		column.Visible = true
-		toggle.Text = if expanded then "Hide" else "Menu"
+	local compactNav = false
+	styleNav = function()
+		local travel = player.PlayerGui:FindFirstChild("Teletrasporto")
+		local travelPanel = travel and travel:FindFirstChild("Panel") :: GuiObject?
+		for _, n in NAV do
+			local btn = column[n]
+			local on = current == n or (n == "Teleport" and travelPanel ~= nil and travelPanel.Visible)
+			btn.BackgroundColor3 = if on then Theme.MENU[n] else Theme.DARK2
+			btn.BackgroundTransparency = if on then 0 else 0.12
+			local title = btn:FindFirstChild("NavTitle") :: TextLabel?
+			local icon = btn:FindFirstChild("Icon") :: ImageLabel?
+			if title then
+				title.Visible = not compactNav
+				title.Position = UDim2.new(0, 46, 0, 0)
+				title.Size = UDim2.new(1, -54, 1, 0)
+				title.TextXAlignment = Enum.TextXAlignment.Left
+			end
+			if icon then
+				icon.AnchorPoint = Vector2.new(if compactNav then 0.5 else 0, 0.5)
+				icon.Position = if compactNav then UDim2.fromScale(0.5, 0.5) else UDim2.new(0, 10, 0.5, 0)
+				icon.Size = if compactNav then UDim2.fromOffset(28, 28) else UDim2.fromOffset(30, 30)
+			end
+		end
+		column.Visible = expanded
+		toggle.Text = "≡"
+		toggle.BackgroundColor3 = if expanded then Theme.DARK2 else Theme.ACCENT
 	end
 	toggle.Activated:Connect(function()
 		expanded = not expanded
-		showIcons()
+		player:SetAttribute("UiCollapsed", not expanded) -- l'HUD piega anche drago e monete
+		styleNav()
 	end)
-	showIcons()
 	Ui.viewportChanged(function(vp)
 		gui:SetAttribute("ShortUI", vp.Y < 560)
-  local logical = Ui.fitScale(gui, vp)
-  local m = Ui.menuMetrics(logical)
-  grid.FillDirectionMaxCells = m.cols
-  grid.CellSize = UDim2.fromOffset(m.cell, 56)
-  Ui.px(column, 0.5, 0, 0, 8, m.navWidth, m.navHeight, 0.5, 0)
-  Ui.px(window, 0, m.x, 0, m.y, m.width, m.height)
-  toggle.Visible = false
- end)
+		local logical = Ui.fitScale(gui, vp)
+		local m = Ui.menuMetrics(logical)
+		compactNav = m.compact
+		grid.FillDirectionMaxCells = m.cols
+		grid.CellSize = UDim2.fromOffset(m.cell, m.cellH)
+		grid.CellPadding = UDim2.fromOffset(m.gap, m.gap)
+		-- telefono: fila di cerchi in alto a sinistra subito dopo il tasto Hide; computer: al centro
+		if m.compact then
+			Ui.px(toggle, 0, 8, 0, 6, m.cellH, m.cellH)
+			Ui.px(column, 0, 8 + m.cellH + m.gap, 0, 6, m.navWidth, m.navHeight)
+		else
+			Ui.px(column, 0.5, 0, 0, 8, m.navWidth, m.navHeight, 0.5, 0)
+			Ui.px(toggle, 0.5, -m.navWidth / 2 - m.gap, 0, 8, m.cellH, m.cellH, 1, 0)
+		end
+		toggle.Visible = true
+		Ui.text(toggle, 24, true)
+		Ui.px(window, 0, m.x, 0, m.y, m.width, m.height)
+		-- finestra: sul telefono intestazione e schede basse (prima 44 + 54 px: il contenuto restava
+		-- in una striscia)
+		local head = if m.compact then 36 else 52
+		window.Title.Position = UDim2.fromOffset(14, if m.compact then 2 else 6)
+		window.Title.Size = UDim2.new(1, -260, 0, head - 4)
+		Ui.text(window.Title, if m.compact then 20 else 26, true)
+		window.Title.TextXAlignment = Enum.TextXAlignment.Left
+		Ui.px(window.Close, 1, -8, 0, if m.compact then 2 else 6, head - 4, head - 4, 1, 0)
+		Ui.px(coinsBox, 1, -(head + 12), 0, if m.compact then 2 else 6, 150, head - 4, 1, 0)
+		Ui.text(coinsLabel, if m.compact then 16 else 20, true)
+		coinsLabel.TextXAlignment = Enum.TextXAlignment.Left
+		content.Position = UDim2.fromOffset(if m.compact then 8 else 12, head + 4)
+		content.Size = UDim2.new(1, if m.compact then -16 else -24, 1, -(head + 4) - (if m.compact then 22 else 32))
+		Ui.px(window.Status, 0, 18, 1, -2, 600, if m.compact then 20 else 28, 0, 1)
+		window.Status.Size = UDim2.new(1, -36, 0, if m.compact then 20 else 28)
+		local tabH = if m.compact then 34 else 44
+		for _, tabbed in { content.Store, content.Upgrades } do
+			tabbed.Tabs.Size = UDim2.new(1, 0, 0, tabH)
+			tabbed.List.Position = UDim2.fromOffset(0, tabH + 8)
+			tabbed.List.Size = UDim2.new(1, 0, 1, -(tabH + 8))
+		end
+		styleNav()
+	end)
 
 	for eventName, tabName in { OpenShop = "Store", OpenCrafting = "Crafting", OpenDragons = "Dragons" } do
 		(remotes:WaitForChild(eventName) :: RemoteEvent).OnClientEvent:Connect(function()

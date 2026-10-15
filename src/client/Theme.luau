@@ -25,11 +25,12 @@ Theme.PURPLE = Color3.fromRGB(155, 91, 255)
 Theme.PINK = Color3.fromRGB(255, 111, 181)
 Theme.DISABLED = Color3.fromRGB(185, 200, 221)
 Theme.COIN = Theme.ACCENT
--- fondi scuri dei menu, stile menu zombie di Black Ops 2 (Mirko 15/10: "lo sfondo colorato fa
--- schifo"): carbone quasi nero, fumo, bagliore di brace in basso; i pulsanti restano colorati
-Theme.DARK = Color3.fromRGB(14, 13, 16)
-Theme.DARK2 = Color3.fromRGB(28, 26, 30)
-Theme.DARK3 = Color3.fromRGB(44, 40, 44)
+-- fondi scuri dei menu (Mirko 15/10: "lo sfondo colorato fa schifo"): prima carbone stile Black
+-- Ops 2, poi blu notte come i mockup di ChatGPT che ha scelto (docs/ui-mockup-20261015); i
+-- pulsanti restano colorati
+Theme.DARK = Color3.fromRGB(11, 17, 31)
+Theme.DARK2 = Color3.fromRGB(19, 29, 50)
+Theme.DARK3 = Color3.fromRGB(31, 45, 72)
 Theme.EMBER = Color3.fromRGB(255, 106, 36)
 Theme.GRADE = { C = Theme.DISABLED, B = Theme.BLUE, A = Theme.GOOD, S = Theme.ACCENT }
 Theme.RARITY = {

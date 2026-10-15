@@ -605,18 +605,20 @@ function Combat.start()
 			o:Destroy()
 		end
 	end
-	-- pulsante tondo scuro (l'icona si legge su qualsiasi sfondo), l'anello gira attorno
+	-- fondo tondo scuro (l'icona e' un drago bianco: senza fondo non si legge sul cielo)
 	spBtn.BackgroundColor3 = Theme.DARK
-	spBtn.BackgroundTransparency = 0.2
+	spBtn.BackgroundTransparency = 0.25
 	spBtn.TextTransparency = 1
-	local round = spBtn:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
-	round.CornerRadius = UDim.new(0.5, 0)
-	round.Parent = spBtn
+	for _, c in spBtn:GetChildren() do
+		if c:IsA("UICorner") then
+			c.CornerRadius = UDim.new(0.5, 0)
+		end
+	end
 	-- la ricarica copre l'icona tonda: tonda anche lei (prima un quadrato scuro)
 	local coolCorner = spBtn.Cooldown:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 	coolCorner.CornerRadius = UDim.new(0.5, 0)
 	coolCorner.Parent = spBtn.Cooldown
-	local spRing = UiGlow.ring(spBtn, Theme.ACCENT, { round = true, thickness = 3, pad = 2 })
+	local spRing = UiGlow.ring(spBtn, Theme.ACCENT, { round = true, thickness = 3, pad = 0, halo = false })
 	local spReady: boolean? = nil
 	local spCool = spBtn.Cooldown
 	spBtn.Key.Text = if Ui.touch() then "Roar" else "Z"

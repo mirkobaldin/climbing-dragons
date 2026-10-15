@@ -100,10 +100,10 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> ()): () 
 			c.Cost.Text = if maxed then "MAX LEVEL" else costText(u.costs[level + 1].coins, u.costs[level + 1].items)
 			c.Action.Visible = not maxed
 			c.Action.Text = if level == 0 then "Unlock" else "Upgrade"
-			Ui.tint(c, Theme.BLUE, false, 0.02)
+			Ui.tint(c, Theme.DARK2, false, 0)
 			local fill = c:FindFirstChild("Tinta") :: Frame?
 			if fill then
-				fill.BackgroundTransparency = 0.55
+				fill.BackgroundTransparency = 0.1
 			end
 			c.Action.Activated:Connect(function()
 				if not maxed then

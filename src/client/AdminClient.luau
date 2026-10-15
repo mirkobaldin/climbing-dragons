@@ -185,8 +185,22 @@ function AdminClient.start()
 	row.BackgroundTransparency = 1
 	row.Parent = buttons
 	local UiV = require(game:GetService("ReplicatedStorage").Shared.UiView) :: any
-	UiV.viewportChanged(function(vp)
-		UiV.fitScale(buttons, vp)
+	-- sul telefono piccoli e subito sotto il meteo (prima finivano sopra il tasto Run)
+	task.defer(UiV.viewportChanged, function(vp)
+		local logical = UiV.fitScale(buttons, vp)
+		local small = UiV.compact(vp)
+		row.Position = if small then UDim2.new(1, -10, 0, 8) else UDim2.new(1, -16, 0, 176)
+		local _ = logical
+		row.Size = if small then UDim2.fromOffset(160, 30) else UDim2.fromOffset(200, 42)
+		local lay = row:FindFirstChildOfClass("UIListLayout")
+		if lay then
+			lay.Padding = UDim.new(0, if small then 6 else 12)
+		end
+		for _, b in row:GetChildren() do
+			if b:IsA("TextButton") then
+				b.Size = if small then UDim2.fromOffset(76, 30) else UDim2.fromOffset(84, 38)
+			end
+		end
 	end)
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Horizontal

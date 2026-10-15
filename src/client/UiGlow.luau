@@ -54,7 +54,7 @@ end
 -- anello luminoso attorno a target (tondo se round): un arco chiaro che gira sul bordo e un
 -- alone piu' largo e tenue. Restituisce il riquadro dell'anello (per cambiarne il colore con
 -- UiGlow.color o nasconderlo)
-function UiGlow.ring(target: GuiObject, color: Color3, opts: { round: boolean?, speed: number?, thickness: number?, pad: number? }?): Frame
+function UiGlow.ring(target: GuiObject, color: Color3, opts: { round: boolean?, speed: number?, thickness: number?, pad: number?, halo: boolean? }?): Frame
 	local o = opts or {}
 	local old = target:FindFirstChild("AnelloLuce")
 	if old then
@@ -71,6 +71,12 @@ function UiGlow.ring(target: GuiObject, color: Color3, opts: { round: boolean?, 
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = if o.round == false then UDim.new(0, 14) else UDim.new(0.5, 0)
 	corner.Parent = ring
+	if o.round ~= false then
+		-- tondo vero anche su un pulsante non quadrato (prima veniva una pillola squadrata)
+		local square = Instance.new("UIAspectRatioConstraint")
+		square.AspectRatio = 1
+		square.Parent = ring
+	end
 	-- arco che gira: colore pieno su un quarto del giro, il resto quasi trasparente
 	local arc = Instance.new("UIStroke")
 	arc.Name = "Arco"
@@ -116,6 +122,7 @@ function UiGlow.ring(target: GuiObject, color: Color3, opts: { round: boolean?, 
 	})
 	hg.Parent = hs
 	halo.Parent = ring
+	halo.Visible = o.halo ~= false
 	ring.Parent = target
 	local speed = o.speed or 120
 	table.insert(spins, { gradient = g, frame = nil, speed = speed, host = ring, base = math.random(0, 359) })
@@ -238,7 +245,7 @@ function UiGlow.darkBackground(parent: GuiObject, accent: Color3?, embers: numbe
 	local back = Instance.new("Frame")
 	back.Name = "FondoScuro"
 	back.Size = UDim2.fromScale(1, 1)
-	back.BackgroundColor3 = Color3.fromRGB(14, 13, 16)
+	back.BackgroundColor3 = Color3.fromRGB(11, 17, 31)
 	back.BackgroundTransparency = 0.08
 	back.BorderSizePixel = 0
 	back.ZIndex = 0
@@ -250,9 +257,9 @@ function UiGlow.darkBackground(parent: GuiObject, accent: Color3?, embers: numbe
 	local g = Instance.new("UIGradient")
 	g.Rotation = 90
 	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(38, 36, 40)),
-		ColorSequenceKeypoint.new(0.6, Color3.fromRGB(18, 16, 20)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 7, 9)),
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 42, 66)),
+		ColorSequenceKeypoint.new(0.6, Color3.fromRGB(15, 22, 40)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 12, 24)),
 	})
 	g.Parent = back
 	-- bagliore di brace dal basso

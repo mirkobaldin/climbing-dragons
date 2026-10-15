@@ -11,6 +11,7 @@ local player = Players.LocalPlayer
 local TeleportMenu = {}
 local FIXED = { "Base camp (hub)", "My camp", "Dragon training", "Muscle Beach (gym)", "Dragon Island" }
 local NAMES = table.clone(FIXED)
+local rowH = 60 -- altezza delle righe (46 sul telefono, vedi viewportChanged)
 -- campi base scoperti, in ordine di numero (Base Camp 1, 2...)
 local function campNumbers(): { number }
 	local list = {}
@@ -89,15 +90,15 @@ function TeleportMenu.start()
   for i = 1, count do
    local b = destinations:FindFirstChild("Destination" .. i)
    if b then
-    b.Position = UDim2.fromOffset(4, (i - 1) * 68 + 4)
-    b.Size = UDim2.new(1, -16, 0, 60)
+    b.Position = UDim2.fromOffset(4, (i - 1) * (rowH + 8) + 4)
+    b.Size = UDim2.new(1, -16, 0, rowH)
     b.Visible = true
     b.Text = ""
-    b.Title.Position = UDim2.fromOffset(58, 8)
-    b.Title.Size = UDim2.new(1, -168, 1, -16)
+    b.Title.Position = UDim2.fromOffset(rowH - 2, 4)
+    b.Title.Size = UDim2.new(1, -(rowH + 110), 1, -8)
     b.Title.TextWrapped = false
-    b.Icon.Position = UDim2.fromOffset(8, 8)
-    b.Icon.Size = UDim2.fromOffset(44, 44)
+    b.Icon.Position = UDim2.fromOffset(8, 4)
+    b.Icon.Size = UDim2.fromOffset(rowH - 8, rowH - 8)
     b.Distance.AnchorPoint = Vector2.new(1, 0.5)
     b.Distance.Position = UDim2.new(1, -14, 0.5, 0)
     b.Distance.Size = UDim2.fromOffset(100, 32)
@@ -105,13 +106,12 @@ function TeleportMenu.start()
     b.Title.TextXAlignment = Enum.TextXAlignment.Left
     Theme.fitText(b.Title, 22, false)
     Theme.fitText(b.Distance, 18, false)
-    -- riga piatta colorata: niente PNG con la sua cornice dentro un'altra cornice
-    b:SetAttribute("UiNative", true)
+    -- riga con la cornice tonda dei pulsanti (PNG), senza il contorno attorno (Theme.action)
     Theme.action(b, "alt")
     bind(i)
    end
   end
-  destinations.CanvasSize = UDim2.fromOffset(0, count * 68 + 8)
+  destinations.CanvasSize = UDim2.fromOffset(0, count * (rowH + 8) + 8)
 
 		local k = count + 1
 		while destinations:FindFirstChild("Destination" .. k) do
@@ -194,12 +194,17 @@ function TeleportMenu.start()
   local logical = Ui.fitScale(gui, vp)
   local m = Ui.menuMetrics(logical)
   local width = math.min(680, m.width)
+  local head = if m.compact then 36 else 52
+  rowH = if m.compact then 46 else 60
   Ui.px(panel, 0.5, 0, 0, m.y, width, m.height, 0.5, 0)
-  panel.Title.Position = UDim2.fromOffset(12, 8)
-  panel.Title.Size = UDim2.new(1, -80, 0, 44)
-  Ui.px(panel.Close, 1, -8, 0, 8, 44, 44, 1, 0)
-  destinations.Position = UDim2.fromOffset(8, 60)
-  destinations.Size = UDim2.new(1, -16, 1, -68)
+  panel.Title.Position = UDim2.fromOffset(14, 2)
+  panel.Title.Size = UDim2.new(1, -80, 0, head - 4)
+  Ui.px(panel.Close, 1, -8, 0, 2, head - 4, head - 4, 1, 0)
+  destinations.Position = UDim2.fromOffset(8, head + 4)
+  destinations.Size = UDim2.new(1, -16, 1, -(head + 12))
+  if panel.Visible then
+  	refresh()
+  end
  end)
 	refresh()
 end

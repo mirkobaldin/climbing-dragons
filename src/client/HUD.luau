@@ -42,6 +42,8 @@ local function toolBar(gui: ScreenGui)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = bar
 	local tools: {Tool} = {}
+	-- telefono: caselle piccole con la sola icona (prima 86x80 col nome: coprivano Ride e Z)
+	local small = false
 	local function equip(index: number)
 		if not gui.Enabled then return end
 		local tool = tools[index]
@@ -65,13 +67,14 @@ local function toolBar(gui: ScreenGui)
 			return if x == y then a.Name < b.Name else x < y
 		end)
 		for i, tool in tools do
-			local button = Theme.button(bar, "", Theme.BLUE, UDim2.fromOffset(86, 80))
+			local button = Theme.button(bar, "", Theme.BLUE, if small then UDim2.fromOffset(54, 54) else UDim2.fromOffset(86, 80))
 			button.LayoutOrder = i
 			Theme.action(button, if tool.Parent == player.Character then "main" else "alt")
 			local icon = Instance.new("ImageLabel")
 			icon.BackgroundTransparency = 1
-			icon.Position = UDim2.new(0.5, -17, 0, 4)
-			icon.Size = UDim2.fromOffset(34, 34)
+			icon.AnchorPoint = Vector2.new(0.5, 0)
+			icon.Position = UDim2.new(0.5, 0, 0, if small then 6 else 4)
+			icon.Size = if small then UDim2.fromOffset(40, 40) else UDim2.fromOffset(34, 34)
 			icon.ZIndex = 3
 			icon.Parent = button
 			local known = table.find(order, tool.Name)
@@ -83,6 +86,7 @@ local function toolBar(gui: ScreenGui)
 			name.ZIndex = 3
 			name.TextXAlignment = Enum.TextXAlignment.Center
 			Theme.fitText(name, 12, true)
+			name.Visible = not small
 			local key = Theme.label(button, tostring(i), 12, Theme.TEXT, true)
 			key.Size = UDim2.fromOffset(20, 20)
 			key.ZIndex = 4
@@ -115,8 +119,14 @@ local function toolBar(gui: ScreenGui)
 	end)
 	Ui.viewportChanged(function(vp)
 		local logical = Ui.fitScale(gui, vp)
-		bar.Position = UDim2.new(0.5, 0, 1, if logical.X < 600 then -190 else -8)
-		bar.Size = UDim2.fromOffset(math.min(4 * 92 - 6, logical.X - 24), 84)
+		local was = small
+		small = Ui.compact(vp) or Ui.touch()
+		-- sul telefono un po' a sinistra del centro: a destra c'e' l'arco dei comandi (salto, Ride, Z)
+		bar.Position = if logical.X < 600 then UDim2.new(0.5, 0, 1, -190) elseif small then UDim2.new(0.42, 0, 1, -6) else UDim2.new(0.5, 0, 1, -8)
+		bar.Size = if small then UDim2.fromOffset(4 * 60 - 6, 58) else UDim2.fromOffset(math.min(4 * 92 - 6, logical.X - 24), 84)
+		if was ~= small then
+			queue()
+		end
 	end)
 	gui:SetAttribute("CustomToolBar", true)
 	-- in groppa o nella forma di drago gli attrezzi non si usano: barra nascosta
@@ -160,11 +170,13 @@ function HUD.start()
 		Ui.node(gui, "Quest")
 	local coinText, pitonText = coins.Text, coins.Pitons
 	-- un colore per riquadro (prima tutti blu scuro uguali): sfumatura leggera sotto la cornice
-	for panel, tone in { [me] = Theme.BAD, [coins] = Theme.ORANGE, [pet] = Theme.PURPLE, [info] = Theme.BLUE } do
-		Ui.tint(panel, tone, false, 0.03)
+	-- riquadri blu notte come il mockup dell'HUD (prima rosso, arancio, viola e azzurro insieme):
+	-- il colore resta nelle barre e nelle icone
+	for _, panel in { me, coins, pet, info } do
+		Ui.tint(panel, Theme.DARK2, false, 0)
 		local fill = panel:FindFirstChild("Tinta") :: Frame?
 		if fill then
-			fill.BackgroundTransparency = 0.45
+			fill.BackgroundTransparency = 0.18
 		end
 	end
 	local weatherIcon, weatherFallback, timeBig, clock, altitude =
@@ -215,18 +227,19 @@ function HUD.start()
 	-- colonna di sinistra: giocatore, subito sotto il drago (prima stava sotto le monete), poi
 	-- le monete. Sul telefono tutto piu' stretto e basso (UiView.compact).
 	local function layoutPlayer()
-		local x, w = if compact then 10 else 16, if compact then 250 else 340
+		-- sul telefono pannelli stretti e bassi (prima larghi 250 e alti 80: un terzo dello schermo)
+		local x, w = if compact then 8 else 16, if compact then 196 else 340
 		local y0 = Ui.menuMetrics(logical).y
 		local h
 		if compact then
-			h = if shieldOn then 100 else 80
+			h = if shieldOn then 64 else 50
 			P(me, 0, x, 0, y0, w, h)
-			P(Ui.node(me, "Name"), 0, 46, 0, 9, 192, 20)
-			P(me.HealthIcon, 0, 14, 0, 32, 24, 24)
-			P(me.Health, 0, 46, 0, 34, 192, 20)
-			P(me.StaminaIcon, 0, 16, 0, 57, 20, 20)
-			P(me.Stamina, 0, 46, 0, 59, 192, 18)
-			P(me.Shield, 0, 46, 0, 79, 192, 18)
+			P(Ui.node(me, "Name"), 0, 10, 0, 4, 176, 16)
+			P(me.HealthIcon, 0, 6, 0, 22, 14, 14)
+			P(me.Health, 0, 24, 0, 22, 164, 13)
+			P(me.StaminaIcon, 0, 6, 0, 37, 14, 14)
+			P(me.Stamina, 0, 24, 0, 38, 164, 9)
+			P(me.Shield, 0, 24, 0, 51, 164, 9)
 		else
 			-- (il nome toccava la cornice in alto: piu' giu' e pannello piu' alto)
 			h = if shieldOn then 144 else 120
@@ -240,13 +253,13 @@ function HUD.start()
 		end
 		local y = y0 + h + 6
 		if pet.Visible then
-			local ph = if compact then 62 else 98
+			local ph = if compact then 42 else 98
 			P(pet, 0, x, 0, y, w, ph)
 			if compact then
-				P(pet.Element, 0, 10, 0, 9, 40, 40)
-				P(petName, 0, 58, 0, 5, 184, 20)
-				P(petLevel, 0, 58, 0, 25, 184, 16)
-				P(pet.XP, 0, 58, 0, 43, 180, 18)
+				P(pet.Element, 0, 6, 0, 5, 32, 32)
+				P(petName, 0, 44, 0, 3, 146, 16)
+				P(petLevel, 0, 44, 0, 18, 146, 13)
+				P(pet.XP, 0, 44, 0, 32, 146, 6)
 			else
 				P(pet.Element, 0, 16, 0, 12, 44, 44)
 				P(petName, 0, 70, 0, 10, 254, 22)
@@ -255,13 +268,15 @@ function HUD.start()
 			end
 			y += ph + 6
 		end
-		local ch = if compact then 34 else 50
+		local ch = if compact then 26 else 50
+		-- tasto Hide del menu (attributo UiCollapsed): via anche le monete
+		coins.Visible = player:GetAttribute("UiCollapsed") ~= true
 		P(coins, 0, x, 0, y, w, ch)
 		if compact then
-			P(coins.Icon, 0, 10, 0, 5, 24, 24)
-			P(coinText, 0, 40, 0, 0, 112, 34)
-			P(coins.PitonIcon, 0, 160, 0, 5, 24, 24)
-			P(pitonText, 0, 190, 0, 0, 52, 34)
+			P(coins.Icon, 0, 6, 0, 3, 20, 20)
+			P(coinText, 0, 30, 0, 0, 100, 26)
+			P(coins.PitonIcon, 0, 136, 0, 3, 20, 20)
+			P(pitonText, 0, 158, 0, 0, 34, 26)
 		else
 			P(coins.Icon, 0, 14, 0, 8, 34, 34)
 			P(coinText, 0, 56, 0, 0, 150, 50)
@@ -276,15 +291,19 @@ function HUD.start()
 		layoutPlayer()
 	end
 	local function texts()
-		local k = if compact then 0.8 else 1
+		local k = if compact then 0.7 else 1
 		Ui.text(Ui.node(me, "Name"), math.floor(18 * k), true)
-		Ui.text(healthText, math.floor(15 * k), true)
+		Ui.text(healthText, if compact then 10 else 15, true)
+		-- telefono: barre sottili senza scritta (stamina, scudo e XP si leggono dal colore)
+		staminaText.Visible = not compact
+		shieldText.Visible = not compact
+		petXpText.Visible = not compact
 		Ui.fit(staminaText, if compact then 11 else 14, 9, true)
 		Ui.fit(shieldText, if compact then 11 else 14, 9, true)
 		Ui.fit(coinText, math.floor(24 * k), 12, true) -- 9 cifre andavano a capo
 		Ui.text(pitonText, math.floor(24 * k), true)
-		Ui.text(petName, if compact then 14 else 17, true)
-		Ui.text(petLevel, if compact then 12 else 14)
+		Ui.text(petName, if compact then 12 else 17, true)
+		Ui.text(petLevel, if compact then 10 else 14)
 		Ui.fit(petXpText, if compact then 11 else 14, 9, true)
 		Ui.text(weatherFallback, if compact then 24 else 30)
 		Ui.text(timeBig, if compact then 22 else 32, true)
@@ -393,10 +412,14 @@ function HUD.start()
 		layoutWeather()
 		local portrait = logical.X < 600
   local top = Ui.menuMetrics(logical).y
-  local x = if portrait then 10 elseif compact then 270 else 370
+  local x = if portrait then 10 elseif compact then 214 else 370
   local w = if portrait then logical.X - 20 else math.max(220, logical.X - x - (if compact then 210 else 300))
   local y = if portrait then ((gui:GetAttribute("LeftBottom") or 300) :: number) + 92 else top
-  P(quest, 0, x, 0, y, w, 136)
+  -- missione: sul telefono piu' bassa e stretta, a destra dei pannelli
+  if compact and not portrait then
+   w = math.min(w, 340)
+  end
+  P(quest, 0, x, 0, y, w, if compact then 96 else 136)
   P(quest.Icon, 0, 10, 0, 10, 30, 30)
   P(questTitle, 0, 46, 0, 8, w - 58, 28)
   P(questText, 0, 10, 0, 42, w - 20, 44)
@@ -432,7 +455,7 @@ function HUD.start()
 				end
 			end
 		end
-		pet.Visible = d ~= nil
+		pet.Visible = d ~= nil and player:GetAttribute("UiCollapsed") ~= true
 		if not d then
 			return
 		end
@@ -455,6 +478,11 @@ function HUD.start()
 		)
 	end
 	player:GetAttributeChangedSignal("DragonData"):Connect(refreshPet)
+	-- tasto Hide del menu: drago e monete si piegano insieme ai pulsanti
+	player:GetAttributeChangedSignal("UiCollapsed"):Connect(function()
+		refreshPet()
+		layoutPlayer()
+	end)
 	refreshPet()
 	local armedAt = -math.huge
 	skip.Activated:Connect(function()

@@ -751,14 +751,24 @@ function UiView.viewportChanged(callback: (Vector2) -> ())
 	bind()
 end
 
+-- Misure della fila dei pulsanti del menu (Shop, Backpack...) e della finestra sotto.
+-- compact (telefono, schermi bassi): cerchi da 44 con la sola icona in alto a sinistra, finestra
+-- quasi a tutto schermo; computer: pillole da 46 con icona e nome al centro. Prima sul telefono i
+-- pulsanti erano alti 56 e larghi tutto lo schermo: coprivano 2/3 dei menu (Mirko 15/10)
 function UiView.menuMetrics(vp: Vector2)
- local cols = if vp.X < 600 then 3 else 6
- local cell = math.min(150, (vp.X - 16 - (cols - 1) * 8) / cols)
- local navHeight = math.ceil(6 / cols) * 56 + (math.ceil(6 / cols) - 1) * 8
- local width = math.min(1120, vp.X - 16)
- return {cols = cols, cell = cell, navWidth = cols * cell + (cols - 1) * 8,
-  navHeight = navHeight, x = (vp.X - width) / 2, y = navHeight + 16,
-  width = width, height = math.max(160, vp.Y - navHeight - 24)}
+	local compact = UiView.compact(vp) or vp.X < 900
+	local gap = if compact then 6 else 8
+	local cellH = if compact then 44 else 46
+	local cell = if compact then cellH else math.min(158, (vp.X - 140 - 5 * gap) / 6)
+	local navWidth = 6 * cell + 5 * gap
+	local top = if compact then 6 else 8
+	local y = top + cellH + (if compact then 8 else 12)
+	local width = math.min(1120, vp.X - 16)
+	return {
+		compact = compact, cols = 6, cell = cell, cellH = cellH, gap = gap,
+		navWidth = navWidth, navHeight = cellH, x = (vp.X - width) / 2, y = y,
+		width = width, height = math.max(160, vp.Y - y - 8),
+	}
 end
 
 return UiView

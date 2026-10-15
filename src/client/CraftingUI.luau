@@ -21,11 +21,11 @@ function CraftingUI.mount(container: Frame, status: (string, boolean) -> ()): ()
 		local card = Ui.template("RecipeCard", list)
 		card.LayoutOrder = k
 		-- carte colorate a turno (prima tutte uguali)
-		local tones = { Theme.BAD, Theme.BLUE, Theme.PURPLE, Theme.GOOD }
-		Ui.tint(card, tones[(k - 1) % #tones + 1], false, 0.03)
+		-- carta scura come nei mockup (prima colorata a turno)
+		Ui.tint(card, Theme.DARK2, false, 0)
 		local fill = card:FindFirstChild("Tinta") :: Frame?
 		if fill then
-			fill.BackgroundTransparency = 0.25
+			fill.BackgroundTransparency = 0.1
 		end
 		-- icona dell'attrezzo (stesse immagini dello zaino); il modellino 3D solo se manca
 		local icon = Instance.new("ImageLabel")
