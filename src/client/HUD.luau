@@ -777,7 +777,7 @@ function HUD.start()
 		nameLabel.Visible = not shieldOn
 		Ui.text(nameLabel, 13, true)
 		-- drago sotto
-		local py = y0 + av + 16
+		local py = y0 + av + 22 -- (il cerchietto del livello non tocca l'anello del ritratto)
 		local ec = 60
 		P(pet, 0, x0 + 8, 0, py, ec / 2 + 262, ec + 8)
 		HudLayout.place("Drago", pet)

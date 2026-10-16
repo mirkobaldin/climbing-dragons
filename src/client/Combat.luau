@@ -666,7 +666,7 @@ function Combat.start()
 			-- piu' in la' del secondo giro di tasti (prima toccava RIDE e la barra 1-5)
 			local k = logical.X / vp.X
 			local small = math.min(vp.X, vp.Y) <= 500
-			local x, y = if small then 300 else 420, if small then 58 else 150
+			local x, y = if small then 285 else 420, if small then 58 else 150
 			Ui.px(spBtn, 1, -x * k, 1, -y * k, 76, 76, 0.5, 0.5)
 		else
 			Ui.px(spBtn, 1, -24, 1, -24, 76, 76, 1, 1)

@@ -112,8 +112,22 @@ fix_panel("frame_panel")
 for n in ("frame_tab_normal", "frame_tab_hover", "frame_tab_selected"):
     fix_tab(n)
 man = json.load(open(os.path.join(SRC, "..", "manifest.json")))
+def inner_x(name):
+    # interno VERO della barra a meta' altezza (il free_rect del manifest di Codex e' prudente:
+    # 51..589 contro 16..623 della salute, e il riempimento si fermava prima dei terminali)
+    im = Image.open(os.path.join(SRC, name + ".png")).convert("RGBA")
+    W, H = im.size
+    y = H // 2
+    a = [im.getpixel((x, y))[3] > 60 for x in range(W)]
+    l = next(x for x in range(W // 2, 0, -1) if a[x]) + 1
+    r = next(x for x in range(W // 2, W) if a[x]) - 1
+    return l + 6, r - 6
+
 for n in ("frame_bar_health", "frame_bar_stamina", "frame_bar_shield", "frame_bar_xp"):
     e = man["assets"][n]
-    slant(n, e["slice"], e["free_rect"])
+    fx, fy, fw, fh = e["free_rect"]
+    l, r = inner_x(n)
+    info[n] = {"size": e["size"], "free_rect_vero": [l, fy, r - l + 1, fh], "note": "solo misure (PNG di Codex invariato)"}
+    slant(n, e["slice"], [l, fy, r - l + 1, fh])
 json.dump(info, open(os.path.join(OUT, "manifest.json"), "w"), indent=2)
 print(json.dumps(info, indent=1))

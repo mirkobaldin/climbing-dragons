@@ -326,10 +326,10 @@ UiAssets.frames = {
 	frame_portrait_player = { size = Vector2.new(256, 256), free = Rect.new(30, 36, 222, 228), circle = Vector3.new(126, 132, 192) },
 	frame_portrait_dragon = { size = Vector2.new(224, 224), free = Rect.new(25, 26, 193, 194), circle = Vector3.new(109, 110, 168) },
 	frame_level_badge = { size = Vector2.new(80, 80), free = Rect.new(20, 19, 58, 57), circle = Vector3.new(39, 38, 39) },
-	frame_bar_health = { size = Vector2.new(640, 72), free = Rect.new(51, 17, 589, 56) },
-	frame_bar_stamina = { size = Vector2.new(600, 56), free = Rect.new(49, 14, 551, 42) },
-	frame_bar_shield = { size = Vector2.new(560, 56), free = Rect.new(39, 14, 521, 42) },
-	frame_bar_xp = { size = Vector2.new(560, 48), free = Rect.new(36, 11, 524, 37) },
+	frame_bar_health = { size = Vector2.new(640, 72), free = Rect.new(22, 17, 618, 56) }, -- interno vero (17/10)
+	frame_bar_stamina = { size = Vector2.new(600, 56), free = Rect.new(28, 14, 572, 42) }, -- interno vero (17/10)
+	frame_bar_shield = { size = Vector2.new(560, 56), free = Rect.new(26, 14, 534, 42) }, -- interno vero (17/10)
+	frame_bar_xp = { size = Vector2.new(560, 48), free = Rect.new(21, 11, 539, 37) }, -- interno vero (17/10)
 	frame_bar_fill = { size = Vector2.new(128, 32), free = Rect.new(8, 8, 120, 24) },
 	frame_currency_medallion = { size = Vector2.new(112, 112), free = Rect.new(16, 15, 96, 95), circle = Vector3.new(56, 55, 80) },
 	frame_currency_counter = { size = Vector2.new(360, 80), free = Rect.new(40, 18, 320, 62) },
@@ -343,10 +343,10 @@ UiAssets.frames = {
 	frame_separator = { size = Vector2.new(800, 24) },
 	death_ornament = { size = Vector2.new(192, 480) },
 	frame_toast = { size = Vector2.new(840, 88), free = Rect.new(86, 15, 754, 73) },
-	frame_bar_health_slant = { size = Vector2.new(680, 72), free = Rect.new(59, 17, 618, 56), shear = 21 },
-	frame_bar_stamina_slant = { size = Vector2.new(631, 56), free = Rect.new(56, 14, 573, 42), shear = 15 },
-	frame_bar_shield_slant = { size = Vector2.new(591, 56), free = Rect.new(46, 14, 543, 42), shear = 15 },
-	frame_bar_xp_slant = { size = Vector2.new(586, 48), free = Rect.new(42, 11, 544, 37), shear = 14 },
+	frame_bar_health_slant = { size = Vector2.new(680, 72), free = Rect.new(30, 17, 647, 56), shear = 21 },
+	frame_bar_stamina_slant = { size = Vector2.new(631, 56), free = Rect.new(35, 14, 594, 42), shear = 15 },
+	frame_bar_shield_slant = { size = Vector2.new(591, 56), free = Rect.new(33, 14, 556, 42), shear = 15 },
+	frame_bar_xp_slant = { size = Vector2.new(586, 48), free = Rect.new(26, 11, 558, 37), shear = 14 },
 }
 function UiAssets.get(name: string): string?
 	local id = (UiAssets.ids :: { [string]: string })[name]
