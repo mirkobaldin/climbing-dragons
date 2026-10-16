@@ -468,6 +468,11 @@ function UiKit.button(b: TextButton, kind: string)
 		b:SetAttribute("UiAsset", nil)
 		b:SetAttribute("ButtonKind", nil)
 		b.BackgroundColor3 = UiKit.INK
+		-- la scritta delle vecchie immagini (UiView.skin) farebbe una seconda scritta sotto la nostra
+		local oldCaption = b:FindFirstChild("AssetCaption")
+		if oldCaption then
+			oldCaption:Destroy()
+		end
 		Cornici.caption(b)
 		b.TextColor3 = if kind == "primary" then Color3.fromRGB(255, 222, 140)
 			elseif kind == "danger" then Color3.fromRGB(255, 170, 170)
