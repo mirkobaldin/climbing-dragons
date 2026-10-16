@@ -214,6 +214,12 @@ UiAssets.ids = {
 	frame_tab_normal = "rbxassetid://78534692307853",
 	frame_tab_selected = "rbxassetid://86894327665954",
 	frame_toast = "rbxassetid://87118922049882",
+	-- rifinitura 17/10 (artifacts/ui-rifinitura-20261017): barre a parallelogramma. ID vuoti finche'
+	-- non si caricano: il codice usa le barre dritte di prima
+	frame_bar_health_slant = "",
+	frame_bar_stamina_slant = "",
+	frame_bar_shield_slant = "",
+	frame_bar_xp_slant = "",
 }
 UiAssets.slices = {
 	btn_buy_v3_normal = Rect.new(64, 48, 448, 112),
@@ -309,6 +315,10 @@ UiAssets.slices = {
 	frame_tab_hover = Rect.new(109, 38, 443, 90),
 	frame_tab_selected = Rect.new(109, 38, 443, 90),
 	frame_toast = Rect.new(84, 15, 756, 73),
+	frame_bar_health_slant = Rect.new(89, 17, 591, 56),
+	frame_bar_stamina_slant = Rect.new(78, 14, 553, 42),
+	frame_bar_shield_slant = Rect.new(68, 14, 523, 42),
+	frame_bar_xp_slant = Rect.new(60, 11, 526, 37),
 }
 -- cornici di Codex: grandezza del PNG (2x), spazio libero dentro (free) e foro tondo dei ritratti
 -- (circle = centro X, centro Y, diametro). Per gli stati (normal/hover...) vale il nome senza stato.
@@ -333,6 +343,10 @@ UiAssets.frames = {
 	frame_separator = { size = Vector2.new(800, 24) },
 	death_ornament = { size = Vector2.new(192, 480) },
 	frame_toast = { size = Vector2.new(840, 88), free = Rect.new(86, 15, 754, 73) },
+	frame_bar_health_slant = { size = Vector2.new(680, 72), free = Rect.new(71, 17, 609, 56), shear = 40 },
+	frame_bar_stamina_slant = { size = Vector2.new(631, 56), free = Rect.new(64, 14, 566, 42), shear = 31 },
+	frame_bar_shield_slant = { size = Vector2.new(591, 56), free = Rect.new(54, 14, 536, 42), shear = 31 },
+	frame_bar_xp_slant = { size = Vector2.new(586, 48), free = Rect.new(49, 11, 537, 37), shear = 26 },
 }
 function UiAssets.get(name: string): string?
 	local id = (UiAssets.ids :: { [string]: string })[name]

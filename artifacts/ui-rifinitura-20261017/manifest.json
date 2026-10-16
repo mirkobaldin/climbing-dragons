@@ -1,0 +1,121 @@
+{
+  "frame_tab_normal": {
+    "size": [
+      552,
+      128
+    ],
+    "slice": [
+      109,
+      38,
+      109,
+      38
+    ],
+    "note": "fondo interno uniforme"
+  },
+  "frame_tab_hover": {
+    "size": [
+      552,
+      128
+    ],
+    "slice": [
+      109,
+      38,
+      109,
+      38
+    ],
+    "note": "fondo interno uniforme"
+  },
+  "frame_tab_selected": {
+    "size": [
+      552,
+      128
+    ],
+    "slice": [
+      109,
+      38,
+      109,
+      38
+    ],
+    "note": "fondo interno uniforme"
+  },
+  "frame_bar_health_slant": {
+    "size": [
+      680,
+      72
+    ],
+    "slice": [
+      89,
+      17,
+      89,
+      16
+    ],
+    "free_rect": [
+      71,
+      17,
+      538,
+      39
+    ],
+    "shear_px": 40,
+    "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
+  },
+  "frame_bar_stamina_slant": {
+    "size": [
+      631,
+      56
+    ],
+    "slice": [
+      78,
+      14,
+      78,
+      14
+    ],
+    "free_rect": [
+      64,
+      14,
+      502,
+      28
+    ],
+    "shear_px": 31,
+    "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
+  },
+  "frame_bar_shield_slant": {
+    "size": [
+      591,
+      56
+    ],
+    "slice": [
+      68,
+      14,
+      68,
+      14
+    ],
+    "free_rect": [
+      54,
+      14,
+      482,
+      28
+    ],
+    "shear_px": 31,
+    "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
+  },
+  "frame_bar_xp_slant": {
+    "size": [
+      586,
+      48
+    ],
+    "slice": [
+      60,
+      11,
+      60,
+      11
+    ],
+    "free_rect": [
+      49,
+      11,
+      488,
+      26
+    ],
+    "shear_px": 26,
+    "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
+  }
+}
