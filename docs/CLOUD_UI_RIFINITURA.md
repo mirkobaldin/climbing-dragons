@@ -314,3 +314,29 @@ senza variabili sconosciute). Le immagini nuove sono PNG in `artifacts/ui-rifini
   un generatore di immagini).
 - L'ordinamento (SORT) del Crafting copre i filtri mentre e' aperto (visto nel video del
   computer): non era nei 12 punti, non l'ho toccato.
+
+## Prove in Studio di Claude in locale (17/10)
+Provato in Play sul computer (finestra di Studio) e sul telefono simulato (891x353, SimTouch),
+sempre con `nosave`. Zero errori degli script nell'Output.
+
+- PNG caricati: `frame_tab_normal/hover/selected` e `frame_panel` sostituiti, le quattro
+  `frame_bar_*_slant` nuove (ID in `UiAssets.ids`).
+- `ScreenGui.AbsoluteSize` NON cambia con la ScalaUI (provato dimezzandola): `viewportChanged`
+  va bene cosi'. In simulazione la scala segue la finestra di Studio (0,82), l'area logica e'
+  quella del telefono; sul computer 0,87 con la finestra di Studio.
+- Visti e funzionanti: Bounties e Rebirth nuovi, Shop > Sell (hover su un solo pulsante, niente
+  rosso, "SELL 1" intero), Inventory (6 caselle attorno al personaggio, trascinamento nella
+  griglia e verso la barra 1-5 salvato in HotbarOrder, Drop 1), barre a parallelogramma nelle
+  cornici oblique, ritratti senza spazi, profilo con barre incorniciate, menu draghi a 3 colonne
+  con la valle, Upgrades/Travel/Profile sul telefono con lista e scheda, EDIT HUD su computer
+  (trascina, DONE salva e resta dopo il respawn, RESET) e su telefono (contorni e tasti).
+- Corretto dopo le prove:
+  * testo delle barre dell'HUD coperto per meta' dal ritratto: ora parte dopo il ritratto;
+  * bordino blu dei vecchi modelli dopo la punta obliqua delle schede dello Shop: `UiKit`
+    toglie immagine, scritta e contorni vecchi sotto le cornici (`stripOld`);
+  * titolo della pagina ancora "Backpack": ora "Inventory";
+  * personaggio dell'inventario che usciva dai lati del riquadro stretto: `AvatarView` tiene
+    conto anche della larghezza;
+  * barra EDIT HUD in alto copriva i tasti ⚙ ? HIDE HUD: ora sta al centro dello schermo.
+- Non provato: meteo aperto con calore e uovo, MENU che non si apre mentre lo sposti, barra di
+  Roblox e sovrapposizioni sul telefono vero.

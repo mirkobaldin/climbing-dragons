@@ -79,3 +79,6 @@
 - Barre del giocatore e del drago a parallelogramma, una sotto l'altra, attaccate, con la cornice - 16/10 sera.
 - HUD che si sposta anche dal computer (barra DONE / RESET, contorno degli elementi spostabili) - 16/10 sera.
 - Sfondo del palco del drago come una valle con i ghiacciai dietro - 16/10 sera.
+- APPROVATA la rifinitura della sessione cloud del 17/10 (una sola UI scalata per telefono e
+  computer, Bounties/Rebirth nuovi, Inventory come Diablo IV, barre a parallelogramma nelle
+  cornici, HUD modificabile col ⚙ anche dal computer, draghi con la valle dietro) - 17/10.
