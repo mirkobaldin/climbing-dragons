@@ -68,11 +68,47 @@ def slant(name, base_slice, base_free):
     l, t, r, b = base_slice
     sl = [l + d, t, r + d, b]
     fx, fy, fw, fh = base_free
+    # spazio libero = rettangolo che contiene il parallelogramma interno; inner_shear = di quanto
+    # e' obliquo il riempimento (in basso a sinistra parte da x0, in alto finisce a x0 + larghezza)
+    x0 = int(round(fx + (H - 1 - fy - fh) * SHEAR))
+    inner = int(round(fh * SHEAR))
     new = name + "_slant"
     out.save(os.path.join(OUT, new + ".png"))
-    info[new] = {"size": [W + d, H], "slice": sl, "free_rect": [fx + d // 2, fy, fw, fh], "shear_px": d,
+    info[new] = {"size": [W + d, H], "slice": sl, "free_rect": [x0, fy, fw + inner, fh], "shear_px": inner,
                  "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"}
 
+def fix_panel(name):
+    # fessura trasparente fra la cornice e il fondo carbone (20 px nel PNG 2x): dentro i pannelli
+    # si vedeva lo scenario fra il bordo e il fondo (Mirko 16/10, statistiche del profilo)
+    im = Image.open(os.path.join(SRC, name + ".png")).convert("RGBA")
+    W, H = im.size
+    px = im.load()
+    fill = px[W // 2, H // 2]
+    seen = set()
+    q = deque([(W // 2, H // 2)])
+    while q:
+        x, y = q.popleft()
+        if (x, y) in seen:
+            continue
+        if x <= 0 or y <= 0 or x >= W - 1 or y >= H - 1:
+            raise SystemExit("il riempimento esce dalla cornice: " + name)
+        p = px[x, y]
+        if not (p[3] < 40 or p[:3] == fill[:3]):
+            continue
+        seen.add((x, y))
+        q.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+    n = 0
+    for (x, y) in seen:
+        if px[x, y][3] < 255:
+            a = px[x, y][3]
+            if a < 40:
+                n += 1
+            px[x, y] = fill
+    im.save(os.path.join(OUT, name + ".png"))
+    info[name] = {"size": [W, H], "slice": [112, 112, 112, 112], "free_rect": [87, 107, 626, 388],
+                  "note": "fondo carbone fino alla cornice (%d pixel riempiti)" % n}
+
+fix_panel("frame_panel")
 for n in ("frame_tab_normal", "frame_tab_hover", "frame_tab_selected"):
     fix_tab(n)
 man = json.load(open(os.path.join(SRC, "..", "manifest.json")))

@@ -343,10 +343,10 @@ UiAssets.frames = {
 	frame_separator = { size = Vector2.new(800, 24) },
 	death_ornament = { size = Vector2.new(192, 480) },
 	frame_toast = { size = Vector2.new(840, 88), free = Rect.new(86, 15, 754, 73) },
-	frame_bar_health_slant = { size = Vector2.new(680, 72), free = Rect.new(71, 17, 609, 56), shear = 40 },
-	frame_bar_stamina_slant = { size = Vector2.new(631, 56), free = Rect.new(64, 14, 566, 42), shear = 31 },
-	frame_bar_shield_slant = { size = Vector2.new(591, 56), free = Rect.new(54, 14, 536, 42), shear = 31 },
-	frame_bar_xp_slant = { size = Vector2.new(586, 48), free = Rect.new(49, 11, 537, 37), shear = 26 },
+	frame_bar_health_slant = { size = Vector2.new(680, 72), free = Rect.new(59, 17, 618, 56), shear = 21 },
+	frame_bar_stamina_slant = { size = Vector2.new(631, 56), free = Rect.new(56, 14, 573, 42), shear = 15 },
+	frame_bar_shield_slant = { size = Vector2.new(591, 56), free = Rect.new(46, 14, 543, 42), shear = 15 },
+	frame_bar_xp_slant = { size = Vector2.new(586, 48), free = Rect.new(42, 11, 544, 37), shear = 14 },
 }
 function UiAssets.get(name: string): string?
 	local id = (UiAssets.ids :: { [string]: string })[name]

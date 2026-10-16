@@ -1,4 +1,23 @@
 {
+  "frame_panel": {
+    "size": [
+      800,
+      600
+    ],
+    "slice": [
+      112,
+      112,
+      112,
+      112
+    ],
+    "free_rect": [
+      87,
+      107,
+      626,
+      388
+    ],
+    "note": "fondo carbone fino alla cornice (41860 pixel riempiti)"
+  },
   "frame_tab_normal": {
     "size": [
       552,
@@ -50,12 +69,12 @@
       16
     ],
     "free_rect": [
-      71,
+      59,
       17,
-      538,
+      559,
       39
     ],
-    "shear_px": 40,
+    "shear_px": 21,
     "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
   },
   "frame_bar_stamina_slant": {
@@ -70,12 +89,12 @@
       14
     ],
     "free_rect": [
-      64,
+      56,
       14,
-      502,
+      517,
       28
     ],
-    "shear_px": 31,
+    "shear_px": 15,
     "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
   },
   "frame_bar_shield_slant": {
@@ -90,12 +109,12 @@
       14
     ],
     "free_rect": [
-      54,
+      46,
       14,
-      482,
+      497,
       28
     ],
-    "shear_px": 31,
+    "shear_px": 15,
     "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
   },
   "frame_bar_xp_slant": {
@@ -110,12 +129,12 @@
       11
     ],
     "free_rect": [
-      49,
+      42,
       11,
-      488,
+      502,
       26
     ],
-    "shear_px": 26,
+    "shear_px": 14,
     "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
   }
 }

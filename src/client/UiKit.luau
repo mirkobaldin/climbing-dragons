@@ -10,7 +10,10 @@
 -- Tutto leggero: niente cicli per frame, gli stati si cambiano solo agli eventi.
 
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Cornici = require(script.Parent.Cornici)
+local Slant = require(script.Parent.Slant)
+local UiAssets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UiAssets"))
 
 local UiKit = {}
 UiKit.Cornici = Cornici
@@ -555,6 +558,38 @@ function UiKit.tab(b: TextButton, on: boolean, accent: Color3?)
 	l.Visible = on
 	UiKit.edge(b, UiKit.LINE, 1, if on then 0.6 else 0.86)
 	UiKit.physical(b)
+end
+
+-- Barra con la cornice di Codex (vita, stamina, scudo, xp): A PARALLELOGRAMMA se c'e' la cornice
+-- obliqua (frame_bar_<kind>_slant, Mirko 16/10: "com'erano prima"), altrimenti dritta nella
+-- cornice dritta, altrimenti la barra obliqua disegnata. Il riempimento si cambia con
+-- Slant.setFill(bar, 0..1) e Slant.paint(bar.Pieno, colore). z = ZIndex della cornice
+function UiKit.bar(parent: Instance, kind: string, fill: Color3, back: Color3?, z: number?): Frame
+	local zz = z or 5
+	local slantId = "frame_bar_" .. kind .. "_slant"
+	local straightId = "frame_bar_" .. kind
+	local oblique = Cornici.has(slantId)
+	local framed = oblique or Cornici.has(straightId)
+	-- (obliqua: si crea con le punte, poi fit le porta alla larghezza giusta)
+	local bar = Slant.bar(parent, back or UiKit.INK, fill, if oblique then 8 elseif framed then 0 else 14, if oblique then "para" else "right")
+	Slant.setZ(bar, zz - 3)
+	if framed then
+		Cornici.apply(bar, if oblique then slantId else straightId, { mode = "outset", z = zz })
+	end
+	if oblique then
+		-- obliquo del riempimento = obliquo dello spazio libero della cornice, all'altezza vera
+		local fi = (UiAssets.frames :: any)[slantId]
+		local function fit()
+			local h = Cornici.logical(bar).Y
+			if fi and h > 1 then
+				Slant.setSlant(bar, math.floor(fi.shear * h / math.max(1, fi.free.Height) + 0.5))
+			end
+		end
+		bar:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+		task.defer(fit)
+	end
+	bar:SetAttribute("Cornice", framed)
+	return bar
 end
 
 return UiKit
