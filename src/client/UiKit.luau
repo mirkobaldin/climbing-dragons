@@ -52,8 +52,16 @@ UiKit.TYPE = {
 	status = { font = UiKit.FONT.bodyBold, size = 13, color = UiKit.MUTED, upper = true, stroke = 1 },
 } :: { [string]: Spec }
 
--- telefono: testi appena piu' piccoli, mai sotto i 13 px (i giocatori sono anche bambini)
+-- schermo in verticale: testi appena piu' piccoli, mai sotto i 13 px
 UiKit.compact = false
+-- testo minimo in pixel LOGICI: con la scala unica (UiView.fitScale) il telefono rimpicciolisce
+-- tutto a 0,65; perche' sullo schermo un testo non scenda sotto 10 pixel veri chi impagina mette
+-- qui 10 / scala (vedi UiKit.setScale). Sul computer la scala e' >= 1 e non cambia niente
+UiKit.minText = 0
+UiKit.MIN_PHYSICAL = 10
+function UiKit.setScale(scale: number)
+	UiKit.minText = if scale < 1 then math.ceil(UiKit.MIN_PHYSICAL / math.max(0.3, scale)) else 0
+end
 
 function UiKit.text(label: TextLabel | TextButton | TextBox, kind: TextKind, size: number?)
 	local spec = UiKit.TYPE[kind]
@@ -62,6 +70,7 @@ function UiKit.text(label: TextLabel | TextButton | TextBox, kind: TextKind, siz
 	if UiKit.compact then
 		s = math.max(13, math.floor(s * 0.88))
 	end
+	s = math.max(s, UiKit.minText)
 	label.TextScaled = false
 	label.TextSize = s
 	label.TextColor3 = spec.color
@@ -80,7 +89,7 @@ function UiKit.label(parent: Instance, text: string, kind: TextKind, size: numbe
 	l.RichText = true
 	l.TextXAlignment = Enum.TextXAlignment.Left
 	l.TextTruncate = Enum.TextTruncate.AtEnd
-	l.Size = UDim2.new(1, 0, 0, (size or UiKit.TYPE[kind].size) + 8)
+	l.Size = UDim2.new(1, 0, 0, math.max(size or UiKit.TYPE[kind].size, UiKit.minText) + 8)
 	UiKit.text(l, kind, size)
 	l.Parent = parent
 	return l

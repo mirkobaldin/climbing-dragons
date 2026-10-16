@@ -1704,73 +1704,74 @@ function MainMenu.start()
 		end
 	end)
 	placeOpener()
+	-- UNA sola impaginazione (docs/UI_ADATTAMENTO.md): la scala unica di UiView porta ogni schermo
+	-- a un'area logica di almeno 1280x540 (telefono S24 Ultra: 1362x540 a scala 0,654), quindi
+	-- finestra, schede e pagine hanno le stesse misure sul telefono e sul computer. Prima c'erano
+	-- i rami compact/short e sul telefono la finestra usciva dallo schermo (Mirko 16/10)
 	Ui.viewportChanged(function(vp)
-		gui:SetAttribute("ShortUI", vp.Y < 560)
 		local logical = Ui.fitScale(gui, vp)
-		local compact = Ui.compact(vp) or logical.X < 900
-		local short = logical.Y < 520
+		UiKit.setScale((gui:GetAttribute("ScalaVera") or 1) :: number)
+		-- solo schermi in verticale (area logica stretta): niente telefono in orizzontale
+		local compact = Ui.compact(vp)
+		gui:SetAttribute("ShortUI", false)
 		compactNow = compact
 		UiKit.compact = compact
 		placeOpener()
-		-- finestra: quasi tutto lo schermo; sul telefono tutta l'altezza (prima perdeva 60 px per
-		-- la riga del vecchio tasto e restava una striscia)
-		local w = math.min(1260, logical.X - (if compact then 12 else 24))
-		local top = if compact then 4 else 12
-		local h = logical.Y - top - (if compact then 4 else 12)
-		Ui.px(window, 0.5, 0, 0, top, w, h, 0.5, 0)
-		local headH = if short then 44 else 62
+		-- finestra: tutto lo spazio utile (la ScreenGui ha gia' tolto la barra di Roblox)
+		local w = math.min(1260, logical.X - 20)
+		local h = math.min(logical.Y - 16, 760)
+		Ui.px(window, 0.5, 0, 0.5, 0, w, h, 0.5, 0.5)
+		local headH = 56
 		-- bordo della cornice: il fondo scuro sta dentro
-		local border = if compact then 10 else 16
+		local border = 14
 		UiKit.Cornici.apply(window, "frame_panel", { border = border })
 		Ui.px(inner, 0, border, 0, border, w - 2 * border, h - 2 * border)
 		Ui.px(head, 0, 0, 0, 0, w, headH)
-		Ui.px(headIcon, 0, 16, 0, 8, headH - 16, headH - 16)
-		Ui.px(headTitle, 0, headH + 6, 0, 0, 280, headH)
-		UiKit.text(headTitle, "title", if short then 26 else 34)
+		Ui.px(headIcon, 0, 18, 0, 9, headH - 18, headH - 18)
+		Ui.px(headTitle, 0, headH + 8, 0, 0, 280, headH)
+		UiKit.text(headTitle, "title", 30)
 		headTitle.TextXAlignment = Enum.TextXAlignment.Left
 		Ui.px(headSub, 0, headH + 10 + 160, 0, 0, 420, headH)
-		UiKit.text(headSub, "section", if short then 14 else 17)
+		UiKit.text(headSub, "section", 16)
 		headSub.TextXAlignment = Enum.TextXAlignment.Left
-		local closeW = if compact then 76 else 88
-		Ui.px(close, 1, -10, 0, if compact then 5 else 8, closeW, headH - (if compact then 10 else 16), 1, 0)
-		local coinsW = if compact then 150 else 190
-		Ui.px(coinsBox, 1, -(closeW + (if compact then 18 else 24)), 0, 0, coinsW, headH, 1, 0)
-		UiKit.text(coinsLabel, "stat", if short then 19 else 24)
+		local closeW = 96
+		Ui.px(close, 1, -12, 0, 9, closeW, headH - 18, 1, 0)
+		local coinsW = 190
+		Ui.px(coinsBox, 1, -(closeW + 26), 0, 0, coinsW, headH, 1, 0)
+		UiKit.text(coinsLabel, "stat", 22)
 		coinsLabel.TextXAlignment = Enum.TextXAlignment.Left
-		-- schede: colonna a parallelogrammi anche sul telefono (Mirko 16/10: la fila di quadratini
-		-- nell'intestazione era sbagliata), solo piu' stretta
-		local colW = if compact then 132 else 250
-		local tabsTop = headH + (if compact then 6 else 8)
-		local gap = if short then 6 else 10
-		local avail = h - tabsTop - 12
-		local tabH = math.clamp(math.floor((avail - 5 * gap) / 6), 36, 74)
+		-- schede: colonna a parallelogrammi; sei schede sempre tutte dentro la finestra (prima
+		-- sul telefono UPGRADES finiva sotto il bordo)
+		local colW = if compact then 150 else 232
+		local tabsTop = headH + 8
+		local gap = 8
+		local avail = h - tabsTop - 14
+		local tabH = math.clamp(math.floor((avail - 5 * gap) / 6), 36, 64)
 		tabMetrics.x, tabMetrics.y, tabMetrics.w, tabMetrics.h, tabMetrics.gap = 0, tabsTop, colW + 14, tabH, gap
 		for _, def in TABS do
 			local t = tabs[def.key]
 			t.button.Visible = true
 			local isz = math.floor(tabH * 0.56)
-			Ui.px(t.icon, 0, if compact then 38 else 44, 0.5, 0, isz, isz, 0, 0.5)
-			Ui.px(t.label, 0, (if compact then 42 else 50) + isz, 0, 0, colW - isz - (if compact then 24 else 60), tabH)
-			UiKit.text(t.label, "button", if compact then 15 else 21)
+			Ui.px(t.icon, 0, 40, 0.5, 0, isz, isz, 0, 0.5)
+			Ui.px(t.label, 0, 48 + isz, 0, 0, colW - isz - 56, tabH)
+			UiKit.text(t.label, "button", 19)
 			t.label.TextXAlignment = Enum.TextXAlignment.Left
-			Ui.px(t.key, 1, -34, 0, 0, 24, tabH, 1, 0)
-			t.key.Visible = not Ui.touch() and not compact
+			Ui.px(t.key, 1, -40, 0, 0, 24, tabH, 1, 0)
+			t.key.Visible = not Ui.touch()
 		end
-		headSub.Visible = not compact
+		headSub.Visible = true
 		styleTabs(false)
-		-- pagina: mai piu' alta dello spazio visibile (prima sul telefono aveva un'altezza minima
-		-- di 440 e le liste dentro finivano sotto il bordo: per arrivare all'ultima riga bisognava
-		-- scorrere due cose insieme)
-		local cx = colW + 26 + (if compact then 8 else 12)
-		local pageW = w - cx - (if compact then 8 else 12)
-		local pageH = h - tabsTop - (if compact then 6 else 14)
+		-- pagina: mai piu' alta dello spazio visibile (scorrono solo le liste dentro)
+		local cx = colW + 38
+		local pageW = w - cx - 16
+		local pageH = h - tabsTop - 16
 		Ui.px(pageScroll, 0, cx, 0, tabsTop, pageW, pageH)
 		pageBox.w, pageBox.h, pageBox.min = pageW, pageH, 0
 		fitPage()
 		toast.AnchorPoint = Vector2.new(0.5, 0)
 		toast.Position = UDim2.new(0, cx + pageW / 2, 0, tabsTop + 4)
-		toast.Size = UDim2.fromOffset(math.min(560, pageW - 40), if compact then 34 else 40)
-	end)
+		toast.Size = UDim2.fromOffset(math.min(560, pageW - 40), 40)
+	end, gui)
 
 	-- PARALLASSE leggera (solo col mouse, solo a menu aperto): fondo, fumo e pagina si spostano
 	-- di poco e a velocita' diverse, come strati a profondita' diverse
