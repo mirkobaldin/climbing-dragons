@@ -193,7 +193,7 @@ UiAssets.ids = {
 	frame_currency_counter = "rbxassetid://124558387374775",
 	frame_currency_medallion = "rbxassetid://97429475298397",
 	frame_level_badge = "rbxassetid://130004310570244",
-	frame_panel = "rbxassetid://99825191483263",
+	frame_panel = "rbxassetid://71654029643492",
 	frame_panel_header = "rbxassetid://125894776487409",
 	frame_portrait_dragon = "rbxassetid://131458328206006",
 	frame_portrait_dragon_gem = "rbxassetid://75977529841166",
@@ -210,16 +210,16 @@ UiAssets.ids = {
 	frame_slot_normal = "rbxassetid://115820414029651",
 	frame_slot_selected = "rbxassetid://128140594296776",
 	frame_slot_valid = "rbxassetid://84191798512921",
-	frame_tab_hover = "rbxassetid://82175906953666",
-	frame_tab_normal = "rbxassetid://78534692307853",
-	frame_tab_selected = "rbxassetid://86894327665954",
+	frame_tab_hover = "rbxassetid://134635600954388",
+	frame_tab_normal = "rbxassetid://74313514497958",
+	frame_tab_selected = "rbxassetid://82692074133529",
 	frame_toast = "rbxassetid://87118922049882",
 	-- rifinitura 17/10 (artifacts/ui-rifinitura-20261017): barre a parallelogramma. ID vuoti finche'
 	-- non si caricano: il codice usa le barre dritte di prima
-	frame_bar_health_slant = "",
-	frame_bar_stamina_slant = "",
-	frame_bar_shield_slant = "",
-	frame_bar_xp_slant = "",
+	frame_bar_health_slant = "rbxassetid://79089502009586",
+	frame_bar_stamina_slant = "rbxassetid://109120234044387",
+	frame_bar_shield_slant = "rbxassetid://83638628696463",
+	frame_bar_xp_slant = "rbxassetid://109147282658209",
 }
 UiAssets.slices = {
 	btn_buy_v3_normal = Rect.new(64, 48, 448, 112),

@@ -440,6 +440,21 @@ end
 
 -- pulsanti: "primary" (oro pieno, testo scuro, taglio obliquo), "secondary" (solo bordo),
 -- "danger", "disabled"
+-- sotto una cornice di Codex non deve restare niente dei vecchi modelli: immagine (AssetSurface,
+-- il bordino blu che spuntava dopo il terminale obliquo delle schede dello Shop), la sua
+-- scritta e i contorni (UIStroke) che non sono il nostro "Bordo"
+local function stripOld(b: GuiObject)
+	b:SetAttribute("UiAsset", nil)
+	b:SetAttribute("ButtonKind", nil)
+	for _, c in b:GetChildren() do
+		if c.Name == "AssetSurface" or c.Name == "AssetCaption" then
+			c:Destroy()
+		elseif c:IsA("UIStroke") and c.Name ~= "Bordo" then
+			c.Enabled = false
+		end
+	end
+end
+
 function UiKit.button(b: TextButton, kind: string)
 	b:SetAttribute("UiNative", true)
 	local corner = b:FindFirstChildOfClass("UICorner")
@@ -465,8 +480,7 @@ function UiKit.button(b: TextButton, kind: string)
 		b.BackgroundTransparency = 1
 		-- le vecchie immagini dei modelli non tornano piu' (UIPolish le rimetteva al passaggio del
 		-- mouse) e il fondo non e' piu' colorato (il rosso dei vecchi "sell")
-		b:SetAttribute("UiAsset", nil)
-		b:SetAttribute("ButtonKind", nil)
+		stripOld(b)
 		b.BackgroundColor3 = UiKit.INK
 		-- la scritta delle vecchie immagini (UiView.skin) farebbe una seconda scritta sotto la nostra
 		local oldCaption = b:FindFirstChild("AssetCaption")
@@ -534,7 +548,7 @@ function UiKit.tab(b: TextButton, on: boolean, accent: Color3?)
 	b:SetAttribute("SenzaZoom", true)
 	if Cornici.apply(b, if on then "frame_tab_selected" else "frame_tab_normal") then
 		b.BackgroundTransparency = 1
-		b:SetAttribute("UiAsset", nil)
+		stripOld(b)
 		Cornici.caption(b)
 		b.TextColor3 = if on then Color3.fromRGB(255, 222, 140) else UiKit.MUTED
 		local old = b:FindFirstChild("Sotto")

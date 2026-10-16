@@ -53,6 +53,7 @@ function AvatarView.new(parent: GuiObject, visible: () -> boolean): View
 	local model: Model? = nil
 	local modelOf: Instance? = nil
 	local center, dist = Vector3.zero, 10
+	local fitH, fitW = 5, 3 -- altezza e larghezza da far stare nel riquadro
 	local function rebuild()
 		-- si rifa' solo se il personaggio e' cambiato (respawn)
 		if model and modelOf == player.Character and model.Parent then
@@ -91,7 +92,10 @@ function AvatarView.new(parent: GuiObject, visible: () -> boolean): View
 		m.Parent = world
 		local cf, size = m:GetBoundingBox()
 		center = cf.Position
-		dist = math.max(size.Y, size.X * 0.8) / (2 * math.tan(math.rad(15))) * 1.08
+		-- distanza: deve starci l'altezza E la larghezza (il personaggio gira, conta il lato piu'
+		-- largo) anche in un riquadro stretto; prima solo l'altezza e nell'inventario il personaggio
+		-- usciva dai lati
+		fitH, fitW = size.Y, math.max(size.X, size.Z) * 0.85
 		model = m
 	end
 
@@ -144,6 +148,9 @@ function AvatarView.new(parent: GuiObject, visible: () -> boolean): View
 		end
 		local m = model :: Model
 		m:PivotTo(CFrame.Angles(0, angle, 0))
+		-- (ricalcolata qui: quando il modello nasce il riquadro puo' non avere ancora la sua misura)
+		local aspect = math.max(0.3, vf.AbsoluteSize.X / math.max(1, vf.AbsoluteSize.Y))
+		dist = math.max(fitH, fitW / aspect) / (2 * math.tan(math.rad(15))) * 1.08
 		camera.CFrame = CFrame.lookAt(center + Vector3.new(0, 0.6, -dist), center + Vector3.new(0, 0.3, 0))
 	end)
 	player.CharacterAdded:Connect(function()

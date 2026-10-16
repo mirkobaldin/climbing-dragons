@@ -1220,7 +1220,7 @@ local TABS = {
 	{ key = "Store", label = "SHOP", icon = "icon_shop", color = Theme.ACCENT, keyName = "B", title = "Shop" },
 	{ key = "Teleport", label = "TRAVEL", icon = "icon_teleport", color = Theme.BLUE, keyName = "T", title = "Travel" },
 	{ key = "Crafting", label = "CRAFTING", icon = "icon_crafting", color = Theme.TEAL, keyName = "N", title = "Crafting" },
-	{ key = "Backpack", label = "INVENTORY", icon = "icon_backpack", color = Theme.ORANGE, keyName = "I", title = "Backpack" },
+	{ key = "Backpack", label = "INVENTORY", icon = "icon_backpack", color = Theme.ORANGE, keyName = "I", title = "Inventory" },
 	{ key = "Upgrades", label = "UPGRADES", icon = "icon_settings", color = Theme.GOOD, keyName = "U", title = "Upgrades" },
 }
 local KEYS = {

@@ -242,8 +242,10 @@ local function makeBar(): ScreenGui
 	local panel = Instance.new("Frame")
 	panel.Name = "Barra"
 	panel.BackgroundTransparency = 1
-	panel.AnchorPoint = Vector2.new(0.5, 0)
-	panel.Position = UDim2.new(0.5, 0, 0, 8)
+	-- al centro dello schermo: in alto copriva i tasti ⚙ ? HIDE HUD e la striscia delle monete,
+	-- che sono proprio cose da spostare (gli elementi dell'HUD stanno tutti sui bordi)
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	panel.Position = UDim2.fromScale(0.5, 0.42)
 	panel.Size = UDim2.fromOffset(560, 84)
 	panel.Parent = g
 	UiKit.panel(panel, { border = 10 })

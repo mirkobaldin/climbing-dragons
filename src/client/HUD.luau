@@ -749,7 +749,9 @@ function HUD.start()
 		local x0, y0 = 12, 8
 		local av = 76 -- ritratto (prima 96: troppo grande)
 		local bx = math.floor(av * 0.5)
-		local barX = bx + 8 -- testo delle barre: dopo il ritratto
+		-- testo delle barre: dopo il BORDO del ritratto (le barre partono dal suo centro; prima il
+		-- testo partiva a meta' ritratto e "HP 100" restava coperto)
+		local barX = av + 6
 		-- barre una sotto l'altra, attaccate: la cornice di una tocca quella dopo
 		local hH, sH = 20, 15
 		local hW, sW, shW = 268, 246, 228
