@@ -9,7 +9,7 @@ con le cornici di Codex appena montate: questi sono i suoi appunti, con dove met
 - Materiale di Mirko in `cloud/ui-rifinitura/`: screenshot e video della UI da telefono e da
   computer. Per i video estrai i fotogrammi (es. `ffmpeg -i video.mp4 -vf fps=1 f_%03d.png`) e
   guardali prima di cambiare il codice. Lo screenshot del menu di Diablo IV e' il riferimento per
-  lo zaino.
+  lo zaino. Vedi la sezione "Materiale" qui sotto.
 - Lavora su un branch `cloud/ui-rifinitura-20261017`; commit piccoli, messaggi in italiano.
   L'unione in `main` la fa Claude in locale dopo le prove in Studio.
 - Tu NON hai Studio: non puoi provare in Play ne' caricare immagini su Roblox. Quindi:
@@ -98,31 +98,60 @@ con le cornici di Codex appena montate: questi sono i suoi appunti, con dove met
      tipo una valle con i ghiacciai dietro: se serve un'immagine, preparala in `artifacts/`;
    - file `DragonUI.luau` (`gridBox`, `gridShare`, `sizeGrid`, `stageBox` "Palco").
 
-10. **Telefono, piu' cose spostabili** col ⚙ dei comandi:
-    - oggi si spostano solo i tasti d'azione (`MobileControls.luau`, attributo `ControlsLayout`
-      salvato da Progression) e il tasto MENU (`MenuFrac`, letto da `MainMenu.placeOpener`);
-    - Mirko vuole spostare anche il tasto che ha chiamato "Roer". Nel dubbio rendi spostabili
-      tutti i tasti dell'HUD in alto a destra: "?", HIDE HUD (`HUD.luau`, `helpBtn`/`hideBtn`) e
-      il tasto Z del colpo speciale (`Combat.luau`);
-    - spostabili anche il riquadro del personaggio (ritratto + barre) e quello del drago;
-    - stessa logica e stesso salvataggio: nuove voci nella tabella `ControlsLayout`, posizioni
-      in frazioni dello schermo come `MenuFrac`, Reset le rimette a posto.
-11. **Meteo e ora fa schifo** (screenshot `07_meteo_ora_brutto.png`):
+10. **UI modificabile, su telefono E su computer**:
+    - oggi col ⚙ (solo telefono) si spostano i tasti d'azione (`MobileControls.luau`, attributo
+      `ControlsLayout` salvato da Progression) e il tasto MENU (`MenuFrac`, letto da
+      `MainMenu.placeOpener`);
+    - da spostare in piu':
+      * il tasto **Roar** del telefono, che sul computer e' il tasto **Z** (colpo speciale del
+        drago, `Combat.luau`);
+      * il riquadro del personaggio (ritratto + barre) e quello del drago (`HUD.luau`);
+      * i tasti "?" e HIDE HUD;
+    - anche sul **computer** si deve poter entrare in modifica e trascinare col mouse gli
+      elementi dell'HUD: Roar/Z, personaggio, drago, missione, meteo, barra 1-5, MENU;
+    - stesso salvataggio per tutti: voci nuove in `ControlsLayout`, posizioni in frazioni
+      dello schermo come `MenuFrac`, una disposizione per telefono e una per computer. "Reset"
+      rimette tutto a posto;
+    - **il tasto impostazioni (⚙) fa schifo**: oggi e' un ingranaggio azzurro che finisce
+      sopra gli altri tasti (vedi `screen/schermata_195946.png`, sopra THROW). Rifallo nello
+      stile delle cornici (medaglione o pulsante con cornice), in un posto che non copra niente;
+    - la modalita' di modifica deve avere una barra chiara con DONE / RESET e il contorno degli
+      elementi spostabili.
+11. **Meteo e ora fa schifo** (`07_meteo_ora_brutto.png`):
     - il cerchio col sole e la casella blu scuro dell'ora sono due pezzi staccati, dentro una
       cornice tirata;
     - rifallo come un unico elemento curato nello stile delle cornici: medaglione col meteo e
       ora/quota nella stessa cornice, niente blu piatto;
     - deve stare bene anche piegato (Hide) e sul telefono;
     - `HUD.luau`, blocco "METEO in alto a destra" (`weather`, `wCircle`).
+12. **Problemi visti solo sul telefono vero** (screenshot in `screen/` e video): in Studio col
+    telefono simulato non si vedevano.
+    - I tasti di Roblox in alto a sinistra (logo, menu, chat, voce) coprono il contatore delle
+      monete, l'indicatore "Home ... m" e una parte del ritratto. Usa le aree sicure di Roblox
+      (`ScreenInsets` = CoreUISafeInsets, `GuiService.TopbarInset`) invece di posizioni fisse.
+    - A destra si sovrappongono: HIDE HUD sopra il meteo, WALK/THROW sopra l'ora, ⚙ sopra
+      THROW, Roar e RIDE sopra la barra 1-5.
+    - Menu:
+      * Upgrades e Crafting mostrano le carte in colonna ma non la scheda di destra;
+      * la finestra e' piu' alta dello schermo e le schede in fondo sono tagliate (UPGRADES non
+        si vede).
+    - La striscia monete | PRIZE POOL | pietre e' di tre stili diversi (`schermata_200903.png`):
+      il riquadro rosa del montepremi va reso coerente con le cornici, tenendo il colore.
 
-## Screenshot in `cloud/ui-rifinitura/`
-- `01_upgrades_rebirth_stile_vecchio.png`: punto 1.
-- `02_inventario_cornici_grosse.png`: punto 4.
-- `03_hud_ritratti_e_barre.png`: punti 5 e 6.
-- `04_RIFERIMENTO_diablo4_inventario.png`: il modello per lo zaino.
-- `05_profilo_statistiche.png`: punto 7.
-- `06_telefono_menu_draghi.png`: punti 8 e 9.
-- `07_meteo_ora_brutto.png`: punto 11.
+## Materiale in `cloud/ui-rifinitura/`
+- Screenshot numerati:
+  * `01_upgrades_rebirth_stile_vecchio.png`: punto 1;
+  * `02_inventario_cornici_grosse.png`: punto 4;
+  * `03_hud_ritratti_e_barre.png`: punti 5 e 6;
+  * `04_RIFERIMENTO_diablo4_inventario.png`: il modello per l'inventario;
+  * `05_profilo_statistiche.png`: punto 7;
+  * `06_telefono_menu_draghi.png`: punti 8 e 9;
+  * `07_meteo_ora_brutto.png`: punto 11.
+- `screen/`: altri screenshot di Mirko, dal telefono e dal computer (punti 10 e 12).
+- `video/computer.mp4` e `video/telefono.mp4`: le registrazioni di Mirko (70 s ciascuna),
+  compresse e senza audio.
+- `fotogrammi_computer/` e `fotogrammi_telefono/`: un fotogramma ogni 2 secondi dei due
+  video, gia' estratti. Guardali tutti prima di cominciare.
 
 ## Ricerca prima di rifare l'impaginazione
 Mirko vuole **la stessa UI del computer anche sul telefono** (tranne i tasti da toccare), come fa
@@ -147,7 +176,7 @@ Poi applicalo almeno al menu (finestra, schede, pagine) e all'HUD.
 ## Consegna
 - Branch `cloud/ui-rifinitura-20261017` con tutto dentro, sintassi Luau controllata.
 - In fondo a questo file una sezione "Fatto" con:
-  * cosa e' cambiato, punto per punto (1-11 + ricerca);
+  * cosa e' cambiato, punto per punto (1-12 + ricerca);
   * PNG nuovi da caricare (cartella, nomi, margini);
   * cosa deve verificare Claude in locale in Studio (telefono simulato 891x353 e computer), una
     riga per punto;
