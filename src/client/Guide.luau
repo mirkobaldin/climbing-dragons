@@ -165,7 +165,10 @@ function Guide.start()
 		-- con un menu aperto la freccia finiva sopra la finestra
 		local menu = player.PlayerGui:FindFirstChild("MainMenu")
 		local menuOpen = menu ~= nil and menu:GetAttribute("MenuOpen") == true
-		edge.Visible = dist > 40 and not inside and not menuOpen
+		-- un solo indicatore principale: con un obiettivo (freccia e segnale della missione) la
+		-- freccia "Home" a bordo schermo si toglie (Mirko 16/10)
+		local hasGoal = typeof(player:GetAttribute("GuideTarget")) == "Vector3"
+		edge.Visible = dist > 40 and not inside and not menuOpen and not hasGoal
 		if edge.Visible then
 			-- direzione della casa rispetto alla camera, portata sul bordo dello schermo
 			local rel = camera.CFrame:PointToObjectSpace(home)
@@ -177,10 +180,72 @@ function Guide.start()
 			local half = vp / 2 - Vector2.new(48, 48)
 			local k = math.min(half.X / math.max(math.abs(dir.X), 0.001), half.Y / math.max(math.abs(dir.Y), 0.001))
 			local at = vp / 2 + dir * k
+			-- mai sopra la barra degli attrezzi e i comandi in basso
+			at = Vector2.new(at.X, math.min(at.Y, vp.Y - 160))
 			edge.Position = UDim2.fromOffset(at.X, at.Y)
 			arrow.Rotation = math.deg(math.atan2(dir.X, -dir.Y)) -- gira solo la freccia
 			edgeLabel.Text = string.format("Home %d m", math.floor(dist))
 		end
+	end
+
+	-- PERCORSO VERO (Mirko 16/10: nella grotta di ghiaccio le frecce andavano dritte verso il
+	-- vuoto). Ogni tanto si calcola un percorso camminabile (PathfindingService) e le frecce lo
+	-- seguono; se non c'e' (bisogna arrampicarsi, meta troppo lontana) restano dritte ma solo
+	-- dove sotto c'e' terreno: mai frecce sospese nel vuoto
+	local PathfindingService = game:GetService("PathfindingService")
+	local path = PathfindingService:CreatePath({ AgentRadius = 2.5, AgentHeight = 5.5, AgentCanJump = true, WaypointSpacing = 4 })
+	local route: { Vector3 }? = nil
+	local routeTarget: Vector3? = nil
+	local routeFrom = Vector3.zero
+	local routeAt = -math.huge
+	local computing = false
+	local function updateRoute(from: Vector3, to: Vector3)
+		local moved = (from - routeFrom).Magnitude
+		local stale = routeTarget == nil or ((routeTarget :: Vector3) - to).Magnitude > 4
+		if computing or (not stale and moved < 12 and os.clock() - routeAt < 4) then
+			return
+		end
+		computing = true
+		routeFrom, routeAt = from, os.clock()
+		task.spawn(function()
+			local ok = (from - to).Magnitude < 1500 and pcall(function()
+				path:ComputeAsync(from, to)
+			end)
+			if ok and path.Status == Enum.PathStatus.Success then
+				local pts = {}
+				for _, w in path:GetWaypoints() do
+					table.insert(pts, w.Position)
+				end
+				route = pts
+			else
+				route = nil
+			end
+			routeTarget = to
+			computing = false
+		end)
+	end
+	-- punto e direzione a distanza d lungo il percorso, partendo dal punto piu' vicino al giocatore
+	local function along(pts: { Vector3 }, from: Vector3, d: number): (Vector3?, Vector3?)
+		local best, bi = math.huge, 1
+		for i, p in pts do
+			local m = (p - from).Magnitude
+			if m < best then
+				best, bi = m, i
+			end
+		end
+		local left = d
+		for i = bi, #pts - 1 do
+			local a, b = pts[i], pts[i + 1]
+			local seg = (b - a).Magnitude
+			if seg > 0.01 then
+				if left <= seg then
+					local flatDir = Vector3.new(b.X - a.X, 0, b.Z - a.Z)
+					return a:Lerp(b, left / seg), if flatDir.Magnitude > 0.01 then flatDir.Unit else nil
+				end
+				left -= seg
+			end
+		end
+		return nil, nil
 	end
 
 	RunService.RenderStepped:Connect(function()
@@ -207,7 +272,9 @@ function Guide.start()
 			return
 		end
 		params.FilterDescendantsInstances = { character :: Instance, folder }
-		local dir = flat.Unit
+		local from = (root :: BasePart).Position
+		updateRoute(from, target :: Vector3)
+		local pts = route
 		local shift = (os.clock() * 6) % SPACING -- scorrono in avanti
 		for k, a in arrows do
 			local dist = 3 + (k - 1) * SPACING + shift
@@ -215,10 +282,27 @@ function Guide.start()
 				hide(a)
 				continue
 			end
-			local p = (root :: BasePart).Position + dir * dist
-			local hit = workspace:Raycast(p + Vector3.new(0, 6, 0), Vector3.new(0, -20, 0), params)
-			local ground = if hit then hit.Position.Y + 0.3 else (root :: BasePart).Position.Y - 2.8
-			local pos = Vector3.new(p.X, ground, p.Z)
+			local p: Vector3? = nil
+			local dir = flat.Unit
+			if pts then
+				local q, d = along(pts, from, dist)
+				p = q
+				if d then
+					dir = d
+				end
+			else
+				p = from + dir * dist
+			end
+			if not p then
+				hide(a)
+				continue
+			end
+			local hit = workspace:Raycast((p :: Vector3) + Vector3.new(0, 6, 0), Vector3.new(0, -20, 0), params)
+			if not hit then
+				hide(a) -- niente terreno sotto: niente freccia sul vuoto
+				continue
+			end
+			local pos = Vector3.new((p :: Vector3).X, hit.Position.Y + 0.3, (p :: Vector3).Z)
 			local tip = CFrame.lookAt(pos, pos + dir)
 			local fade = math.clamp(dist / (COUNT * SPACING), 0, 1)
 			for side, bar in a do

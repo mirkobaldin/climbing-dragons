@@ -46,6 +46,8 @@ local function grew(name: string, by: number?): (Player, Memo) -> boolean
 		if memo[key] == nil then
 			memo[key] = value
 		end
+		-- avanzamento per il riquadro della missione ("3/5"), attributo MissionProgress
+		memo.progress = string.format("%d/%d", math.clamp(value - memo[key], 0, by or 1), by or 1)
 		return value >= memo[key] + (by or 1)
 	end
 end
@@ -132,9 +134,11 @@ local function caveOre(player: Player): Vector3?
 	return nearest(player, entrances) or ore
 end
 
+-- testo = "OBIETTIVO CORTO|aiuto": l'HUD mostra l'obiettivo (★ VERBO...) e l'aiuto solo se il
+-- giocatore ci mette un po' (aiuto progressivo, client/HUD)
 local MISSIONS: { Mission } = {
 	{
-		text = "Find a wild dragon egg (follow the arrows)",
+		text = "FIND A DRAGON EGG|Follow the arrows to the egg",
 		label = "Dragon egg",
 		check = function(player, memo)
 			return player:GetAttribute("CarryingEgg") ~= nil or grew("EggsIncubated")(player, memo)
@@ -143,14 +147,14 @@ local MISSIONS: { Mission } = {
 		reward = 150,
 	},
 	{
-		text = "Bring the egg to the nest in your camp",
+		text = "RETURN THE EGG TO YOUR NEST|Your nest is at your camp",
 		label = "Your nest",
 		check = grew("EggsIncubated"),
 		target = playerVec("NestPosition"),
 		reward = 150,
 	},
 	{
-		text = "Hatch your egg: open Dragons and tap Hatch {UI:Dragons}",
+		text = "HATCH YOUR EGG|Open the menu, then Dragons, and tap Hatch {UI:Dragons}",
 		label = "Your nest",
 		check = grew("EggsHatched"),
 		target = playerVec("NestPosition"),
@@ -159,7 +163,7 @@ local MISSIONS: { Mission } = {
 	{
 		-- la meta e' la pedana davanti all'arena (l'arena e' chiusa: prima la freccia puntava al
 		-- centro e il personaggio, rimasto fuori, non la raggiungeva mai)
-		text = "Go to the Dragon Arena: step on the glowing platform",
+		text = "GO TO THE DRAGON ARENA|Step on the glowing platform",
 		label = "Dragon Arena",
 		check = function(player)
 			local pad = workspace:GetAttribute("TrainingPad") or workspace:GetAttribute("TrainingCenter")
@@ -172,7 +176,7 @@ local MISSIONS: { Mission } = {
 		reward = 100,
 	},
 	{
-		text = "Train your dragon: stay on the platform and shoot the crystals",
+		text = "TRAIN YOUR DRAGON|Stay on the platform and shoot the crystals",
 		label = "Platform",
 		check = function(player)
 			return player:GetAttribute("Training") == true
@@ -184,7 +188,7 @@ local MISSIONS: { Mission } = {
 		reward = 200,
 	},
 	{
-		text = "Go to the Muscle Beach gym",
+		text = "GO TO MUSCLE BEACH|Follow the arrows to the gym",
 		label = "Gym",
 		check = function(player)
 			local c = workspace:GetAttribute("GymCenter")
@@ -194,7 +198,7 @@ local MISSIONS: { Mission } = {
 		reward = 100,
 	},
 	{
-		text = "Work out once on a gym machine",
+		text = "WORK OUT ONCE|Use any gym machine",
 		label = "Gym",
 		check = function(player, memo)
 			local total = 0
@@ -210,14 +214,14 @@ local MISSIONS: { Mission } = {
 		reward = 150,
 	},
 	{
-		text = "Mine 5 ores in the caves {KEY2}",
+		text = "MINE 5 ORES|Find ore in the caves. {KEY2}",
 		label = "Ores",
 		check = grew("OresMined", 5),
 		target = caveOre,
 		reward = 400,
 	},
 	{
-		text = "Climb to the summit of the mountain!",
+		text = "REACH THE SUMMIT|Keep climbing up the mountain",
 		label = "Summit",
 		check = function(player)
 			return near(player, marker("Summit"), 80)
@@ -233,6 +237,9 @@ local function publish(player: Player, step: number)
 	player:SetAttribute("MissionStep", step)
 	local m = MISSIONS[step]
 	player:SetAttribute("MissionText", if m then string.format("(%d/%d) %s", step, #MISSIONS, m.text) else nil)
+	-- ricompensa e avanzamento mostrati nel riquadro (client/HUD)
+	player:SetAttribute("MissionReward", if m then m.reward else nil)
+	player:SetAttribute("MissionProgress", nil)
 	if not m then
 		player:SetAttribute("GuideTarget", nil)
 		player:SetAttribute("GuideLabel", nil)
@@ -271,7 +278,9 @@ local function run(player: Player)
 		end
 		player:SetAttribute("GuideTarget", m.target(player, memo))
 		player:SetAttribute("GuideLabel", m.label)
-		if m.check(player, memo) then
+		local done = m.check(player, memo)
+		player:SetAttribute("MissionProgress", memo.progress)
+		if done then
 			Economy.addCoins(player, m.reward)
 			player:SetAttribute("Notice", string.format("Mission complete! +%d coins", m.reward))
 			player:SetAttribute("NoticeTime", os.clock())

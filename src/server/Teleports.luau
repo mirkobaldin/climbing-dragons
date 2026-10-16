@@ -128,6 +128,8 @@ function Teleports.setup()
 			return
 		end
 		last[player] = os.clock()
+		-- il menu Travel mostra la ricarica prima di premere (client/TravelUI)
+		player:SetAttribute("TeleportAt", workspace:GetServerTimeNow())
 		-- il tuo accampamento: il punto e' gia' a terra (o sulla pedana dello Chalet); l'isola e'
 		-- sospesa (il raggio cerca solo il Terrain e finirebbe nell'oceano sotto)
 		local direct = name == "My camp" or name == "Dragon Island"

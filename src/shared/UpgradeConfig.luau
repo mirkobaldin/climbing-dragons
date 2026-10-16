@@ -9,10 +9,11 @@
 --   Esoscheletro  stamina che dura di piu' e meno danni da caduta
 --   Scudo         scudo di ghiaccio che assorbe i colpi e si ricarica
 --   Stivali       corri piu' veloce
---   Picchiata     cadendo dall'alto sui nemici fai danno attorno a te (e non ti fai male)
+--   Furia, Ali, Maestria, Tesoro, Addestramento: potenziamenti dei draghi (group "Dragon")
 
 export type Upgrade = {
 	id: string,
+	group: string?, -- nil = scalatore, "Dragon" = potenziamento dei draghi
 	name: string,
 	description: string,
 	max: number,
@@ -134,28 +135,114 @@ UpgradeConfig.UPGRADES = {
 			return string.format("Speed +%d%%", math.floor((UpgradeConfig.UPGRADES[6].values.speed[l + 1] - 1) * 100 + 0.5))
 		end,
 	},
+	-- Potenziamenti del drago (group = "Dragon", scheda Dragon del menu Upgrades): valgono per
+	-- tutti i tuoi draghi. La Picchiata (onda d'urto atterrando, niente danni da caduta) e' stata
+	-- tolta: Mirko 15/10, "se no uno non muore mai se cade dalla montagna"
 	{
-		id = "Picchiata",
-		name = "Plunge Attack",
-		description = "Land on enemies from high up: shockwave damage and no fall damage.",
+		id = "Furia",
+		group = "Dragon",
+		name = "Dragon Fury",
+		description = "Your dragons hit harder: bites, ride shots and the Z special.",
 		max = 5,
-		values = { damage = { 0, 30, 50, 75, 105, 150 }, radius = { 0, 10, 12, 14, 17, 21 } },
+		values = { mult = { 1, 1.1, 1.22, 1.36, 1.52, 1.7 } },
 		costs = {
-			{ coins = 300, items = { Ferro = 6, Pelliccia_Yeti = 2 } },
-			{ coins = 650, items = { Cristallo_Ghiaccio = 4, Oro = 3 } },
-			{ coins = 1200, items = { Nucleo_Glaciale = 2, Oro = 5 } },
-			{ coins = 2000, items = { Nucleo_Glaciale = 4, Rubino = 2 } },
-			{ coins = 3400, items = { Nucleo_Glaciale = 6, Cosmico = 3 } },
+			{ coins = 250, items = { Ferro = 6, Pelliccia_Yeti = 1 } },
+			{ coins = 600, items = { Oro = 4, Pelliccia_Yeti = 3 } },
+			{ coins = 1200, items = { Cristallo_Ghiaccio = 5, Oro = 5 } },
+			{ coins = 2200, items = { Nucleo_Glaciale = 3, Rubino = 2 } },
+			{ coins = 3800, items = { Nucleo_Glaciale = 5, Cosmico = 2 } },
 		},
 		text = function(l)
-			local v = UpgradeConfig.UPGRADES[7].values
-			if l == 0 then
-				return "Not learned"
-			end
-			return string.format("%d damage in %d studs", v.damage[l + 1], v.radius[l + 1])
+			return string.format("Dragon damage +%d%%", math.floor(UpgradeConfig.UPGRADES[7].values.mult[l + 1] * 100 - 100 + 0.5))
+		end,
+	},
+	{
+		id = "Ali",
+		group = "Dragon",
+		name = "Wing Power",
+		description = "Stronger wings: your dragon flies faster when you ride it.",
+		max = 5,
+		values = { speed = { 1, 1.08, 1.16, 1.25, 1.35, 1.5 } },
+		costs = {
+			{ coins = 200, items = { Carbone = 8, Ferro = 4 } },
+			{ coins = 500, items = { Pelliccia_Yeti = 3, Oro = 2 } },
+			{ coins = 1000, items = { Cristallo_Ghiaccio = 4, Oro = 4 } },
+			{ coins = 1800, items = { Nucleo_Glaciale = 2, Cristallo = 6 } },
+			{ coins = 3200, items = { Nucleo_Glaciale = 4, Rubino = 3 } },
+		},
+		text = function(l)
+			return string.format("Flight speed +%d%%", math.floor(UpgradeConfig.UPGRADES[8].values.speed[l + 1] * 100 - 100 + 0.5))
+		end,
+	},
+	{
+		id = "Maestria",
+		group = "Dragon",
+		name = "Elemental Mastery",
+		description = "Your dragon's special attack (Z) recharges faster.",
+		max = 5,
+		values = { cut = { 0, 0.08, 0.16, 0.24, 0.32, 0.4 } },
+		costs = {
+			{ coins = 300, items = { Cristallo = 3 } },
+			{ coins = 700, items = { Cristallo = 5, Cristallo_Ghiaccio = 2 } },
+			{ coins = 1300, items = { Cristallo_Ghiaccio = 5, Oro = 4 } },
+			{ coins = 2300, items = { Nucleo_Glaciale = 3, Rubino = 2 } },
+			{ coins = 4000, items = { Nucleo_Glaciale = 5, Cosmico = 3 } },
+		},
+		text = function(l)
+			return string.format("Special cooldown -%d%%", math.floor(UpgradeConfig.UPGRADES[9].values.cut[l + 1] * 100 + 0.5))
+		end,
+	},
+	{
+		id = "Tesoro",
+		group = "Dragon",
+		name = "Treasure Hoard",
+		description = "Dragons resting in your farm make more gold coins.",
+		max = 5,
+		values = { mult = { 1, 1.15, 1.3, 1.5, 1.75, 2 } },
+		costs = {
+			{ coins = 400, items = { Oro = 3 } },
+			{ coins = 900, items = { Oro = 6, Ferro = 6 } },
+			{ coins = 1700, items = { Oro = 8, Cristallo = 4 } },
+			{ coins = 3000, items = { Rubino = 3, Nucleo_Glaciale = 2 } },
+			{ coins = 5000, items = { Rubino = 5, Cosmico = 3 } },
+		},
+		text = function(l)
+			return string.format("Farm coins x%.2f", UpgradeConfig.UPGRADES[10].values.mult[l + 1])
+		end,
+	},
+	{
+		id = "Addestramento",
+		group = "Dragon",
+		name = "Quick Learner",
+		description = "Your dragons earn more XP from fights, training and the arena.",
+		max = 5,
+		values = { mult = { 1, 1.1, 1.2, 1.35, 1.5, 1.7 } },
+		costs = {
+			{ coins = 250, items = { Carbone = 6, Cristallo = 1 } },
+			{ coins = 600, items = { Cristallo = 4, Pelliccia_Yeti = 2 } },
+			{ coins = 1200, items = { Cristallo_Ghiaccio = 4, Oro = 4 } },
+			{ coins = 2100, items = { Nucleo_Glaciale = 2, Rubino = 2 } },
+			{ coins = 3600, items = { Nucleo_Glaciale = 4, Cosmico = 2 } },
+		},
+		text = function(l)
+			return string.format("Dragon XP +%d%%", math.floor(UpgradeConfig.UPGRADES[11].values.mult[l + 1] * 100 - 100 + 0.5))
 		end,
 	},
 } :: { Upgrade }
+
+-- dove si trovano i materiali dei potenziamenti (scheda del menu Upgrades e Crafting)
+UpgradeConfig.SOURCES = {
+	-- fasce di quota di mapgen/Ores (frazione dell'altezza della montagna)
+	Carbone = "Ore veins at the foot of the mountain",
+	Ferro = "Ore veins on the lower third of the mountain",
+	Oro = "Ore veins in the lower half of the mountain",
+	Cristallo = "Glowing veins in the middle of the mountain",
+	Rubino = "High up: needs the Reinforced Pickaxe",
+	Cosmico = "Near the summit: needs the Reinforced Pickaxe",
+	Pelliccia_Yeti = "Dropped by Yetis, or craft it at the Workbench",
+	Cristallo_Ghiaccio = "Dropped by Yetis and Ice Golems, or craft it",
+	Nucleo_Glaciale = "Dropped by Ice Golems, or craft it at the Workbench",
+} :: { [string]: string }
 
 function UpgradeConfig.find(id: string): Upgrade?
 	for _, u in UpgradeConfig.UPGRADES do
@@ -181,9 +268,15 @@ function UpgradeConfig.value(player: Player, id: string, key: string): number
 	return list[l + 1]
 end
 
+-- moltiplicatori dei potenziamenti del drago (1 se non comprati)
+function UpgradeConfig.dragonDamage(player: Player): number
+	return UpgradeConfig.value(player, "Furia", "mult")
+end
+function UpgradeConfig.dragonXp(player: Player): number
+	return UpgradeConfig.value(player, "Addestramento", "mult")
+end
+
 ------------------------------------------------------------------------------------------
--- Picchiata: velocita' minima di caduta (studs/s) per l'onda d'urto
-UpgradeConfig.PLUNGE_MIN_SPEED = 45
 -- Scudo: secondi senza colpi prima che si ricarichi, punti al secondo
 UpgradeConfig.SHIELD_DELAY = 6
 UpgradeConfig.SHIELD_REGEN = 12

@@ -32,10 +32,14 @@ local Prestazioni = require(script.Prestazioni)
 local Combat = require(script.Combat)
 local Glider = require(script.Glider)
 local Montepremi = require(script.Montepremi)
+local EventBanner = require(script.EventBanner)
+local ControlsPanel = require(script.ControlsPanel)
 local TutorialHints = require(script.TutorialHints)
 local OreFX = require(script.OreFX)
 local DragonRide = require(script.DragonRide)
 local IndoorLight = require(script.IndoorLight)
+local FarmCoins = require(script.FarmCoins)
+local DragonReveal = require(script.DragonReveal)
 
 HUD.start()
 ClimbFeel.start()
@@ -68,7 +72,11 @@ task.delay(3, Prestazioni.start) -- telefono/PC deboli: niente ombre di alberi e
 Combat.start() -- attacco del drago (Z), draghi volanti, scudo, discesa, eventi
 Glider.start() -- parapendio (Spazio mentre cadi)
 Montepremi.start() -- montepremi stile Squid Game in alto al centro
+EventBanner.start() -- annunci degli eventi della mappa sotto il montepremi (3 s, poi etichetta)
+ControlsPanel.start() -- comandi del dispositivo in uso (inizio del tutorial, "?" e F1)
 TutorialHints.start() -- il pulsante da premere lampeggia (tutorial per bambini)
 OreFX.start() -- minerali: contorno luminoso, suono e "+1" quando estrai
 DragonRide.start() -- in groppa al drago adulto (Sella, tasto H)
 IndoorLight.start() -- al chiuso una luce calda attorno a te (le case erano buie)
+FarmCoins.start() -- monete che escono dai draghi della fattoria
+DragonReveal.start() -- schiusa ed evoluzione: la rivelazione del drago (anche shiny)

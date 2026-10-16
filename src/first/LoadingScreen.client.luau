@@ -14,7 +14,7 @@ local player = Players.LocalPlayer
 local t0 = os.clock()
 local MIN_TIME = 3
 local TIPS = {
-	"Press F on the wall to place a piton.",
+	"Place pitons on the wall: if you fall, the rope catches you.",
 	"Place pitons before the hard part, not after.",
 	"Dragons hatch from eggs hidden all over the mountain.",
 	"Train your dragon in the arena to reach Lv 100 and evolve it.",

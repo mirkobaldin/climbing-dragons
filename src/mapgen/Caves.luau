@@ -398,6 +398,100 @@ local function carveIceCaves(map: Heightmap.Map, terrain: Terrain, rng: Random, 
 	map.features.iceCaves = caves
 end
 
+-- Grotta dentro la montagna vuota (Voxelizer: guscio di roccia e cavita' dentro). Le sfere
+-- scavate possono sfondare il guscio e aprirsi sulla cavita': cosi' la sala della grotta di
+-- ghiaccio aveva i lati e il fondo aperti sul vuoto e camminando verso i lobi si cadeva fuori
+-- dalla mappa (Mirko 16/10, video 124253). Qui, solo sui voxel d'aria:
+--   * attorno alle sfere, per `shell` studs e solo sotto la superficie, ghiaccio (le pareti
+--     diventano un guscio chiuso);
+--   * dentro le sfere che hanno `floor`, sotto quella quota, ghiaia (pavimento pieno, niente
+--     buchi nel fondo).
+-- balls: { c, r, floor? }; surface(x, z) = quota della superficie; skip(p) = true per non
+-- toccare quel punto (l'ingresso, che deve restare aperto).
+export type Ball = { c: Vector3, r: number, floor: number? }
+function Caves.seal(terrain: Terrain, balls: { Ball }, shell: number, surface: (number, number) -> number, skip: ((Vector3) -> boolean)?, yield: () -> ())
+	if #balls == 0 then
+		return 0, 0
+	end
+	local lo, hi = balls[1].c, balls[1].c
+	for _, b in balls do
+		local e = Vector3.one * (b.r + shell + 4)
+		lo = lo:Min(b.c - e)
+		hi = hi:Max(b.c + e)
+	end
+	local CH = 64 -- studs per blocco (16 voxel per lato)
+	local cols: { [number]: number } = {}
+	local function top(x: number, z: number): number
+		local key = math.floor(x / 4) * 100003 + math.floor(z / 4)
+		local v = cols[key]
+		if not v then
+			v = surface(x, z)
+			cols[key] = v
+		end
+		return v
+	end
+	local filled, floored = 0, 0
+	for bx = math.floor(lo.X / CH) * CH, hi.X, CH do
+		for bz = math.floor(lo.Z / CH) * CH, hi.Z, CH do
+			for by = math.floor(lo.Y / CH) * CH, hi.Y, CH do
+				local region = Region3.new(Vector3.new(bx, by, bz), Vector3.new(bx + CH, by + CH, bz + CH))
+				-- sfere che toccano questo blocco
+				local near: { Ball } = {}
+				local mid = Vector3.new(bx + CH / 2, by + CH / 2, bz + CH / 2)
+				for _, b in balls do
+					if (b.c - mid).Magnitude < b.r + shell + CH then
+						table.insert(near, b)
+					end
+				end
+				if #near > 0 then
+					local mats, occs = terrain:ReadVoxels(region, 4)
+					local size = mats.Size
+					local changed = false
+					for i = 1, size.X do
+						for j = 1, size.Y do
+							for k = 1, size.Z do
+								if mats[i][j][k] == AIR then
+									local p = Vector3.new(bx + (i - 0.5) * 4, by + (j - 0.5) * 4, bz + (k - 0.5) * 4)
+									local inside, floorBall, gap = false, false, math.huge
+									for _, b in near do
+										local d = (p - b.c).Magnitude - b.r
+										if d < 0 then
+											inside = true
+											if b.floor and p.Y < (b.floor :: number) then
+												floorBall = true
+											end
+										elseif d < gap then
+											gap = d
+										end
+									end
+									if not (skip and (skip :: (Vector3) -> boolean)(p)) then
+										if inside and floorBall then
+											mats[i][j][k] = Enum.Material.Slate
+											occs[i][j][k] = 1
+											changed = true
+											floored += 1
+										elseif not inside and gap <= shell and p.Y < top(p.X, p.Z) - 6 then
+											mats[i][j][k] = Enum.Material.Ice
+											occs[i][j][k] = 1
+											changed = true
+											filled += 1
+										end
+									end
+								end
+							end
+						end
+					end
+					if changed then
+						terrain:WriteVoxels(region, 4, mats, occs)
+					end
+					yield()
+				end
+			end
+		end
+	end
+	return filled, floored
+end
+
 -- Grotta di ghiaccio azzurro nel ghiacciaio (come quelle dell'Islanda): l'ingresso e' un arco
 -- nel fronte alto della lingua, poi una galleria che serpeggia salendo piano sotto il ghiacciaio
 -- e finisce in una grande sala. Pareti e volta diventano ghiaccio (Ice, azzurro intenso), il
@@ -434,6 +528,9 @@ local function carveGlacierCave(map: Heightmap.Map, terrain: Terrain, rng: Rando
 		table.insert(inside, s < g.length - R * 2.6) -- piu' vicino al fronte la conversione arrivava fuori (un quadrato azzurro)
 		y += STEP * GC.GRADE
 	end
+	-- sfere scavate: servono dopo per chiudere la grotta verso la cavita' della montagna
+	local carved: { Ball } = {}
+	local floorY: number? = nil -- quota del pavimento per le sfere che si stanno scavando
 	local function cut(c: Vector3, r: number, force: boolean)
 		-- mai sfondare la superficie (tranne all'ingresso, che e' un arco nel fronte)
 		if not force and sampleH(map, c.X, c.Z) - (c.Y + r) < 12 then
@@ -443,9 +540,11 @@ local function carveGlacierCave(map: Heightmap.Map, terrain: Terrain, rng: Rando
 			end
 		end
 		terrain:FillBall(c, r, AIR)
+		table.insert(carved, { c = c, r = r, floor = floorY })
 	end
 	for k, p in points do
 		local entry = k <= 4
+		floorY = p.Y - 2
 		local side = Vector3.new(-(points[min(k + 1, #points)] - p).Z, 0, (points[min(k + 1, #points)] - p).X)
 		side = if side.Magnitude > 0.01 then side.Unit else Vector3.xAxis
 		cut(p + UP * R * 0.75, R * (1 + 0.12 * noise(p.X / 20, p.Y / 20, p.Z / 20)), entry)
@@ -462,6 +561,8 @@ local function carveGlacierCave(map: Heightmap.Map, terrain: Terrain, rng: Rando
 	-- sala in fondo: cupola irregolare
 	local last = points[#points]
 	local hallC = last + UP * H * 0.5
+	-- la sala ha il pavimento alla quota dell'ultimo punto: sotto, tutto pieno (anche nei lobi)
+	floorY = last.Y - 1
 	cut(hallC, H, false)
 	for j = 1, 5 do
 		local a = j / 5 * 2 * math.pi + rng:NextNumber(-0.3, 0.3)
@@ -491,6 +592,14 @@ local function carveGlacierCave(map: Heightmap.Map, terrain: Terrain, rng: Rando
 		terrain:FillBlock(CFrame.lookAt(a:Lerp(b, 0.5) - UP * 3, b - UP * 3), Vector3.new(R * 1.6, 6, (b - a).Magnitude + 4), Enum.Material.Slate)
 	end
 	terrain:FillCylinder(CFrame.new(last - UP * 4), 8, H * 1.05, Enum.Material.Slate)
+	-- chiusura verso la montagna vuota: pareti di ghiaccio e fondo pieno (prima la sala si apriva
+	-- sulla cavita' e si cadeva fuori dalla mappa); l'ingresso nel fronte resta aperto
+	local mouth = points[1]
+	Caves.seal(terrain, carved, GC.SHELL, function(x, z)
+		return sampleH(map, x, z)
+	end, function(p)
+		return Vector3.new(p.X - mouth.X, 0, p.Z - mouth.Z).Magnitude < R * 2.5
+	end, yield)
 	local feature = {
 		entrance = toPoint(points[1]),
 		hall = { x = last.X, y = last.Y, z = last.Z, radius = H },

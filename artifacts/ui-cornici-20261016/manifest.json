@@ -1,0 +1,1131 @@
+{
+  "version": 1,
+  "status": "da_approvare",
+  "resolution_scale": 2,
+  "lighting": "alto_sinistra; controluce fredda basso_destra",
+  "slice_units": "pixel dei PNG 2x; SliceCenter=(l,t,width-r,height-b), SliceScale=0.5 alle misure d uso",
+  "assets": {
+    "frame_portrait_player": {
+      "size": [
+        256,
+        256
+      ],
+      "usage_size": [
+        128,
+        128
+      ],
+      "slice": null,
+      "states": {
+        "normal": {
+          "file": "png/frame_portrait_player.png",
+          "source": "originali/frame_portrait_player.png",
+          "source_crop": [
+            44,
+            3,
+            1210,
+            1199
+          ],
+          "free_rect": [
+            30,
+            36,
+            192,
+            192
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "portrait",
+      "free_circle": {
+        "center": [
+          126,
+          132
+        ],
+        "diameter": 192
+      },
+      "file": "png/frame_portrait_player.png",
+      "free_rect": [
+        30,
+        36,
+        192,
+        192
+      ],
+      "resize_rule": "Solo scala uniforme; non usare 9-slice."
+    },
+    "frame_portrait_dragon": {
+      "size": [
+        224,
+        224
+      ],
+      "usage_size": [
+        112,
+        112
+      ],
+      "slice": null,
+      "states": {
+        "normal": {
+          "file": "png/frame_portrait_dragon.png",
+          "source": "originali/frame_portrait_dragon.png",
+          "source_crop": [
+            15,
+            9,
+            1239,
+            1226
+          ],
+          "free_rect": [
+            25,
+            26,
+            168,
+            168
+          ]
+        }
+      },
+      "tint_layers": [
+        "frame_portrait_dragon_gem",
+        "frame_portrait_dragon_rarity"
+      ],
+      "kind": "portrait",
+      "free_circle": {
+        "center": [
+          109,
+          110
+        ],
+        "diameter": 168
+      },
+      "file": "png/frame_portrait_dragon.png",
+      "free_rect": [
+        25,
+        26,
+        168,
+        168
+      ],
+      "resize_rule": "Solo scala uniforme; non usare 9-slice."
+    },
+    "frame_level_badge": {
+      "size": [
+        80,
+        80
+      ],
+      "usage_size": [
+        40,
+        40
+      ],
+      "slice": null,
+      "states": {
+        "normal": {
+          "file": "png/frame_level_badge.png",
+          "source": "originali/frame_level_badge.png",
+          "source_crop": [
+            14,
+            14,
+            1241,
+            1236
+          ],
+          "free_rect": [
+            20,
+            19,
+            38,
+            38
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "portrait",
+      "free_circle": {
+        "center": [
+          39,
+          38
+        ],
+        "diameter": 39
+      },
+      "file": "png/frame_level_badge.png",
+      "free_rect": [
+        20,
+        19,
+        38,
+        38
+      ],
+      "resize_rule": "Solo scala uniforme; non usare 9-slice."
+    },
+    "frame_bar_health": {
+      "size": [
+        640,
+        72
+      ],
+      "usage_size": [
+        320,
+        36
+      ],
+      "slice": [
+        49,
+        17,
+        49,
+        16
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_bar_health.png",
+          "source": "originali/frame_bar_health.png",
+          "source_crop": [
+            9,
+            209,
+            1975,
+            575
+          ],
+          "free_rect": [
+            51,
+            17,
+            538,
+            39
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "bar",
+      "file": "png/frame_bar_health.png",
+      "free_rect": [
+        51,
+        17,
+        538,
+        39
+      ]
+    },
+    "frame_bar_stamina": {
+      "size": [
+        600,
+        56
+      ],
+      "usage_size": [
+        300,
+        28
+      ],
+      "slice": [
+        47,
+        14,
+        47,
+        14
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_bar_stamina.png",
+          "source": "originali/frame_bar_stamina.png",
+          "source_crop": [
+            3,
+            189,
+            2164,
+            518
+          ],
+          "free_rect": [
+            49,
+            14,
+            502,
+            28
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "bar",
+      "file": "png/frame_bar_stamina.png",
+      "free_rect": [
+        49,
+        14,
+        502,
+        28
+      ]
+    },
+    "frame_bar_shield": {
+      "size": [
+        560,
+        56
+      ],
+      "usage_size": [
+        280,
+        28
+      ],
+      "slice": [
+        37,
+        14,
+        37,
+        14
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_bar_shield.png",
+          "source": "originali/frame_bar_shield.png",
+          "source_crop": [
+            6,
+            192,
+            1978,
+            570
+          ],
+          "free_rect": [
+            39,
+            14,
+            482,
+            28
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "bar",
+      "file": "png/frame_bar_shield.png",
+      "free_rect": [
+        39,
+        14,
+        482,
+        28
+      ]
+    },
+    "frame_bar_xp": {
+      "size": [
+        560,
+        48
+      ],
+      "usage_size": [
+        280,
+        24
+      ],
+      "slice": [
+        34,
+        11,
+        34,
+        11
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_bar_xp.png",
+          "source": "originali/frame_bar_xp.png",
+          "source_crop": [
+            34,
+            177,
+            2107,
+            545
+          ],
+          "free_rect": [
+            36,
+            11,
+            488,
+            26
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "bar",
+      "file": "png/frame_bar_xp.png",
+      "free_rect": [
+        36,
+        11,
+        488,
+        26
+      ]
+    },
+    "frame_bar_fill": {
+      "size": [
+        128,
+        32
+      ],
+      "usage_size": [
+        64,
+        16
+      ],
+      "slice": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_bar_fill.png",
+          "source": "originali/frame_bar_fill.png",
+          "source_crop": [
+            42,
+            322,
+            1941,
+            471
+          ],
+          "free_rect": [
+            8,
+            8,
+            112,
+            16
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "fill",
+      "file": "png/frame_bar_fill.png",
+      "free_rect": [
+        8,
+        8,
+        112,
+        16
+      ],
+      "tintable": true
+    },
+    "frame_currency_medallion": {
+      "size": [
+        112,
+        112
+      ],
+      "usage_size": [
+        56,
+        56
+      ],
+      "slice": null,
+      "states": {
+        "normal": {
+          "file": "png/frame_currency_medallion.png",
+          "source": "originali/frame_currency_medallion.png",
+          "source_crop": [
+            54,
+            50,
+            1200,
+            1174
+          ],
+          "free_rect": [
+            16,
+            15,
+            80,
+            80
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "portrait",
+      "free_circle": {
+        "center": [
+          56,
+          55
+        ],
+        "diameter": 80
+      },
+      "file": "png/frame_currency_medallion.png",
+      "free_rect": [
+        16,
+        15,
+        80,
+        80
+      ],
+      "resize_rule": "Solo scala uniforme; non usare 9-slice."
+    },
+    "frame_currency_counter": {
+      "size": [
+        360,
+        80
+      ],
+      "usage_size": [
+        180,
+        40
+      ],
+      "slice": [
+        38,
+        18,
+        38,
+        18
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_currency_counter.png",
+          "source": "originali/frame_currency_counter.png",
+          "source_crop": [
+            16,
+            124,
+            1967,
+            652
+          ],
+          "free_rect": [
+            40,
+            18,
+            280,
+            44
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "bar",
+      "file": "png/frame_currency_counter.png",
+      "free_rect": [
+        40,
+        18,
+        280,
+        44
+      ]
+    },
+    "frame_panel": {
+      "size": [
+        800,
+        600
+      ],
+      "usage_size": [
+        400,
+        300
+      ],
+      "slice": [
+        112,
+        112,
+        112,
+        112
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_panel.png",
+          "source": "originali/frame_panel.png",
+          "source_crop": [
+            9,
+            5,
+            1439,
+            1072
+          ],
+          "free_rect": [
+            87,
+            107,
+            626,
+            388
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "panel",
+      "inner_background": {
+        "rgba": [
+          18,
+          19,
+          21,
+          235
+        ]
+      },
+      "file": "png/frame_panel.png",
+      "free_rect": [
+        87,
+        107,
+        626,
+        388
+      ]
+    },
+    "frame_panel_header": {
+      "size": [
+        800,
+        96
+      ],
+      "usage_size": [
+        400,
+        48
+      ],
+      "slice": [
+        91,
+        32,
+        91,
+        32
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_panel_header.png",
+          "source": "originali/frame_panel_header.png",
+          "source_crop": [
+            14,
+            98,
+            2127,
+            588
+          ],
+          "free_rect": [
+            91,
+            32,
+            618,
+            32
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "button",
+      "file": "png/frame_panel_header.png",
+      "free_rect": [
+        91,
+        32,
+        618,
+        32
+      ]
+    },
+    "frame_record_tile": {
+      "size": [
+        520,
+        168
+      ],
+      "usage_size": [
+        260,
+        84
+      ],
+      "slice": [
+        172,
+        20,
+        20,
+        20
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_record_tile.png",
+          "source": "originali/frame_record_tile.png",
+          "source_crop": [
+            19,
+            98,
+            2186,
+            575
+          ],
+          "free_rect": [
+            175,
+            22,
+            323,
+            123
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "panel",
+      "file": "png/frame_record_tile.png",
+      "free_rect": [
+        175,
+        22,
+        323,
+        123
+      ],
+      "icon_rect": [
+        20,
+        20,
+        128,
+        128
+      ],
+      "text_rect": [
+        180,
+        24,
+        316,
+        120
+      ]
+    },
+    "frame_slot": {
+      "size": [
+        152,
+        152
+      ],
+      "usage_size": [
+        76,
+        76
+      ],
+      "slice": [
+        34,
+        34,
+        34,
+        34
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_slot_normal.png",
+          "source": "originali/frame_slot_normal.png",
+          "source_crop": [
+            0,
+            0,
+            1254,
+            1237
+          ],
+          "free_rect": [
+            37,
+            36,
+            78,
+            80
+          ]
+        },
+        "hover": {
+          "file": "png/frame_slot_hover.png",
+          "source": "originali/frame_slot_hover.png",
+          "source_crop": [
+            0,
+            0,
+            1254,
+            1239
+          ],
+          "free_rect": [
+            37,
+            37,
+            78,
+            79
+          ]
+        },
+        "selected": {
+          "file": "png/frame_slot_selected.png",
+          "source": "originali/frame_slot_selected.png",
+          "source_crop": [
+            0,
+            0,
+            1254,
+            1238
+          ],
+          "free_rect": [
+            38,
+            37,
+            77,
+            79
+          ]
+        },
+        "valid": {
+          "file": "png/frame_slot_valid.png",
+          "source": "originali/frame_slot_valid.png",
+          "source_crop": [
+            0,
+            0,
+            1254,
+            1238
+          ],
+          "free_rect": [
+            37,
+            36,
+            78,
+            80
+          ]
+        },
+        "disabled": {
+          "file": "png/frame_slot_disabled.png",
+          "source": "originali/frame_slot_disabled.png",
+          "source_crop": [
+            0,
+            0,
+            1254,
+            1238
+          ],
+          "free_rect": [
+            36,
+            36,
+            80,
+            81
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "panel",
+      "file": "png/frame_slot_normal.png",
+      "free_rect": [
+        37,
+        36,
+        78,
+        80
+      ]
+    },
+    "frame_button_primary": {
+      "size": [
+        480,
+        112
+      ],
+      "usage_size": [
+        240,
+        56
+      ],
+      "slice": [
+        104,
+        38,
+        104,
+        38
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_button_primary_normal.png",
+          "source": "originali/frame_button_primary_normal.png",
+          "source_crop": [
+            31,
+            124,
+            2032,
+            596
+          ],
+          "free_rect": [
+            104,
+            38,
+            272,
+            36
+          ]
+        },
+        "hover": {
+          "file": "png/frame_button_primary_hover.png",
+          "source": "originali/frame_button_primary_hover.png",
+          "source_crop": [
+            30,
+            120,
+            2028,
+            598
+          ],
+          "free_rect": [
+            103,
+            38,
+            274,
+            36
+          ]
+        },
+        "pressed": {
+          "file": "png/frame_button_primary_pressed.png",
+          "source": "originali/frame_button_primary_pressed.png",
+          "source_crop": [
+            30,
+            122,
+            2031,
+            594
+          ],
+          "free_rect": [
+            104,
+            38,
+            272,
+            36
+          ]
+        },
+        "disabled": {
+          "file": "png/frame_button_primary_disabled.png",
+          "source": "originali/frame_button_primary_disabled.png",
+          "source_crop": [
+            27,
+            121,
+            2033,
+            596
+          ],
+          "free_rect": [
+            104,
+            38,
+            272,
+            36
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "button",
+      "file": "png/frame_button_primary_normal.png",
+      "free_rect": [
+        104,
+        38,
+        272,
+        36
+      ]
+    },
+    "frame_button_secondary": {
+      "size": [
+        400,
+        96
+      ],
+      "usage_size": [
+        200,
+        48
+      ],
+      "slice": [
+        88,
+        32,
+        88,
+        32
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_button_secondary_normal.png",
+          "source": "originali/frame_button_secondary_normal.png",
+          "source_crop": [
+            30,
+            207,
+            1954,
+            577
+          ],
+          "free_rect": [
+            88,
+            32,
+            224,
+            32
+          ]
+        },
+        "hover": {
+          "file": "png/frame_button_secondary_hover.png",
+          "source": "originali/frame_button_secondary_hover.png",
+          "source_crop": [
+            28,
+            204,
+            1956,
+            578
+          ],
+          "free_rect": [
+            88,
+            32,
+            224,
+            32
+          ]
+        },
+        "pressed": {
+          "file": "png/frame_button_secondary_pressed.png",
+          "source": "originali/frame_button_secondary_pressed.png",
+          "source_crop": [
+            28,
+            205,
+            1956,
+            578
+          ],
+          "free_rect": [
+            88,
+            32,
+            224,
+            32
+          ]
+        },
+        "disabled": {
+          "file": "png/frame_button_secondary_disabled.png",
+          "source": "originali/frame_button_secondary_disabled.png",
+          "source_crop": [
+            28,
+            204,
+            1956,
+            578
+          ],
+          "free_rect": [
+            88,
+            32,
+            224,
+            32
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "button",
+      "file": "png/frame_button_secondary_normal.png",
+      "free_rect": [
+        88,
+        32,
+        224,
+        32
+      ]
+    },
+    "frame_tab": {
+      "size": [
+        552,
+        128
+      ],
+      "usage_size": [
+        276,
+        64
+      ],
+      "slice": [
+        109,
+        38,
+        109,
+        38
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_tab_normal.png",
+          "source": "originali/frame_tab_normal.png",
+          "source_crop": [
+            22,
+            163,
+            1923,
+            655
+          ],
+          "free_rect": [
+            109,
+            38,
+            334,
+            52
+          ]
+        },
+        "hover": {
+          "file": "png/frame_tab_hover.png",
+          "source": "originali/frame_tab_hover.png",
+          "source_crop": [
+            21,
+            161,
+            1922,
+            657
+          ],
+          "free_rect": [
+            108,
+            38,
+            336,
+            52
+          ]
+        },
+        "selected": {
+          "file": "png/frame_tab_selected.png",
+          "source": "originali/frame_tab_selected.png",
+          "source_crop": [
+            23,
+            161,
+            1922,
+            657
+          ],
+          "free_rect": [
+            108,
+            38,
+            336,
+            52
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "tab",
+      "file": "png/frame_tab_normal.png",
+      "free_rect": [
+        109,
+        38,
+        334,
+        52
+      ],
+      "resize_rule": "Solo larghezza; altezza invariata. Il terminale obliquo resta nel margine destro fisso."
+    },
+    "frame_separator": {
+      "size": [
+        800,
+        24
+      ],
+      "usage_size": [
+        400,
+        12
+      ],
+      "slice": null,
+      "states": {
+        "normal": {
+          "file": "png/frame_separator.png",
+          "source": "originali/frame_separator.png",
+          "source_crop": [
+            47,
+            222,
+            2126,
+            479
+          ],
+          "free_rect": null
+        }
+      },
+      "tint_layers": [],
+      "kind": "separator",
+      "file": "png/frame_separator.png",
+      "free_rect": null,
+      "layers": [
+        {
+          "file": "png/frame_separator_left.png",
+          "anchor": "left",
+          "width": "(larghezza_totale-40)/2",
+          "stretch": "horizontal"
+        },
+        {
+          "file": "png/frame_separator_gem.png",
+          "size": [
+            40,
+            24
+          ],
+          "anchor": "center",
+          "stretch": false
+        },
+        {
+          "file": "png/frame_separator_right.png",
+          "anchor": "right",
+          "width": "(larghezza_totale-40)/2",
+          "stretch": "horizontal"
+        }
+      ],
+      "resize_rule": "Montare tre livelli: lame laterali estensibili e gemma centrale fissa. PNG completo solo a dimensione nativa."
+    },
+    "death_ornament": {
+      "size": [
+        192,
+        480
+      ],
+      "usage_size": [
+        96,
+        240
+      ],
+      "slice": null,
+      "states": {
+        "normal": {
+          "file": "png/death_ornament.png",
+          "source": "originali/death_ornament.png",
+          "source_crop": [
+            228,
+            14,
+            624,
+            1961
+          ],
+          "free_rect": null
+        }
+      },
+      "tint_layers": [],
+      "kind": "ornament",
+      "file": "png/death_ornament.png",
+      "free_rect": null,
+      "resize_rule": "Solo scala uniforme; non usare 9-slice."
+    },
+    "frame_toast": {
+      "size": [
+        840,
+        88
+      ],
+      "usage_size": [
+        420,
+        44
+      ],
+      "slice": [
+        84,
+        15,
+        84,
+        15
+      ],
+      "states": {
+        "normal": {
+          "file": "png/frame_toast.png",
+          "source": "originali/frame_toast.png",
+          "source_crop": [
+            15,
+            199,
+            2102,
+            477
+          ],
+          "free_rect": [
+            86,
+            15,
+            668,
+            58
+          ]
+        }
+      },
+      "tint_layers": [],
+      "kind": "bar",
+      "file": "png/frame_toast.png",
+      "free_rect": [
+        86,
+        15,
+        668,
+        58
+      ]
+    }
+  },
+  "tint_layers": {
+    "frame_portrait_dragon_gem": {
+      "file": "png/frame_portrait_dragon_gem.png",
+      "size": [
+        224,
+        224
+      ],
+      "tintable": true,
+      "parent": "frame_portrait_dragon",
+      "gem_centers": [
+        [
+          46,
+          174
+        ],
+        [
+          112,
+          202
+        ],
+        [
+          178,
+          174
+        ]
+      ]
+    },
+    "frame_portrait_dragon_rarity": {
+      "file": "png/frame_portrait_dragon_rarity.png",
+      "size": [
+        224,
+        224
+      ],
+      "tintable": true,
+      "parent": "frame_portrait_dragon"
+    }
+  },
+  "preview_files": [
+    "anteprima_telefono_891x353.png",
+    "anteprima_computer_1920x1080.png"
+  ]
+}

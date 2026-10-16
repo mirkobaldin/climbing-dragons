@@ -30,6 +30,7 @@ local Gear = require(Shared:WaitForChild("Gear"))
 local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
 local ClimbPoses = require(Shared:WaitForChild("ClimbPoses"))
 local UpgradeConfig = require(Shared:WaitForChild("UpgradeConfig"))
+local UiView = require(Shared:WaitForChild("UiView")) -- testi dei comandi per PC, telefono o gamepad
 local ClimbAnimator = require(script.Parent.ClimbAnimator)
 local ClimbIK = require(script.Parent.ClimbIK)
 local ClimbFeel = require(script.Parent.ClimbFeel)
@@ -804,7 +805,7 @@ local function ropeStep(dt: number)
 		end
 		hanging = not attached and not grounded and dist >= rope.Length - 0.6
 		if rope.Length >= ClimbConfig.ROPE_MAX and dist >= ClimbConfig.ROPE_MAX - 1 then
-			ClientState.hint = "Out of rope: place a new piton (F)"
+			ClientState.hint = "Out of rope: place a new piton. " .. UiView.prompt("PITON")
 		end
 	end
 	if not attached then
@@ -911,10 +912,14 @@ local function aimStep()
 	disc.CFrame = CFrame.lookAt(h.Position + h.Normal * 0.12, h.Position + h.Normal) * CFrame.Angles(0, math.pi / 2, 0)
 	dot.CFrame = CFrame.new(h.Position + h.Normal * 0.3)
 	aimPos, aimNormal = (if ok then h.Position else nil), (if ok then h.Normal else nil)
+	-- (prima "Release the key...", anche sul telefono, e "Troppo lontano" in italiano)
+	local mode = UiView.inputMode()
 	ClientState.hint = if far
-		then "Troppo lontano: avvicinati"
+		then "Too far: get closer to the rock"
 		elseif flat then "Pitons go into walls, not flat ground"
-		else "Release the key to place the piton here"
+		elseif mode == "touch" then "Release PITON to place it here"
+		elseif mode == "pad" then "Release [X] to place it here"
+		else "Release [F] to place it here"
 end
 
 function Climbing.aimBegin()
@@ -1008,7 +1013,9 @@ local function onCharacter(newCharacter: Model)
 				end)
 			end
 			playHold()
-			ClientState.hint = "Click near a wall to grab on  |  F: piton (hold to aim)"
+			ClientState.hint = if UiView.inputMode() == "touch" then "Tap CLIMB near a wall to grab on"
+				elseif UiView.inputMode() == "pad" then "Press [R2] near a wall to grab on"
+				else "Click near a wall to grab on  |  Hold [F] to aim a piton"
 		end
 	end)
 end

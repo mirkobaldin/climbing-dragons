@@ -165,3 +165,47 @@ Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, anim
   `setupForm`, attributo DragonForm): sei il drago adulto, cammini, Spazio vola, click colpisce, H esci.
 - Elementi tolti Sole/Ombra/Brace: `DragonConfig.RETIRED` li converte quando nasce un uovo.
   Uova nuove e sfondi scuri: `docs/CODEX_UOVA_E_SFONDI.md` (Codex).
+
+## Aggiunte del 2026-10-16
+- **Stile unico dell'interfaccia: `client/UiKit`** (riferimento di Mirko: la PRESENTAZIONE del menu di
+  Black Ops III, non il tema). Caratteri: Oswald (titoli, nomi, numeri, pulsanti) e Titillium Web
+  (descrizioni), gerarchia `UiKit.TYPE` (title, section, name, stat, body, secondary, button, status);
+  angoli vivi (`UiKit.adopt` porta gli UICorner a 2 px tranne i cerchi), bordi da 1 px
+  (`UiKit.edge`), pannelli con tacche (`UiKit.panel`), stati fisici (`UiKit.card/physical/select`:
+  hover = bordo che si accende, scelto = accento + piu' vicino, premuto = rientra), pulsanti
+  `UiKit.button(b, "primary"|"secondary"|"danger"|"disabled")`, filtri `UiKit.tab`. Niente nuovi
+  riquadri tondi colorati, niente anelli che girano attorno alle carte.
+- Menu unico: apri-menu del gioco `ApriMenu` accanto alla barra 1-5 (telefono: sopra l'ultima
+  casella). Le pagine stanno in `Window.Scorrimento.Content`: se una pagina stretta chiede piu' spazio
+  mette l'attributo `AltezzaMinima` e chiama `ctx.fit()` (sul telefono la pagina scorre invece di
+  schiacciarsi). Attributo `ApriPagina` sulla ScreenGui MainMenu = apri una pagina (anche per le prove).
+- Obiettivi di tutorial e missioni: testo `"OBIETTIVO CORTO|aiuto"` (es. `"PLACE A PITON|{PITON}"`);
+  l'HUD mostra la missione sotto il drago, accende il comando dopo 8 s (`ClientState.tutorialFocus`,
+  disegnato da `client/TutorialHints`) e l'aiuto dopo 18 s. Testi dei comandi per PC/telefono/gamepad:
+  `UiView.prompt(key)` / `UiView.inputMode()`.
+- `client/DragonReveal`: schermata di schiusa/evoluzione/shiny dalle differenze di DragonData (solo grafica).
+
+## Aggiunte del 2026-10-16 (sera)
+- Menu sul telefono: lista e scheda affiancate (58/42), piede fisso coi pulsanti, nessuno
+  scorrimento doppio (la pagina non ha piu' altezza minima: scorrono solo le liste). Schede a
+  parallelogramma anche sul telefono, con prospettiva. Tasto MENU nell'angolo a sinistra,
+  spostabile sul telefono col ⚙ dei comandi (ControlsLayout, voce MenuFrac).
+- Barra 1-5 scelta dal giocatore: `shared/Hotbar` (attributo HotbarOrder, Remotes.SaveHotbar,
+  salvata in Progression); si assegna nello zaino (personaggio 3D: `client/AvatarView`).
+- `client/EggHatch` (schiusa 3D nel cielo, telecamera con BindToRenderStep, attributo
+  SchiusaInCorso nasconde HUD e comandi), `client/EventBanner` (eventi sotto il Prize Pool),
+  `client/ControlsPanel` (tasto "?" e F1), `client/DeathScreen` rifatta (cause da server/Survival).
+- Grotte: `Caves.seal` chiude le grotte verso la montagna vuota; la grotta di ghiaccio gia'
+  generata si ripara con `tools/mappa/ripara_grotta_ghiaccio.luau` (Edit, poi salvare).
+- Cornici della UI e uova nuove: compiti di Codex in `docs/CODEX_UOVA_E_CORNICI.md`.
+- Cornici di Codex APPROVATE e montate (16/10 sera): PNG 2x in `artifacts/ui-cornici-20261016`,
+  ID, margini (`UiAssets.slices`) e misure (`UiAssets.frames`: spazio libero, foro dei ritratti)
+  in `shared/UiAssets`. Le mette `client/Cornici` (`apply(o, id, {mode = "fill"|"outset"|"circle",
+  border, fill, name})`, `caption` per il testo dei pulsanti sopra l'immagine, `press`): se uno
+  script cancella i figli la cornice torna da sola. Usate da UiKit (pulsanti, schede, pannelli,
+  `UiKit.slot`), finestra del menu, HUD (ritratti, barre, meteo, barra 1-5, avvisi), contatori
+  in alto, record del profilo, schermata di morte. Non chiamare "Cornice"/"Scritta"/"Fondo"
+  altri figli dei pulsanti.
+- Draghi che seguono: altezza del terreno, spostamento anti-camera e direzione filtrati, virata
+  massima 260 gradi/s (client/PetAnimator): prima tremavano e sbandavano.
+- Palafitte nel lago del teschio senza baite (`Config.PALAFITTE`, mapgen/Lakeside).

@@ -3,7 +3,6 @@
 local CAS = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
-local UIS = game:GetService("UserInputService")
 local Shared = RS:WaitForChild("Shared")
 local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
 local EconomyConfig = require(Shared:WaitForChild("EconomyConfig"))
@@ -16,6 +15,10 @@ local CraftingUI = require(script.Parent.CraftingUI)
 local DragonUI = require(script.Parent.DragonUI)
 local UpgradeUI = require(script.Parent.UpgradeUI)
 local UiGlow = require(script.Parent.UiGlow)
+local Slant = require(script.Parent.Slant)
+local UiKit = require(script.Parent.UiKit)
+local TravelUI = require(script.Parent.TravelUI)
+local ProfileUI = require(script.Parent.ProfileUI)
 local player = Players.LocalPlayer
 local remotes = RS:WaitForChild("Remotes")
 local MainMenu = {}
@@ -106,20 +109,34 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 		c.LayoutOrder = order
 		c.SellActions.Visible, c.Buy.Visible = false, false
 		c.Coin.Visible = false
-		-- carta scura come nei mockup (prima colorata a turno: troppi colori insieme)
-		Ui.tint(c, Theme.DARK2, false, 0)
-		local fill = c:FindFirstChild("Tinta") :: Frame?
+		-- carta in rilievo ad angoli vivi (stile unico del menu, client/UiKit)
+		local fill = c:FindFirstChild("Tinta")
 		if fill then
-			fill.BackgroundTransparency = 0.1
+			fill:Destroy()
 		end
+		local surface = c:FindFirstChild("AssetSurface")
+		if surface and surface:IsA("GuiObject") then
+			surface.Visible = false
+		end
+		c.BackgroundColor3 = UiKit.RAISED
+		c.BackgroundTransparency = 0.18
+		UiKit.edge(c)
 		local _ = CARD_TONES
-		Ui.tint(c.Buy, Theme.GOOD, false)
+		UiKit.text(c.Title, "name", 19)
+		c.Title.TextXAlignment = Enum.TextXAlignment.Center
+		UiKit.text(c.Description, "secondary")
+		c.Description.TextXAlignment = Enum.TextXAlignment.Center
+		UiKit.text(c.Cost, "stat", 19)
+		c.Cost.TextColor3 = UiKit.ACCENT
+		UiKit.button(c.Buy, "primary")
+		UiKit.button(c.SellActions.One, "secondary")
+		UiKit.button(c.SellActions.All, "secondary")
 		return c
 	end
 	render = function()
 		Ui.clear(list)
 		for _, name in { "Buy", "Sell", "Robux" } do
-			Ui.selected(Ui.node(container, "Tabs/" .. name), name == sub, Theme.ACCENT, Theme.CARD)
+			UiKit.tab(Ui.node(container, "Tabs/" .. name), name == sub)
 		end
 		if sub == "Buy" then
 			for k, item in ShopConfig.ITEMS do
@@ -184,7 +201,8 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 				local owned = player:GetAttribute("Pass_" .. e[1]) == true
 				local available = (DragonConfig.GAMEPASSES[e[1]] or ShopConfig.DEV_PRODUCTS[e[1]] or 0) > 0
 				c.Buy.Visible = true
-				c.Buy.Text = if owned then "Owned" elseif available then "Buy (Robux)" else "Coming soon"
+				UiKit.button(c.Buy, if owned or not available then "disabled" else "primary")
+				c.Buy.Text = if owned then "OWNED" elseif available then "BUY (ROBUX)" else "COMING SOON"
 				c.Buy.Activated:Connect(function()
 					if not owned and available then
 						call("robux", e[1])
@@ -203,13 +221,19 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 end
 -- Zaino: caselle in griglia come un vero inventario (Mirko 15/10: "solo immagini fisse, non puoi
 -- spostare item, rimuoverli ne' niente"). Trascini una casella su un'altra per spostarla (sul
--- telefono tieni premuto un attimo), clic per sceglierla: sotto compare la scheda con nome,
--- descrizione e i pulsanti Drop 1 / Drop all. L'ordine si salva (attributo BagOrder, Progression).
--- Il riquadro di testo in cima (monete, casa, pitons...) e' sparito: era tutto nell'HUD.
-local function mountInventory(container: Frame, status: (string, boolean) -> ()): () -> ()
+-- telefono tieni premuto un attimo), clic per sceglierla. L'ordine si salva (BagOrder).
+-- Mirko 16/10: a destra il personaggio 3D, la scheda dell'oggetto scelto e la BARRA 1-5 (la stessa
+-- del gioco, shared/Hotbar): si sceglie un attrezzo e si tocca una casella (o lo si trascina
+-- sulla casella col mouse) per metterlo li'; una casella piena si sposta su un'altra o si toglie
+-- con "Remove". Nella barra vanno solo gli attrezzi che si tengono in mano.
+local INV_FILTERS = { "All", "Ores", "Materials", "Tools", "Eggs" }
+local TOOL_ICONS = { "item_Piccozza", "item_Piccone", "item_Rampino", "item_Torcia" }
+local function mountInventory(container: Frame, status: (string, boolean) -> (), ctx: any?): () -> ()
 	local UIS = game:GetService("UserInputService")
 	local HttpService = game:GetService("HttpService")
 	local GuiService = game:GetService("GuiService")
+	local Hotbar = require(Shared:WaitForChild("Hotbar"))
+	local AvatarView = require(script.Parent.AvatarView)
 	local list = Ui.node(container, "List") :: ScrollingFrame
 	rows(list)
 	local old = list:FindFirstChildOfClass("UIListLayout")
@@ -221,42 +245,96 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 	grid.CellPadding = UDim2.fromOffset(10, 10)
 	grid.SortOrder = Enum.SortOrder.LayoutOrder
 	grid.Parent = list
-	list.Position = UDim2.fromOffset(0, 0)
-	list.Size = UDim2.new(1, 0, 1, -122)
-	-- scheda dell'oggetto scelto, in fondo
-	local info = Theme.frame(container, Theme.DARK2, 0.2)
-	info.Name = "SchedaOggetto"
-	info.AnchorPoint = Vector2.new(0, 1)
-	info.Position = UDim2.fromScale(0, 1)
-	info.Size = UDim2.new(1, 0, 0, 110)
-	Theme.corner(info, 12)
-	local infoIcon = Instance.new("ImageLabel")
-	infoIcon.BackgroundTransparency = 1
-	infoIcon.Position = UDim2.fromOffset(14, 13)
-	infoIcon.Size = UDim2.fromOffset(84, 84)
-	infoIcon.Parent = info
-	local infoTitle = Theme.label(info, "", 22, Theme.TEXT, true)
-	infoTitle.Position = UDim2.fromOffset(112, 14)
-	infoTitle.Size = UDim2.new(1, -112 - 300, 0, 30)
-	local infoText = Theme.label(info, "", 16, Theme.MUTED, false)
-	infoText.Position = UDim2.fromOffset(112, 46)
-	infoText.Size = UDim2.new(1, -112 - 300, 0, 50)
-	infoText.TextYAlignment = Enum.TextYAlignment.Top
-	Theme.fitText(infoText, 16, true)
-	local dropOne = Theme.button(info, "Drop 1", Theme.BAD, UDim2.fromOffset(130, 52))
-	dropOne.AnchorPoint = Vector2.new(1, 0.5)
-	dropOne.Position = UDim2.new(1, -152, 0.5, 0)
-	local dropAll = Theme.button(info, "Drop all", Theme.BAD, UDim2.fromOffset(130, 52))
-	dropAll.AnchorPoint = Vector2.new(1, 0.5)
-	dropAll.Position = UDim2.new(1, -12, 0.5, 0)
-	for _, b in { dropOne, dropAll } do
-		Theme.action(b, "sell") -- cornice tonda dei pulsanti (Mirko: "le vecchie cornici tonde")
+	-- filtri in alto (Mirko 15/10: "nel backpack dei filtri tipo materiali, tool, egg")
+	local filter = "All"
+	local filterBar = Theme.frame(container, Color3.new(), 1)
+	filterBar.Name = "Filtri"
+	filterBar.ClipsDescendants = false
+	local chips: { [string]: TextButton } = {}
+	for _, f in INV_FILTERS do
+		local b = Instance.new("TextButton")
+		b.Name = f
+		b.Text = f
+		b.Parent = filterBar
+		chips[f] = b
 	end
 
-	type Item = { key: string, title: string, count: number, asset: string, model: Instance?, id: string?, text: string, drop: string? }
+	-- PANNELLO DI DESTRA: personaggio, scheda dell'oggetto, barra 1-5 in fondo
+	local side = Theme.frame(container, Theme.DARK2, 1)
+	side.Name = "SchedaZaino"
+	UiKit.panel(side, { transparency = 0.2 })
+	local avatarBox = Theme.frame(side, UiKit.INK, 0.5)
+	avatarBox.Name = "Personaggio"
+	avatarBox.ZIndex = 3
+	avatarBox.ClipsDescendants = true
+	local avatar = AvatarView.new(avatarBox, function()
+		return container.Visible
+	end)
+	local info = Theme.frame(side, Color3.new(), 1)
+	info.Name = "Oggetto"
+	info.ZIndex = 3
+	local infoIcon = Instance.new("ImageLabel")
+	infoIcon.BackgroundTransparency = 1
+	infoIcon.ZIndex = 4
+	infoIcon.Parent = info
+	local infoTitle = UiKit.label(info, "", "name", 20)
+	infoTitle.ZIndex = 4
+	local infoKind = UiKit.label(info, "", "status")
+	infoKind.ZIndex = 4
+	local infoScroll = Theme.scroll(info)
+	infoScroll.ZIndex = 4
+	infoScroll.ScrollBarThickness = 3
+	local infoText = UiKit.label(infoScroll, "", "body", 14)
+	infoText.TextWrapped = true
+	infoText.TextTruncate = Enum.TextTruncate.None
+	infoText.TextYAlignment = Enum.TextYAlignment.Top
+	infoText.RichText = true
+	infoText.AutomaticSize = Enum.AutomaticSize.Y
+	infoText.Size = UDim2.new(1, -6, 0, 20)
+	infoText.ZIndex = 4
+	local actions = Theme.frame(info, Color3.new(), 1)
+	actions.Name = "Azioni"
+	actions.ZIndex = 4
+	local dropOne = Instance.new("TextButton")
+	dropOne.Name = "Butta1"
+	dropOne.ZIndex = 5
+	dropOne.Parent = actions
+	local dropAll = Instance.new("TextButton")
+	dropAll.Name = "ButtaTutto"
+	dropAll.ZIndex = 5
+	dropAll.Parent = actions
+	local removeBtn = Instance.new("TextButton")
+	removeBtn.Name = "Togli"
+	removeBtn.ZIndex = 5
+	removeBtn.Parent = actions
+	-- barra 1-5 dello zaino (stesse caselle della barra del gioco)
+	local barBox = Theme.frame(side, UiKit.INK, 0.3)
+	barBox.Name = "BarraAttrezzi"
+	barBox.ZIndex = 3
+	UiKit.edge(barBox, UiKit.LINE, 1, 0.8)
+	local barTitle = UiKit.label(barBox, "HOTBAR", "status")
+	barTitle.ZIndex = 4
+	local barHint = UiKit.label(barBox, "", "secondary", 13)
+	barHint.ZIndex = 4
+	barHint.TextXAlignment = Enum.TextXAlignment.Right
+	local barSlots: { TextButton } = {}
+	for i = 1, Hotbar.SLOTS do
+		local b = Instance.new("TextButton")
+		b.Name = "Barra" .. i
+		b.Text = ""
+		b.AutoButtonColor = false
+		b:SetAttribute("UiNative", true)
+		b.ZIndex = 4
+		b.Parent = barBox
+		barSlots[i] = b
+	end
+
+	type Item = { key: string, title: string, count: number, asset: string, model: Instance?, id: string?, text: string, drop: string?, kind: string, tool: string? }
 	local selectedKey: string? = nil
+	local pickedSlot: number? = nil -- casella della barra scelta (per spostarla o toglierla)
 	local confirmAll = false
 	local items: { Item } = {}
+	local allItems: { Item } = {}
 	local render: () -> ()
 
 	local function savedOrder(): { string }
@@ -269,13 +347,31 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 		end
 		return {}
 	end
+	local function toolIcon(img: ImageLabel, name: string, tool: Tool?)
+		local k = table.find(Hotbar.DEFAULT, name)
+		if k then
+			Theme.assetPreview(img, TOOL_ICONS[k], nil)
+			img.ImageColor3 = Color3.new(1, 1, 1)
+		else
+			img.Image = if tool then tool.TextureId else ""
+		end
+	end
 	local function collect(): { Item }
 		local out: { Item } = {}
+		-- attrezzi da tenere in mano (i Tool veri): sono quelli che vanno nella barra 1-5
+		local ownedTools: { [string]: boolean } = {}
+		for _, t in Hotbar.owned(player) do
+			if not ownedTools[t.Name] then
+				ownedTools[t.Name] = true
+				table.insert(out, { key = "tool:" .. t.Name, title = t.Name, count = 1, asset = "", tool = t.Name, kind = "Tools",
+					text = (if t.ToolTip ~= "" then t.ToolTip .. "\n" else "") .. "A tool you hold: put it in a hotbar slot to use it." })
+			end
+		end
 		for _, ore in ORES do
 			local n = oreCount(ore)
 			if n > 0 then
 				table.insert(out, { key = "ore:" .. ore, title = Names.t(ore), count = n, asset = "ore_" .. ore, model = Theme.oreModel(ore),
-					text = string.format("Ore. Sell it at the shop (%d coins each) or use it at the workbench.", EconomyConfig.ORE_PRICES[ore] or 1), drop = ore })
+					text = string.format("Ore. Sell it at the shop (%d coins each) or use it at the workbench.", EconomyConfig.ORE_PRICES[ore] or 1), drop = ore, kind = "Ores" })
 			end
 		end
 		local mats = player:FindFirstChild("Materiali")
@@ -285,13 +381,32 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 			if v:IsA("IntValue") and v.Value > 0 then
 				local shown = names and names:GetAttribute(v.Name)
 				table.insert(out, { key = "mat:" .. v.Name, title = if type(shown) == "string" then shown else Names.t(v.Name), count = v.Value,
-					asset = "", model = icons and icons:FindFirstChild(v.Name), text = "Dropped by monsters. Used to craft gear.", drop = v.Name })
+					asset = "", model = icons and icons:FindFirstChild(v.Name), text = "Dropped by monsters (or crafted at the Workbench). Used for upgrades.", drop = v.Name, kind = "Materials" })
 			end
 		end
 		for _, recipe in Gear.RECIPES do
-			if Gear.has(player, recipe.id) then
+			local asTool = Hotbar.RECIPE_TOOL[recipe.id]
+			if Gear.has(player, recipe.id) and not (asTool and ownedTools[asTool]) then
 				table.insert(out, { key = "gear:" .. recipe.id, title = recipe.name, count = 1, asset = "", id = recipe.id,
-					model = Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT), text = recipe.description })
+					model = Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT), text = recipe.description, kind = "Tools" })
+			end
+		end
+		-- uova: quella che porti e quelle nel nido (non si buttano)
+		local carried = player:GetAttribute("CarryingEgg")
+		if type(carried) == "string" then
+			local el, rar = string.match(carried, "^(.-)|(.*)$")
+			if el then
+				table.insert(out, { key = "egg:carried", title = Names.t(rar or "") .. " " .. Names.t(el) .. " Egg", count = 1, asset = "icon_egg",
+					model = preview("Eggs", el), text = "You are carrying it: take it to your nest to hatch it.", kind = "Eggs" })
+			end
+		end
+		local okData, data = pcall(HttpService.JSONDecode, HttpService, (player:GetAttribute("DragonData") or "{}") :: string)
+		if okData and type(data) == "table" then
+			for i, egg in data.nest or {} do
+				local left = (egg.readyAt or 0) - (data.now or 0)
+				table.insert(out, { key = "egg:nest" .. i, title = Names.t(egg.rarity or "") .. " " .. Names.t(egg.element or "") .. " Egg", count = 1,
+					asset = "icon_egg", model = preview("Eggs", egg.element or ""),
+					text = if left <= 0 then "In your nest: ready to hatch! Open Dragons > Nest." else "In your nest, hatching soon.", kind = "Eggs" })
 			end
 		end
 		-- ordine scelto dal giocatore, i nuovi in fondo
@@ -328,7 +443,7 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 		end
 	end
 	local function chosen(): Item?
-		for _, x in items do
+		for _, x in allItems do
 			if x.key == selectedKey then
 				return x
 			end
@@ -336,26 +451,126 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 		return nil
 	end
 
+	-- BARRA: metti un attrezzo nella casella i (se era gia' in un'altra casella le due si
+	-- scambiano; se la casella era piena, quello che c'era esce dalla barra o va al suo posto)
+	local function assign(toolName: string, i: number)
+		local slots = Hotbar.current(player)
+		local from = table.find(slots, toolName)
+		if from == i then
+			return
+		end
+		local was = slots[i]
+		slots[i] = toolName
+		if from then
+			slots[from] = was
+		end
+		Hotbar.save(player, slots)
+		status(string.format("%s in slot %d", toolName, i), true)
+	end
+	local function moveSlot(a: number, b: number)
+		local slots = Hotbar.current(player)
+		slots[a], slots[b] = slots[b], slots[a]
+		Hotbar.save(player, slots)
+	end
+	local function removeFromBar(i: number)
+		local slots = Hotbar.current(player)
+		local name = slots[i]
+		if name == "" then
+			return
+		end
+		slots[i] = ""
+		Hotbar.save(player, slots)
+		status(name .. " removed from the hotbar (still in your backpack)", true)
+	end
+	local function paintBar()
+		local layout = Hotbar.layout(player)
+		local it = chosen()
+		local toolPicked = it and it.tool
+		local held = player.Character and player.Character:FindFirstChildOfClass("Tool")
+		for i, b in barSlots do
+			for _, c in b:GetChildren() do
+				if c:IsA("GuiObject") and c.Name ~= "Cornice" then
+					c:Destroy()
+				end
+			end
+			local t = layout[i]
+			-- destinazione valida (attrezzo scelto) = cornice verde; casella scelta = oro acceso;
+			-- attrezzo in mano = oro chiaro (cornici di Codex)
+			local target = toolPicked ~= nil or (pickedSlot ~= nil and pickedSlot ~= i)
+			if not UiKit.slot(b, if pickedSlot == i then "selected" elseif target then "valid" elseif held and t == held then "hover" else "normal") then
+				b.BackgroundColor3 = if pickedSlot == i then Color3.fromRGB(70, 56, 18) elseif t then UiKit.RAISED else UiKit.INK
+				b.BackgroundTransparency = if t or pickedSlot == i then 0.05 else 0.4
+				local stroke = b:FindFirstChildOfClass("UIStroke") or UiKit.edge(b, UiKit.LINE, 1, 0.7)
+				stroke.Color = if target then UiKit.ACCENT elseif held and t == held then UiKit.GOOD else UiKit.LINE
+				stroke.Transparency = if target then 0 elseif held and t == held then 0.2 else 0.7
+				stroke.Thickness = if target then 2 else 1
+			end
+			b:SetAttribute("CorniceFissa", true)
+			local key = UiKit.label(b, tostring(i), "status", 12)
+			key.Position = UDim2.fromOffset(3, 1)
+			key.Size = UDim2.fromOffset(14, 14)
+			key.ZIndex = 6
+			if t then
+				local icon = Instance.new("ImageLabel")
+				icon.BackgroundTransparency = 1
+				icon.AnchorPoint = Vector2.new(0.5, 0.5)
+				icon.Position = UDim2.fromScale(0.5, 0.52)
+				icon.Size = UDim2.fromScale(0.72, 0.72)
+				icon.ZIndex = 5
+				icon.Parent = b
+				toolIcon(icon, t.Name, t)
+			end
+		end
+		barHint.Text = if toolPicked then "Tap a slot to put it there"
+			elseif pickedSlot then "Tap another slot to swap"
+			elseif it and not it.tool then "Only tools you hold go here"
+			else "Pick a tool, then a slot"
+		barHint.TextColor3 = if it and not it.tool then UiKit.MUTED else UiKit.ACCENT
+	end
+
 	local function showInfo()
 		local it = chosen()
+		local layout = Hotbar.layout(player)
+		local inBar: number? = nil
+		if it and it.tool then
+			for i, t in layout do
+				if t.Name == it.tool then
+					inBar = i
+				end
+			end
+		end
+		removeBtn.Visible = false
 		if not it then
 			infoIcon.Visible = false
 			infoTitle.Text = "Backpack"
-			infoText.Text = "Click an item to see it. Drag it onto another slot to move it."
+			infoKind.Text = ""
+			infoText.Text = "Tap an item to see it. Drag it onto another slot to move it."
 			dropOne.Visible, dropAll.Visible = false, false
+			paintBar()
 			return
 		end
 		local item = it :: Item
-		if item.id and Theme.ITEM_ICONS[item.id] then
+		infoIcon.Visible = true
+		if item.tool then
+			toolIcon(infoIcon, item.tool, nil)
+		elseif item.id and Theme.ITEM_ICONS[item.id] then
 			Theme.itemIcon(infoIcon, item.id, item.model)
 		else
 			Theme.assetPreview(infoIcon, item.asset, item.model)
 		end
 		infoTitle.Text = if item.drop then string.format("%s  x%d", item.title, item.count) else item.title
-		infoText.Text = item.text
+		infoKind.Text = if item.tool then (if inBar then string.format("TOOL · IN SLOT %d", inBar) else "TOOL · NOT IN HOTBAR")
+			else string.upper(item.kind)
+		infoKind.TextColor3 = if item.tool then UiKit.ACCENT else UiKit.MUTED
+		local extra = if item.tool then ""
+			elseif item.kind == "Tools" then "\n<font color=\"#B0BDD0\">Gear works by itself: it doesn't go in the hotbar.</font>"
+			else ""
+		infoText.Text = item.text .. extra
 		dropOne.Visible = item.drop ~= nil
 		dropAll.Visible = item.drop ~= nil
-		dropAll.Text = if confirmAll then "Sure?" else "Drop all"
+		dropAll.Text = if confirmAll then "SURE?" else "DROP ALL"
+		removeBtn.Visible = inBar ~= nil
+		paintBar()
 	end
 	local function drop(amount: any)
 		local it = chosen()
@@ -365,6 +580,12 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 		local ok, message = (remotes:WaitForChild("Shop") :: RemoteFunction):InvokeServer("discard", it.key, amount)
 		status(message or "", ok)
 	end
+	UiKit.button(dropOne, "danger")
+	dropOne.Text = "DROP 1"
+	UiKit.button(dropAll, "danger")
+	dropAll.Text = "DROP ALL"
+	UiKit.button(removeBtn, "secondary")
+	removeBtn.Text = "REMOVE FROM HOTBAR"
 	dropOne.Activated:Connect(function()
 		confirmAll = false
 		drop(1)
@@ -378,6 +599,39 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 			showInfo()
 		end
 	end)
+	removeBtn.Activated:Connect(function()
+		local it = chosen()
+		if not it or not it.tool then
+			return
+		end
+		for i, t in Hotbar.layout(player) do
+			if t.Name == it.tool then
+				removeFromBar(i)
+			end
+		end
+	end)
+	-- tocco su una casella della barra: assegna l'attrezzo scelto, oppure sceglie/sposta
+	for i, b in barSlots do
+		b.Activated:Connect(function()
+			local it = chosen()
+			if it and it.tool then
+				assign(it.tool, i)
+				pickedSlot = nil
+			elseif it then
+				status(it.title .. " can't go in the hotbar: only tools you hold", false)
+				selectedKey = nil
+			elseif pickedSlot and pickedSlot ~= i then
+				moveSlot(pickedSlot, i)
+				pickedSlot = nil
+			else
+				local t = Hotbar.layout(player)[i]
+				-- casella piena: mostra l'attrezzo (Remove lo toglie); toccando un'altra casella ci va
+				pickedSlot = if t then i else nil
+				selectedKey = if t then "tool:" .. t.Name else nil
+			end
+			render()
+		end)
+	end
 
 	-- trascinamento: una copia della casella segue il puntatore su una schermata a parte
 	local dragGui = Instance.new("ScreenGui")
@@ -391,12 +645,12 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 		local su = menuGui and menuGui:FindFirstChild("ScalaUI")
 		return if su and su:IsA("UIScale") and su.Scale > 0 then su.Scale else 1
 	end
-	local function slotAt(p: Vector2): number?
+	local function hit(list_: { GuiObject }, p: Vector2): number?
 		-- le posizioni dell'input sono sotto la barra di Roblox, quelle delle caselle no se la
 		-- schermata la ignora
 		local inset = if menuGui and menuGui.IgnoreGuiInset then GuiService:GetGuiInset() else Vector2.zero
 		local q = p + inset
-		for i, s in slots do
+		for i, s in list_ do
 			local a, z = s.AbsolutePosition, s.AbsoluteSize
 			if q.X >= a.X and q.X <= a.X + z.X and q.Y >= a.Y and q.Y <= a.Y + z.Y then
 				return i
@@ -417,6 +671,8 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 		ghost.Parent = dragGui
 		slot.BackgroundTransparency = 0.7
 		list.ScrollingEnabled = false
+		selectedKey = item.key
+		paintBar() -- le caselle della barra valide si accendono durante il trascinamento
 		local move: RBXScriptConnection
 		local finish: RBXScriptConnection
 		local function at(p: Vector3)
@@ -436,28 +692,199 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 			finish:Disconnect()
 			ghost:Destroy()
 			list.ScrollingEnabled = true
-			local target = slotAt(Vector2.new(i.Position.X, i.Position.Y))
-			if target and target ~= index then
-				local keys = {}
-				for _, x in items do
-					table.insert(keys, x.key)
+			local p = Vector2.new(i.Position.X, i.Position.Y)
+			local barTarget = hit(barSlots :: any, p)
+			if barTarget then
+				if item.tool then
+					assign(item.tool, barTarget)
+				else
+					status(item.title .. " can't go in the hotbar: only tools you hold", false)
 				end
-				table.remove(keys, index)
-				table.insert(keys, math.min(target, #keys + 1), item.key)
-				selectedKey = item.key
-				saveOrder(keys)
+			elseif filter == "All" then
+				local target = hit(slots, p)
+				if target and target ~= index then
+					local keys = {}
+					for _, x in items do
+						table.insert(keys, x.key)
+					end
+					table.remove(keys, index)
+					table.insert(keys, math.min(target, #keys + 1), item.key)
+					saveOrder(keys)
+				end
 			end
 			render()
 		end)
 	end
+	-- trascinare una casella della barra (mouse): su un'altra = scambio, fuori dalla barra = togli
+	for i, b in barSlots do
+		b.InputBegan:Connect(function(input)
+			if input.UserInputType ~= Enum.UserInputType.MouseButton1 or not Hotbar.layout(player)[i] then
+				return
+			end
+			local from = input.Position
+			local moved = false
+			local watch: RBXScriptConnection
+			local stop: RBXScriptConnection
+			watch = UIS.InputChanged:Connect(function(m)
+				if m.UserInputType == Enum.UserInputType.MouseMovement and (m.Position - from).Magnitude > 10 then
+					moved = true
+				end
+			end)
+			stop = UIS.InputEnded:Connect(function(m)
+				if m.UserInputType ~= Enum.UserInputType.MouseButton1 then
+					return
+				end
+				watch:Disconnect()
+				stop:Disconnect()
+				if not moved then
+					return -- semplice clic: lo gestisce Activated
+				end
+				local p = Vector2.new(m.Position.X, m.Position.Y)
+				local target = hit(barSlots :: any, p)
+				if target and target ~= i then
+					moveSlot(i, target)
+				elseif not target and not hit({ barBox }, p) then
+					removeFromBar(i)
+				end
+				pickedSlot = nil
+				render()
+			end)
+		end)
+	end
+
+	for f, b in chips do
+		b.Activated:Connect(function()
+			filter = f
+			list.CanvasPosition = Vector2.zero -- (prima restava una posizione che col filtro non esisteva piu')
+			render()
+		end)
+	end
+
+	-- impaginazione: griglia a sinistra (58%), pannello a destra (42%) anche sul telefono
+	local function layout()
+		local k = uiScale()
+		local w, h = container.AbsoluteSize.X / k, container.AbsoluteSize.Y / k
+		if w < 50 then
+			return
+		end
+		local low = h < 420
+		local stacked = w < 600
+		local barH = if low then 34 else 40
+		local top = barH + (if low then 8 else 12)
+		local sideW = if stacked then w else math.clamp(math.floor(w * 0.42), 300, 500)
+		-- i filtri stanno sopra la griglia: si stringono per entrarci tutti (prima "Eggs" finiva
+		-- sotto la scheda di destra sul telefono)
+		local gridW = if stacked then w else w - sideW - 12
+		local chipW = math.min(if low then 82 else 110, math.floor((gridW - 4 * 6) / 5))
+		filterBar.Position = UDim2.fromOffset(0, 0)
+		filterBar.Size = UDim2.new(0, gridW, 0, barH)
+		for i, f in INV_FILTERS do
+			local b = chips[f]
+			b.Position = UDim2.fromOffset((i - 1) * (chipW + 6), 0)
+			b.Size = UDim2.fromOffset(chipW, barH)
+			b.TextSize = if low then 14 else 17
+		end
+		if stacked then
+			list.Position = UDim2.fromOffset(0, top)
+			list.Size = UDim2.new(1, 0, 0, 220)
+			side.Position = UDim2.fromOffset(0, top + 230)
+			side.Size = UDim2.new(1, 0, 0, 330)
+		else
+			list.Position = UDim2.fromOffset(0, top)
+			list.Size = UDim2.new(1, -(sideW + 12), 1, -top)
+			side.Position = UDim2.new(1, -sideW, 0, 0)
+			side.Size = UDim2.new(0, sideW, 1, 0)
+		end
+		local wantH = if stacked then top + 230 + 330 else 0
+		if container:GetAttribute("AltezzaMinima") ~= wantH then
+			container:SetAttribute("AltezzaMinima", wantH)
+			if ctx and ctx.fit then
+				task.defer(ctx.fit)
+			end
+		end
+		local cell = if low then 76 else 112
+		grid.CellSize = UDim2.fromOffset(cell, if low then 86 else 124)
+		grid.CellPadding = UDim2.fromOffset(if low then 6 else 10, if low then 6 else 10)
+		-- pannello: barra 1-5 in fondo (fissa), sopra personaggio a sinistra e scheda a destra
+		local sh = if stacked then 330 else h
+		local slotS = if low then 46 else 58
+		local barBoxH = slotS + (if low then 26 else 34)
+		barBox.AnchorPoint = Vector2.new(0, 1)
+		barBox.Position = UDim2.new(0, 8, 1, -8)
+		barBox.Size = UDim2.new(1, -16, 0, barBoxH)
+		barTitle.Position = UDim2.fromOffset(8, 2)
+		barTitle.Size = UDim2.new(0.4, 0, 0, if low then 18 else 24)
+		barHint.Position = UDim2.new(0.4, 0, 0, 2)
+		barHint.Size = UDim2.new(0.6, -8, 0, if low then 18 else 24)
+		local totalW = Hotbar.SLOTS * slotS + (Hotbar.SLOTS - 1) * 8
+		for i, b in barSlots do
+			b.AnchorPoint = Vector2.new(0.5, 1)
+			b.Position = UDim2.new(0.5, -totalW / 2 + (i - 1) * (slotS + 8) + slotS / 2, 1, -6)
+			b.Size = UDim2.fromOffset(slotS, slotS)
+		end
+		local upperH = sh - barBoxH - 16 - 8
+		local avW = math.floor(math.min(upperH * 0.62, (sideW - 16) * 0.4))
+		avatarBox.Position = UDim2.fromOffset(8, 8)
+		avatarBox.Size = UDim2.fromOffset(avW, upperH)
+		local ix = 8 + avW + 10
+		info.Position = UDim2.fromOffset(ix, 8)
+		info.Size = UDim2.new(1, -(ix + 8), 0, upperH)
+		local ic = if low then 40 else 64
+		infoIcon.Position = UDim2.fromOffset(0, 0)
+		infoIcon.Size = UDim2.fromOffset(ic, ic)
+		infoTitle.TextSize = if low then 17 else 21
+		infoTitle.Position = UDim2.fromOffset(ic + 8, 0)
+		infoTitle.Size = UDim2.new(1, -(ic + 8), 0, if low then 22 else 28)
+		infoKind.Position = UDim2.fromOffset(ic + 8, if low then 22 else 30)
+		infoKind.Size = UDim2.new(1, -(ic + 8), 0, 16)
+		local btnH = if low then 30 else 38
+		actions.AnchorPoint = Vector2.new(0, 1)
+		actions.Position = UDim2.fromScale(0, 1)
+		actions.Size = UDim2.new(1, 0, 0, btnH)
+		dropOne.Position = UDim2.fromScale(0, 0)
+		dropOne.Size = UDim2.new(0.5, -3, 1, 0)
+		dropAll.Position = UDim2.new(0.5, 3, 0, 0)
+		dropAll.Size = UDim2.new(0.5, -3, 1, 0)
+		removeBtn.Position = UDim2.fromScale(0, 0)
+		removeBtn.Size = UDim2.fromScale(1, 1)
+		for _, b in { dropOne, dropAll, removeBtn } do
+			b.TextSize = if low then 13 else 16
+		end
+		infoScroll.Position = UDim2.fromOffset(0, ic + 4)
+		infoScroll.Size = UDim2.new(1, 0, 1, -(ic + 4 + btnH + 6))
+		infoText.TextSize = if low then 13 else 15
+	end
+	container:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
 
 	render = function()
+		if ctx and ctx.filter then
+			filter = ctx.filter
+			ctx.filter = nil
+		end
+		layout()
+		for f, b in chips do
+			UiKit.tab(b, f == filter)
+		end
 		Ui.clear(list)
 		table.clear(slots)
-		items = collect()
+		items = {}
+		allItems = collect()
+		for _, it in allItems do
+			if filter == "All" or it.kind == filter then
+				table.insert(items, it)
+			end
+		end
+		if ctx and ctx.sub then
+			ctx.sub(string.format("%d items", #items))
+		end
+		local low = grid.CellSize.Y.Offset < 100
 		-- caselle vuote fino a riempire almeno tre file: sembra uno zaino, non una lista
-		local cols = math.max(1, math.floor((list.AbsoluteSize.X / uiScale() - 4) / 122))
+		local cols = math.max(1, math.floor((list.AbsoluteSize.X / uiScale() - 4) / (grid.CellSize.X.Offset + grid.CellPadding.X.Offset)))
 		local total = math.max(cols * 3, math.ceil((#items + 1) / cols) * cols)
+		local inBar: { [string]: number } = {}
+		for i, t in Hotbar.layout(player) do
+			inBar[t.Name] = i
+		end
 		for i = 1, total do
 			local it = items[i]
 			local slot = Instance.new("TextButton")
@@ -465,10 +892,16 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 			slot.Text = ""
 			slot.AutoButtonColor = it ~= nil
 			slot.LayoutOrder = i
-			slot.BackgroundColor3 = if it then Theme.DARK3 else Theme.DARK2
-			slot.BackgroundTransparency = if it then 0.15 else 0.45
 			slot.Parent = list
-			Theme.corner(slot, 12)
+			if it then
+				UiKit.card(slot, it.key == selectedKey)
+				UiKit.slot(slot, if it.key == selectedKey then "selected" else "normal")
+			elseif not UiKit.slot(slot, "disabled") then
+				-- casella vuota: incassata, appena accennata
+				slot.BackgroundColor3 = UiKit.INK
+				slot.BackgroundTransparency = 0.55
+				UiKit.edge(slot, UiKit.LINE, 1, 0.9)
+			end
 			table.insert(slots, slot)
 			if not it then
 				continue
@@ -477,31 +910,45 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 			local icon = Instance.new("ImageLabel")
 			icon.BackgroundTransparency = 1
 			icon.AnchorPoint = Vector2.new(0.5, 0)
-			icon.Position = UDim2.new(0.5, 0, 0, 10)
-			icon.Size = UDim2.fromOffset(70, 70)
+			icon.Position = UDim2.new(0.5, 0, 0, if low then 6 else 10)
+			icon.Size = if low then UDim2.fromOffset(48, 48) else UDim2.fromOffset(70, 70)
 			icon.Parent = slot
-			if item.id and Theme.ITEM_ICONS[item.id] then
+			if item.tool then
+				toolIcon(icon, item.tool, nil)
+			elseif item.id and Theme.ITEM_ICONS[item.id] then
 				Theme.itemIcon(icon, item.id, item.model)
 			else
 				Theme.assetPreview(icon, item.asset, item.model)
 			end
-			local name = Theme.label(slot, item.title, 13, Theme.TEXT, true)
+			local name = UiKit.label(slot, item.title, "status", if low then 11 else 13)
+			name.TextColor3 = UiKit.TEXT
 			name.AnchorPoint = Vector2.new(0.5, 1)
-			name.Position = UDim2.new(0.5, 0, 1, -6)
-			name.Size = UDim2.new(1, -8, 0, 30)
+			name.Position = UDim2.new(0.5, 0, 1, -3)
+			name.Size = UDim2.new(1, -6, 0, if low then 24 else 30)
 			name.TextXAlignment = Enum.TextXAlignment.Center
-			Theme.fitText(name, 13, true)
+			name.TextWrapped = true
+			name.TextTruncate = Enum.TextTruncate.AtEnd
 			if item.drop then
-				local count = Theme.label(slot, "x" .. item.count, 15, Theme.ACCENT, true)
+				local count = UiKit.label(slot, "x" .. item.count, "stat", if low then 13 else 15)
+				count.TextColor3 = UiKit.ACCENT
 				count.AnchorPoint = Vector2.new(1, 0)
-				count.Position = UDim2.new(1, -6, 0, 4)
-				count.Size = UDim2.fromOffset(60, 20)
+				count.Position = UDim2.new(1, -4, 0, 2)
+				count.Size = UDim2.fromOffset(50, 18)
 				count.TextXAlignment = Enum.TextXAlignment.Right
 				count.ZIndex = 4
 			end
-			if item.key == selectedKey then
-				UiGlow.ring(slot, Theme.ACCENT, { round = false, speed = 150, thickness = 3, pad = 0 })
+			-- attrezzo gia' nella barra: numero della casella in alto a sinistra
+			if item.tool and inBar[item.tool] then
+				local tag = UiKit.label(slot, tostring(inBar[item.tool]), "stat", 13)
+				tag.TextColor3 = UiKit.INK
+				tag.BackgroundColor3 = UiKit.ACCENT
+				tag.BackgroundTransparency = 0
+				tag.TextXAlignment = Enum.TextXAlignment.Center
+				tag.Position = UDim2.fromOffset(3, 3)
+				tag.Size = UDim2.fromOffset(18, 18)
+				tag.ZIndex = 5
 			end
+
 			-- clic = scegli; trascina (mouse) o tieni premuto (dito) = sposta
 			slot.InputBegan:Connect(function(input)
 				local touch = input.UserInputType == Enum.UserInputType.Touch
@@ -538,7 +985,8 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 					if m.UserInputType == input.UserInputType and not done then
 						close()
 						confirmAll = false
-						selectedKey = item.key
+						pickedSlot = nil
+						selectedKey = if selectedKey == item.key then nil else item.key
 						render()
 					end
 				end)
@@ -547,347 +995,828 @@ local function mountInventory(container: Frame, status: (string, boolean) -> ())
 				end
 			end)
 		end
+		avatar.rebuild()
 		showInfo()
 	end
+	-- la barra cambia anche fuori dal menu (attrezzo comprato, respawn): si ridisegna
+	player:GetAttributeChangedSignal("HotbarOrder"):Connect(function()
+		if container.Visible then
+			render()
+		end
+	end)
+	local function watchTools(parent: Instance?)
+		if not parent then
+			return
+		end
+		for _, ev in { parent.ChildAdded, parent.ChildRemoved } do
+			ev:Connect(function(c)
+				if c:IsA("Tool") and container.Visible then
+					task.defer(render)
+				end
+			end)
+		end
+	end
+	watchTools(player:FindFirstChildOfClass("Backpack"))
+	player.CharacterAdded:Connect(function(character)
+		task.wait(0.5)
+		watchTools(player:FindFirstChildOfClass("Backpack"))
+		watchTools(character)
+	end)
+	watchTools(player.Character)
 	return render
 end
--- colori delle schede del menu (pulsanti della colonna e sfondo della finestra)
-local MENU_COLORS = Theme.MENU
+-- Menu unico (Mirko 15/10, schizzo "foto 1"): il tasto in alto a sinistra non apre piu' la fila
+-- di sei pulsanti ma una sola finestra. A sinistra la colonna delle schede a parallelogramma
+-- (la punta verso il centro): quella sotto il mouse o aperta esce verso destra, le altre si
+-- ritirano a sinistra. A destra la pagina: all'apertura il profilo (record, personaggio 3D e
+-- statistiche), poi quella della scheda scelta. Fondo scuro stile Black Ops 2.
+local TABS = {
+	{ key = "Dragons", label = "DRAGONS", icon = "icon_dragons", color = Theme.PURPLE, keyName = "G", title = "Dragons" },
+	{ key = "Store", label = "SHOP", icon = "icon_shop", color = Theme.ACCENT, keyName = "B", title = "Shop" },
+	{ key = "Teleport", label = "TRAVEL", icon = "icon_teleport", color = Theme.BLUE, keyName = "T", title = "Travel" },
+	{ key = "Crafting", label = "CRAFTING", icon = "icon_crafting", color = Theme.TEAL, keyName = "N", title = "Crafting" },
+	{ key = "Backpack", label = "INVENTORY", icon = "icon_backpack", color = Theme.ORANGE, keyName = "I", title = "Backpack" },
+	{ key = "Upgrades", label = "UPGRADES", icon = "icon_settings", color = Theme.GOOD, keyName = "U", title = "Upgrades" },
+}
+local KEYS = {
+	Dragons = { Enum.KeyCode.G }, Store = { Enum.KeyCode.B }, Teleport = { Enum.KeyCode.T },
+	Crafting = { Enum.KeyCode.N }, Backpack = { Enum.KeyCode.I, Enum.KeyCode.V }, Upgrades = { Enum.KeyCode.U },
+}
 
 function MainMenu.start()
 	local gui = Ui.screen("MainMenu")
 	local column, window = Ui.node(gui, "Column"), Ui.node(gui, "Window")
-	local NAV = { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" }
-	-- lo sfondo illustrato della montagna (bg_menu) resta: piace a Mirko e ai giocatori (la v3 lo
-	-- nascondeva e dietro le finestre si vedeva il gioco)
-	window.Background.Visible = true
-	window.Background.ImageTransparency = 0.15
-	window.Background.ScaleType = Enum.ScaleType.Crop
-	-- colonna del menu: pulsanti tondi a icona (prima pillole lunghe in una lista a scorrimento)
-	column.ScrollingEnabled = false
-	column.ScrollBarThickness = 0
-	-- griglia: una colonna se c'e' spazio, altrimenti due o tre (schermi bassi)
-	local list = column:FindFirstChildOfClass("UIListLayout")
-	if list then
-		list:Destroy()
-	end
-	local grid = Instance.new("UIGridLayout")
-	grid.CellSize = UDim2.fromOffset(78, 78)
-	grid.CellPadding = UDim2.fromOffset(8, 8)
-	grid.SortOrder = Enum.SortOrder.LayoutOrder
-	grid.FillDirection = Enum.FillDirection.Horizontal
-	grid.Parent = column
-	for k, n in { "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" } do
-		column[n].LayoutOrder = k
-	end
-	-- Hide/Show: fuori dalla griglia, sopra le icone (sul telefono a sinistra della fila)
-	local toggle = column.NascondiIcone
-	toggle.Parent = gui
-	toggle.Visible = true
-	Ui.text(toggle, 16, true)
-	toggle.TextColor3 = Theme.TEXT
-	if not column.Teleport:FindFirstChild("Icon") then
-		local icon = column.Store.Icon:Clone()
-		icon.Parent = column.Teleport
-		Ui.asset(icon, "icon_teleport")
-	end
-	-- pulsanti del menu: pillole tonde (icona + nome) sul computer, cerchi con la sola icona sul
-	-- telefono (Mirko 15/10: "su telefono e' ingiocabile, i pulsanti coprono 2/3 dello schermo").
-	-- Spenti = blu notte con l'icona colorata, quello aperto = colore pieno (come i mockup)
-	for _, n in NAV do
-		local btn = column[n]
-		btn:SetAttribute("UiNative", true)
-		Theme.action(btn, "alt")
-		btn.Text = ""
-		btn.ClipsDescendants = true
-		local corner = btn:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
-		corner.CornerRadius = UDim.new(0.5, 0)
-		corner.Parent = btn
-		local title = Theme.label(btn, if n == "Store" then "Shop" elseif n == "Teleport" then "Travel" else n, 17, Theme.TEXT, true)
-		title.Name = "NavTitle"
-		title.ZIndex = 4
-		local icon = btn:FindFirstChild("Icon")
-		if icon then
-			icon.ZIndex = 3
-		end
-	end
-	-- Hide: piega la fila dei pulsanti in un solo tasto tondo (soprattutto per il telefono)
-	toggle:SetAttribute("UiNative", true)
-	Theme.action(toggle, "alt")
-	local tcorner = toggle:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
-	tcorner.CornerRadius = UDim.new(0.5, 0)
-	tcorner.Parent = toggle
-
-	local content = window.Content
-	-- la finestra sopra l'HUD (prima il meteo le restava disegnato sopra)
+	-- la vecchia fila di pulsanti resta nel modello ma spenta
+	column.Visible = false
+	column:GetPropertyChangedSignal("Visible"):Connect(function()
+		column.Visible = false
+	end)
+	player:SetAttribute("UiCollapsed", false)
 	local hudGui = player.PlayerGui:FindFirstChild("ClimbHUD")
 	if hudGui and hudGui:IsA("ScreenGui") then
 		gui.DisplayOrder = math.max(gui.DisplayOrder, hudGui.DisplayOrder + 1)
 	end
-	-- impaginazione interna in pixel: titolo, chiusura, contenuto, stato
-	window.Title.Position = UDim2.fromOffset(12, 8)
-	window.Title.Size = UDim2.new(1, -80, 0, 44)
-	window.Title.TextXAlignment = Enum.TextXAlignment.Center
-	Ui.px(window.Close, 1, -12, 0, 10, 50, 50, 1, 0)
-	local closeLimit = window.Close:FindFirstChild("SizeLimit")
-	if closeLimit then
-		closeLimit:Destroy()
+
+	-- APRI-MENU del gioco: uno solo, in basso a sinistra della barra degli attrezzi (PC e
+	-- telefono). Prima c'era in alto a sinistra un cerchio col rombo e una pillola "≡": copiavano
+	-- per errore i controlli veri di Roblox dello schizzo di Mirko (Mirko 16/10)
+	local opener = Instance.new("TextButton")
+	opener.Name = "ApriMenu"
+	opener.Text = ""
+	opener.BackgroundTransparency = 1
+	opener.AutoButtonColor = false
+	opener:SetAttribute("UiNative", true)
+	opener.ZIndex = 20
+	opener.Parent = gui
+	local openerShape = Slant.new(opener, UiKit.PANEL, 0.12, 12, "right")
+	openerShape.Size = UDim2.fromScale(1, 1)
+	Slant.setZ(openerShape, 20)
+	local openerMark = Instance.new("Frame")
+	openerMark.Name = "Segno"
+	openerMark.BorderSizePixel = 0
+	openerMark.BackgroundColor3 = UiKit.ACCENT
+	openerMark.Size = UDim2.new(0, 3, 1, 0)
+	openerMark.ZIndex = 22
+	openerMark.Parent = opener
+	local openerIcon = Instance.new("ImageLabel")
+	openerIcon.BackgroundTransparency = 1
+	openerIcon.AnchorPoint = Vector2.new(0, 0.5)
+	openerIcon.ZIndex = 22
+	openerIcon.Parent = opener
+	Ui.asset(openerIcon, "icon_dragons")
+	local openerText = UiKit.label(opener, "MENU", "button")
+	openerText.ZIndex = 22
+	local openerKey = UiKit.label(opener, "M", "status")
+	openerKey.TextXAlignment = Enum.TextXAlignment.Center
+	openerKey.ZIndex = 22
+	opener.MouseEnter:Connect(function()
+		Slant.paint(openerShape, UiKit.RAISED, 0.05)
+	end)
+	opener.MouseLeave:Connect(function()
+		Slant.paint(openerShape, UiKit.PANEL, 0.12)
+	end)
+
+	-- FINESTRA: angoli vivi, bordo sottile e tacche; il fondo scuro (carbone, fumo, brace) e'
+	-- traslucido, cosi' dietro si intravede ancora il mondo (come il riferimento di BO3)
+	window.Visible = false
+	window.BackgroundTransparency = 1
+	window.ClipsDescendants = true
+	local surface = window:FindFirstChild("AssetSurface")
+	if surface and surface:IsA("GuiObject") then
+		surface.Visible = false
 	end
-	Ui.px(window.Status, 0, 18, 1, -8, 600, 28, 0, 1)
-	window.Status.Size = UDim2.new(1, -36, 0, 28)
-	Ui.text(window.Status, 15, true)
-	content.Position = UDim2.fromOffset(12, 62)
-	content.Size = UDim2.new(1, -24, 1, -96)
+	local oldTint = window:FindFirstChild("Tinta")
+	if oldTint then
+		oldTint:Destroy()
+	end
 	local windowLimit = window:FindFirstChild("SizeLimit")
 	if windowLimit then
 		windowLimit:Destroy()
 	end
-	for _, tabbed in { content.Store, content.Upgrades } do
-		tabbed.Tabs.Size = UDim2.new(1, 0, 0, 44)
-		for _, b in tabbed.Tabs:GetChildren() do
-			if b:IsA("GuiObject") then
-				b.Size = UDim2.new(1 / 3, -8, 1, 0)
-				local lim = b:FindFirstChild("SizeLimit")
-				if lim then
-					lim:Destroy()
-				end
-			end
-		end
-		tabbed.List.Position = UDim2.fromOffset(0, 54)
-		tabbed.List.Size = UDim2.new(1, 0, 1, -54)
-	end
-	local dragonsTab = content.Dragons
-	dragonsTab.Header.Size = UDim2.new(1, 0, 0, 24)
-	Ui.fit(dragonsTab.Header, 16, 11, true)
-	dragonsTab.Header.TextXAlignment = Enum.TextXAlignment.Left
-	dragonsTab.Body.Position = UDim2.fromOffset(0, 30)
-	dragonsTab.Body.Size = UDim2.new(1, 0, 1, -30)
-	for _, side in { dragonsTab.Body.Nest, dragonsTab.Body.Dragons } do
-		side.Title.Size = UDim2.new(1, 0, 0, 26)
-		Ui.text(side.Title, 17, true)
-		side.Title.TextXAlignment = Enum.TextXAlignment.Left
-		side.List.Position = UDim2.fromOffset(0, 30)
-		side.List.Size = UDim2.new(1, 0, 1, -30)
-		rows(side.List)
-	end
-	cards(content.Crafting.List, 220, 310)
-	rows(content.Upgrades.List)
-	-- pulsanti delle sotto-schede (Buy / Sell, Upgrades / Bounties...) con testo leggibile
-	for _, d in content:GetDescendants() do
-		if d:IsA("TextButton") and d.Parent and d.Parent.Name == "Tabs" then
-			Ui.text(d, 18, true)
+	for _, c in window:GetChildren() do
+		if c:IsA("UICorner") or (c:IsA("UIStroke") and c.Name ~= "Bordo") then
+			c:Destroy()
 		end
 	end
-	Ui.text(window.Title, 24, true)
-	Ui.skin(window.Title, "panel_header")
-	window.Title.BackgroundTransparency = 1
-	window.Title.TextXAlignment = Enum.TextXAlignment.Left
-	-- monete nell'intestazione della finestra
-	local coinsBox = Instance.new("Frame")
+	-- cornice di Codex attorno alla finestra (sotto tutto); fondo, fumo e velo stanno in un
+	-- riquadro interno, cosi' l'oro del bordo resta visibile. Lo spessore lo decide layout()
+	UiKit.Cornici.apply(window, "frame_panel", { border = 14 })
+	local inner = Instance.new("Frame")
+	inner.Name = "Interno"
+	inner.BackgroundTransparency = 1
+	inner.BorderSizePixel = 0
+	inner.ClipsDescendants = true
+	inner.ZIndex = 1
+	inner.Parent = window
+	local smoke = UiGlow.darkBackground(inner, Theme.EMBER, 22)
+	-- fondo quasi pieno: dietro il menu il mondo si intuisce appena (prima 0.3: i draghi che
+	-- passavano dietro disturbavano la lettura, Mirko 16/10)
+	smoke.BackgroundTransparency = 0.08
+	UiKit.edge(window, UiKit.LINE, 1, 1)
+	-- velo a sinistra: la colonna delle schede resta leggibile anche col mondo dietro
+	local veil = Instance.new("Frame")
+	veil.Name = "Velo"
+	veil.BorderSizePixel = 0
+	veil.BackgroundColor3 = UiKit.INK
+	veil.Size = UDim2.fromScale(0.55, 1)
+	veil.ZIndex = 1
+	veil.Parent = inner
+	local vg = Instance.new("UIGradient")
+	vg.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.15),
+		NumberSequenceKeypoint.new(0.45, 0.55),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	vg.Parent = veil
+	local bg = window.Background
+	bg.Parent = inner
+	bg.Visible = true
+	bg.ScaleType = Enum.ScaleType.Crop
+	bg.ZIndex = 1
+	-- un po' piu' grande della finestra: si sposta appena col mouse (parallasse)
+	bg.AnchorPoint = Vector2.new(0.5, 0.5)
+	bg.Position = UDim2.fromScale(0.5, 0.5)
+	bg.Size = UDim2.fromScale(1.08, 1.08)
+	if Ui.asset(bg, "bg_menu_dark") then
+		bg.ImageTransparency = 0.35
+	else
+		Ui.asset(bg, "bg_menu")
+		bg.ImageTransparency = 0.84
+	end
+	window.Title.Visible = false
+
+	-- intestazione: icona e titolo della pagina, sottotitolo, monete, X
+	local head = Theme.frame(window, Color3.new(), 1)
+	head.Name = "Intestazione"
+	head.ZIndex = 5
+	head.ClipsDescendants = false
+	-- barra del titolo di Codex (terminali ornati ai lati)
+	UiKit.Cornici.apply(head, "frame_panel_header")
+	local headIcon = Instance.new("ImageLabel")
+	headIcon.BackgroundTransparency = 1
+	headIcon.ZIndex = 6
+	headIcon.Parent = head
+	local headTitle = UiKit.label(head, "", "title")
+	headTitle.ZIndex = 6
+	local headSub = UiKit.label(head, "", "section")
+	headSub.ZIndex = 6
+	local coinsBox = Theme.frame(head, Color3.new(), 1)
 	coinsBox.Name = "MoneteFinestra"
-	coinsBox.BackgroundTransparency = 1
-	coinsBox.AnchorPoint = Vector2.new(1, 0)
-	coinsBox.Parent = window
+	coinsBox.ZIndex = 6
+	coinsBox.ClipsDescendants = false
 	local coinIcon = Instance.new("ImageLabel")
 	coinIcon.BackgroundTransparency = 1
-	coinIcon.Size = UDim2.fromOffset(24, 24)
 	coinIcon.AnchorPoint = Vector2.new(0, 0.5)
 	coinIcon.Position = UDim2.fromScale(0, 0.5)
+	coinIcon.Size = UDim2.fromOffset(30, 30)
+	coinIcon.ZIndex = 7
 	coinIcon.Parent = coinsBox
 	Ui.asset(coinIcon, "icon_coin")
-	local coinsLabel = Theme.label(coinsBox, "0", 20, Theme.TEXT, true)
-	coinsLabel.Position = UDim2.new(0, 30, 0, 0)
-	coinsLabel.Size = UDim2.new(1, -30, 1, 0)
+	local coinsLabel = UiKit.label(coinsBox, "0", "stat", 24)
+	coinsLabel.Position = UDim2.new(0, 38, 0, 0)
+	coinsLabel.Size = UDim2.new(1, -38, 1, 0)
+	coinsLabel.ZIndex = 7
+	-- chiudi: pulsante nostro (quello del modello mostrava la sua immagine sotto il testo)
+	window.Close.Visible = false
+	local close = Instance.new("TextButton")
+	close.Name = "Chiudi"
+	close.ZIndex = 8
+	close.Parent = window
+	UiKit.button(close, "secondary")
+	close.Text = "CLOSE"
+	close.TextSize = 16
+	local closeLimit = close:FindFirstChild("SizeLimit")
+	if closeLimit then
+		closeLimit:Destroy()
+	end
+	local function fmtCoins(): string
+		local s = tostring(math.floor((player:GetAttribute("Coins") or 0) :: number))
+		local out = s:reverse():gsub("(%d%d%d)", "%1,"):reverse()
+		return (out:gsub("^,", ""))
+	end
 	player:GetAttributeChangedSignal("Coins"):Connect(function()
-		coinsLabel.Text = string.format("%d", (player:GetAttribute("Coins") or 0) :: number)
+		coinsLabel.Text = fmtCoins()
 	end)
-	local caption = window.Title:FindFirstChild("AssetCaption")
-	if caption and caption:IsA("TextLabel") then
-		caption.TextXAlignment = Enum.TextXAlignment.Center
+
+	-- COLONNA DELLE SCHEDE (parallelogrammi)
+	type Tab = { button: TextButton, shape: Frame, label: TextLabel, icon: ImageLabel, key: TextLabel, def: any }
+	local tabs: { [string]: Tab } = {}
+	for i, def in TABS do
+		local b = Instance.new("TextButton")
+		b.Name = "Tab_" .. def.key
+		b.Text = ""
+		b.BackgroundTransparency = 1
+		b.AutoButtonColor = false
+		b.LayoutOrder = i
+		b:SetAttribute("UiNative", true)
+		b.ZIndex = 5
+		b.Parent = window
+		-- scheda di Codex (parallelogramma con l'obliquo a destra, oro e ferro); il vecchio
+		-- parallelogramma disegnato resta solo se l'immagine non c'e'
+		local shape = Slant.new(b, Theme.DARK3, 0.15, 26)
+		shape.Size = UDim2.fromScale(1, 1)
+		Slant.setZ(shape, 5)
+		local framed = UiKit.Cornici.apply(b, "frame_tab_normal") ~= nil
+		shape.Visible = not framed
+		local strip = Theme.frame(if framed then b else shape, def.color, 0)
+		strip.Name = "Striscia"
+		strip.AnchorPoint = Vector2.new(0, 0.5)
+		strip.Size = if framed then UDim2.new(0, 4, 0.56, 0) else UDim2.new(0, 6, 1, 0)
+		strip.Position = if framed then UDim2.new(0, 14, 0.5, 0) else UDim2.new(0, 30, 0.5, 0)
+		strip.ZIndex = 6
+		local icon = Instance.new("ImageLabel")
+		icon.BackgroundTransparency = 1
+		icon.ZIndex = 7
+		icon.Parent = b
+		Ui.asset(icon, def.icon)
+		local label = UiKit.label(b, def.label, "button", 21)
+		label.ZIndex = 7
+		local key = UiKit.label(b, def.keyName, "status")
+		key.TextXAlignment = Enum.TextXAlignment.Right
+		key.ZIndex = 7
+		tabs[def.key] = { button = b, shape = shape, label = label, icon = icon, key = key, def = def }
 	end
+
+	-- PAGINE: i riquadri del modello (Store, Backpack, Dragons, Crafting, Upgrades) piu' Travel e
+	-- il profilo, fatti qui
+	local content = window.Content
+	content.ZIndex = 4
+	content.ClipsDescendants = false
+	content.BackgroundTransparency = 1
+	-- Sul telefono (circa 354 px di altezza) ogni pagina impilava blocchi fissi pensati per 450+
+	-- px e la finestra diventava una striscia (Mirko 16/10). Ora la pagina ha un'altezza minima
+	-- e, se non ci sta, si scorre in verticale invece di schiacciarsi
+	local pageScroll = Instance.new("ScrollingFrame")
+	pageScroll.Name = "Scorrimento"
+	pageScroll.BackgroundTransparency = 1
+	pageScroll.BorderSizePixel = 0
+	pageScroll.ScrollBarThickness = 4
+	pageScroll.ScrollBarImageColor3 = UiKit.LINE
+	pageScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+	pageScroll.ElasticBehavior = Enum.ElasticBehavior.Never
+	pageScroll.ZIndex = 4
+	pageScroll.Parent = window
+	content.Parent = pageScroll
+	content.Position = UDim2.fromOffset(0, 0)
+	local function page(name: string): Frame
+		local f = content:FindFirstChild(name) :: Frame?
+		if not f then
+			local nf = Instance.new("Frame")
+			nf.Name = name
+			nf.BackgroundTransparency = 1
+			nf.Size = UDim2.fromScale(1, 1)
+			nf.Visible = false
+			nf.Parent = content
+			f = nf
+		end
+		return f :: Frame
+	end
+	page("Teleport")
+	page("Home")
+	local PAGES = { "Home", "Store", "Backpack", "Dragons", "Crafting", "Upgrades", "Teleport" }
+	-- impaginazione interna dello Shop (schede Buy/Sell/Robux in alto, carte sotto)
+	local store = content.Store
+	store.Tabs.Size = UDim2.new(1, 0, 0, 44)
+	for _, b in store.Tabs:GetChildren() do
+		if b:IsA("GuiObject") then
+			b.Size = UDim2.new(1 / 3, -8, 1, 0)
+			local lim = b:FindFirstChild("SizeLimit")
+			if lim then
+				lim:Destroy()
+			end
+			if b:IsA("TextButton") then
+				Ui.text(b, 18, true)
+			end
+		end
+	end
+	store.Tabs.Position = UDim2.fromOffset(0, 0)
+	store.List.Position = UDim2.fromOffset(0, 54)
+	store.List.Size = UDim2.new(1, 0, 1, -54)
+	rows(content.Upgrades.List)
+
+	-- esito delle azioni ("Missing materials", "Waypoint set"...): un avviso breve SOPRA la pagina
+	-- in alto al centro, che sparisce da solo. Prima era una riga fissa in fondo che rubava 30 px
+	-- di altezza (sul telefono un decimo dello schermo) e finiva sotto i pulsanti
+	window.Status.Visible = false
+	window.Status:GetPropertyChangedSignal("Visible"):Connect(function()
+		window.Status.Visible = false
+	end)
+	local toast = Instance.new("TextLabel")
+	toast.Name = "Avviso"
+	toast.ZIndex = 30
+	toast.Parent = window
+	UiKit.text(toast, "button", 17)
+	toast:SetAttribute("UiNative", true)
+	toast.BackgroundColor3 = Color3.fromRGB(10, 13, 20)
+	toast.BackgroundTransparency = 0.02
+	toast.BorderSizePixel = 0
+	toast.TextWrapped = true
+	toast.Visible = false
+	UiKit.edge(toast, UiKit.LINE, 2, 0.2)
+	-- avviso di Codex attorno al riquadro (filo d'oro con le punte)
+	if UiKit.Cornici.apply(toast, "frame_toast", { mode = "outset", z = 2 }) then
+		UiKit.edge(toast, UiKit.LINE, 2, 1)
+	end
+	local toastPad = Instance.new("UIPadding")
+	toastPad.PaddingLeft, toastPad.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
+	toastPad.Parent = toast
+	local toastSerial = 0
 	local function status(message: string, ok: boolean)
-		window.Status.Text = message
-		window.Status.TextColor3 = if ok then Theme.GOOD else Theme.BAD
+		toastSerial += 1
+		local serial = toastSerial
+		toast.Text = message
+		toast.TextColor3 = if ok then UiKit.GOOD else UiKit.BAD
+		local stroke = toast:FindFirstChildOfClass("UIStroke")
+		if stroke then
+			stroke.Color = toast.TextColor3
+		end
+		toast.Visible = message ~= ""
+		task.delay(3.5, function()
+			if serial == toastSerial then
+				toast.Visible = false
+			end
+		end)
 	end
-	local names = { "Store", "Backpack", "Dragons", "Crafting", "Upgrades" }
-	local keys = { Enum.KeyCode.B, Enum.KeyCode.I, Enum.KeyCode.G, Enum.KeyCode.N, Enum.KeyCode.U }
+
 	local refreshers: { [string]: () -> () } = {}
 	local current: string? = nil
-	local styleNav: () -> () = function() end
-	local function open(name: string?)
-		if not name or current == name then
+	local hovered: string? = nil
+	local open: (string?, string?) -> ()
+	local ctx = {
+		filter = nil :: string?,
+		sub = function(text: string)
+			headSub.Text = text
+		end,
+		open = function(name: string, filter: string?)
+			open(name, filter)
+		end,
+	}
+
+	-- schede: quella attiva (sotto il mouse o aperta) esce, le altre si ritirano a sinistra
+	local tabMetrics = { x = 0, y = 0, w = 240, h = 64, gap = 10 }
+	local function styleTabs(animate: boolean)
+		local active = hovered or current
+		-- prospettiva (come il menu di Black Ops III): le schede piu' lontane da quella attiva
+		-- rientrano, rimpiccioliscono e si scuriscono, come se andassero indietro nello spazio
+		local activeIndex = 1
+		for i, def in TABS do
+			if def.key == active then
+				activeIndex = i
+			end
+		end
+		for i, def in TABS do
+			local t = tabs[def.key]
+			local on = def.key == active
+			local open_ = def.key == current
+			local hov = on and not open_
+			-- (Mirko 16/10: le schede lontane non devono sparire: restano piene e leggibili, la
+			-- profondita' la danno solo grandezza e rientro)
+			local far = if active then math.abs(i - activeIndex) else 0
+			local x = if open_ then 12 elseif hov then 8 else 2 + far * 3
+			local y = tabMetrics.y + (i - 1) * (tabMetrics.h + tabMetrics.gap)
+			local goal = UDim2.fromOffset(tabMetrics.x + x, y)
+			t.button.Size = UDim2.fromOffset(tabMetrics.w, tabMetrics.h)
+			if animate then
+				game:GetService("TweenService"):Create(t.button, TweenInfo.new(0.16, Enum.EasingStyle.Quad), { Position = goal }):Play()
+			else
+				t.button.Position = goal
+			end
+			local framed = t.button:FindFirstChild("Cornice") ~= nil
+			if framed then
+				UiKit.Cornici.apply(t.button, if open_ then "frame_tab_selected" elseif hov then "frame_tab_hover" else "frame_tab_normal")
+			else
+				Slant.paint(t.shape, if open_ then def.color elseif hov then UiKit.RAISED else UiKit.PANEL, if open_ then 0 elseif hov then 0.05 else math.min(0.5, 0.2 + far * 0.06))
+			end
+			local scale = t.button:FindFirstChild("Profondita") :: UIScale?
+			if not scale then
+				local ns = Instance.new("UIScale")
+				ns.Name = "Profondita"
+				ns.Parent = t.button
+				scale = ns
+			end
+			-- quella scelta e' piu' vicina, le spente piu' lontane
+			;(scale :: UIScale).Scale = if open_ then 1.03 elseif hov then 1 else math.max(0.86, 0.97 - far * 0.025)
+			t.icon.ImageTransparency = if framed or open_ or hov then 0 else math.min(0.6, 0.25 + far * 0.07)
+			local strip = (t.button:FindFirstChild("Striscia") or t.shape:FindFirstChild("Striscia")) :: Frame?
+			if strip then
+				strip.BackgroundColor3 = def.color
+				strip.BackgroundTransparency = if framed or open_ or hov then 0 else 0.45
+			end
+			local dark = not framed and open_ and (def.key == "Store" or def.key == "Upgrades" or def.key == "Crafting")
+			t.label.TextColor3 = if dark then Color3.fromRGB(30, 22, 6)
+				elseif framed and open_ then Color3.fromRGB(255, 222, 140)
+				elseif framed or open_ or hov then UiKit.TEXT
+				else UiKit.MUTED
+			t.label.TextStrokeTransparency = if framed then 0.6 else 1
+			t.key.TextColor3 = if dark then Color3.fromRGB(60, 46, 20) else UiKit.DIM
+		end
+	end
+	for _, def in TABS do
+		local t = tabs[def.key]
+		t.button.MouseEnter:Connect(function()
+			hovered = def.key
+			styleTabs(true)
+		end)
+		t.button.MouseLeave:Connect(function()
+			if hovered == def.key then
+				hovered = nil
+				styleTabs(true)
+			end
+		end)
+		t.button.MouseButton1Down:Connect(function()
+			local sc = t.button:FindFirstChild("Profondita") :: UIScale?
+			if sc then
+				sc.Scale = 0.95
+			end
+		end)
+		t.button.Activated:Connect(function()
+			-- di nuovo sulla scheda aperta: si torna al profilo
+			open(if current == def.key then "Home" else def.key)
+		end)
+	end
+
+	local function titleFor(name: string): (string, string, Color3)
+		if name == "Home" then
+			return "Profile", "icon_quest", Theme.ACCENT
+		end
+		for _, def in TABS do
+			if def.key == name then
+				return def.title, def.icon, def.color
+			end
+		end
+		return name, "", Theme.ACCENT
+	end
+
+	open = function(name: string?, filter: string?)
+		if not name then
 			window.Visible = false
 			current = nil
+			hovered = nil
 			gui:SetAttribute("MenuOpen", false)
-			styleNav()
 			return
 		end
-		current = name
-		styleNav()
-		local travel = player.PlayerGui:FindFirstChild("Teletrasporto")
-		local travelPanel = travel and travel:FindFirstChild("Panel") :: GuiObject?
-		if travelPanel then travelPanel.Visible = false end
-		-- il tutorial vuole sapere quando apri il Crafting (server/Tutorial)
+		local pageName = name :: string
+		current = if pageName == "Home" then nil else pageName
+		ctx.filter = filter
+		-- il tutorial vuole sapere quando apri una scheda (server/Tutorial)
 		local opened = RS:FindFirstChild("Remotes") and RS.Remotes:FindFirstChild("MenuOpened")
-		if opened then
-			(opened :: RemoteEvent):FireServer(name)
+		if opened and pageName ~= "Home" then
+			(opened :: RemoteEvent):FireServer(pageName)
 		end
-		-- finestra e titolo del colore della scheda (sfondo sfumato sotto la cornice)
-		local tone = MENU_COLORS[name] or Theme.BLUE
-		-- velo scuro (stile menu zombie di Black Ops 2): lo sfondo illustrato si intravede, il
-		-- colore della scheda resta solo nel titolo e nei pulsanti (Mirko 15/10: "lo sfondo
-		-- colorato fa schifo")
-		Ui.tint(window, Theme.DARK, false, 0)
-		local fill = window:FindFirstChild("Tinta") :: Frame?
-		if fill then
-			fill.BackgroundTransparency = 0.22
+		local title, icon, tone = titleFor(pageName)
+		headTitle.Text = title
+		headSub.Text = ""
+		-- il sottotitolo subito dopo il titolo ("Crafting  8 items")
+		task.defer(function()
+			local k = (gui:FindFirstChild("ScalaUI") :: UIScale?)
+			local scale = if k and k.Scale > 0 then k.Scale else 1
+			headSub.Position = UDim2.fromOffset(headTitle.Position.X.Offset + headTitle.TextBounds.X / scale + 22, headSub.Position.Y.Offset)
+		end)
+		Ui.asset(headIcon, icon)
+		headIcon.ImageColor3 = Color3.new(1, 1, 1)
+		headTitle.TextColor3 = Theme.TEXT
+		local _ = tone
+		coinsLabel.Text = fmtCoins()
+		status("", true)
+		for _, n in PAGES do
+			page(n).Visible = n == pageName
 		end
-		-- sfondo scuro dipinto da Codex (docs/CODEX_UOVA_E_SFONDI.md): quando ha l'ID prende il posto
-		-- dell'illustrazione della montagna e il velo diventa leggero
-		if Ui.asset(window.Background, "bg_menu_dark") then
-			window.Background.Visible = true
-			window.Background.ImageTransparency = 0
-			if fill then
-				fill.BackgroundTransparency = 0.55
+		local shown = page(pageName)
+		local fit = (ctx :: any).fit
+		if fit then
+			fit() -- (fitPage e' definita piu' sotto, con l'impaginazione)
+		end
+		shown.Position = UDim2.fromOffset(18, 0)
+		game:GetService("TweenService"):Create(shown, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Position = UDim2.fromOffset(0, 0) }):Play()
+		pageScroll.CanvasPosition = Vector2.zero
+		if not refreshers[pageName] then
+			local c = page(pageName)
+			refreshers[pageName] = if pageName == "Store" then mountShop(c, status)
+				elseif pageName == "Backpack" then mountInventory(c, status, ctx)
+				elseif pageName == "Dragons" then DragonUI.mount(c, status)
+				elseif pageName == "Upgrades" then UpgradeUI.mount(c, status, ctx)
+				elseif pageName == "Teleport" then TravelUI.mount(c, status, ctx)
+				elseif pageName == "Home" then ProfileUI.mount(c, ctx)
+				else CraftingUI.mount(c, status, ctx)
+		end
+		local wasOpen = window.Visible
+		gui:SetAttribute("MenuOpen", true)
+		window.Visible = true
+		styleTabs(wasOpen)
+		refreshers[pageName]()
+		if pageName == "Dragons" then
+			local data = player:GetAttribute("DragonData")
+			headSub.Text = if type(data) == "string" then "Your dragons and your nest" else ""
+		elseif pageName == "Store" then
+			headSub.Text = "Buy gear, sell ores and eggs"
+		elseif pageName == "Home" then
+			headSub.Text = player.DisplayName
+		end
+		if not wasOpen then
+			Ui.open(window)
+		end
+	end
+	-- una pagina puo' chiudere il menu mettendo MenuOpen a false (es. Ride nel menu draghi)
+	gui:GetAttributeChangedSignal("MenuOpen"):Connect(function()
+		if gui:GetAttribute("MenuOpen") ~= true and window.Visible then
+			open(nil)
+		end
+	end)
+	opener.Activated:Connect(function()
+		-- mentre si spostano i tasti del telefono il tasto si trascina, non apre il menu
+		if (require(script.Parent.ClientState) :: any).editingControls then
+			return
+		end
+		if window.Visible then
+			open(nil)
+		else
+			open("Home")
+		end
+	end)
+	-- a menu aperto le schermate del gioco che stanno sopra la finestra si spengono (il tasto Z
+	-- del drago e i pulsanti admin coprivano Close e il pulsante di Upgrades sul telefono)
+	local hiddenWhileOpen: { [ScreenGui]: boolean } = {}
+	window:GetPropertyChangedSignal("Visible"):Connect(function()
+		opener.Visible = not window.Visible
+		if window.Visible then
+			for _, n in { "CombatHUD", "AdminButtons" } do
+				local g = player.PlayerGui:FindFirstChild(n)
+				if g and g:IsA("ScreenGui") and g.Enabled then
+					hiddenWhileOpen[g] = true
+					g.Enabled = false
+				end
 			end
 		else
-			Ui.asset(window.Background, "bg_menu")
-			window.Background.Visible = true
-		end
-		-- l'immagine sotto il velo (tint porta tutti i figli sopra al colore)
-		window.Background.ZIndex = 0
-		-- intestazione come i mockup: titolo a sinistra sul fondo scuro (prima una fascia colorata
-		-- piena alta 44), monete accanto alla X
-		window.Title.BackgroundTransparency = 1
-		local band = window.Title:FindFirstChild("Tinta")
-		if band then
-			band:Destroy()
-		end
-		window.Title.TextColor3 = tone
-		coinsLabel.Text = string.format("%d", (player:GetAttribute("Coins") or 0) :: number)
-		gui:SetAttribute("MenuOpen", true)
-		window.Title.Text = if name == "Store" then "Shop" else name
-		window.Status.Text = ""
-		for _, n in names do
-			content[n].Visible = n == name
-		end
-		if not refreshers[name] then
-			local c = content[name]
-			refreshers[name] = if name == "Store"
-				then mountShop(c, status)
-				elseif name == "Backpack" then mountInventory(c, status)
-				elseif name == "Dragons" then DragonUI.mount(c, status)
-				elseif name == "Upgrades" then UpgradeUI.mount(c, status)
-				else CraftingUI.mount(c, status)
-		end
-		refreshers[name]()
-		Ui.open(window)
-	end
-	-- una scheda puo' chiudere il menu mettendo MenuOpen a false (es. Ride nel menu draghi)
-	gui:GetAttributeChangedSignal("MenuOpen"):Connect(function()
-		if gui:GetAttribute("MenuOpen") ~= true and current then
-			open(current)
+			for g in hiddenWhileOpen do
+				if g.Parent then
+					g.Enabled = true
+				end
+			end
+			table.clear(hiddenWhileOpen)
 		end
 	end)
-	for k, name in names do
-		local b = column[name]
-		b.Text = ""
-		b.Activated:Connect(function()
-			open(name)
-		end)
-		CAS:BindAction("Menu" .. name, function(_, state)
+	close.Activated:Connect(function()
+		open(nil)
+	end)
+	-- altri script (e le prove da Studio) aprono una pagina con l'attributo ApriPagina
+	-- ("Home", "Crafting", "Teleport"... oppure "" per chiudere)
+	gui:GetAttributeChangedSignal("ApriPagina"):Connect(function()
+		local v = gui:GetAttribute("ApriPagina")
+		if type(v) == "string" then
+			open(if v == "" then nil else v)
+		end
+	end)
+	-- tasti: la lettera della scheda la apre (di nuovo: chiude), M apre il profilo
+	for key, codes in KEYS do
+		CAS:BindAction("Menu" .. key, function(_, state)
 			if state == Enum.UserInputState.Begin then
-				open(name)
+				if window.Visible and current == key then
+					open(nil)
+				else
+					open(key)
+				end
 			end
 			return Enum.ContextActionResult.Pass
-		end, false, keys[k], if name == "Backpack" then Enum.KeyCode.V else keys[k])
+		end, false, table.unpack(codes))
 	end
-	window.Close.Activated:Connect(function()
-		open(nil)
-	end)
-	column.Teleport.Activated:Connect(function()
-		open(nil)
-		local teleport = player.PlayerGui:FindFirstChild("Teletrasporto")
-		if teleport then
-			Ui.open(Ui.node(teleport, "Panel"))
-		end
-	end)
-	-- fila nascosta col tasto Hide: restano il tasto e (se aperta) la finestra
-	local expanded = true
-	local compactNav = false
-	styleNav = function()
-		local travel = player.PlayerGui:FindFirstChild("Teletrasporto")
-		local travelPanel = travel and travel:FindFirstChild("Panel") :: GuiObject?
-		for _, n in NAV do
-			local btn = column[n]
-			local on = current == n or (n == "Teleport" and travelPanel ~= nil and travelPanel.Visible)
-			btn.BackgroundColor3 = if on then Theme.MENU[n] else Theme.DARK2
-			btn.BackgroundTransparency = if on then 0 else 0.12
-			local title = btn:FindFirstChild("NavTitle") :: TextLabel?
-			local icon = btn:FindFirstChild("Icon") :: ImageLabel?
-			if title then
-				title.Visible = not compactNav
-				title.Position = UDim2.new(0, 46, 0, 0)
-				title.Size = UDim2.new(1, -54, 1, 0)
-				title.TextXAlignment = Enum.TextXAlignment.Left
-			end
-			if icon then
-				icon.AnchorPoint = Vector2.new(if compactNav then 0.5 else 0, 0.5)
-				icon.Position = if compactNav then UDim2.fromScale(0.5, 0.5) else UDim2.new(0, 10, 0.5, 0)
-				icon.Size = if compactNav then UDim2.fromOffset(28, 28) else UDim2.fromOffset(30, 30)
+	CAS:BindAction("MenuProfilo", function(_, state)
+		if state == Enum.UserInputState.Begin then
+			if window.Visible and current == nil then
+				open(nil)
+			else
+				open("Home")
 			end
 		end
-		column.Visible = expanded
-		toggle.Text = "≡"
-		toggle.BackgroundColor3 = if expanded then Theme.DARK2 else Theme.ACCENT
+		return Enum.ContextActionResult.Pass
+	end, false, Enum.KeyCode.M)
+
+	-- impaginazione (pixel logici, UiView.fitScale)
+	local compactNow = false
+	-- altezza della pagina: almeno quella visibile, almeno 440 sul telefono, e quanto chiede la
+	-- pagina aperta (attributo AltezzaMinima: le pagine strette mettono la scheda sotto la griglia)
+	local pageBox = { w = 0, h = 0, min = 0 }
+	local function fitPage()
+		local shownPage = content:FindFirstChild(current or "Home")
+		local want = if shownPage then (shownPage:GetAttribute("AltezzaMinima") or 0) :: number else 0
+		local contentH = math.max(pageBox.h, pageBox.min, want)
+		local scrolls = contentH > pageBox.h + 1
+		content.Position = UDim2.fromOffset(0, 0)
+		content.Size = UDim2.fromOffset(pageBox.w - (if scrolls then 8 else 0), contentH)
+		pageScroll.CanvasSize = UDim2.fromOffset(0, contentH)
+		pageScroll.ScrollingEnabled = scrolls
 	end
-	toggle.Activated:Connect(function()
-		expanded = not expanded
-		player:SetAttribute("UiCollapsed", not expanded) -- l'HUD piega anche drago e monete
-		styleNav()
+	ctx.fit = fitPage
+	-- APRI-MENU nell'angolo a sinistra (Mirko 16/10: non vicino alla barra degli attrezzi, che
+	-- cosi' resta centrata). Computer: in basso a sinistra. Telefono: sul bordo sinistro a meta'
+	-- altezza (in basso a sinistra c'e' il joystick); col tasto ⚙ dei comandi si sposta come gli
+	-- altri pulsanti e la posizione si salva insieme a loro (ControlsLayout, voce MenuFrac)
+	local ClientState = require(script.Parent.ClientState)
+	local function menuFrac(): { number }?
+		local custom = (ClientState :: any).controlsCustom
+		local v = custom and custom.MenuFrac
+		if Ui.touch() and type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" then
+			return { math.clamp(v[1], 0.02, 0.98), math.clamp(v[2], 0.04, 0.96) }
+		end
+		return nil
+	end
+	local function placeOpener()
+		local w, h = if compactNow then 62 else 136, if compactNow then 54 else 50
+		local f = menuFrac()
+		if f then
+			opener.AnchorPoint = Vector2.new(0.5, 0.5)
+			opener.Position = UDim2.fromScale(f[1], f[2])
+			opener.Size = UDim2.fromOffset(w, h)
+		elseif Ui.touch() then
+			Ui.px(opener, 0, 6, 0.54, 0, w, h, 0, 0.5)
+		else
+			Ui.px(opener, 0, 12, 1, -12, w, h, 0, 1)
+		end
+		Ui.px(openerIcon, 0, if compactNow then 10 else 12, 0.5, 0, 30, 30, 0, 0.5)
+		openerText.Visible = not compactNow
+		Ui.px(openerText, 0, 50, 0, 0, 60, h)
+		openerKey.Visible = not compactNow and not Ui.touch()
+		Ui.px(openerKey, 1, -18, 0, 0, 20, h, 1, 0)
+	end
+	-- trascinamento nella modalita' "sposta i tasti" del telefono
+	do
+		local UISd = game:GetService("UserInputService")
+		local dragging: InputObject? = nil
+		opener.InputBegan:Connect(function(input)
+			if ClientState.editingControls and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
+				dragging = input
+			end
+		end)
+		UISd.InputChanged:Connect(function(input)
+			local d = dragging
+			if not d or not ClientState.editingControls then
+				return
+			end
+			if input == d or input.UserInputType == Enum.UserInputType.MouseMovement then
+				local size = gui.AbsoluteSize
+				if size.X < 1 then
+					return
+				end
+				local p = Vector2.new(input.Position.X, input.Position.Y) - gui.AbsolutePosition
+				local custom = (ClientState :: any).controlsCustom
+				if custom then
+					custom.MenuFrac = { p.X / size.X, p.Y / size.Y }
+				end
+				placeOpener()
+			end
+		end)
+		UISd.InputEnded:Connect(function(input)
+			if dragging and (input == dragging or input.UserInputType == Enum.UserInputType.MouseButton1) then
+				dragging = nil
+			end
+		end)
+	end
+	task.spawn(function()
+		-- la posizione salvata arriva coi dati del giocatore; Reset la toglie
+		local last = ""
+		while gui.Parent do
+			local f = menuFrac()
+			local key = if f then string.format("%.3f,%.3f", f[1], f[2]) else "-"
+			if key ~= last then
+				last = key
+				placeOpener()
+			end
+			task.wait(0.5)
+		end
 	end)
+	placeOpener()
 	Ui.viewportChanged(function(vp)
 		gui:SetAttribute("ShortUI", vp.Y < 560)
 		local logical = Ui.fitScale(gui, vp)
-		local m = Ui.menuMetrics(logical)
-		compactNav = m.compact
-		grid.FillDirectionMaxCells = m.cols
-		grid.CellSize = UDim2.fromOffset(m.cell, m.cellH)
-		grid.CellPadding = UDim2.fromOffset(m.gap, m.gap)
-		-- telefono: fila di cerchi in alto a sinistra subito dopo il tasto Hide; computer: al centro
-		if m.compact then
-			Ui.px(toggle, 0, 8, 0, 6, m.cellH, m.cellH)
-			Ui.px(column, 0, 8 + m.cellH + m.gap, 0, 6, m.navWidth, m.navHeight)
-		else
-			Ui.px(column, 0.5, 0, 0, 8, m.navWidth, m.navHeight, 0.5, 0)
-			Ui.px(toggle, 0.5, -m.navWidth / 2 - m.gap, 0, 8, m.cellH, m.cellH, 1, 0)
-		end
-		toggle.Visible = true
-		Ui.text(toggle, 24, true)
-		Ui.px(window, 0, m.x, 0, m.y, m.width, m.height)
-		-- finestra: sul telefono intestazione e schede basse (prima 44 + 54 px: il contenuto restava
-		-- in una striscia)
-		local head = if m.compact then 36 else 52
-		window.Title.Position = UDim2.fromOffset(14, if m.compact then 2 else 6)
-		window.Title.Size = UDim2.new(1, -260, 0, head - 4)
-		Ui.text(window.Title, if m.compact then 20 else 26, true)
-		window.Title.TextXAlignment = Enum.TextXAlignment.Left
-		Ui.px(window.Close, 1, -8, 0, if m.compact then 2 else 6, head - 4, head - 4, 1, 0)
-		Ui.px(coinsBox, 1, -(head + 12), 0, if m.compact then 2 else 6, 150, head - 4, 1, 0)
-		Ui.text(coinsLabel, if m.compact then 16 else 20, true)
+		local compact = Ui.compact(vp) or logical.X < 900
+		local short = logical.Y < 520
+		compactNow = compact
+		UiKit.compact = compact
+		placeOpener()
+		-- finestra: quasi tutto lo schermo; sul telefono tutta l'altezza (prima perdeva 60 px per
+		-- la riga del vecchio tasto e restava una striscia)
+		local w = math.min(1260, logical.X - (if compact then 12 else 24))
+		local top = if compact then 4 else 12
+		local h = logical.Y - top - (if compact then 4 else 12)
+		Ui.px(window, 0.5, 0, 0, top, w, h, 0.5, 0)
+		local headH = if short then 44 else 62
+		-- bordo della cornice: il fondo scuro sta dentro
+		local border = if compact then 10 else 16
+		UiKit.Cornici.apply(window, "frame_panel", { border = border })
+		Ui.px(inner, 0, border, 0, border, w - 2 * border, h - 2 * border)
+		Ui.px(head, 0, 0, 0, 0, w, headH)
+		Ui.px(headIcon, 0, 16, 0, 8, headH - 16, headH - 16)
+		Ui.px(headTitle, 0, headH + 6, 0, 0, 280, headH)
+		UiKit.text(headTitle, "title", if short then 26 else 34)
+		headTitle.TextXAlignment = Enum.TextXAlignment.Left
+		Ui.px(headSub, 0, headH + 10 + 160, 0, 0, 420, headH)
+		UiKit.text(headSub, "section", if short then 14 else 17)
+		headSub.TextXAlignment = Enum.TextXAlignment.Left
+		local closeW = if compact then 76 else 88
+		Ui.px(close, 1, -10, 0, if compact then 5 else 8, closeW, headH - (if compact then 10 else 16), 1, 0)
+		local coinsW = if compact then 150 else 190
+		Ui.px(coinsBox, 1, -(closeW + (if compact then 18 else 24)), 0, 0, coinsW, headH, 1, 0)
+		UiKit.text(coinsLabel, "stat", if short then 19 else 24)
 		coinsLabel.TextXAlignment = Enum.TextXAlignment.Left
-		content.Position = UDim2.fromOffset(if m.compact then 8 else 12, head + 4)
-		content.Size = UDim2.new(1, if m.compact then -16 else -24, 1, -(head + 4) - (if m.compact then 22 else 32))
-		Ui.px(window.Status, 0, 18, 1, -2, 600, if m.compact then 20 else 28, 0, 1)
-		window.Status.Size = UDim2.new(1, -36, 0, if m.compact then 20 else 28)
-		local tabH = if m.compact then 34 else 44
-		for _, tabbed in { content.Store, content.Upgrades } do
-			tabbed.Tabs.Size = UDim2.new(1, 0, 0, tabH)
-			tabbed.List.Position = UDim2.fromOffset(0, tabH + 8)
-			tabbed.List.Size = UDim2.new(1, 0, 1, -(tabH + 8))
+		-- schede: colonna a parallelogrammi anche sul telefono (Mirko 16/10: la fila di quadratini
+		-- nell'intestazione era sbagliata), solo piu' stretta
+		local colW = if compact then 132 else 250
+		local tabsTop = headH + (if compact then 6 else 8)
+		local gap = if short then 6 else 10
+		local avail = h - tabsTop - 12
+		local tabH = math.clamp(math.floor((avail - 5 * gap) / 6), 36, 74)
+		tabMetrics.x, tabMetrics.y, tabMetrics.w, tabMetrics.h, tabMetrics.gap = 0, tabsTop, colW + 14, tabH, gap
+		for _, def in TABS do
+			local t = tabs[def.key]
+			t.button.Visible = true
+			local isz = math.floor(tabH * 0.56)
+			Ui.px(t.icon, 0, if compact then 38 else 44, 0.5, 0, isz, isz, 0, 0.5)
+			Ui.px(t.label, 0, (if compact then 42 else 50) + isz, 0, 0, colW - isz - (if compact then 24 else 60), tabH)
+			UiKit.text(t.label, "button", if compact then 15 else 21)
+			t.label.TextXAlignment = Enum.TextXAlignment.Left
+			Ui.px(t.key, 1, -34, 0, 0, 24, tabH, 1, 0)
+			t.key.Visible = not Ui.touch() and not compact
 		end
-		styleNav()
+		headSub.Visible = not compact
+		styleTabs(false)
+		-- pagina: mai piu' alta dello spazio visibile (prima sul telefono aveva un'altezza minima
+		-- di 440 e le liste dentro finivano sotto il bordo: per arrivare all'ultima riga bisognava
+		-- scorrere due cose insieme)
+		local cx = colW + 26 + (if compact then 8 else 12)
+		local pageW = w - cx - (if compact then 8 else 12)
+		local pageH = h - tabsTop - (if compact then 6 else 14)
+		Ui.px(pageScroll, 0, cx, 0, tabsTop, pageW, pageH)
+		pageBox.w, pageBox.h, pageBox.min = pageW, pageH, 0
+		fitPage()
+		toast.AnchorPoint = Vector2.new(0.5, 0)
+		toast.Position = UDim2.new(0, cx + pageW / 2, 0, tabsTop + 4)
+		toast.Size = UDim2.fromOffset(math.min(560, pageW - 40), if compact then 34 else 40)
 	end)
+
+	-- PARALLASSE leggera (solo col mouse, solo a menu aperto): fondo, fumo e pagina si spostano
+	-- di poco e a velocita' diverse, come strati a profondita' diverse
+	local parallax: RBXScriptConnection? = nil
+	local UIS = game:GetService("UserInputService")
+	local smokeBase = smoke.Position
+	local function stopParallax()
+		if parallax then
+			parallax:Disconnect()
+			parallax = nil
+		end
+		bg.Position = UDim2.fromScale(0.5, 0.5)
+		smoke.Position = smokeBase
+	end
+	local offset = Vector2.zero
+	local function startParallax()
+		if parallax or Ui.touch() then
+			return
+		end
+		parallax = game:GetService("RunService").RenderStepped:Connect(function(dt)
+			local cam = workspace.CurrentCamera
+			if not cam or not window.Visible then
+				stopParallax()
+				return
+			end
+			local m = UIS:GetMouseLocation()
+			local vs = cam.ViewportSize
+			local want = Vector2.new((m.X / vs.X - 0.5) * 2, (m.Y / vs.Y - 0.5) * 2)
+			local before = offset
+			offset = offset:Lerp(want, math.min(1, dt * 6))
+			if (offset - before).Magnitude < 0.0005 then
+				return -- fermo: niente lavoro
+			end
+			bg.Position = UDim2.new(0.5, -offset.X * 16, 0.5, -offset.Y * 10)
+			smoke.Position = smokeBase + UDim2.fromOffset(-offset.X * 7, -offset.Y * 4)
+		end)
+	end
+	window:GetPropertyChangedSignal("Visible"):Connect(function()
+		if window.Visible then
+			startParallax()
+		else
+			stopParallax()
+		end
+	end)
+	-- caratteri e angoli vivi per tutto quello che c'e' (e ci sara') nella finestra
+	UiKit.adopt(window)
 
 	for eventName, tabName in { OpenShop = "Store", OpenCrafting = "Crafting", OpenDragons = "Dragons" } do
 		(remotes:WaitForChild(eventName) :: RemoteEvent).OnClientEvent:Connect(function()
@@ -897,8 +1826,12 @@ function MainMenu.start()
 		end)
 	end
 	local function refreshOpen()
-		if current and refreshers[current] then
-			refreshers[current]()
+		if not window.Visible then
+			return
+		end
+		local name = current or "Home"
+		if refreshers[name] then
+			refreshers[name]()
 		end
 	end
 	for _, attr in { "Coins", "DragonData", "CarryingEgg", "HouseLevel", "Pitons" } do

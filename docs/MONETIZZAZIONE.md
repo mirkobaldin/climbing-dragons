@@ -106,7 +106,7 @@ Ogni prompt qui sotto è pronto da incollare in ChatGPT. Chiedi sempre "square 1
 - **Prezzo consigliato:** 79 Robux
 - **Nome:** `1,000 Coins`
 - **Descrizione:**
-  > A bag of 1,000 coins for the base camp shop: pitons, medkits, mystery eggs and your next house upgrade.
+  >                                                   
 - **Prompt immagine:**
   > Square 1:1 stylized 3D game icon. A big open leather bag overflowing with shiny gold coins, a few coins flying out with sparkles. Green to gold radial gradient background. Centered, big readable silhouette, empty margin. No text, no letters, no numbers, no logo. Roblox game store style.
 

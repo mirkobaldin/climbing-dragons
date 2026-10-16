@@ -57,18 +57,19 @@ local function eggTarget(player: Player, memo: { [string]: any }): Vector3?
 	return memo.eggSpot
 end
 
--- Testi corti (Mirko: "deve capirlo un bambino"). {KEY1}, {CLIMB}... diventano il comando del
+-- Testi corti (Mirko: "deve capirlo un bambino"): "OBIETTIVO|aiuto", l'aiuto compare solo se
+-- serve (client/HUD). {KEY1}, {CLIMB}... diventano il comando del
 -- computer o del telefono (UiView.hintText); {UI:Store} fa lampeggiare quel pulsante del menu
 local STEPS: { Step } = {
 	{
-		text = "Follow the arrows to the climbing wall",
+		text = "GO TO THE CLIMBING WALL|Follow the arrows",
 		check = function(player, memo)
 			return near(player, memo.wallBase, 30)
 		end,
 		target = fixed("wallBase"),
 	},
 	{
-		text = "Take the Ice Axe {KEY1} and climb to the top {CLIMB}",
+		text = "CLIMB THE WALL|{KEY1}. {CLIMB}",
 		check = function(player, memo)
 			return near(player, memo.wallTop, 16)
 		end,
@@ -77,8 +78,18 @@ local STEPS: { Step } = {
 	-- un passo solo (i passi sono 9 come prima: TutorialStep e' nei salvataggi e chi l'aveva
 	-- finito, passo 10, deve restare fuori dal tutorial)
 	{
-		text = "Place a piton {PITON}, then take it back {UNCLIP}",
+		-- chiodo: si pianta col tasto del chiodo sulla parete (cerchio verde = punto buono), poi
+		-- ci si sgancia vicino al chiodo e torna nello zaino (+1). Il client cambia l'obiettivo in
+		-- "UNCLIP THE ROPE" quando la corda e' attaccata (client/HUD)
+		text = "PLACE A PITON|{KEY1}. Face the rock wall. {PITON}",
 		check = function(player, memo)
+			-- per la prova servono chiodi: se non ne hai, il tutorial te ne da' due
+			if not memo.gave and ((player:GetAttribute("Pitons") or 0) :: number) < 1 then
+				memo.gave = true
+				player:SetAttribute("Pitons", 2)
+				player:SetAttribute("Notice", "+2 pitons for the lesson")
+				player:SetAttribute("NoticeTime", os.clock())
+			end
 			local placed = attributeAtLeast("PitonsPlaced", "pitons0")(player, memo)
 			memo.placedOnce = memo.placedOnce or placed
 			return memo.placedOnce and attributeAtLeast("PitonsRecovered", "recovered0")(player, memo)
@@ -86,26 +97,26 @@ local STEPS: { Step } = {
 		target = fixed("wallBase"),
 	},
 	{
-		text = "Take the Pickaxe {KEY2} and mine the shiny rock {MINE}",
+		text = "MINE THE CRYSTAL|{KEY2}. {MINE}",
 		check = attributeAtLeast("OresMined", "ores0"),
 		target = fixed("ore"),
 	},
 	{
-		text = "Sell your ores: open the Shop, tab Sell {UI:Store}",
+		text = "SELL YOUR ORES|Open the menu, then Shop, tab Sell {UI:Store}",
 		check = attributeAtLeast("OresSold", "sold0"),
 		target = fixed("shop"),
 	},
 	-- l'uovo si prende QUI, prima di andare al campo (Mirko: prima ti portava al campo e poi
 	-- toccava tornare indietro a prendere l'uovo e risalire). Si porta al campo sulla schiena.
 	{
-		text = "Pick up the dragon egg",
+		text = "PICK UP THE EGG|Follow the arrows to the egg",
 		check = function(player, memo)
 			return player:GetAttribute("CarryingEgg") ~= nil or attributeAtLeast("EggsIncubated", "incubated0")(player, memo)
 		end,
 		target = fixed("eggSpot"),
 	},
 	{
-		text = "This is your camp! Buy the Tent at the sign {UI:Store}",
+		text = "BUY THE TENT|This is your camp: buy the Tent in the Shop {UI:Store}",
 		arrive = "camp",
 		check = function(player)
 			return ((player:GetAttribute("HouseLevel") or 0) :: number) >= 1
@@ -115,12 +126,12 @@ local STEPS: { Step } = {
 	-- (il passo "apri il Crafting" non c'e' piu': i passi devono restare 9 per i salvataggi;
 	-- il banco da lavoro arriva con la Tenda e lo dice la nota finale)
 	{
-		text = "Put the egg in your nest",
+		text = "PUT THE EGG IN YOUR NEST|Walk to the nest with the egg",
 		check = attributeAtLeast("EggsIncubated", "incubated1"),
 		target = eggTarget,
 	},
 	{
-		text = "Hatch your dragon: open Dragons and tap Hatch {UI:Dragons}",
+		text = "HATCH YOUR EGG|Open the menu, then Dragons, and tap Hatch {UI:Dragons}",
 		check = attributeAtLeast("EggsHatched", "hatched0"),
 		target = playerAttr("NestPosition"),
 	},

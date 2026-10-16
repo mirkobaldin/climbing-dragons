@@ -531,10 +531,15 @@ local function decorate(pet: Model)
 	corner.CornerRadius = UDim.new(0, 6)
 	corner.Parent = label
 	local function refresh()
-		label.Text = "Lv " .. tostring(pet:GetAttribute("Level") or 1)
+		-- col nome che gli ha dato il giocatore (DragonConfig.NAME_LEVEL) l'etichetta si allarga
+		local name = pet:GetAttribute("DragonName")
+		local lv = "Lv " .. tostring(pet:GetAttribute("Level") or 1)
+		label.Text = if type(name) == "string" then name .. "  ·  " .. lv else lv
+		gui.Size = UDim2.fromOffset(if type(name) == "string" then 170 else 70, 22)
 	end
 	refresh()
 	pet:GetAttributeChangedSignal("Level"):Connect(refresh)
+	pet:GetAttributeChangedSignal("DragonName"):Connect(refresh)
 	gui.Parent = pet
 
 	local aura = Instance.new("ParticleEmitter")
@@ -640,7 +645,11 @@ local function startAim(event: RemoteEvent)
 	tip.TextScaled = true
 	tip.TextColor3 = Color3.new(1, 1, 1)
 	tip.TextStrokeTransparency = 0.4
-	tip.Text = "Aim with the mouse · click to shoot"
+	-- testo per il dispositivo in uso (prima "mouse" anche sul telefono)
+	local Ui_ = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("UiView"))
+	tip.Text = if Ui_.inputMode() == "touch" then "Aim with your finger · tap FIRE to shoot"
+		elseif Ui_.inputMode() == "pad" then "Aim with the stick · [R2] to shoot"
+		else "Aim with the mouse · click to shoot"
 	tip.Parent = gui
 	-- scheda piccola (in basso a destra, non copre la visuale): solo XP e precisione della sessione.
 	-- Le statistiche complete del drago stanno sempre nell'HUD, sotto la scheda del giocatore

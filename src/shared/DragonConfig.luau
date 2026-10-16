@@ -150,6 +150,8 @@ DragonConfig.STAGES = {
 
 -- Livelli e addestramento (zona delle costole del drago, vedi server/Training)
 DragonConfig.MAX_LEVEL = 100
+-- livello dal quale puoi dare un nome al tuo drago (menu Dragons, server/Dragons "rename")
+DragonConfig.NAME_LEVEL = 10
 DragonConfig.TRAINING = {
 	TARGET_XP = 14, -- XP per ogni colpo a un bersaglio
 	TARGET_COOLDOWN = 1.1, -- secondi tra un colpo e l'altro

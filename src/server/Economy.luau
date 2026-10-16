@@ -107,7 +107,8 @@ local function ratePerMinute(player: Player): number
 	for _, d in roosting(player) do
 		rate += (EconomyConfig.ROOST_RATE[d.rarity] or 1) * d.stage
 	end
-	return rate
+	-- potenziamento del drago Treasure Hoard
+	return rate * UpgradeConfig.value(player, "Tesoro", "mult")
 end
 
 local groundParams = RaycastParams.new()
@@ -194,9 +195,12 @@ local function refreshRoost(player: Player)
 			end
 		end
 		CollectionService:AddTag(model, "Riposo")
+		-- monete che fa ogni 10 secondi: il client le fa uscire dal drago (client/FarmCoins)
+		model:SetAttribute("Rendita", (EconomyConfig.ROOST_RATE[d.rarity] or 1) * d.stage * UpgradeConfig.value(player, "Tesoro", "mult") / 6)
 		model.Parent = folder
 	end
 	folder.Parent = plot
+	CollectionService:AddTag(folder, "FattoriaDraghi")
 	player:SetAttribute("RoostRate", ratePerMinute(player))
 end
 
@@ -898,6 +902,11 @@ function Economy.setup()
 						local whole = math.floor(s.pending)
 						s.pending -= whole
 						Economy.addCoins(player, whole)
+					end
+					-- segnale per le monete che escono dai draghi della fattoria
+					local roost = s.plot and s.plot:FindFirstChild("Roost")
+					if roost then
+						roost:SetAttribute("Paga", ((roost:GetAttribute("Paga") or 0) :: number) + 1)
 					end
 				end
 			end

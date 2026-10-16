@@ -22,6 +22,10 @@ export type Recipe = {
 	-- in qualunque posto, se hai i materiali
 	station: string?,
 	consumable: boolean?, -- si puo' costruire tutte le volte che vuoi (non e' un attrezzo fisso)
+	-- filtro del menu Crafting: "Equipment", "Tools", "Consumables" o "Materials"
+	category: string,
+	-- materiali che ricevi (ricette "Materials": servono ai potenziamenti, cartella Materiali)
+	gives: { [string]: number }?,
 }
 
 local Gear = {}
@@ -29,6 +33,7 @@ local Gear = {}
 local RECIPES: { Recipe } = {
 	{
 		id = "Ramponi",
+		category = "Equipment",
 		name = "Crampons",
 		description = "Steel-spiked boots: climb ice without slipping.",
 		cost = { Ferro = 8, Carbone = 6 },
@@ -36,6 +41,7 @@ local RECIPES: { Recipe } = {
 	},
 	{
 		id = "Tuta",
+		category = "Equipment",
 		name = "Thermal Suit",
 		description = "High-altitude cold drains your warmth 4 times slower.",
 		cost = { Cristallo = 6, Oro = 4, Carbone = 8 },
@@ -43,6 +49,7 @@ local RECIPES: { Recipe } = {
 	},
 	{
 		id = "Rampino",
+		category = "Tools",
 		name = "Grappling Hook",
 		description = "Click a distant wall: the rope pulls you up. Gets you past smooth walls.",
 		cost = { Ferro = 12, Oro = 3, Cristallo = 2 },
@@ -51,6 +58,7 @@ local RECIPES: { Recipe } = {
 	},
 	{
 		id = "PiccoRinforzato",
+		category = "Tools",
 		name = "Reinforced Pickaxe",
 		description = "Gold and crystal tip: mines Ruby and Cosmic ore.",
 		cost = { Oro = 6, Cristallo = 4, Ferro = 6 },
@@ -58,21 +66,24 @@ local RECIPES: { Recipe } = {
 	},
 	{
 		id = "Parapendio",
+		category = "Equipment",
 		name = "Paraglider",
-		description = "Press Space while falling to open it and glide down the mountain.",
+		description = "Jump while falling to open it and glide down the mountain.",
 		cost = { Ferro = 10, Cristallo = 4, Carbone = 8 },
 		station = "Banco",
 	},
 	{
 		id = "Sella",
+		category = "Equipment",
 		name = "Dragon Saddle",
-		description = "Ride your adult dragon: press H (or Ride) and fly anywhere.",
+		description = "Ride your adult dragon and fly anywhere.",
 		cost = { Ferro = 12, Oro = 6, Cristallo = 6, Rubino = 2 },
 		station = "Banco",
 	},
 	-- Da costruire ovunque, al volo, con quello che hai nello zaino
 	{
 		id = "Chiodi",
+		category = "Consumables",
 		name = "Pitons (+4)",
 		description = "Forge four wall pitons from the iron in your pack.",
 		cost = { Ferro = 2, Carbone = 1 },
@@ -81,6 +92,7 @@ local RECIPES: { Recipe } = {
 	},
 	{
 		id = "Torcia",
+		category = "Tools",
 		name = "Torch",
 		description = "Lights up caves and the night, and warms your hands a little.",
 		cost = { Carbone = 2, Ferro = 1 },
@@ -90,14 +102,49 @@ local RECIPES: { Recipe } = {
 	},
 	{
 		id = "Bende",
+		category = "Consumables",
 		name = "Bandages",
 		description = "Patch yourself up after a fall: +40 health.",
 		cost = { Cristallo = 1, Carbone = 1 },
 		station = "Ovunque",
 		consumable = true,
 	},
+	-- Materiali dei potenziamenti (Mirko 15/10: "nel crafting non ci sono alcune cose degli upgrade,
+	-- come le ottieni?"): cadono dai nemici, ma si possono anche fare al banco coi minerali
+	{
+		id = "Pelliccia_Yeti",
+		category = "Materials",
+		name = "Yeti Fur",
+		description = "Thick fur for upgrades. Yetis drop it too.",
+		cost = { Carbone = 8, Ferro = 4, Cristallo = 1 },
+		station = "Banco",
+		consumable = true,
+		gives = { Pelliccia_Yeti = 1 },
+	},
+	{
+		id = "Cristallo_Ghiaccio",
+		category = "Materials",
+		name = "Ice Crystal",
+		description = "Frozen crystal for upgrades. Yetis and Ice Golems drop it.",
+		cost = { Cristallo = 3, Ferro = 2 },
+		station = "Banco",
+		consumable = true,
+		gives = { Cristallo_Ghiaccio = 1 },
+	},
+	{
+		id = "Nucleo_Glaciale",
+		category = "Materials",
+		name = "Glacial Core",
+		description = "The heart of an Ice Golem, fused from ice crystals and gold.",
+		cost = { Cristallo_Ghiaccio = 3, Oro = 3 },
+		station = "Banco",
+		consumable = true,
+		gives = { Nucleo_Glaciale = 1 },
+	},
 }
 Gear.RECIPES = RECIPES
+-- materiali dei nemici (cartella Materiali del giocatore); gli altri costi sono minerali (Ores)
+Gear.MONSTER_MATERIALS = { Pelliccia_Yeti = true, Cristallo_Ghiaccio = true, Nucleo_Glaciale = true }
 
 -- Minerali che si possono estrarre solo col Piccone rinforzato
 Gear.HARD_ORES = { Rubino = true, Cosmico = true }

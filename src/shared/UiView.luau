@@ -122,6 +122,12 @@ function UiView.skin(target: GuiObject, name: string)
  end
  target.BackgroundTransparency = 1
  UiView.asset(image :: ImageLabel, name)
+ -- chi ha gia' la sua etichetta (tasti del telefono: "Etichetta") non vuole la seconda scritta
+ -- (Mirko 16/10: "su telefono escono due scritte sui pulsanti")
+ if target:GetAttribute("OwnCaption") and (target:IsA("TextButton") or target:IsA("TextLabel")) then
+  target.TextTransparency = 1
+  return
+ end
  if target:IsA("TextButton") or target:IsA("TextLabel") then
   -- Una sola etichetta, aggiornata anche quando cambiano tipo o stato.
   local caption = Instance.new("TextLabel")
@@ -641,20 +647,57 @@ end
 -- server scrive {KEY1}, {CLIMB}... e qui diventano "press 1" o "tap the Ice Axe below" (prima sul
 -- telefono c'era scritto "press Space"). {UI:Nome} indica il pulsante del menu da evidenziare
 -- (client/TutorialHints) e sparisce dal testo.
-local HINTS: { [string]: { pc: string, touch: string } } = {
-	KEY1 = { pc = "(press 1)", touch = "(tap it in the bar below)" },
-	KEY2 = { pc = "(press 2)", touch = "(tap it in the bar below)" },
-	CLIMB = { pc = "(click the rock, hold W)", touch = "(tap Climb, push the stick up)" },
-	PITON = { pc = "(press F while climbing)", touch = "(tap Piton while climbing)" },
-	UNCLIP = { pc = "(press R)", touch = "(tap Unclip)" },
-	MINE = { pc = "(click the rock)", touch = "(tap Mine)" },
-	JUMP = { pc = "(Space)", touch = "(Jump button)" },
+-- tre versioni: computer, telefono, gamepad (Mirko 16/10: sul telefono c'era scritto
+-- "Release the key", che sul telefono non esiste)
+local HINTS: { [string]: { pc: string, touch: string, pad: string } } = {
+	KEY1 = { pc = "Press [1] for the Ice Axes", touch = "Tap slot 1 in the bar below", pad = "Pick slot 1 in the bar" },
+	KEY2 = { pc = "Press [2] for the Pickaxe", touch = "Tap slot 2 in the bar below", pad = "Pick slot 2 in the bar" },
+	CLIMB = { pc = "Click the rock, then hold [W]", touch = "Tap CLIMB, then push the stick up", pad = "Press [R2] on the rock, then push the stick up" },
+	PITON = { pc = "Hold [F], aim at the rock: green circle = good spot. Release [F] to place", touch = "Hold PITON, aim at the rock: green circle = good spot. Release to place", pad = "Hold [X], aim at the rock: green circle = good spot. Release [X] to place" },
+	UNCLIP = { pc = "Stay near the piton and press [R]: you unclip and get the piton back (+1)", touch = "Stay near the piton and tap UNCLIP: you get the piton back (+1)", pad = "Stay near the piton and press [Y]: you get the piton back (+1)" },
+	MINE = { pc = "Click the shiny rock", touch = "Tap MINE next to the rock", pad = "Press [R2] next to the rock" },
+	JUMP = { pc = "Press [Space]", touch = "Tap JUMP", pad = "Press [A]" },
+	RIDE = { pc = "Press [H] to ride", touch = "Tap RIDE", pad = "Press [H] to ride" },
+	FIRE = { pc = "Click to fire", touch = "Tap FIRE", pad = "Press [R2] to fire" },
 }
+
+-- come sta giocando adesso: "touch", "pad" o "pc" (cambia se prende in mano il gamepad)
+function UiView.inputMode(): string
+	if UiView.touch() then
+		return "touch"
+	end
+	local UIS = game:GetService("UserInputService")
+	local last = UIS:GetLastInputType()
+	if last == Enum.UserInputType.Gamepad1 or last == Enum.UserInputType.Gamepad2 then
+		return "pad"
+	end
+	return "pc"
+end
+
+-- il testo di un comando per il dispositivo in uso ("PITON" -> "Hold [F] to aim...")
+function UiView.prompt(key: string): string
+	local h = HINTS[key]
+	if not h then
+		return ""
+	end
+	local mode = UiView.inputMode()
+	local out = if mode == "touch" then h.touch elseif mode == "pad" then h.pad else h.pc
+	-- piccozze e piccone: la casella vera della barra (si possono spostare nello zaino)
+	if key == "KEY1" or key == "KEY2" then
+		local ok, slot = pcall(function()
+			local Hotbar = require(script.Parent.Hotbar)
+			local ClimbConfig = require(script.Parent.ClimbConfig)
+			return table.find(Hotbar.current(Players.LocalPlayer), if key == "KEY1" then ClimbConfig.TOOL_NAME else ClimbConfig.PICKAXE_NAME)
+		end)
+		local n = if ok and slot then tostring(slot) else (if key == "KEY1" then "1" else "2")
+		out = (out:gsub("%[[12]%]", "[" .. n .. "]"):gsub("slot [12]", "slot " .. n))
+	end
+	return out
+end
+
 function UiView.hintText(text: string): string
-	local touch = UiView.touch()
 	local out = text:gsub("{UI:%w+}", ""):gsub("{(%w+)}", function(key: string)
-		local h = HINTS[key]
-		return if h then (if touch then h.touch else h.pc) else ""
+		return UiView.prompt(key)
 	end)
 	return (out:gsub("%s+$", ""):gsub("  +", " "))
 end
@@ -673,7 +716,9 @@ function UiView.fitScale(gui: ScreenGui, vp: Vector2): Vector2
 	local s = if UiView.compact(vp) then 1 else math.clamp(math.min(vp.X / 1280, vp.Y / 680), 1, 1.5)
  local logical = vp / s
 	if simReal then
-		s = simReal.X / logical.X
+		-- tutto lo schermo simulato dentro la finestra di Studio (prima si adattava solo alla
+		-- larghezza e il fondo del telefono finiva fuori dalla vista)
+		s = math.min(simReal.X / logical.X, simReal.Y / logical.Y)
 	end
 	local u = gui:FindFirstChild("ScalaUI") :: UIScale?
 	if not u then

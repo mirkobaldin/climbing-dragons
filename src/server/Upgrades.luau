@@ -22,7 +22,8 @@ local Survival = require(script.Parent.Survival)
 local Upgrades = {}
 
 -- statistiche salvate (contatori)
-local STATS = { "Kills", "Kills_Yeti", "Kills_GolemGhiaccio", "BossKills", "Summits", "Descents", "AirHits", "Specials", "MetersClimbed", "DuelTier" }
+-- PlayTime (secondi di gioco) e MaxAltitude (quota piu' alta) servono alla pagina dei record del menu
+local STATS = { "Kills", "Kills_Yeti", "Kills_GolemGhiaccio", "BossKills", "Summits", "Descents", "AirHits", "Specials", "MetersClimbed", "DuelTier", "PlayTime", "MaxAltitude" }
 
 type BountySlot = { id: string, need: number, progress: number }
 type State = {
@@ -625,6 +626,24 @@ function Upgrades.setup()
 					local ok, err = pcall(tick, player, dt)
 					if not ok then
 						warn("[Upgrades] " .. tostring(err))
+					end
+				end
+			end
+		end
+	end)
+	-- tempo di gioco e quota record (pagina dei record del menu), ogni 10 secondi
+	task.spawn(function()
+		while true do
+			task.wait(10)
+			for _, player in Players:GetPlayers() do
+				if player:GetAttribute("UpgradesLoaded") then
+					player:SetAttribute("PlayTime", ((player:GetAttribute("PlayTime") or 0) :: number) + 10)
+					local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+					if root then
+						local alt = math.floor(math.max(0, root.Position.Y - 20))
+						if alt > ((player:GetAttribute("MaxAltitude") or 0) :: number) then
+							player:SetAttribute("MaxAltitude", alt)
+						end
 					end
 				end
 			end

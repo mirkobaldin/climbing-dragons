@@ -53,11 +53,8 @@ local function onFall(player: Player, speed: any, meters: any)
 	if DragonConfig.hasAbility(player, "Ombra") then
 		dmg *= 0.5 -- il drago Ombra attutisce le cadute
 	end
-	-- esoscheletro: meno danni; picchiata andata a segno sui nemici: nessun danno
+	-- esoscheletro: meno danni (la Picchiata che li annullava e' stata tolta)
 	dmg *= 1 - UpgradeConfig.value(player, "Esoscheletro", "fall")
-	if os.clock() - ((player:GetAttribute("PlungeHit") or 0) :: number) < 1.5 then
-		dmg = 0
-	end
 	if dmg > 0 then
 		Survival.damage(humanoid, dmg, string.format("Fell %d meters", math.floor(math.clamp(meters, 0, 5000))))
 	end
@@ -84,20 +81,36 @@ function Survival.setup()
 		local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 		local maxY = 0
 		local born = os.clock()
+		-- vita nuova: niente causa della morte di prima (client/DeathScreen la mostrerebbe ancora)
+		player:SetAttribute("DeathCause", nil)
+		local lastY = 0
 		humanoid.Died:Connect(function()
 			local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 			local recent = os.clock() - ((player:GetAttribute("DamageCauseTime") or 0) :: number) < 8
-			player:SetAttribute("DeathCause", if recent then player:GetAttribute("DamageCause") else "Exhaustion")
+			-- caduto fuori dalla mappa: il corpo sparisce sotto FallenPartsDestroyHeight
+			local y = if root and root.Parent then root.Position.Y else lastY
+			local void = not root or not root.Parent or y < workspace.FallenPartsDestroyHeight + 60
+			-- causa vera se c'e' (danno recente), "Fell into the void" fuori mappa, altrimenti
+			-- un testo neutro (prima diceva sempre "Exhaustion")
+			local cause = if recent then player:GetAttribute("DamageCause") elseif void then "Fell into the void" else "You died"
+			player:SetAttribute("DeathCause", cause)
 			player:SetAttribute("DeathStats", string.format("%d|%d", math.floor(maxY), math.floor(os.clock() - born)))
 			if root then
 				player:SetAttribute("DeathPosition", root.Position)
 			end
 		end)
 		task.spawn(function()
+			-- CharacterAdded arriva prima che il personaggio sia nel Workspace: senza attesa il
+			-- ciclo finiva subito e la quota della schermata di morte era sempre 0
+			local t0 = os.clock()
+			while not character.Parent and os.clock() - t0 < 10 do
+				task.wait(0.1)
+			end
 			while character.Parent and humanoid.Health > 0 do
 				local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 				if root then
 					maxY = math.max(maxY, root.Position.Y - 20)
+					lastY = root.Position.Y
 				end
 				task.wait(1)
 			end

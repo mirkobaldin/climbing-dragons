@@ -157,6 +157,128 @@ function MobileControls.start()
 			corner.CornerRadius = UDim.new(0.5, 0)
 		end
 		Ui.tint(b, COLORS[name] or Theme.BLUE, true)
+		-- etichetta intera sotto l'icona (prima "Ju...", "Pit...": il testo del pulsante si
+		-- rimpiccioliva e troncava dentro il cerchio). Il testo vero del pulsante resta (altri
+		-- script lo cambiano, es. Ride/Land) ma invisibile: l'etichetta lo copia, in Oswald stretto,
+		-- e puo' uscire un poco dai lati del cerchio. Il pulsante non si rimpicciolisce.
+		local tag = Instance.new("TextLabel")
+		tag.Name = "Etichetta"
+		tag.BackgroundTransparency = 1
+		tag.AnchorPoint = Vector2.new(0.5, 1)
+		tag.Position = UDim2.new(0.5, 0, 1, -3)
+		tag.Size = UDim2.new(1.4, 0, 0, 16)
+		tag.FontFace = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.Bold)
+		tag.TextColor3 = Color3.new(1, 1, 1)
+		tag.TextStrokeTransparency = 0.35
+		tag.TextScaled = false
+		tag.TextTruncate = Enum.TextTruncate.None
+		tag.TextWrapped = false
+		tag.ZIndex = b.ZIndex + 3
+		tag:SetAttribute("TipoTesto", "button")
+		tag.Parent = b
+		-- una scritta sola: via quella della cornice (AssetCaption di Ui.skin), anche dopo
+		b:SetAttribute("OwnCaption", true)
+		local caption = b:FindFirstChild("AssetCaption")
+		if caption then
+			caption:Destroy()
+		end
+		b.ChildAdded:Connect(function(c)
+			if c.Name == "AssetCaption" then
+				task.defer(function()
+					c:Destroy()
+				end)
+			end
+		end)
+		b.ClipsDescendants = false
+		local function copy()
+			tag.Text = string.upper(b.Text)
+		end
+		b:GetPropertyChangedSignal("Text"):Connect(copy)
+		copy()
+		b.TextTransparency = 1
+		b.TextStrokeTransparency = 1
+		-- TASTO IN RILIEVO (Mirko 16/10: "effetto 3d"): faccia colorata con la luce in alto, base
+		-- piu' scura sotto che fa da spessore, bordo scuro. Premuto: faccia, icona e scritta
+		-- scendono sulla base (il tasto si abbassa davvero). Il colore resta quello di Ui.tint
+		-- (BackgroundColor3 del pulsante), il fondo vero del pulsante resta trasparente
+		local surface = b:FindFirstChild("AssetSurface")
+		if surface and surface:IsA("GuiObject") then
+			surface.Visible = false
+		end
+		local DEPTH = 5
+		local base = Instance.new("Frame")
+		base.Name = "Base"
+		base.BorderSizePixel = 0
+		base.Size = UDim2.fromScale(1, 1)
+		base.Position = UDim2.fromOffset(0, DEPTH)
+		base.ZIndex = 0
+		base.Active = false
+		base.Parent = b
+		local face = Instance.new("Frame")
+		face.Name = "Faccia"
+		face.BorderSizePixel = 0
+		face.Size = UDim2.fromScale(1, 1)
+		face.ZIndex = 1
+		face.Active = false
+		face.Parent = b
+		for _, f in { base, face } do
+			local c = Instance.new("UICorner")
+			c.CornerRadius = UDim.new(0.5, 0)
+			c.Parent = f
+		end
+		local light = Instance.new("UIGradient")
+		light.Rotation = 90
+		light.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(150, 150, 150))
+		light.Parent = face
+		local rim = Instance.new("UIStroke")
+		rim.Color = Color3.fromRGB(8, 10, 16)
+		rim.Thickness = 2
+		rim.Transparency = 0.15
+		rim:SetAttribute("KeepStroke", true)
+		rim.Parent = face
+		local function paint()
+			local col = b.BackgroundColor3
+			face.BackgroundColor3 = col
+			base.BackgroundColor3 = col:Lerp(Color3.new(0, 0, 0), 0.6)
+			if b.BackgroundTransparency < 1 then
+				b.BackgroundTransparency = 1
+			end
+		end
+		b:GetPropertyChangedSignal("BackgroundColor3"):Connect(paint)
+		b:GetPropertyChangedSignal("BackgroundTransparency"):Connect(paint)
+		for _, s in b:GetChildren() do
+			if s:IsA("UIStroke") and not s:GetAttribute("KeepStroke") then
+				s.Enabled = false -- il bordo ora e' quello della faccia
+			end
+		end
+		paint()
+		local iconBase = if icon then icon.Position else nil
+		local tagBase = tag.Position
+		local function press(down: boolean)
+			local dy = if down then DEPTH - 1 else 0
+			face.Position = UDim2.fromOffset(0, dy)
+			light.Rotation = if down then 270 else 90
+			if icon and iconBase then
+				icon.Position = iconBase + UDim2.fromOffset(0, dy)
+			end
+			tag.Position = tagBase + UDim2.fromOffset(0, dy)
+		end
+		b.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+				press(true)
+			end
+		end)
+		b.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+				press(false)
+			end
+		end)
+		b.MouseLeave:Connect(function()
+			press(false)
+		end)
+		if icon then
+			icon.ZIndex = math.max(icon.ZIndex, 2)
+		end
 	end
 
 	local vp = Vector2.new(844, 390)
@@ -181,6 +303,8 @@ function MobileControls.start()
 				end
 			end
 		end
+		-- (anche il tasto del menu si sposta: client/MainMenu legge e scrive custom.MenuFrac)
+		;(ClientState :: any).controlsCustom = custom
 		last = ""
 	end
 	player:GetAttributeChangedSignal("ControlsLayout"):Connect(loadCustom)
@@ -191,7 +315,9 @@ function MobileControls.start()
   local menu = pg:FindFirstChild("MainMenu")
   local travel = pg:FindFirstChild("Teletrasporto")
   local panel = travel and travel:FindFirstChild("Panel") :: GuiObject?
-  gui.Enabled = touch and not ((menu and menu:GetAttribute("MenuOpen") == true) or (panel and panel.Visible))
+  local death = pg:FindFirstChild("DeathScreen")
+  gui.Enabled = touch and not ((menu and menu:GetAttribute("MenuOpen") == true) or (panel and panel.Visible)
+   or (death and death:IsA("ScreenGui") and death.Enabled) or player:GetAttribute("SchiusaInCorso") == true)
 		if not touch then
 			return
 		end
@@ -259,6 +385,11 @@ function MobileControls.start()
 			-- posizione scelta dal giocatore (ControlsLayout), se no l'arco attorno al salto
 			b.Position = if c then UDim2.fromOffset(c[1], c[2]) else UDim2.fromOffset(-jx + math.cos(a) * s[1], -jy - math.sin(a) * s[1])
 			b.TextSize = if small then 11 else 15
+			local tag = b:FindFirstChild("Etichetta") :: TextLabel?
+			if tag then
+				tag.TextSize = if small then 13 else 16
+				tag.Size = UDim2.new(1.4, 0, 0, if small then 15 else 18)
+			end
 		end
 	end
 	-- Modifica dei tasti: ⚙ sotto il meteo; si trascinano i pulsanti, "Done" salva (Progression,
@@ -298,7 +429,7 @@ function MobileControls.start()
 	info.Font = Enum.Font.GothamBold
 	info.TextScaled = true
 	info.TextColor3 = Color3.new(1, 1, 1)
-	info.Text = "Drag the buttons where you like"
+	info.Text = "Drag the buttons and MENU where you like"
 	info.Parent = panel
 	local function panelButton(text: string, color: Color3, x: number): TextButton
 		local b = Instance.new("TextButton")
@@ -330,6 +461,7 @@ function MobileControls.start()
 	end)
 	reset.Activated:Connect(function()
 		custom = {}
+		;(ClientState :: any).controlsCustom = custom
 		last = ""
 	end)
 	done.Activated:Connect(function()
@@ -376,9 +508,24 @@ function MobileControls.start()
 	end)
 
 	-- Solo il controllo del contesto a 10 Hz; nessuna animazione per-frame aggiunta.
+	-- l'ingranaggio sta sotto il meteo dell'HUD, che ora si apre e si chiude (prima a una quota
+	-- fissa: col meteo aperto ci finiva sopra)
+	local function placeGear()
+		local hud = player.PlayerGui:FindFirstChild("ClimbHUD")
+		local meteo = hud and hud:FindFirstChild("Meteo") :: GuiObject?
+		if meteo and meteo.Visible and meteo.AbsoluteSize.Y > 0 then
+			local su = gui:FindFirstChildOfClass("UIScale")
+			local s = if su and su.Scale > 0 then su.Scale else 1
+			local inset = if gui.IgnoreGuiInset then game:GetService("GuiService"):GetGuiInset() else Vector2.zero
+			gear.Position = UDim2.new(1, -12, 0, (meteo.AbsolutePosition.Y + meteo.AbsoluteSize.Y + inset.Y) / s + 8)
+		else
+			gear.Position = UDim2.new(1, -12, 0, 50)
+		end
+	end
 	task.spawn(function()
 		while gui.Parent do
 			refresh()
+			placeGear()
 			task.wait(0.1)
 		end
 	end)

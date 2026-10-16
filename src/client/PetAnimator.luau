@@ -58,6 +58,10 @@ type Pet = {
 	velS: Vector3?, -- velocita' del padrone filtrata
 	followYaw: number?, -- direzione in cui il padrone cammina (il posto accanto a lui)
 	sideSign: number?, -- da che lato del padrone sta il drago a terra (1 destra, -1 sinistra)
+	groundY: number?, -- altezza del terreno sotto il posto accanto, filtrata
+	push: Vector3?, -- spostamento di lato per non stare fra camera e padrone, filtrato
+	ownS: Vector3?, -- velocita' del drago filtrata
+	lookS: Vector3?, -- direzione in cui guarda, filtrata
 	turn: number, -- velocita' di virata filtrata (rad/s, + a sinistra)
 	wasRidden: boolean?,
 	lift: number, -- quanto si alza a terra perche' la posa non affondi
@@ -667,13 +671,50 @@ function PetAnimator.start()
 						hit = workspace:Raycast(beside.Position + Vector3.new(0, 40, 0), Vector3.new(0, -50, 0), params) or hit
 					end
 					local y = if hit then hit.Position.Y + pet.footDrop else beside.Position.Y
-					local ground = Vector3.new(beside.Position.X, y, beside.Position.Z)
+					-- altezza filtrata (Mirko 16/10: "il drago sbarbella e tremola"): su terreno
+					-- irregolare i due raggi davano altezze diverse da un frame all'altro e il drago
+					-- saltava su e giu' di qualche stud a ogni frame. Un salto grande (scale, pedana)
+					-- si prende subito
+					local gy = pet.groundY
+					if gy == nil or math.abs(y - gy) > 14 then
+						gy = y
+					end
+					pet.groundY = (gy :: number) + (y - (gy :: number)) * math.min(1, dt * 6)
+					local ground = Vector3.new(beside.Position.X, pet.groundY :: number, beside.Position.Z)
 					target = CFrame.new(ground:Lerp(target.Position, pet.airBlend)) * target.Rotation
 				end
 				pet.walkPhase += dt * (2 + (pet.velS or Vector3.zero).Magnitude * 0.45)
 			end
 			if anchored then
 				target = CFrame.new((ClientState.petAnchor :: Vector3) + Vector3.new(0, bob, 0))
+			elseif owner == Players.LocalPlayer and camera and not ClientState.riding then
+				-- niente drago fra la camera e te, ne' davanti a te sulla stessa linea (Mirko 16/10:
+				-- i draghi grandi coprivano giocatore, parete e nemici, soprattutto sul telefono).
+				-- Il drago resta grande: si sposta di lato, dal lato in cui gia' sta. Lo spostamento
+				-- e' filtrato: acceso/spento a ogni frame faceva tremare il drago
+				local want = Vector3.zero
+				local cpos = camera.CFrame.Position
+				local dir = r.Position - cpos
+				local len = dir.Magnitude
+				if len > 1 then
+					local u = dir / len
+					local tp = target.Position
+					local along = (tp - cpos):Dot(u)
+					if along > 0 then
+						local closest = cpos + u * along
+						local away = Vector3.new(tp.X - closest.X, 0, tp.Z - closest.Z)
+						local radius = pet.size * 0.5 + 2
+						if away.Magnitude < radius then
+							local right = camera.CFrame.RightVector
+							local sideDir = if away.Magnitude > 0.5 then away.Unit
+								else Vector3.new(right.X, 0, right.Z).Unit * (pet.sideSign or side)
+							local fixed = Vector3.new(closest.X, 0, closest.Z) + sideDir * radius
+							want = Vector3.new(fixed.X - tp.X, 0, fixed.Z - tp.Z)
+						end
+					end
+				end
+				pet.push = (pet.push or want):Lerp(want, math.min(1, dt * 3))
+				target += pet.push :: Vector3
 			end
 			if owner == Players.LocalPlayer and snap then
 				pet.cf = nil -- uscito dall'arena: niente volo attraverso la mappa
@@ -700,10 +741,16 @@ function PetAnimator.start()
 			local look = if flat.Magnitude > 2 then flat.Unit else frame.LookVector
 			-- il drago guarda dove va lui: quando il padrone si gira il suo posto passa dall'altra parte
 			-- e prima ci andava camminando all'indietro
+			-- (velocita' propria filtrata e passaggio graduale fra le due direzioni: prima saltava
+			-- dall'una all'altra a ogni frame e il drago girava di 400 gradi al secondo avanti e indietro)
 			local own = (pos - current.Position) / math.max(dt, 1 / 240)
-			local ownFlat = Vector3.new(own.X, 0, own.Z)
-			if ownFlat.Magnitude > math.max(6, flat.Magnitude * 0.6) then
-				look = ownFlat.Unit
+			pet.ownS = (pet.ownS or own):Lerp(own, math.min(1, dt * 6))
+			local ownS = pet.ownS :: Vector3
+			local ownFlat = Vector3.new(ownS.X, 0, ownS.Z)
+			local limit = math.max(6, flat.Magnitude * 0.6)
+			local w = math.clamp((ownFlat.Magnitude - limit) / limit, 0, 1)
+			if w > 0 then
+				look = look:Lerp(ownFlat.Unit, w)
 			end
 			if owner == Players.LocalPlayer and ClientState.petLook then
 				look = ClientState.petLook :: Vector3 -- nell'arena il drago si gira dove spari
@@ -719,8 +766,26 @@ function PetAnimator.start()
 			if look.Magnitude < 0.01 then
 				look = -Vector3.zAxis
 			end
+			-- direzione filtrata (nell'arena, dove si spara, resta pronta)
+			if not (owner == Players.LocalPlayer and ClientState.petLook) then
+				pet.lookS = (pet.lookS or look.Unit):Lerp(look.Unit, math.min(1, dt * 5))
+				if (pet.lookS :: Vector3).Magnitude > 0.05 then
+					look = pet.lookS :: Vector3
+				end
+			end
 			local desired = CFrame.lookAt(pos, pos + look.Unit)
 			local rotated = current.Rotation:Lerp(desired.Rotation, alpha)
+			do
+				-- al massimo 260 gradi al secondo: quando il padrone partiva il drago si girava di
+				-- scatto (800 gradi al secondo)
+				local cy = math.atan2(-current.LookVector.X, -current.LookVector.Z)
+				local ry = math.atan2(-rotated.LookVector.X, -rotated.LookVector.Z)
+				local d = (ry - cy + math.pi) % (2 * math.pi) - math.pi
+				local m = dt * math.rad(260)
+				if math.abs(d) > m and math.abs(rotated.LookVector.Y) < 0.2 then
+					rotated = CFrame.Angles(0, cy + math.clamp(d, -m, m), 0)
+				end
+			end
 			do
 				local yaw = math.atan2(-rotated.LookVector.X, -rotated.LookVector.Z)
 				local d = (yaw - (pet.yaw or yaw) + math.pi) % (2 * math.pi) - math.pi

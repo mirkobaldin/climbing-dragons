@@ -22,6 +22,7 @@ local Economy = require(script.Parent.Economy)
 local Survival = require(script.Parent.Survival)
 local Upgrades = require(script.Parent.Upgrades)
 local Guardia = require(script.Parent.Guardia)
+local Drops = require(script.Parent.Drops)
 
 local Progression = {}
 
@@ -96,6 +97,7 @@ local function save(player: Player)
 		tutorial = player:GetAttribute("TutorialStep"),
 		controls = player:GetAttribute("ControlsLayout"), -- tasti del telefono spostati (client/ControlsEditor)
 		bag = player:GetAttribute("BagOrder"), -- ordine delle caselle dello zaino (client/MainMenu)
+		hotbar = player:GetAttribute("HotbarOrder"), -- attrezzi nelle caselle 1-5 (client/MainMenu, client/HUD)
 		missions = player:GetAttribute("MissionStep"),
 		upgrades = Upgrades.serialize(player), -- potenziamenti, statistiche, taglie, rinascite
 		materials = (function() -- materiali raccolti (drop dei nemici)
@@ -177,6 +179,9 @@ local function load(player: Player)
 			end
 			if type(data.bag) == "string" and #data.bag < 4000 then
 				player:SetAttribute("BagOrder", data.bag)
+			end
+			if type(data.hotbar) == "string" and #data.hotbar < 400 then
+				player:SetAttribute("HotbarOrder", data.hotbar)
 			end
 			missions = data.missions
 			upgradeData = data.upgrades
@@ -269,16 +274,33 @@ local function craft(player: Player, id: any): (boolean, string)
 	elseif id == "Bende" and (not humanoid or humanoid.Health >= humanoid.MaxHealth) then
 		return false, "You're not hurt"
 	end
+	-- i costi possono essere minerali (Ores) o materiali dei nemici (Materiali)
+	local function costValue(name: string): IntValue
+		if Gear.MONSTER_MATERIALS[name] then
+			local folder = Drops.materials(player)
+			local v = folder:FindFirstChild(name) :: IntValue?
+			if not v then
+				Drops.add(player, name, 0)
+				v = folder:FindFirstChild(name) :: IntValue?
+			end
+			return v :: IntValue
+		end
+		return oreValue(player, name)
+	end
 	for ore, amount in recipe.cost do
-		if oreValue(player, ore).Value < amount then
-			return false, "You're missing " .. Names.t(ore)
+		if costValue(ore).Value < amount then
+			return false, "You're missing " .. (Drops.NAMES[ore] or Names.t(ore))
 		end
 	end
 	for ore, amount in recipe.cost do
-		oreValue(player, ore).Value -= amount
+		costValue(ore).Value -= amount
 	end
 	updateTotal(player)
-	if id == "Chiodi" then
+	if recipe.gives then
+		for name, n in recipe.gives do
+			Drops.add(player, name, n)
+		end
+	elseif id == "Chiodi" then
 		player:SetAttribute("Pitons", math.min(ClimbConfig.PITONS_MAX, (player:GetAttribute("Pitons") or 0) + 4))
 	elseif id == "Torcia" then
 		local torch = Tools.make("Torcia")
@@ -399,6 +421,31 @@ function Progression.setup(remotes: { [string]: RemoteEvent })
 		end) then
 			player:SetAttribute("BagOrder", order)
 		end
+	end)
+
+	-- barra 1-5 scelta dal giocatore nello zaino: lista JSON, le prime 5 voci sono le caselle
+	-- (nome dell'attrezzo o "" = vuota), le altre gli attrezzi gia' visti ma tolti dalla barra
+	-- (shared/Hotbar). Solo nomi corti: chi c'e' davvero lo decide il Backpack
+	local saveHotbar = Instance.new("RemoteEvent")
+	saveHotbar.Name = "SaveHotbar"
+	saveHotbar.Parent = ReplicatedStorage:WaitForChild("Remotes")
+	saveHotbar.OnServerEvent:Connect(function(player, order)
+		if type(order) ~= "string" or #order > 400 or not Guardia.ok(player, "hotbar", 10) then
+			return
+		end
+		local ok, list = pcall(function()
+			return game:GetService("HttpService"):JSONDecode(order)
+		end)
+		if not ok or type(list) ~= "table" or #list > 16 then
+			return
+		end
+		for i = 1, #list do
+			local v = list[i]
+			if type(v) ~= "string" or #v > 40 then
+				return
+			end
+		end
+		player:SetAttribute("HotbarOrder", order)
 	end)
 
 	local craftFn = Instance.new("RemoteFunction")

@@ -138,7 +138,9 @@ function Abilities.start()
 			usedDouble = false
 			return
 		end
-		if not usedDouble and DragonConfig.hasAbility(player, "Cosmico") then
+		-- solo all'inizio di un salto o di una piccola caduta: prima tenendo premuto Spazio si
+		-- annullava una caduta dalla montagna
+		if not usedDouble and DragonConfig.hasAbility(player, "Cosmico") and root.AssemblyLinearVelocity.Y > -30 then
 			usedDouble = true
 			local v = root.AssemblyLinearVelocity
 			root.AssemblyLinearVelocity = Vector3.new(v.X, 55, v.Z)

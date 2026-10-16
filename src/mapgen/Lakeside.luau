@@ -139,11 +139,28 @@ function Lakeside.build(map: Heightmap.Map)
 	local models = ServerStorage:FindFirstChild("Modelli")
 	local template = models and models:FindFirstChild("Palafitte")
 	if template and template:IsA("Model") then
-		local camp0 = map.features.campCenter
-		local dir = Vector3.new(camp0.x - lake.x, 0, camp0.z - lake.z).Unit
 		local m = template:Clone()
-		local at = Vector3.new(lake.x, lake.y - map.cfg.BIG_LAKE.DEPTH * 0.75, lake.z)
-		m:PivotTo(CFrame.lookAt(at, at + dir))
+		-- senza le due baite rosse (Mirko 16/10: "togli le due baite")
+		local cabins = m:FindFirstChild("Baite", true)
+		if cabins then
+			cabins:Destroy()
+		end
+		local spot = (map.cfg :: any).PALAFITTE
+		if spot then
+			-- nel lago del teschio: livello dell'acqua letto dal terreno gia' scritto
+			local probe = RaycastParams.new()
+			probe.FilterType = Enum.RaycastFilterType.Include
+			probe.FilterDescendantsInstances = { workspace.Terrain }
+			local hit = workspace:Raycast(Vector3.new(spot.X, 600, spot.Z), Vector3.new(0, -800, 0), probe)
+			local waterY = if hit and hit.Material == Enum.Material.Water then hit.Position.Y else lake.y
+			local at = Vector3.new(spot.X, waterY - spot.SINK, spot.Z)
+			m:PivotTo(CFrame.lookAt(at, at + spot.LOOK))
+		else
+			local camp0 = map.features.campCenter
+			local dir = Vector3.new(camp0.x - lake.x, 0, camp0.z - lake.z).Unit
+			local at = Vector3.new(lake.x, lake.y - map.cfg.BIG_LAKE.DEPTH * 0.75, lake.z)
+			m:PivotTo(CFrame.lookAt(at, at + dir))
+		end
 		m.Parent = folder
 		folder.Parent = workspace
 		return

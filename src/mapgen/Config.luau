@@ -139,6 +139,10 @@ local Config = {
 	-- montagna e' l'immissario, quello che prosegue verso il mare l'emissario. Sulla riva sud
 	-- le palafitte (zona tranquilla con panchine, amache e falo').
 	BIG_LAKE = { X = -1560, Z = 370, RADIUS = 145, DEPTH = 16, BEACH = 26 },
+	-- il modello delle palafitte (ServerStorage.Modelli.Palafitte) sta nel lago del teschio, dietro
+	-- il laghetto (Mirko 16/10), senza le due baite; LOOK = verso dove guarda il lato lungo,
+	-- SINK = di quanto il perno del modello sta sotto il pelo dell'acqua
+	PALAFITTE = { X = -2280, Z = 400, LOOK = Vector3.new(0.2144, 0, -0.9768), SINK = 10.7 },
 	-- Ghiacciai (stile K2): lingue di ghiaccio che scendono lungo i canaloni seguendo la forma
 	-- della montagna (niente pianori). ANGLE = versante, R_TOP / R_BOTTOM = da che distanza dal
 	-- centro partono e arrivano (frazioni del raggio), WIDTH = larghezza in alto (si stringono

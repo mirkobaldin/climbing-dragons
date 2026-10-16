@@ -8,12 +8,13 @@
 --   nest       uova in cova { element, rarity, readyAt (os.time) }
 --   stones     pietre dell'evoluzione
 -- Il client legge lo stato dall'attributo "DragonData" (JSON) e agisce col RemoteFunction
--- "DragonAction" (equip, unequip, evolve, hatch, release).
+-- "DragonAction" (equip, unequip, evolve, hatch, release, rename).
 
 local HttpService = game:GetService("HttpService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
@@ -23,7 +24,7 @@ local Guardia = require(script.Parent.Guardia)
 
 local Dragons = {}
 
-export type DragonData = { id: number, element: string, rarity: string, stage: number, level: number?, xp: number?, shiny: boolean?, atk: number?, crit: number? }
+export type DragonData = { id: number, element: string, rarity: string, stage: number, level: number?, xp: number?, shiny: boolean?, atk: number?, crit: number?, name: string? }
 export type NestEgg = { element: string, rarity: string, readyAt: number }
 export type State = {
 	dragons: { DragonData },
@@ -140,6 +141,9 @@ local function refreshPets(player: Player)
 			model:SetAttribute("DragonId", d.id)
 			model:SetAttribute("Level", d.level or 1)
 			model:SetAttribute("Slot", slot)
+			if d.name then
+				model:SetAttribute("DragonName", d.name) -- nome dato dal giocatore (gia' filtrato)
+			end
 			model:SetAttribute("Stage", d.stage or 1) -- client/PetAnimator: la sella va solo sull'adulto
 			if d.shiny then
 				model:SetAttribute("Shiny", true)
@@ -220,7 +224,7 @@ function Dragons.addXp(player: Player, dragonId: number, amount: number): (numbe
 		return 0, 0
 	end
 	-- rinascite e draghi shiny: piu' esperienza
-	amount *= UpgradeConfig.xpMult(player) * (if d.shiny then UpgradeConfig.SHINY_XP else 1)
+	amount *= UpgradeConfig.xpMult(player) * UpgradeConfig.dragonXp(player) * (if d.shiny then UpgradeConfig.SHINY_XP else 1)
 	local before = d.level or 1
 	d.level = before
 	d.xp = (d.xp or 0) + amount
@@ -314,7 +318,7 @@ Dragons.onEvolve = nil :: ((Player, DragonData) -> ())?
 -- Evento di schiusa (lo imposta Eggs per l'effetto al nido)
 Dragons.onHatch = nil :: ((Player, NestEgg) -> ())?
 
-local function action(player: Player, kind: any, arg: any): (boolean, string)
+local function action(player: Player, kind: any, arg: any, extra: any): (boolean, string)
 	local s = Dragons.state(player)
 	if kind == "equip" then
 		local d = findDragon(s, tonumber(arg) or -1)
@@ -367,6 +371,10 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 		end)
 		return true, "It evolved: " .. Names.t(nextStage.name) .. "!"
 	elseif kind == "hatch" then
+		-- una schiusa per volta (un doppio tocco schiudeva anche l'uovo successivo)
+		if not Guardia.ok(player, "hatch", 1) then
+			return false, "One egg at a time"
+		end
 		local index = tonumber(arg) or -1
 		local egg = s.nest[index]
 		if not egg then
@@ -403,6 +411,32 @@ local function action(player: Player, kind: any, arg: any): (boolean, string)
 		local value = if Dragons.onSell then (Dragons.onSell :: any)(player, d) else 0
 		changed(player, idx ~= nil)
 		return true, string.format("Sold for %d coins", value)
+	elseif kind == "rename" then
+		-- nome al drago dal livello NAME_LEVEL (lo vedono anche gli altri: va filtrato da Roblox)
+		local d = findDragon(s, tonumber(arg) or -1)
+		if not d then
+			return false, "Dragon not found"
+		end
+		if (d.level or 1) < DragonConfig.NAME_LEVEL then
+			return false, string.format("Reach level %d to give your dragon a name", DragonConfig.NAME_LEVEL)
+		end
+		if type(extra) ~= "string" then
+			return false, "Invalid name"
+		end
+		local raw = string.gsub(string.gsub(extra, "[^%w ]", ""), "^%s*(.-)%s*$", "%1")
+		if #raw < 2 or #raw > 16 then
+			return false, "Names are 2-16 letters or numbers"
+		end
+		local ok, filtered = pcall(function()
+			local result = TextService:FilterStringAsync(raw, player.UserId)
+			return result:GetNonChatStringForBroadcastAsync()
+		end)
+		if not ok or type(filtered) ~= "string" or string.find(filtered, "#", 1, true) then
+			return false, "That name is not allowed"
+		end
+		d.name = filtered
+		changed(player, table.find(s.equipped, d.id) ~= nil)
+		return true, string.format("Your dragon is now called %s!", filtered)
 	end
 	return false, "Unknown action"
 end

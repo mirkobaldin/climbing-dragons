@@ -912,38 +912,8 @@ function Enemies.setup()
 		end
 	end)
 
-	-- picchiata: il client avvisa quando atterra cadendo veloce; onda d'urto attorno a lui
-	local plungeEvent = Instance.new("RemoteEvent")
-	plungeEvent.Name = "Plunge"
-	plungeEvent.Parent = ReplicatedStorage.Remotes
-	local lastPlunge: { [Player]: number } = {}
-	plungeEvent.OnServerEvent:Connect(function(player, speed)
-		if type(speed) ~= "number" or speed < UpgradeConfig.PLUNGE_MIN_SPEED or UpgradeConfig.level(player, "Picchiata") < 1 then
-			return
-		end
-		local now = os.clock()
-		if now - (lastPlunge[player] or 0) < 1 then
-			return
-		end
-		lastPlunge[player] = now
-		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-		if not root then
-			return
-		end
-		-- piu' veloce cadi, piu' fa male (fino al doppio)
-		local mult = math.clamp(speed / 70, 1, 2)
-		local radius = UpgradeConfig.value(player, "Picchiata", "radius")
-		local damage = UpgradeConfig.value(player, "Picchiata", "damage") * mult
-		local at = (root :: BasePart).Position
-		fxEvent:FireAllClients("plunge", at, radius)
-		local n = hitAround(player, at, radius, damage, function(enemy)
-			enemy.stunUntil = os.clock() + 0.8
-		end)
-		if n > 0 then
-			player:SetAttribute("PlungeHit", os.clock()) -- niente danni da caduta (Survival)
-			Upgrades.addStat(player, "AirHits", n)
-		end
-	end)
+	-- (la Picchiata, onda d'urto atterrando senza danni da caduta, e' stata tolta il 15/10:
+	-- cadendo dalla montagna non si moriva piu')
 
 	-- attacco speciale del drago (tasto Z): onda del suo elemento attorno a te
 	local specialEvent = Instance.new("RemoteEvent")
@@ -958,7 +928,7 @@ function Enemies.setup()
 		end
 		local d = list[1]
 		local level = d.level or 1
-		local cooldown = math.max(6, SP.COOLDOWN - level * 0.1)
+		local cooldown = math.max(6, SP.COOLDOWN - level * 0.1) * (1 - UpgradeConfig.value(player, "Maestria", "cut"))
 		local readyAt = (player:GetAttribute("SpecialReady") or 0) :: number
 		if workspace:GetServerTimeNow() < readyAt then
 			return
@@ -973,7 +943,7 @@ function Enemies.setup()
 		local radius = SP.RADIUS * stageK * (if e == "Tempesta" or e == "Fulmine" then 1.4 else 1)
 		-- anche lo speciale cresce con lo stadio e le statistiche del drago
 		local damage = (SP.DAMAGE + 2 * level) * (if e == "Ombra" or e == "Eclissi" or e == "Cosmico" then 1.3 else 1)
-			* DragonConfig.STAGE_POWER[math.clamp(d.stage or 1, 1, 3)] * (d.atk or 1)
+			* DragonConfig.STAGE_POWER[math.clamp(d.stage or 1, 1, 3)] * (d.atk or 1) * UpgradeConfig.dragonDamage(player)
 		fxEvent:FireAllClients("special", at, radius, e, player.UserId)
 		local trainingFxRef = ReplicatedStorage.Remotes:FindFirstChild("TrainingFX") :: RemoteEvent?
 		hitAround(player, at, radius, damage, function(enemy)
@@ -1029,7 +999,7 @@ function Enemies.setup()
 		-- ogni elemento colpisce a modo suo (UpgradeConfig.RIDE_ELEMENT)
 		local el = UpgradeConfig.RIDE_ELEMENT[d.element] or { radius = 1, damage = 1, text = "" }
 		local crit = math.random() < (d.crit or 0.05) * (el.crit or 1)
-		local damage = DragonConfig.attack(d) * UpgradeConfig.RIDE_SHOT.DAMAGE_MULT * el.damage * (if crit then 2 else 1)
+		local damage = DragonConfig.attack(d) * UpgradeConfig.RIDE_SHOT.DAMAGE_MULT * el.damage * (if crit then 2 else 1) * UpgradeConfig.dragonDamage(player)
 		local radius = UpgradeConfig.RIDE_SHOT.RADIUS * el.radius
 		fxEvent:FireAllClients("rideShot", from, to, d.element, travel, player.UserId)
 		task.delay(travel, function()
@@ -1106,7 +1076,7 @@ function Enemies.setup()
 							if trainingFx then
 								trainingFx:FireAllClients("hit", player.UserId, enemy.root.Position, d.element, 0)
 							end
-							damageEnemy(enemy, player, Dragons.hitDamage(d))
+							damageEnemy(enemy, player, Dragons.hitDamage(d) * UpgradeConfig.dragonDamage(player))
 						end
 					end
 				end
@@ -1122,7 +1092,7 @@ function Enemies.setup()
 							if trainingFx then
 								trainingFx:FireAllClients("hit", player.UserId, Flyers.position(f), d.element, 0)
 							end
-							Flyers.damage(f, player, Dragons.hitDamage(d) * 1.5)
+							Flyers.damage(f, player, Dragons.hitDamage(d) * 1.5 * UpgradeConfig.dragonDamage(player))
 						end
 					end
 				end

@@ -17,6 +17,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local DragonConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("DragonConfig"))
+local UpgradeConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UpgradeConfig"))
 local Ui = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UiView"))
 local ClientState = require(script.Parent.ClientState)
 local Climbing = require(script.Parent.Climbing)
@@ -422,7 +423,8 @@ function DragonRide.start()
 			up -= 1
 		end
 		local fast = UserInputService:IsKeyDown(Enum.KeyCode.LeftShift)
-		local speed = if fast then BOOST else SPEED
+		-- potenziamento del drago Wing Power
+		local speed = (if fast then BOOST else SPEED) * UpgradeConfig.value(player, "Ali", "speed")
 		local want = Vector3.zero
 		if move.Magnitude > 0.05 then
 			-- avanti si va anche su e giu' dove guarda la camera (comodo sul telefono)
@@ -434,20 +436,20 @@ function DragonRide.start()
 			want = Vector3.new(0, math.sin(os.clock() * 2) * 1.5, 0) -- in volo fermo: ondeggia appena
 		end
 		local lv = mover :: LinearVelocity
-		if form() then
-			-- quanto manca fra la pancia del drago e il suolo sotto di lui
-			local dragon = leadDragon()
-			local gap: number? = nil
-			if dragon then
-				local bcf, bsize = dragon:GetBoundingBox()
-				local params = RaycastParams.new()
-				params.FilterType = Enum.RaycastFilterType.Exclude
-				params.FilterDescendantsInstances = { dragon, character :: Instance }
-				local hit = workspace:Raycast(bcf.Position, Vector3.new(0, -600, 0), params)
-				if hit then
-					gap = (bcf.Position.Y - bsize.Y / 2) - hit.Position.Y
-				end
+		-- quanto manca fra la pancia del drago e il suolo sotto di lui
+		local dragon = leadDragon()
+		local gap: number? = nil
+		if dragon then
+			local bcf, bsize = dragon:GetBoundingBox()
+			local params = RaycastParams.new()
+			params.FilterType = Enum.RaycastFilterType.Exclude
+			params.FilterDescendantsInstances = { dragon, character :: Instance }
+			local hit = workspace:Raycast(bcf.Position + Vector3.new(0, bsize.Y / 2, 0), Vector3.new(0, -600, 0), params)
+			if hit then
+				gap = (bcf.Position.Y - bsize.Y / 2) - hit.Position.Y
 			end
+		end
+		if form() then
 			local jump = UserInputService:IsKeyDown(Enum.KeyCode.Space) or humanoid.Jump
 			if not formAir then
 				if jump then
@@ -474,6 +476,16 @@ function DragonRide.start()
 				lv.VectorVelocity = lv.VectorVelocity:Lerp(want, math.min(1, dt * 3))
 			end
 		else
+			-- in groppa vicino al suolo il drago restava sotto terra (Mirko 15/10): tu stai sul suo
+			-- collo, quindi non si scende piu' quando la sua pancia tocca il suolo, e se e' gia' dentro
+			-- risale
+			if gap and gap < 1 then
+				want = Vector3.new(want.X, math.max(want.Y, (1 - gap) * 10), want.Z)
+				local v = lv.VectorVelocity
+				if v.Y < 0 then
+					lv.VectorVelocity = Vector3.new(v.X, 0, v.Z)
+				end
+			end
 			lv.VectorVelocity = lv.VectorVelocity:Lerp(want, math.min(1, dt * 3))
 		end
 		local face = if want.Magnitude > 5 then Vector3.new(want.X, 0, want.Z) else flat

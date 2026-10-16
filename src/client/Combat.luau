@@ -390,6 +390,27 @@ local function decorateShiny(m: Instance)
 	light.Range = 10
 	light.Brightness = 1.2
 	light.Parent = part
+	-- scia dorata (si vede solo quando si muove, in volo): stessa mesh, si distingue dagli altri
+	local _, size = m:GetBoundingBox()
+	local half = math.max(1, size.Y * 0.2)
+	local a0 = Instance.new("Attachment")
+	a0.Name = "ShinyScia0"
+	a0.Position = Vector3.new(0, half, 0)
+	a0.Parent = part
+	local a1 = Instance.new("Attachment")
+	a1.Name = "ShinyScia1"
+	a1.Position = Vector3.new(0, -half, 0)
+	a1.Parent = part
+	local trail = Instance.new("Trail")
+	trail.Name = "ShinyScia"
+	trail.Attachment0, trail.Attachment1 = a0, a1
+	trail.Color = ColorSequence.new(Color3.fromRGB(255, 230, 140), Color3.fromRGB(255, 170, 40))
+	trail.Transparency = NumberSequence.new(0.35, 1)
+	trail.LightEmission = 0.8
+	trail.Lifetime = 0.45
+	trail.MinLength = 0.5
+	trail.FaceCamera = true
+	trail.Parent = part
 end
 
 ------------------------------------------------------------------------------------------
@@ -402,7 +423,7 @@ local function special()
 		return
 	end
 	if (player:GetAttribute("PetAbilities") or "") == "" then
-		ClientState.hint = "You need a dragon following you (G)"
+		ClientState.hint = "You need a dragon following you: open Dragons and tap Follow"
 		return
 	end
 	local r = ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("DragonSpecial") :: RemoteEvent?
@@ -676,12 +697,12 @@ function Combat.start()
 		local ev = workspace:GetAttribute("WorldEvent")
 		local at = workspace:GetAttribute("WorldEventPos")
 		local root = myRoot()
-		if type(ev) == "string" then
-			local dist = if typeof(at) == "Vector3" and root then string.format("  ·  %d m", math.floor((at - root.Position).Magnitude)) else ""
-			eventLabel.Text = ev .. dist
-		else
-			eventLabel.Text = ""
-		end
+		-- (l'evento ora lo mostra client/EventBanner sotto il Prize Pool: qui resta vuoto)
+		local _ = ev
+		local _ = at
+		local _ = root
+		eventLabel.Text = ""
+		eventLabel.Visible = false
 	end)
 
 	-- draghi shiny (anche quelli degli altri)

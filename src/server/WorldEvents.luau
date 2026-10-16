@@ -27,13 +27,12 @@ local terrainOnly = RaycastParams.new()
 terrainOnly.FilterType = Enum.RaycastFilterType.Include
 terrainOnly.FilterDescendantsInstances = { workspace.Terrain }
 
+-- l'annuncio lo disegna client/EventBanner sotto il Prize Pool (3 s, poi un'etichetta finche'
+-- dura): niente piu' "Notice" uguale per tutti, che lo faceva comparire due volte
 local function announce(text: string, at: Vector3?, seconds: number)
-	for _, player in Players:GetPlayers() do
-		player:SetAttribute("Notice", text)
-		player:SetAttribute("NoticeTime", os.clock())
-	end
 	workspace:SetAttribute("WorldEvent", text)
 	workspace:SetAttribute("WorldEventPos", at)
+	workspace:SetAttribute("WorldEventT", workspace:GetServerTimeNow())
 	task.delay(seconds, function()
 		if workspace:GetAttribute("WorldEvent") == text then
 			workspace:SetAttribute("WorldEvent", nil)

@@ -19,6 +19,7 @@ local ClientState = {
 	noFallUntil = 0, -- niente danni da caduta fino a (os.clock), es. dopo il Rampino
 	riding = false, -- in groppa al drago adulto (client/DragonRide)
 	editingControls = false, -- si stanno spostando i tasti del telefono (client/MobileControls)
+	controlsCustom = nil :: any, -- tasti spostati (MobileControls), con MenuFrac = posizione del tasto del menu
 	grappling = false, -- il Rampino ti sta tirando (il parapendio si chiude)
 }
 

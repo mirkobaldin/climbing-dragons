@@ -18,6 +18,7 @@ local Names = require(Shared:WaitForChild("Names"))
 local Ui = require(Shared:WaitForChild("UiView"))
 local Theme = require(script.Parent.Theme)
 local UiGlow = require(script.Parent.UiGlow)
+local UiKit = require(script.Parent.UiKit)
 local player = Players.LocalPlayer
 local DragonUI = {}
 
@@ -177,11 +178,21 @@ local function bar(parent: Instance, k: number, color: Color3): Frame
 end
 
 -- pulsante grande colorato (facile da premere col pollice)
+-- (stile unico del menu, client/UiKit: azione principale oro, secondaria a bordo, vendita rossa)
 local function bigButton(parent: Instance, text: string, color: Color3): TextButton
- local button = Theme.button(parent, text, color)
- Theme.paint(button)
- return button
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 140, 0, 52)
+	button.Text = text
+	button.Parent = parent
+	local kind = if color == Theme.BAD then "danger" elseif color == Theme.DISABLED then "disabled"
+		elseif color == Theme.GOOD or color == Theme.PURPLE or color == Theme.ACCENT then "primary" else "secondary"
+	UiKit.button(button, kind)
+	button.Text = string.upper(text)
+	return button
 end
+
+-- (la usa anche client/DragonReveal per la schiusa e l'evoluzione)
+DragonUI.view = dragonView
 
 function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -> ()
 	-- il vecchio impianto (titolo e due colonne del modello in StarterGui) resta nascosto
@@ -230,13 +241,11 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	layout.CellPadding = UDim2.fromOffset(8, 8)
 	layout.Parent = grid
 	-- fondo scuro stile Black Ops 2 (carbone, fumo, brace): prima riquadri blu e verdi pieni
-	gridBox.BackgroundTransparency = 1
-	UiGlow.darkBackground(gridBox, Theme.EMBER, 10)
+	UiKit.panel(gridBox, { transparency = 0.3, ticks = false })
 	grid.ZIndex = 2
 	local detailBack = Theme.frame(body, Theme.DARK, 1)
 	detailBack.Name = "FondoScheda"
-	Theme.corner(detailBack, 12)
-	UiGlow.darkBackground(detailBack, Theme.EMBER, 22)
+	UiKit.panel(detailBack, { transparency = 0.25 })
 	local detailScroll = Theme.scroll(body)
 	detailScroll.Name = "DragonDetails"
 	detailScroll.BackgroundTransparency = 1
@@ -247,6 +256,13 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	detailScroll.Position = UDim2.fromScale(1, 0)
 	detailScroll.Size = UDim2.new(0.58, 0, 1, 0)
 	detailScroll.ZIndex = 2
+	-- piede fisso coi pulsanti (Follow, Evolve/Ride, Sell): fuori dallo scorrimento, sempre
+	-- dentro lo schermo (prima stavano in fondo alla scheda e sul telefono si perdevano)
+	local dFoot = Theme.frame(body, Color3.new(), 1)
+	dFoot.Name = "PiedeDrago"
+	dFoot.AnchorPoint = Vector2.new(1, 1)
+	dFoot.ZIndex = 3
+	local footH = 56
 
 	-- telefono (attributo ShortUI della schermata, schermi bassi): schede basse, tessere e palco piccoli
 	local function short(): boolean
@@ -259,13 +275,18 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		body.Position = UDim2.new(0, 0, 0, tabH + 8)
 		body.Size = UDim2.new(1, 0, 1, -(tabH + 8))
   local narrow = body.AbsoluteSize.X < 520
+  -- telefono in orizzontale: collezione 56% a sinistra, scheda 44% a destra (riferimento 16/10)
+  local gridShare = if short() then 0.56 else 0.42
+  footH = if short() then 46 else 56
   gridBox.Position = UDim2.fromScale(0, 0)
-  gridBox.Size = if narrow then UDim2.new(1, 0, 0.30, -4) else UDim2.new(0.42, -8, 1, 0)
+  gridBox.Size = if narrow then UDim2.new(1, 0, 0.30, -4) else UDim2.new(gridShare, -8, 1, 0)
   detailScroll.Position = if narrow then UDim2.fromScale(1, 0.30) else UDim2.fromScale(1, 0)
-  detailScroll.Size = if narrow then UDim2.fromScale(1, 0.70) else UDim2.new(0.58, 0, 1, 0)
+  detailScroll.Size = if narrow then UDim2.new(1, 0, 0.70, -(footH + 8)) else UDim2.new(1 - gridShare, 0, 1, -(footH + 8))
   detailBack.AnchorPoint = detailScroll.AnchorPoint
   detailBack.Position = detailScroll.Position
-  detailBack.Size = detailScroll.Size
+  detailBack.Size = detailScroll.Size + UDim2.fromOffset(0, footH + 8)
+  dFoot.Position = UDim2.new(1, -6, 1, -4)
+  dFoot.Size = UDim2.new(if narrow then 1 else 1 - gridShare, -12, 0, footH)
   tabDragons.Size = UDim2.new(0.3, -4, 1, 0)
   tabNest.Position = UDim2.fromScale(0.3, 0)
   tabNest.Size = UDim2.new(0.25, -4, 1, 0)
@@ -283,8 +304,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 
 	local function setTab(name: string)
 		tab = name
-		Ui.selected(tabDragons, name == "Dragons", Theme.ACCENT, Theme.BLUE)
-		Ui.selected(tabNest, name == "Nest", Theme.ACCENT, Theme.BLUE)
+		UiKit.tab(tabDragons, name == "Dragons")
+		UiKit.tab(tabNest, name == "Nest")
 		render()
 	end
 	tabDragons.Activated:Connect(function()
@@ -299,7 +320,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	-- celle della griglia: 3-5 colonne secondo la larghezza
 	local function sizeGrid(aspect: number)
 		local width = math.max(grid.AbsoluteSize.X - 12, 160)
-		local cols = math.clamp(math.floor(width / 150), 1, 5)
+		-- telefono: tessere un po' piu' strette, quattro per fila (si vedono piu' draghi insieme)
+		local cols = math.clamp(math.floor(width / (if short() then 118 else 150)), 1, 5)
 		local cell = (width - (cols - 1) * 8) / cols
 		local minH = if short() then (if aspect > 1.3 then 200 else 130) else (if aspect > 1.3 then 300 else 220)
 		layout.CellSize = UDim2.fromOffset(cell, math.max(minH, cell * aspect))
@@ -313,6 +335,9 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 			end
 		end
 		if not d then
+			for _, c in dFoot:GetChildren() do
+				c:Destroy()
+			end
 			local hint = label(detail, "Hatch an egg to get your first dragon!", 20, Theme.MUTED, true, Enum.TextXAlignment.Center)
 			hint.Position = UDim2.fromScale(0.05, 0.4)
 			hint.Size = UDim2.fromScale(0.9, 0.2)
@@ -326,10 +351,11 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		local maxed = level >= DragonConfig.MAX_LEVEL
 		local grade = DragonConfig.grade(d)
 		-- nome e rarita'
-		local name = label(detail, (if d.shiny then "✦ " else "") .. Names.dragon(d.element), 26, Color3.new(1, 1, 1), true)
+		local named = type(d.name) == "string" and d.name ~= ""
+		local name = label(detail, (if d.shiny then "✦ " else "") .. (if named then d.name else Names.dragon(d.element)), 26, Color3.new(1, 1, 1), true)
 		name.Position = UDim2.new(0, 14, 0, 8)
 		name.Size = UDim2.new(1, -90, 0, 30)
-		local rar = label(detail, Names.t(d.rarity) .. "  ·  " .. Names.t(stage.name), 17, colors[1], true)
+		local rar = label(detail, Names.t(d.rarity) .. "  ·  " .. Names.t(stage.name) .. (if named then "  ·  " .. Names.dragon(d.element) else ""), 17, colors[1], true)
 		rar.Position = UDim2.new(0, 14, 0, 38)
 		rar.Size = UDim2.new(1, -90, 0, 20)
 		local ovr = label(detail, tostring(overall(d)), 34, GRADE_COLORS[grade], true, Enum.TextXAlignment.Right)
@@ -343,24 +369,26 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		local su = gui and gui:FindFirstChild("ScalaUI")
 		local scale = if su and su:IsA("UIScale") and su.Scale > 0 then su.Scale else 1
 		local W = math.max(260, detailScroll.AbsoluteSize.X / scale - 8)
-		local wide = W >= 470
+		local wide = W >= 470 or short()
 		-- palco QUADRATO (prima una striscia larga e bassa): a sinistra, statistiche a destra;
 		-- sulle schede strette il quadrato sta in mezzo e le statistiche sotto
 		local S = if wide then math.floor(math.min(270, W * 0.46)) else math.floor(math.min(230, W - 20))
 		if short() then
-			S = math.min(S, 170) -- telefono: il palco non riempie tutta la finestra
+			S = math.min(math.floor(W * 0.42), 156) -- telefono: palco a sinistra, statistiche accanto
 		end
-		local stageBox = Theme.frame(detail, Theme.DARK, 0.35)
+		-- il drago scelto e' il centro della scena: niente riquadro, solo l'alone fermo, e il
+		-- modello un po' piu' grande del palco (esce dai bordi, non e' chiuso in una carta)
+		local stageBox = Theme.frame(detail, Theme.DARK, 1)
+		stageBox.ClipsDescendants = false
 		stageBox.Name = "Palco"
 		stageBox.Position = if wide then UDim2.fromOffset(10, 66) else UDim2.new(0.5, -S / 2, 0, 66)
 		stageBox.Size = UDim2.fromOffset(S, S)
-		Theme.corner(stageBox, 14)
-		UiGlow.rays(stageBox, tone, 8, 8)
 		halo(stageBox, tone)
 		local view = dragonView(stageBox, d, true)
-		view.Size = UDim2.fromScale(1, 1)
+		view.AnchorPoint = Vector2.new(0.5, 0.5)
+		view.Position = UDim2.fromScale(0.5, 0.48)
+		view.Size = UDim2.fromScale(1.18, 1.18)
 		view.ZIndex = 3
-		UiGlow.ring(stageBox, tone, { round = false, speed = 70, thickness = 2, pad = 0 })
 		local rows = {
 			{"Grade", grade, "elem_" .. d.element},
 			{"Power", tostring(math.floor(DragonConfig.attack(d))), "item_UpgradeUncino"},
@@ -433,13 +461,50 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		description.Position = UDim2.fromOffset(16, 42)
 		description.Size = UDim2.new(1, -28, 0, 36)
 		Theme.fitText(description, 17, true)
-		local rowY = abilityY + 84 + 12 + 52
-		detail.Size = UDim2.new(1, -8, 0, rowY + 10)
-		-- pulsanti grandi in fondo
-		local row = Theme.frame(detail, Color3.new(), 1)
-		row.AnchorPoint = Vector2.new(0, 1)
-		row.Position = UDim2.new(0, 10, 0, rowY)
-		row.Size = UDim2.new(1, -20, 0, 52)
+		-- nome del drago (Mirko 15/10: "puoi dargli un nome dopo un certo livello")
+		local nameRow = Theme.frame(detail, Theme.DARK2, 0.25)
+		nameRow.Name = "NomeDrago"
+		nameRow.Position = UDim2.fromOffset(10, abilityY + 84 + 10)
+		nameRow.Size = UDim2.new(1, -20, 0, 48)
+		Theme.corner(nameRow, 10)
+		if level >= DragonConfig.NAME_LEVEL then
+			local box = Instance.new("TextBox")
+			box.PlaceholderText = if named then "New name..." else "Give your dragon a name..."
+			box.Text = ""
+			box.ClearTextOnFocus = false
+			box.Font = Enum.Font.GothamBold
+			box.TextSize = 17
+			box.TextColor3 = Theme.TEXT
+			box.PlaceholderColor3 = Theme.MUTED
+			box.TextXAlignment = Enum.TextXAlignment.Left
+			box.BackgroundTransparency = 1
+			box.Position = UDim2.fromOffset(14, 0)
+			box.Size = UDim2.new(1, -150, 1, 0)
+			box.Parent = nameRow
+			local ok = bigButton(nameRow, "Name", Theme.ACCENT)
+			ok.AnchorPoint = Vector2.new(1, 0.5)
+			ok.Position = UDim2.new(1, -6, 0.5, 0)
+			ok.Size = UDim2.new(0, 124, 1, -10)
+			Theme.action(ok, "main")
+			ok.Activated:Connect(function()
+				if box.Text ~= "" then
+					local okName, message = (RS.Remotes:WaitForChild("DragonAction") :: RemoteFunction):InvokeServer("rename", d.id, box.Text)
+					status(message or "", okName)
+				end
+			end)
+		else
+			local hintName = label(nameRow, string.format("🔒  Reach level %d to give your dragon a name", DragonConfig.NAME_LEVEL), 16, Theme.MUTED, true)
+			hintName.Position = UDim2.fromOffset(14, 0)
+			hintName.Size = UDim2.new(1, -28, 1, 0)
+		end
+		local rowY = abilityY + 84 + 12 + 48
+		detail.Size = UDim2.new(1, -8, 0, rowY + 16)
+		-- pulsanti grandi nel piede fisso
+		for _, c in dFoot:GetChildren() do
+			c:Destroy()
+		end
+		local row = Theme.frame(dFoot, Color3.new(), 1)
+		row.Size = UDim2.fromScale(1, 1)
 		local follow = bigButton(row, if following then "Rest" else "Follow", if following then Theme.DISABLED else Theme.GOOD)
 		follow.Activated:Connect(function()
 			act(if following then "unequip" else "equip", d.id)
@@ -448,7 +513,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		if nextStage then
 			local ready = maxed and (data.stones or 0) >= nextStage.stones
 			middle = bigButton(row, "Evolve", if ready then Theme.PURPLE else Theme.DISABLED)
-			Theme.action(middle, "main", not ready)
+			UiKit.button(middle, if ready then "primary" else "disabled")
+			middle.Text = "EVOLVE"
 			middle.Activated:Connect(function()
 				act("evolve", d.id)
 			end)
@@ -521,10 +587,9 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
   abilityIcon.Parent = tile
   Ui.asset(abilityIcon, "elem_" .. d.element)
   local isSel = selected == d.id
-		-- scelto: anello luminoso che gira (niente bordi fissi attorno a ogni tessera)
-		if isSel then
-			UiGlow.ring(tile, Theme.ACCENT, { round = false, speed = 140, thickness = 3, pad = -2 })
-		end
+		-- scelto: bordo d'accento, segno a sinistra e un po' piu' vicino (stati di client/UiKit)
+		UiKit.physical(tile)
+		UiKit.select(tile, isSel)
 		local vf = dragonView(tile, d, false)
 		vf.Position = UDim2.fromScale(0.03, 0.04)
 		vf.Size = UDim2.fromScale(0.94, 0.74)
@@ -591,7 +656,14 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		time.Visible = left > 0
 		time.Text = string.format("Ready in %d:%02d", left // 60, left % 60)
 		table.insert(timers, { label = time, hatch = hatch, readyAt = egg.readyAt })
+		-- un tocco solo: il secondo (prima che arrivino i dati nuovi) schiudeva l'uovo dopo
+		local pressed = false
 		hatch.Activated:Connect(function()
+			if pressed then
+				return
+			end
+			pressed = true
+			hatch.Text = "HATCHING..."
 			act("hatch", index)
 		end)
 	end
@@ -616,8 +688,8 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 				end
 			end
 			tab = if ready then "Nest" else "Dragons"
-			Ui.selected(tabDragons, tab == "Dragons", Theme.ACCENT, Theme.BLUE)
-			Ui.selected(tabNest, tab == "Nest", Theme.ACCENT, Theme.BLUE)
+			UiKit.tab(tabDragons, tab == "Dragons")
+			UiKit.tab(tabNest, tab == "Nest")
 		end
 		counters.Text = string.format("%d stones · %d/%d", data.stones or 0, #data.equipped, data.maxEquipped or 1)
 		tabDragons.Text = string.format("Dragons %d", #data.dragons)
