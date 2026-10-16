@@ -299,7 +299,10 @@ function UiKit.state(o: GuiObject, state: string, accent: Color3?)
 	local s = scaleOf(o)
 	local selected = o:GetAttribute("Scelto") == true
 	local goal = 1
-	if state == "pressed" then
+	local fixedSize = o:GetAttribute("SenzaZoom") == true
+	if fixedSize then
+		goal = 1
+	elseif state == "pressed" then
 		goal = 0.97
 	elseif selected then
 		goal = if state == "hover" then 1.04 else 1.03
@@ -457,7 +460,12 @@ function UiKit.button(b: TextButton, kind: string)
 	})
 	if framed then
 		b.BackgroundTransparency = 1
-		Cornici.caption(b, math.max(10, Cornici.logical(b).Y * 0.6))
+		-- le vecchie immagini dei modelli non tornano piu' (UIPolish le rimetteva al passaggio del
+		-- mouse) e il fondo non e' piu' colorato (il rosso dei vecchi "sell")
+		b:SetAttribute("UiAsset", nil)
+		b:SetAttribute("ButtonKind", nil)
+		b.BackgroundColor3 = UiKit.INK
+		Cornici.caption(b)
 		b.TextColor3 = if kind == "primary" then Color3.fromRGB(255, 222, 140)
 			elseif kind == "danger" then Color3.fromRGB(255, 170, 170)
 			elseif kind == "disabled" then UiKit.DIM
@@ -513,9 +521,13 @@ function UiKit.tab(b: TextButton, on: boolean, accent: Color3?)
 	b.TextColor3 = if on then UiKit.TEXT else UiKit.DIM
 	-- scheda di Codex (lato destro obliquo): scelta = oro acceso
 	b:SetAttribute("Scelto", on)
+	-- (le schede non si ingrandiscono: in fondo alla fila il terminale obliquo destro finiva fuori
+	-- dalla pagina e sembrava tagliato, Mirko 16/10)
+	b:SetAttribute("SenzaZoom", true)
 	if Cornici.apply(b, if on then "frame_tab_selected" else "frame_tab_normal") then
 		b.BackgroundTransparency = 1
-		Cornici.caption(b, 14)
+		b:SetAttribute("UiAsset", nil)
+		Cornici.caption(b)
 		b.TextColor3 = if on then Color3.fromRGB(255, 222, 140) else UiKit.MUTED
 		local old = b:FindFirstChild("Sotto")
 		if old then

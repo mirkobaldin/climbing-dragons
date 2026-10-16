@@ -100,6 +100,17 @@ function UiView.skin(target: GuiObject, name: string)
  end
  target:SetAttribute("UiAsset", name)
  if target:IsA("ImageLabel") then UiView.asset(target, name); return end
+ -- pulsanti con la cornice di Codex (client/UiKit, attributo UiNative): niente vecchie immagini
+ -- e NON si tocca la trasparenza. Prima UIPolish, al passaggio del mouse, chiamava skin che
+ -- rimetteva BackgroundTransparency = 0: sotto la cornice compariva il fondo rosso del vecchio
+ -- pulsante "sell" (Mirko 16/10: "diventano rossi tutti i Sell")
+ if target:GetAttribute("UiNative") and target:FindFirstChild("Cornice") then
+  for _, n in { "AssetSurface", "AssetCaption" } do
+   local old = target:FindFirstChild(n)
+   if old then old:Destroy() end
+  end
+  return
+ end
  local id = UiAssets.get(name)
  -- I pannelli nuovi sono nativi: nessuna vecchia cornice scura o alone.
  if name:sub(1, 6) == "panel_" or target:GetAttribute("UiNative") then id = nil end

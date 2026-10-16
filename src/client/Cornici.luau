@@ -187,6 +187,11 @@ function Cornici.apply(o: GuiObject, id: string, opts: Opts?): ImageLabel?
 		else
 			img.ScaleType = Enum.ScaleType.Stretch
 		end
+		-- margine del testo dentro la cornice (Cornici.caption senza padX): i terminali ornati
+		-- occupano solo la parte esterna del margine 9-slice, il testo puo' entrarci un po'
+		if fi.free and mode ~= "outset" then
+			o:SetAttribute("CorniceMargine", math.floor((fi.free :: Rect).Min.X * s * 0.7))
+		end
 		if mode == "outset" and fi.free then
 			local f = fi.free :: Rect
 			local l, t = f.Min.X * s, f.Min.Y * s
@@ -256,8 +261,27 @@ function Cornici.caption(b: TextButton | TextLabel, padX: number?): TextLabel
 	l.BackgroundTransparency = 1
 	l.AnchorPoint = Vector2.new(0.5, 0.5)
 	l.Position = UDim2.fromScale(0.5, 0.5)
-	l.Size = UDim2.new(1, -2 * (padX or 10), 1, 0)
 	l.ZIndex = 3
+	-- margine: quello chiesto, oppure quello dei terminali della cornice (CorniceMargine)
+	local function pad()
+		local auto = b:GetAttribute("CorniceMargine")
+		local px = padX or (if type(auto) == "number" then auto else 10)
+		-- mai piu' di un quarto della larghezza per lato (pulsanti stretti come "Sell 1")
+		local w = Cornici.logical(b).X
+		if w > 1 then
+			px = math.min(px, w * 0.25)
+		end
+		l.Size = UDim2.new(1, -2 * px, 1, -4)
+	end
+	pad()
+	local padConns = {
+		b:GetAttributeChangedSignal("CorniceMargine"):Connect(pad),
+		b:GetPropertyChangedSignal("AbsoluteSize"):Connect(pad),
+	}
+	-- il testo si rimpicciolisce se non ci sta (mai "...": Mirko 16/10, "Sell 1" diventava "SE...")
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MinTextSize = 8
+	limit.Parent = l
 	l:SetAttribute("UiNative", true)
 	l:SetAttribute("TipoTesto", b:GetAttribute("TipoTesto"))
 	l.Parent = b
@@ -270,6 +294,10 @@ function Cornici.caption(b: TextButton | TextLabel, padX: number?): TextLabel
 			(l :: any)[prop] = (b :: any)[prop]
 		end
 		l.TextTransparency = own
+		l.TextScaled = true
+		l.TextWrapped = false
+		l.TextTruncate = Enum.TextTruncate.None
+		limit.MaxTextSize = math.max(8, math.floor(b.TextSize))
 	end
 	local conns: { RBXScriptConnection } = {}
 	for _, prop in PROPS do
@@ -291,6 +319,9 @@ function Cornici.caption(b: TextButton | TextLabel, padX: number?): TextLabel
 	-- cancellata da chi rifa' i figli del pulsante: torna (se no il testo restava invisibile)
 	l.Destroying:Connect(function()
 		for _, c in conns do
+			c:Disconnect()
+		end
+		for _, c in padConns do
 			c:Disconnect()
 		end
 		if removing[b] then

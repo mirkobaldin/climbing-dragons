@@ -118,6 +118,14 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 		if surface and surface:IsA("GuiObject") then
 			surface.Visible = false
 		end
+		-- niente piu' "panel_card" del modello: Theme.paint lo ridipingeva di blu con la sfumatura
+		-- chiara a ogni impaginazione (le carte blu della scheda Sell, Mirko 16/10)
+		c:SetAttribute("UiAsset", nil)
+		for _, g in c:GetChildren() do
+			if g:IsA("UIGradient") then
+				g:Destroy()
+			end
+		end
 		c.BackgroundColor3 = UiKit.RAISED
 		c.BackgroundTransparency = 0.18
 		UiKit.edge(c)
