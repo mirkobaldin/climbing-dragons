@@ -164,8 +164,11 @@ function Cornici.apply(o: GuiObject, id: string, opts: Opts?): ImageLabel?
 			img.Size = UDim2.fromOffset(png.X * k, png.Y * k)
 			return
 		end
+		local fixed = o:GetAttribute("CorniceScala")
 		if p.scale then
 			s = p.scale
+		elseif type(fixed) == "number" and fixed > 0 then
+			s = fixed -- cornice piu' sottile del normale (caselle piccole dell'Inventory)
 		elseif mode == "outset" and fi.free and not p.border then
 			-- l'altezza libera dell'immagine = altezza dell'elemento (barre)
 			s = size.Y / math.max(1, (fi.free :: Rect).Height)
