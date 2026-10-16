@@ -183,3 +183,134 @@ Poi applicalo almeno al menu (finestra, schede, pagine) e all'HUD.
   * cosa non sei riuscito a fare.
 - Aggiungi in `gusti/UI/regole.md` le righe "Sbagliato/Buono" nuove che vengono da questi
   appunti.
+
+## Fatto (sessione cloud del 17/10, branch `cloud/ui-rifinitura-20261017`)
+
+Niente prove in Studio (non c'e'): ogni file Luau toccato passa `luau-compile` (e `luau-analyze`
+senza variabili sconosciute). Le immagini nuove sono PNG in `artifacts/ui-rifinitura-20261017/`.
+
+### Ricerca e metodo (`docs/UI_ADATTAMENTO.md`)
+- **Una sola impaginazione** disegnata per un'area logica di almeno **1280x540**; un `UIScale`
+  "ScalaUI" sulla ScreenGui (`UiView.fitScale`) la adatta: scala = min(L/1280, A/540) fra 0,55 e
+  2,5. S24 Ultra (891x353) = scala 0,654 e area 1362x540: la stessa UI del computer, piu' piccola,
+  come Blox Fruits. Sul computer 16:9 non cambia niente (1280x680 come prima).
+- L'area si misura dalla ScreenGui (`AbsoluteSize`, `UiView.viewportChanged(cb, gui)`): le aree
+  sicure (`ScreenInsets` = CoreUISafeInsets) sono gia' tolte e la finestra non esce piu' dallo
+  schermo. `UiView.topbar(scala)` = spazio libero nella barra di Roblox (`GuiService.TopbarInset`).
+- Testo minimo 10 pixel veri: `UiKit.setScale` / `UiKit.minText` (sul telefono un testo da 13
+  diventa 16 logici).
+- `UiView.compact` ora e' vero solo con lo schermo in verticale: i rami compact/short/low di menu,
+  pagine e HUD non scattano piu' sul telefono in orizzontale. Tolti del tutto nella finestra del
+  menu (`MainMenu`), nell'HUD (`HUD`: era un ramo "telefono" intero), in Montepremi, EventBanner,
+  Combat; nelle pagine restano solo come rete di sicurezza (la pagina e' alta almeno ~444).
+
+### Punto per punto
+1. **Rebirth e Bounties** (`UpgradeUI`): pannelli con la cornice (`UiKit.panel`), testi UiKit,
+   barre incassate con la cornice delle barre, pulsanti `UiKit.button` (CLAIM / IN PROGRESS /
+   CLAIMED, REBIRTH / NOT READY YET), ORA > DOPO come i riquadri NOW/NEXT della pagina Player.
+2. **Schede "tagliate"**: il PNG `frame_tab_*` aveva un gradino di colore nel fondo proprio dove
+   comincia il margine 9-slice destro (si vede in `anteprima_hud_e_schede.png`, prima/dopo):
+   PNG corretti da ricaricare. In piu' le schede piccole (`UiKit.tab`) non si ingrandiscono piu'
+   (il terminale obliquo della scheda in fondo alla fila usciva dalla pagina).
+3. **Shop**: il rosso veniva da `UiView.skin` (chiamato da UIPolish al passaggio del mouse) che
+   rimetteva `BackgroundTransparency = 0` e sotto la cornice compariva il fondo rosso del vecchio
+   `Theme.action("sell")`: ora skin non tocca i pulsanti con la cornice, e `UiKit.button` toglie
+   UiAsset/ButtonKind e il colore di fondo. "SE...": `Cornici.caption` aveva margini di 0,6 x
+   altezza per lato e copiava `TextTruncate`; ora il margine viene dai terminali veri
+   (`CorniceMargine`, max 1/4 della larghezza) e il testo si rimpicciolisce (TextScaled +
+   UITextSizeConstraint), mai puntini. Carte del negozio scure (Theme.paint le ridipingeva blu).
+4. **Inventory** (`MainMenu.mountInventory`, come Diablo IV): statistiche a sinistra (attacco,
+   scudo, stamina, salute, draghi, vette), personaggio 3D al centro-destra con 6 caselle di
+   equipaggiamento attorno (ramponi, tuta, piccone rinforzato | parapendio, sella, chiodi; spente
+   se mancano, toccandole si vede la scheda), sotto filtri e griglia fitta di caselle da 60 con
+   cornice sottile (`CorniceScala` 0,27) e icona al centro dello spazio libero (niente nome nella
+   casella: sta nella scheda), in fondo monete | pietre | chiodi. A destra scheda dell'oggetto
+   (Drop 1 / Drop all / Remove) e barra 1-5. Nome unico **Inventory** (titolo, scheda, testi).
+5. **Ritratti** (`HUD`): ritratto 76 (era 96); foto, fondo dell'elemento e disco del livello
+   sono un filo piu' grandi del foro e tondi, sotto l'anello della cornice: niente spazio fra foto
+   e cornice e niente cerchio che sporge.
+6. **Barre**: vita, stamina e scudo una sotto l'altra, attaccate (le cornici si toccano), barra
+   del nome del drago e dell'XP con la cornice. Tutte da `UiKit.bar`: a **parallelogramma** con
+   le cornici oblique nuove (`frame_bar_*_slant`, PNG da caricare); finche' non ci sono, dritte
+   nelle cornici dritte. Lo spazio libero delle cornici e' ora l'interno vero del PNG (il
+   riempimento arriva ai terminali). `Slant`: forma "para" (parallelogramma vero) e
+   `Slant.setSlant`.
+7. **Profilo** (`ProfileUI`): barre delle statistiche con la cornice (`UiKit.bar`), etichette
+   in Oswald. Fessura fra fondo e cornice di tutti gli `UiKit.panel`: era nel PNG `frame_panel`
+   (20 px trasparenti fra cornice e carbone), corretto, da ricaricare.
+8. **Pagine sul telefono**: con la scala unica la pagina del menu e' 1058x444 logici anche sul
+   telefono (prima ~700x280): Upgrades, Travel e Profile usano l'impaginazione del computer con
+   lista a sinistra e scheda/personaggio a destra.
+9. **Menu draghi** (`DragonUI`): la griglia usava i pixel veri come logici (col computer a scala
+   1,5 le celle uscivano e andava a capo con due colonne e un vuoto a destra): ora 2-5 colonne che
+   riempiono la larghezza; collezione e scheda a meta'. Palco del drago: sfondo della valle col
+   ghiacciaio (`bg_loading` ritagliato, gia' caricato; se si carica `bg_drago_valle` usa quella)
+   che sfuma in basso, al posto della bolla grigia.
+10. **HUD modificabile** (`client/HudLayout`, nuovo): tasto ⚙ a medaglione (cornice di Codex +
+    `icon_settings`) nel gruppo "? / HIDE HUD" accanto al meteo, su telefono E computer. In
+    modifica: barra in alto con EDIT HUD, DONE e RESET, contorno dorato col nome su ogni
+    elemento: personaggio, drago, missione, meteo, gruppo dei tasti, barra 1-5, MENU, Roar/Z (sul
+    telefono anche i tasti d'azione, come prima). Posizioni in frazioni dello schermo dentro
+    `ControlsLayout` (voci `HUD_touch` e `HUD_pc`, una disposizione per dispositivo; il vecchio
+    `MenuFrac` del telefono vale ancora). RESET rimette tutto. L'ingranaggio azzurro e il
+    pannello Reset/Done di MobileControls sono stati tolti.
+11. **Meteo**: un solo elemento. Medaglione col meteo appoggiato sulla targa (contatore di Codex,
+    fondo carbone) con ora e quota ("▲ 1,361 m"); aperto (tocco/clic) sotto si attacca un
+    pannello con giorno/notte e tempo, calore (barra con cornice) e uovo. Piegato = medaglione +
+    targa (telefono parte piegato).
+12. **Telefono vero**: le ScreenGui del menu e dell'HUD si misurano dalla loro area (barra di
+    Roblox esclusa). La striscia monete | PRIZE POOL | pietre sta nello spazio libero della barra
+    di Roblox (`TopbarInset`): a destra dei tasti di Roblox se al centro non c'e' posto,
+    rimpicciolita, o sotto la barra; l'annuncio degli eventi la segue. Il montepremi usa lo
+    stesso contatore di Codex delle monete, col metallo tinto di rosa, e Oswald. La freccia
+    "Home ... m" non va piu' sotto i tasti di Roblox. Ordine a destra: meteo, a sinistra del meteo
+    i tasti ⚙ ? HIDE HUD (non si sovrappongono); Roar del telefono spostato fuori dalla barra 1-5
+    e dal secondo giro dei tasti.
+
+### PNG da caricare (dettagli in `artifacts/ui-rifinitura-20261017/LEGGIMI.md`)
+- Da **sostituire** (stesso nome, nuovo ID in `UiAssets.ids`): `frame_tab_normal`,
+  `frame_tab_hover`, `frame_tab_selected` (552x128, margini 109,38,109,38), `frame_panel`
+  (800x600, margini 112).
+- **Nuovi** (ID vuoti gia' in `UiAssets.ids`, margini e spazio libero gia' in UiAssets):
+  `frame_bar_health_slant` (680x72, 89,17,89,16), `frame_bar_stamina_slant` (631x56,
+  78,14,78,14), `frame_bar_shield_slant` (591x56, 68,14,68,14), `frame_bar_xp_slant` (586x48,
+  60,11,60,11).
+
+### Da verificare in Studio (telefono: `SimViewport = Vector2.new(891, 353)` + `SimTouch = true`; computer: niente attributi)
+- Ricerca/scala: la `ScalaUI` del menu e dell'HUD vale ~0,654 sul telefono simulato e 1,5 su
+  1920x1080; la finestra del menu sta tutta nello schermo (6 schede visibili, UPGRADES compresa).
+  Controllare che `ScreenGui.AbsoluteSize` non cambi con la ScalaUI (lo do per certo, non l'ho
+  potuto provare).
+- 1: Upgrades > Bounties e Rebirth: pannelli con la cornice, pulsanti oro/spenti, niente blu.
+- 2: dopo aver caricato i PNG: schede del menu e filtri senza "gradino"; la scheda in fondo alla
+  fila dei filtri intera.
+- 3: Shop > Sell: hover su un Sell cambia solo quel pulsante e non diventa rosso; "SELL 1" e
+  "SELL ALL" interi anche stretti; anche dopo un clic (la lista si rifa').
+- 4: Inventory su computer e telefono: personaggio con le 6 caselle attorno, griglia fitta,
+  trascinamento delle caselle e verso la barra 1-5, Drop 1 / Drop all, Remove, monete in fondo.
+- 5-6: HUD: foto che riempie il ritratto, barre attaccate; dopo i PNG obliqui, riempimento
+  obliquo allineato alla cornice (`Slant.setSlant` da `UiKit.bar`); nome e XP del drago.
+- 7: Profilo: barre con cornice, etichette Oswald, nessuna fessura nei pannelli (PNG nuovo).
+- 8: Upgrades, Travel, Profile sul telefono simulato: lista + scheda/personaggio insieme.
+- 9: Draghi: tessere che riempiono la griglia (3-4 colonne sul computer), palco con la valle.
+- 10: ⚙ sul computer e sul telefono: barra EDIT HUD, trascinare ogni elemento, DONE salva (uscire
+  e rientrare: tornano dove erano), RESET; i tasti del telefono si spostano ancora; il MENU non
+  si apre mentre lo sposti.
+- 11: meteo piegato/aperto, calore in quota, uovo trasportato, HIDE HUD.
+- 12: sul telefono vero: monete non sotto i tasti di Roblox, annuncio evento sotto la striscia,
+  freccia Home sotto la barra, niente sovrapposizioni a destra (meteo, ? HIDE, WALK/THROW, Roar,
+  RIDE, barra 1-5).
+- Testi minimi sul telefono (10 px veri): che nessuna etichetta esca dal suo riquadro.
+
+### Cosa non sono riuscito a fare / limiti
+- Nessuna prova in Play: posizioni e misure sono calcolate, non viste. Le piu' a rischio:
+  sovrapposizioni dell'HUD con i tasti del telefono su tablet, le caselle dell'equipaggiamento
+  col personaggio 3D (`AvatarView`) piu' stretto, il pannello del meteo aperto con calore + uovo.
+- Non ho usato `GuiService.ViewportDisplaySize` (utile per i tasti touch, non per l'impaginazione).
+- `ControlsPanel`, `DeathScreen`, `EggHatch` e `AdminClient` usano gia' la scala nuova (nessun
+  ramo compact scatta in orizzontale) ma non li ho rifatti; i pulsanti Admin/God non sono
+  spostabili.
+- Lo sfondo del palco del drago e' un ritaglio di `bg_loading`, non un'immagine nuova (non avevo
+  un generatore di immagini).
+- L'ordinamento (SORT) del Crafting copre i filtri mentre e' aperto (visto nel video del
+  computer): non era nei 12 punti, non l'ho toccato.

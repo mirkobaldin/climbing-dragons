@@ -209,3 +209,16 @@ Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, anim
 - Draghi che seguono: altezza del terreno, spostamento anti-camera e direzione filtrati, virata
   massima 260 gradi/s (client/PetAnimator): prima tremavano e sbandavano.
 - Palafitte nel lago del teschio senza baite (`Config.PALAFITTE`, mapgen/Lakeside).
+
+## Aggiunte del 2026-10-17 (sessione cloud, rifinitura UI)
+- **Una sola UI per telefono e computer** (`docs/UI_ADATTAMENTO.md`): `UiView.fitScale` porta ogni
+  schermo a un'area logica di almeno 1280x540 (telefono S24 Ultra = scala 0,654, area 1362x540);
+  `UiView.viewportChanged(cb, gui)` misura l'area vera della ScreenGui (aree sicure gia' tolte);
+  `UiView.topbar(scala)` = spazio libero nella barra di Roblox; `UiKit.setScale` = testo minimo
+  10 px veri. Niente rami "telefono" nuovi: si impagina una volta sola in pixel logici.
+- **HUD modificabile** (`client/HudLayout`): ogni elemento spostabile fa `HudLayout.register(nome,
+  obj, titolo)` e, dopo la sua impaginazione, `HudLayout.place(nome, obj)`; tasto ⚙ dell'HUD,
+  barra DONE/RESET, posizioni in `ControlsLayout` (`HUD_touch` / `HUD_pc`).
+- Barre con la cornice: `UiKit.bar(parent, "health"|"stamina"|"shield"|"xp", colore)` (a
+  parallelogramma con i PNG `frame_bar_*_slant`). Caselle con cornice sottile: attributo
+  `CorniceScala` sull'elemento prima di `UiKit.slot`.
