@@ -67,10 +67,6 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> (), ctx:
 		status(message or "", ok)
 		refresh()
 	end
-	local function heading(value: string, order: number)
-		local l = Ui.template("Heading", list)
-		l.Text, l.LayoutOrder = value, order
-	end
 	-- schede in alto: Player / Dragon / Bounties / Rebirth (al posto delle tre del modello)
 	local oldTabs = container:FindFirstChild("Tabs")
 	if oldTabs and oldTabs:IsA("GuiObject") then
@@ -423,40 +419,82 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> (), ctx:
 			ctx.sub(if group == "Dragon" then "Boosts for all your dragons" else "Boosts for you")
 		end
 	end
+	-- Pannelli di Bounties e Rebirth nello stesso stile della pagina Player (Mirko 16/10: erano
+	-- ancora riquadri blu e una pillola azzurra "NOT READY YET"): pannello con la cornice di Codex,
+	-- testi di UiKit, barre incassate con la cornice, pulsanti di UiKit
+	local function panel(h: number, order: number): Frame
+		local f = Instance.new("Frame")
+		f.BackgroundTransparency = 1
+		f.BorderSizePixel = 0
+		f.Size = UDim2.new(1, -12, 0, h)
+		f.LayoutOrder = order
+		f.Parent = list
+		UiKit.panel(f, { border = 10 })
+		return f
+	end
+	local function label(parent: Instance, str: string, kind: any, x: number, y: number, w: UDim, h: number, size: number?): TextLabel
+		local l = UiKit.label(parent, str, kind, size)
+		l.ZIndex = 4
+		l.Position = UDim2.fromOffset(x, y)
+		l.Size = UDim2.new(w.Scale, w.Offset, 0, h)
+		return l
+	end
+	-- barra incassata (scanalatura scura e riempimento), con la cornice delle barre se c'e'
+	local function meter(parent: Instance, ratio: number, color: Color3, x: number, y: number, w: UDim, h: number): Frame
+		local back = Theme.frame(parent, UiKit.INK, 0)
+		back.Position = UDim2.fromOffset(x, y)
+		back.Size = UDim2.new(w.Scale, w.Offset, 0, h)
+		back.ZIndex = 4
+		local fill = Theme.frame(back, color, 0)
+		fill.Size = UDim2.fromScale(math.clamp(ratio, 0, 1), 1)
+		fill.ZIndex = 5
+		if not UiKit.Cornici.apply(back, "frame_bar_xp", { mode = "outset", z = 6 }) then
+			UiKit.edge(back, Color3.new(0, 0, 0), 1, 0.3)
+		end
+		return back
+	end
 	local function bounties()
 		local data = decode(player:GetAttribute("BountyData"))
 		if not data then
-			heading("Loading bounties...", 0)
+			local l = UiKit.label(list, "Loading bounties...", "section")
+			l.LayoutOrder = 0
 			return
 		end
-		local function row(
-			order: number,
-			title: string,
-			progress: number,
-			need: number,
-			reward: string,
-			claimed: boolean,
-			action: string,
-			arg: any
-		)
-			local c = Ui.template("BountyCard", list)
-			c.LayoutOrder = order
-			c.Title.Text = title
-			c.Progress.Fill.Size = UDim2.fromScale(math.clamp(progress / math.max(need, 1), 0, 1), 1)
-			c.Reward.Text = string.format("%d/%d · Reward: %s", progress, need, reward)
-			c.Claim.Text = if claimed then "Claimed" elseif progress >= need then "Claim" else "In progress"
-			c.Claim.Activated:Connect(function()
-				if not claimed and progress >= need then
+		local function section(str: string, order: number)
+			local l = UiKit.label(list, str, "section")
+			l.LayoutOrder = order
+			l.Size = UDim2.new(1, -12, 0, 30)
+			l.TextColor3 = UiKit.ACCENT
+		end
+		local function row(order: number, title: string, progress: number, need: number, reward: string, claimed: boolean, action: string, arg: any)
+			local done = progress >= need
+			local c = panel(104, order)
+			local bw = 190 -- spazio del pulsante a destra
+			label(c, title, "name", 22, 14, UDim.new(1, -(bw + 40)), 28)
+			meter(c, progress / math.max(need, 1), if claimed then UiKit.DIM elseif done then UiKit.GOOD else UiKit.ICE, 24, 50, UDim.new(1, -(bw + 48)), 12)
+			local r = label(c, string.format("%d / %d   ·   Reward: %s", math.min(progress, need), need, reward), "body", 22, 68, UDim.new(1, -(bw + 40)), 24)
+			r.TextColor3 = UiKit.MUTED
+			local btn = Instance.new("TextButton")
+			btn.Name = "Riscatta"
+			btn.AnchorPoint = Vector2.new(1, 0.5)
+			btn.Position = UDim2.new(1, -18, 0.5, 0)
+			btn.Size = UDim2.fromOffset(bw - 20, 50)
+			btn.ZIndex = 5
+			btn.Parent = c
+			UiKit.button(btn, if claimed or not done then "disabled" else "primary")
+			btn.Text = if claimed then "CLAIMED" elseif done then "CLAIM" else "IN PROGRESS"
+			btn.Activated:Connect(function()
+				if not claimed and done then
 					call(action, arg)
 				end
 			end)
 		end
 		local d = data.daily
 		if d then
-			heading(string.format("Daily challenge · new one in %d h", math.floor((data.resetIn or 0) / 3600)), 0)
+			section(string.format("Daily challenge  ·  new one in %d h", math.floor((data.resetIn or 0) / 3600)), 0)
 			row(1, d.text, d.progress, d.need, string.format("%d coins", d.coins), d.claimed, "daily", nil)
 		end
-		heading("Bounties · claim one to receive a new one", 2)
+		section("Bounties  ·  claim one to receive a new one", 2)
 		for k, b in data.bounties or {} do
 			local reward = string.format("%d coins", b.coins)
 			for name, n in b.items or {} do
@@ -465,9 +503,9 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> (), ctx:
 			row(k + 2, b.text, b.progress, b.need, reward, false, "claim", k)
 		end
 	end
-	-- Rinascita: pannello "di vetro" sopra lo sfondo della finestra (piace molto ai giocatori: si
-	-- deve vedere), titolo grande, ora/dopo coi bonus in grande, cosa tieni e cosa perdi, requisiti
-	-- con la spunta e un pulsante grande che si accende solo quando si puo'
+	-- Rinascita: titolo, ORA -> DOPO coi bonus in grande (riquadri come "NOW / NEXT" della scheda
+	-- dei potenziamenti), cosa tieni e cosa perdi, requisiti con la spunta, pulsante di UiKit che si
+	-- accende solo quando si puo'
 	local function rebirth()
 		local R = Config.REBIRTH
 		local n = (player:GetAttribute("Rebirths") or 0) :: number
@@ -475,78 +513,58 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> (), ctx:
 		local coins = (player:GetAttribute("Coins") or 0) :: number
 		local summitOk, coinsOk = since >= 1, coins >= R.MIN_COINS
 		local ready = summitOk and coinsOk
-		local GOLD = Theme.ACCENT
-		local function glass(parent: Instance, h: number, order: number): Frame
-			local f = Theme.frame(parent, Theme.CARD, 0.35)
-			f.Size = UDim2.new(1, -12, 0, h)
-			f.LayoutOrder = order
-			Theme.corner(f, 16)
-			Theme.stroke(f, GOLD, 2, 0.55)
-			return f
-		end
-		local function text(parent: Instance, str: string, size: number, color: Color3, x: number, y: number, w: UDim, h: number, align: Enum.TextXAlignment?): TextLabel
-			local l = Theme.label(parent, str, size, color, true)
-			l.Font = Enum.Font.GothamBlack
-			l.TextScaled = true
-			l.Position = UDim2.new(0, x, 0, y)
-			l.Size = UDim2.new(w.Scale, w.Offset, 0, h)
-			l.TextXAlignment = align or Enum.TextXAlignment.Left
-			l.TextStrokeTransparency = 0.25
-			local c = l:FindFirstChildOfClass("UITextSizeConstraint") or Instance.new("UITextSizeConstraint")
-			c.MaxTextSize = size
-			c.MinTextSize = 12
-			c.Parent = l
-			return l
-		end
-		local hero = glass(list, 430, 1)
+		local hero = panel(392, 1)
 		hero.Name = "Rinascita"
-		text(hero, "REBIRTH", 44, GOLD, 24, 16, UDim.new(0.6, 0), 48)
-		text(hero, string.format("Level %d  →  %d", n, n + 1), 22, Color3.new(1, 1, 1), 24, 66, UDim.new(0.6, 0), 28)
-		-- ora / dopo
-		local function bonus(x: number, title: string, k: number, color: Color3)
-			local box = Theme.frame(hero, Theme.CARD, 0.2)
-			box.Position = UDim2.new(x, if x == 0 then 24 else 8, 0, 108)
-			box.Size = UDim2.new(0.5, -32, 0, 110)
-			Theme.corner(box, 12)
-			Theme.stroke(box, color, 2, 0.4)
-			local t = text(box, title, 16, Theme.MUTED, 14, 8, UDim.new(1, -28), 20)
-			t.TextXAlignment = Enum.TextXAlignment.Center
-			text(box, string.format("+%d%% coins", math.floor(k * R.COIN_BONUS * 100 + 0.5)), 30, color, 14, 32, UDim.new(1, -28), 36, Enum.TextXAlignment.Center)
-			text(box, string.format("+%d%% dragon XP", math.floor(k * R.XP_BONUS * 100 + 0.5)), 20, color, 14, 72, UDim.new(1, -28), 26, Enum.TextXAlignment.Center)
+		local t = label(hero, "REBIRTH", "title", 26, 16, UDim.new(0.6, 0), 40, 36)
+		t.TextColor3 = UiKit.ACCENT
+		label(hero, string.format("Level %d  >  %d", n, n + 1), "section", 26, 58, UDim.new(0.6, 0), 24)
+		-- ora / dopo: due riquadri in rilievo con la freccia in mezzo
+		local function bonus(x: UDim, title: string, k: number, color: Color3)
+			local box = Theme.frame(hero, UiKit.RAISED, 0.25)
+			box.Position = UDim2.new(x.Scale, x.Offset, 0, 94)
+			box.Size = UDim2.new(0.5, -44, 0, 104)
+			box.ZIndex = 3
+			UiKit.edge(box, if color == UiKit.GOOD then UiKit.GOOD else UiKit.LINE, 1, if color == UiKit.GOOD then 0.5 else 0.8)
+			local tt = label(box, title, "status", 0, 8, UDim.new(1, 0), 18)
+			tt.TextXAlignment = Enum.TextXAlignment.Center
+			local a = label(box, string.format("+%d%% coins", math.floor(k * R.COIN_BONUS * 100 + 0.5)), "stat", 0, 30, UDim.new(1, 0), 36, 30)
+			a.TextXAlignment = Enum.TextXAlignment.Center
+			a.TextColor3 = color
+			local b2 = label(box, string.format("+%d%% dragon XP", math.floor(k * R.XP_BONUS * 100 + 0.5)), "name", 0, 68, UDim.new(1, 0), 26, 18)
+			b2.TextXAlignment = Enum.TextXAlignment.Center
+			b2.TextColor3 = color
 		end
-		bonus(0, "NOW", n, Theme.MUTED)
-		bonus(0.5, "AFTER REBIRTH", n + 1, Theme.GOOD)
-		-- tieni / perdi
-		text(hero, "✔  You keep: dragons, gear, your house", 18, Theme.GOOD, 24, 232, UDim.new(1, -48), 24)
-		text(hero, "✖  You lose: coins, ores, upgrades", 18, Theme.BAD, 24, 260, UDim.new(1, -48), 24)
-		-- requisiti
+		bonus(UDim.new(0, 26), "NOW", n, UiKit.MUTED)
+		bonus(UDim.new(0.5, 18), "AFTER REBIRTH", n + 1, UiKit.GOOD)
+		local arrow = label(hero, ">", "title", 0, 128, UDim.new(0, 30), 36, 30)
+		arrow.AnchorPoint = Vector2.new(0.5, 0)
+		arrow.Position = UDim2.new(0.5, 0, 0, 128)
+		arrow.TextXAlignment = Enum.TextXAlignment.Center
+		arrow.TextColor3 = UiKit.ACCENT
+		-- tieni / perdi, requisiti
+		local keep = label(hero, "✔  You keep: dragons, gear, your house", "body", 26, 214, UDim.new(0.5, -30), 24, 17)
+		keep.TextColor3 = UiKit.GOOD
+		local lose = label(hero, "✖  You lose: coins, ores, upgrades", "body", 26, 240, UDim.new(0.5, -30), 24, 17)
+		lose.TextColor3 = UiKit.BAD
+		local reqT = label(hero, "TO REBIRTH", "status", 0, 214, UDim.new(0.5, -30), 18)
+		reqT.Position = UDim2.new(0.5, 18, 0, 214)
 		local function need(ok: boolean, str: string, y: number)
-			text(hero, (if ok then "✔  " else "✖  ") .. str, 18, if ok then Theme.GOOD else Theme.ACCENT, 24, y, UDim.new(1, -48), 24)
+			local l = label(hero, (if ok then "✔  " else "✖  ") .. str, "body", 0, y, UDim.new(0.5, -44), 24, 17)
+			l.Position = UDim2.new(0.5, 18, 0, y)
+			l.TextColor3 = if ok then UiKit.GOOD else UiKit.ACCENT
 		end
-		need(summitOk, "Reach the summit", 300)
-		need(coinsOk, string.format("Have %d coins  (you have %d)", R.MIN_COINS, math.floor(coins)), 328)
-		-- pulsante
+		need(summitOk, "Reach the summit", 236)
+		need(coinsOk, string.format("Have %d coins  (you have %d)", R.MIN_COINS, math.floor(coins)), 260)
 		local btn = Instance.new("TextButton")
+		btn.Name = "Rinasci"
 		btn.AnchorPoint = Vector2.new(0.5, 1)
-		btn.Position = UDim2.new(0.5, 0, 1, -16)
-		btn.Size = UDim2.new(1, -48, 0, 60)
-		btn.Font = Enum.Font.GothamBlack
-		btn.TextScaled = true
-		btn.Text = if ready then "REBIRTH" else "NOT READY YET"
-		btn.TextColor3 = Color3.new(1, 1, 1)
-		btn.TextStrokeTransparency = 0.2
-		Theme.action(btn, "main", not ready)
-		btn.AutoButtonColor = ready
+		btn.Position = UDim2.new(0.5, 0, 1, -22)
+		btn.Size = UDim2.new(0.6, 0, 0, 58)
+		btn.ZIndex = 5
 		btn.Parent = hero
-		Theme.corner(btn, 14)
-		Theme.gradient(btn, Color3.new(1, 1, 1), Theme.MUTED, 90)
-		local bc = btn:FindFirstChildOfClass("UITextSizeConstraint") or Instance.new("UITextSizeConstraint")
-		bc.MaxTextSize = 28
-		bc.MinTextSize = 12
-		bc.Parent = btn
-		local bp = btn:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
-		bp.PaddingTop, bp.PaddingBottom = UDim.new(0.18, 0), UDim.new(0.18, 0)
-		bp.Parent = btn
+		UiKit.button(btn, if ready then "primary" else "disabled")
+		btn.Text = if ready then "REBIRTH" else "NOT READY YET"
+		btn.TextSize = 22
 		local armed = false
 		btn.Activated:Connect(function()
 			if not ready then
@@ -555,7 +573,7 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> (), ctx:
 			end
 			if not armed then
 				armed = true
-				btn.Text = "SURE? TAP AGAIN"
+				btn.Text = if Ui.touch() then "SURE? TAP AGAIN" else "SURE? CLICK AGAIN"
 				task.delay(3, function()
 					if btn.Parent then
 						armed = false
@@ -566,24 +584,30 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> (), ctx:
 			end
 			call("rebirth", nil)
 		end)
-		-- statistiche e classifica, nello stesso vetro
+		-- statistiche e classifica delle discese
 		local best = player:GetAttribute("BestDescent")
 		local top = decode(workspace:GetAttribute("DescentTop")) or {}
-		local stats = glass(list, 64 + 30 * math.max(1, math.min(#top, 5)), 2)
-		text(stats, string.format("Summits %d   ·   Enemies %d   ·   Bosses %d   ·   Best descent %s",
+		local rowsN = math.max(1, math.min(#top, 5))
+		local stats = panel(84 + 28 * rowsN, 2)
+		stats.Name = "Record"
+		local st = label(stats, string.format("Summits %d   ·   Enemies %d   ·   Bosses %d   ·   Best descent %s",
 			player:GetAttribute("Summits") or 0,
 			player:GetAttribute("Kills") or 0,
 			player:GetAttribute("BossKills") or 0,
-			if type(best) == "number" then string.format("%.1f s", best) else "-"), 17, Color3.new(1, 1, 1), 20, 12, UDim.new(1, -40), 22)
-		text(stats, "Fastest descents", 16, GOLD, 20, 38, UDim.new(1, -40), 20)
+			if type(best) == "number" then string.format("%.1f s", best) else "-"), "name", 24, 14, UDim.new(1, -48), 26, 18)
+		st.TextColor3 = UiKit.TEXT
+		local ft = label(stats, "FASTEST DESCENTS", "status", 24, 44, UDim.new(1, -48), 18)
+		ft.TextColor3 = UiKit.ACCENT
 		if #top == 0 then
-			text(stats, "No records yet: be the first!", 16, Theme.MUTED, 20, 62, UDim.new(1, -40), 22)
+			local l = label(stats, "No records yet: be the first!", "body", 24, 66, UDim.new(1, -48), 24)
+			l.TextColor3 = UiKit.MUTED
 		end
 		for i, e in top do
 			if i > 5 then
 				break
 			end
-			text(stats, string.format("%d.  %s  —  %.1f s", i, e.name, e.seconds), 16, Theme.TEXT, 20, 32 + 30 * i, UDim.new(1, -40), 22)
+			local l = label(stats, string.format("%d.   %s   —   %.1f s", i, e.name, e.seconds), "body", 24, 38 + 28 * i, UDim.new(1, -48), 24)
+			l.TextColor3 = if e.name == player.Name or e.name == player.DisplayName then UiKit.ACCENT else UiKit.TEXT
 		end
 	end
 	local function layout()

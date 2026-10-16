@@ -118,6 +118,14 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 		if surface and surface:IsA("GuiObject") then
 			surface.Visible = false
 		end
+		-- niente piu' "panel_card" del modello: Theme.paint lo ridipingeva di blu con la sfumatura
+		-- chiara a ogni impaginazione (le carte blu della scheda Sell, Mirko 16/10)
+		c:SetAttribute("UiAsset", nil)
+		for _, g in c:GetChildren() do
+			if g:IsA("UIGradient") then
+				g:Destroy()
+			end
+		end
 		c.BackgroundColor3 = UiKit.RAISED
 		c.BackgroundTransparency = 0.18
 		UiKit.edge(c)
@@ -234,6 +242,9 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 	local GuiService = game:GetService("GuiService")
 	local Hotbar = require(Shared:WaitForChild("Hotbar"))
 	local AvatarView = require(script.Parent.AvatarView)
+	-- scala delle cornici delle caselle: bordo di circa 9 px invece di 13+ (UiKit.slot la legge
+	-- dall'attributo CorniceScala)
+	local THIN_SLOT = 0.27
 	local list = Ui.node(container, "List") :: ScrollingFrame
 	rows(list)
 	local old = list:FindFirstChildOfClass("UIListLayout")
@@ -259,17 +270,84 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		chips[f] = b
 	end
 
-	-- PANNELLO DI DESTRA: personaggio, scheda dell'oggetto, barra 1-5 in fondo
-	local side = Theme.frame(container, Theme.DARK2, 1)
-	side.Name = "SchedaZaino"
-	UiKit.panel(side, { transparency = 0.2 })
-	local avatarBox = Theme.frame(side, UiKit.INK, 0.5)
-	avatarBox.Name = "Personaggio"
+	-- Impaginazione come il riferimento di Diablo IV (Mirko 16/10, 04_RIFERIMENTO_diablo4):
+	--   in alto: statistiche a sinistra, personaggio piu' piccolo al centro-destra con le caselle
+	--   dell'equipaggiamento attorno (ramponi, tuta, piccone rinforzato | parapendio, sella, chiodi)
+	--   sotto: filtri e griglia di caselle piccole e fitte; in fondo: monete, pietre, chiodi
+	--   a destra: scheda dell'oggetto scelto e barra 1-5
+	local doll = Theme.frame(container, Theme.DARK2, 1)
+	doll.Name = "Personaggio"
+	doll.ClipsDescendants = false
+	UiKit.panel(doll, { border = 10 })
+	-- statistiche (le stesse del profilo: client/ProfileUI.stats)
+	local statsCol = Theme.frame(doll, Color3.new(), 1)
+	statsCol.Name = "Statistiche"
+	statsCol.ZIndex = 3
+	local whoName = UiKit.label(statsCol, player.DisplayName, "name", 20)
+	whoName.ZIndex = 4
+	local whoSub = UiKit.label(statsCol, "MOUNTAIN CLIMBER", "status")
+	whoSub.TextColor3 = UiKit.ACCENT
+	whoSub.ZIndex = 4
+	type StatRow = { key: TextLabel, value: TextLabel, line: Frame }
+	local statRows: { StatRow } = {}
+	for i = 1, 6 do
+		local line = Theme.frame(statsCol, UiKit.LINE, 0.85)
+		line.ZIndex = 4
+		local key = UiKit.label(statsCol, "", "name", 15)
+		key.ZIndex = 4
+		local value = UiKit.label(statsCol, "", "stat", 17)
+		value.TextXAlignment = Enum.TextXAlignment.Right
+		value.ZIndex = 4
+		statRows[i] = { key = key, value = value, line = line }
+	end
+	local avatarBox = Theme.frame(doll, UiKit.INK, 1)
+	avatarBox.Name = "Modello"
 	avatarBox.ZIndex = 3
-	avatarBox.ClipsDescendants = true
+	avatarBox.ClipsDescendants = false
 	local avatar = AvatarView.new(avatarBox, function()
 		return container.Visible
 	end)
+	-- caselle dell'equipaggiamento attorno al personaggio (3 a sinistra, 3 a destra)
+	local EQUIP = { "Ramponi", "Tuta", "PiccoRinforzato", "Parapendio", "Sella", "Chiodi" }
+	local equipSlots: { [string]: TextButton } = {}
+	for _, id in EQUIP do
+		local b = Instance.new("TextButton")
+		b.Name = "Equip_" .. id
+		b.Text = ""
+		b.AutoButtonColor = false
+		b:SetAttribute("UiNative", true)
+		b.ZIndex = 4
+		b.Parent = doll
+		equipSlots[id] = b
+	end
+	-- monete in fondo (come l'oro e le polveri in fondo all'inventario di Diablo IV)
+	local purse = Theme.frame(container, UiKit.INK, 0.25)
+	purse.Name = "Monete"
+	UiKit.edge(purse, UiKit.LINE, 1, 0.8)
+	type PurseEntry = { icon: ImageLabel, text: TextLabel }
+	local purseItems: { PurseEntry } = {}
+	for i, icon in { "icon_coin", "icon_stone", "item_Pitons" } do
+		local img = Instance.new("ImageLabel")
+		img.BackgroundTransparency = 1
+		img.ZIndex = 3
+		img.Parent = purse
+		if not Ui.asset(img, icon) then
+			img.Visible = true
+			img.Image = ""
+			img.BackgroundTransparency = 0
+			img.BackgroundColor3 = if i == 2 then Theme.PURPLE else UiKit.DIM
+			img.Rotation = 45
+		end
+		local t = UiKit.label(purse, "0", "stat", 17)
+		t.TextColor3 = if i == 1 then UiKit.ACCENT elseif i == 2 then Color3.fromRGB(200, 160, 255) else UiKit.TEXT
+		t.ZIndex = 3
+		purseItems[i] = { icon = img, text = t }
+	end
+
+	-- PANNELLO DI DESTRA: scheda dell'oggetto, barra 1-5 in fondo
+	local side = Theme.frame(container, Theme.DARK2, 1)
+	side.Name = "SchedaZaino"
+	UiKit.panel(side, { border = 10 })
 	local info = Theme.frame(side, Color3.new(), 1)
 	info.Name = "Oggetto"
 	info.ZIndex = 3
@@ -329,7 +407,7 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		barSlots[i] = b
 	end
 
-	type Item = { key: string, title: string, count: number, asset: string, model: Instance?, id: string?, text: string, drop: string?, kind: string, tool: string? }
+	type Item = { key: string, title: string, count: number, asset: string, model: Instance?, id: string?, text: string, drop: string?, kind: string, tool: string?, equip: boolean?, missing: boolean? }
 	local selectedKey: string? = nil
 	local pickedSlot: number? = nil -- casella della barra scelta (per spostarla o toglierla)
 	local confirmAll = false
@@ -386,9 +464,15 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		end
 		for _, recipe in Gear.RECIPES do
 			local asTool = Hotbar.RECIPE_TOOL[recipe.id]
-			if Gear.has(player, recipe.id) and not (asTool and ownedTools[asTool]) then
+			local isEquip = table.find(EQUIP, recipe.id) ~= nil
+			local owned = Gear.has(player, recipe.id)
+			if (owned or isEquip) and not (asTool and ownedTools[asTool]) then
+				-- l'equipaggiamento sta nelle caselle attorno al personaggio (anche quello che manca,
+				-- spento), non nella griglia
 				table.insert(out, { key = "gear:" .. recipe.id, title = recipe.name, count = 1, asset = "", id = recipe.id,
-					model = Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT), text = recipe.description, kind = "Tools" })
+					model = Theme.itemModel(if recipe.id == "Chiodi" then "Pitons" else recipe.id, Theme.ACCENT),
+					text = recipe.description .. (if owned then "" else "\n<font color=\"#FF8C94\">Not crafted yet: make it at a Workbench.</font>"),
+					kind = "Tools", equip = isEquip, missing = not owned })
 			end
 		end
 		-- uova: quella che porti e quelle nel nido (non si buttano)
@@ -480,7 +564,7 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		end
 		slots[i] = ""
 		Hotbar.save(player, slots)
-		status(name .. " removed from the hotbar (still in your backpack)", true)
+		status(name .. " removed from the hotbar (still in your inventory)", true)
 	end
 	local function paintBar()
 		local layout = Hotbar.layout(player)
@@ -497,6 +581,7 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 			-- destinazione valida (attrezzo scelto) = cornice verde; casella scelta = oro acceso;
 			-- attrezzo in mano = oro chiaro (cornici di Codex)
 			local target = toolPicked ~= nil or (pickedSlot ~= nil and pickedSlot ~= i)
+			b:SetAttribute("CorniceScala", THIN_SLOT)
 			if not UiKit.slot(b, if pickedSlot == i then "selected" elseif target then "valid" elseif held and t == held then "hover" else "normal") then
 				b.BackgroundColor3 = if pickedSlot == i then Color3.fromRGB(70, 56, 18) elseif t then UiKit.RAISED else UiKit.INK
 				b.BackgroundTransparency = if t or pickedSlot == i then 0.05 else 0.4
@@ -542,9 +627,10 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		removeBtn.Visible = false
 		if not it then
 			infoIcon.Visible = false
-			infoTitle.Text = "Backpack"
+			infoTitle.Text = "Inventory"
 			infoKind.Text = ""
-			infoText.Text = "Tap an item to see it. Drag it onto another slot to move it."
+			infoText.Text = if Ui.touch() then "Tap an item to see it. Hold and drag it onto another slot to move it."
+				else "Click an item to see it. Drag it onto another slot to move it."
 			dropOne.Visible, dropAll.Visible = false, false
 			paintBar()
 			return
@@ -760,84 +846,117 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		end)
 	end
 
-	-- impaginazione: griglia a sinistra (58%), pannello a destra (42%) anche sul telefono
+	-- impaginazione (una sola, pixel logici): a sinistra personaggio sopra e griglia sotto, a
+	-- destra la scheda dell'oggetto con la barra 1-5
+	local CELL, GAP = 60, 6 -- caselle piccole e fitte (prima 112x124 con cornici grosse)
+	-- (THIN_SLOT e' definita in cima a mountInventory)
 	local function layout()
 		local k = uiScale()
 		local w, h = container.AbsoluteSize.X / k, container.AbsoluteSize.Y / k
 		if w < 50 then
 			return
 		end
-		local low = h < 420
-		local stacked = w < 600
-		local barH = if low then 34 else 40
-		local top = barH + (if low then 8 else 12)
-		local sideW = if stacked then w else math.clamp(math.floor(w * 0.42), 300, 500)
-		-- i filtri stanno sopra la griglia: si stringono per entrarci tutti (prima "Eggs" finiva
-		-- sotto la scheda di destra sul telefono)
-		local gridW = if stacked then w else w - sideW - 12
-		local chipW = math.min(if low then 82 else 110, math.floor((gridW - 4 * 6) / 5))
-		filterBar.Position = UDim2.fromOffset(0, 0)
-		filterBar.Size = UDim2.new(0, gridW, 0, barH)
+		local stacked = w < 640
+		local sideW = if stacked then w else math.clamp(math.floor(w * 0.3), 270, 340)
+		local mainW = if stacked then w else w - sideW - 12
+		local purseH = 30
+		local dollH = math.clamp(math.floor(h * 0.46), 190, 300)
+		-- PERSONAGGIO: statistiche | equipaggiamento - modello - equipaggiamento
+		Ui.px(doll, 0, 0, 0, 0, mainW, dollH)
+		local statsW = math.clamp(math.floor(mainW * 0.3), 170, 240)
+		Ui.px(statsCol, 0, 16, 0, 14, statsW - 16, dollH - 28)
+		Ui.px(whoName, 0, 0, 0, 0, statsW - 16, 26)
+		Ui.px(whoSub, 0, 0, 0, 26, statsW - 16, 16)
+		local rowsTop = 50
+		local rowH = math.max(20, math.floor((dollH - 28 - rowsTop) / #statRows))
+		for i, r in statRows do
+			local y = rowsTop + (i - 1) * rowH
+			Ui.px(r.key, 0, 0, 0, y, statsW - 80, rowH)
+			Ui.px(r.value, 1, 0, 0, y, 76, rowH, 1, 0)
+			Ui.px(r.line, 0, 0, 0, y + rowH - 1, statsW - 16, 1)
+		end
+		local slotS = math.clamp(math.floor((dollH - 40) / 3) - 8, 46, 64)
+		local areaX = statsW + 10
+		local areaW = mainW - areaX - 14
+		local charW = math.clamp(areaW - 2 * (slotS + 24), 120, 260)
+		local cx = areaX + areaW / 2
+		Ui.px(avatarBox, 0, cx - charW / 2, 0, 10, charW, dollH - 20)
+		local colH = 3 * slotS + 2 * 10
+		local y0 = math.floor((dollH - colH) / 2)
+		for i, id in EQUIP do
+			local leftSide = i <= 3
+			local row = (i - 1) % 3
+			local x = if leftSide then cx - charW / 2 - slotS - 10 else cx + charW / 2 + 10
+			Ui.px(equipSlots[id], 0, x, 0, y0 + row * (slotS + 10), slotS, slotS)
+		end
+		-- FILTRI e GRIGLIA sotto il personaggio
+		local barH = 36
+		local fy = dollH + 10
+		filterBar.Position = UDim2.fromOffset(0, fy)
+		filterBar.Size = UDim2.new(0, mainW, 0, barH)
+		local chipW = math.min(116, math.floor((mainW - 4 * 6) / 5))
 		for i, f in INV_FILTERS do
 			local b = chips[f]
 			b.Position = UDim2.fromOffset((i - 1) * (chipW + 6), 0)
 			b.Size = UDim2.fromOffset(chipW, barH)
-			b.TextSize = if low then 14 else 17
+			b.TextSize = 16
 		end
+		local gy = fy + barH + 8
+		local gridH = if stacked then 200 else math.max(CELL + 12, h - gy - purseH - 8)
+		list.Position = UDim2.fromOffset(0, gy)
+		list.Size = UDim2.fromOffset(mainW, gridH)
+		grid.CellSize = UDim2.fromOffset(CELL, CELL)
+		grid.CellPadding = UDim2.fromOffset(GAP, GAP)
+		Ui.px(purse, 0, 0, 0, gy + gridH + 6, mainW, purseH - 4)
+		local px = 12
+		for _, e in purseItems do
+			Ui.px(e.icon, 0, px, 0.5, 0, if e.icon.Rotation ~= 0 then 14 else 22, if e.icon.Rotation ~= 0 then 14 else 22, 0, 0.5)
+			Ui.px(e.text, 0, px + 28, 0, 0, 120, purseH - 4)
+			px += 160
+		end
+		-- SCHEDA a destra (sotto, se la pagina e' stretta)
 		if stacked then
-			list.Position = UDim2.fromOffset(0, top)
-			list.Size = UDim2.new(1, 0, 0, 220)
-			side.Position = UDim2.fromOffset(0, top + 230)
-			side.Size = UDim2.new(1, 0, 0, 330)
+			side.Position = UDim2.fromOffset(0, gy + gridH + purseH + 10)
+			side.Size = UDim2.new(1, 0, 0, 300)
 		else
-			list.Position = UDim2.fromOffset(0, top)
-			list.Size = UDim2.new(1, -(sideW + 12), 1, -top)
 			side.Position = UDim2.new(1, -sideW, 0, 0)
 			side.Size = UDim2.new(0, sideW, 1, 0)
 		end
-		local wantH = if stacked then top + 230 + 330 else 0
+		local wantH = if stacked then gy + gridH + purseH + 10 + 300 else 0
 		if container:GetAttribute("AltezzaMinima") ~= wantH then
 			container:SetAttribute("AltezzaMinima", wantH)
 			if ctx and ctx.fit then
 				task.defer(ctx.fit)
 			end
 		end
-		local cell = if low then 76 else 112
-		grid.CellSize = UDim2.fromOffset(cell, if low then 86 else 124)
-		grid.CellPadding = UDim2.fromOffset(if low then 6 else 10, if low then 6 else 10)
-		-- pannello: barra 1-5 in fondo (fissa), sopra personaggio a sinistra e scheda a destra
-		local sh = if stacked then 330 else h
-		local slotS = if low then 46 else 58
-		local barBoxH = slotS + (if low then 26 else 34)
+		local sh = if stacked then 300 else h
+		local bslot = 50
+		local barBoxH = bslot + 34
 		barBox.AnchorPoint = Vector2.new(0, 1)
-		barBox.Position = UDim2.new(0, 8, 1, -8)
-		barBox.Size = UDim2.new(1, -16, 0, barBoxH)
+		barBox.Position = UDim2.new(0, 12, 1, -12)
+		barBox.Size = UDim2.new(1, -24, 0, barBoxH)
 		barTitle.Position = UDim2.fromOffset(8, 2)
-		barTitle.Size = UDim2.new(0.4, 0, 0, if low then 18 else 24)
+		barTitle.Size = UDim2.new(0.4, 0, 0, 24)
 		barHint.Position = UDim2.new(0.4, 0, 0, 2)
-		barHint.Size = UDim2.new(0.6, -8, 0, if low then 18 else 24)
-		local totalW = Hotbar.SLOTS * slotS + (Hotbar.SLOTS - 1) * 8
+		barHint.Size = UDim2.new(0.6, -8, 0, 24)
+		local totalW = Hotbar.SLOTS * bslot + (Hotbar.SLOTS - 1) * 6
 		for i, b in barSlots do
 			b.AnchorPoint = Vector2.new(0.5, 1)
-			b.Position = UDim2.new(0.5, -totalW / 2 + (i - 1) * (slotS + 8) + slotS / 2, 1, -6)
-			b.Size = UDim2.fromOffset(slotS, slotS)
+			b.Position = UDim2.new(0.5, -totalW / 2 + (i - 1) * (bslot + 6) + bslot / 2, 1, -6)
+			b.Size = UDim2.fromOffset(bslot, bslot)
 		end
-		local upperH = sh - barBoxH - 16 - 8
-		local avW = math.floor(math.min(upperH * 0.62, (sideW - 16) * 0.4))
-		avatarBox.Position = UDim2.fromOffset(8, 8)
-		avatarBox.Size = UDim2.fromOffset(avW, upperH)
-		local ix = 8 + avW + 10
-		info.Position = UDim2.fromOffset(ix, 8)
-		info.Size = UDim2.new(1, -(ix + 8), 0, upperH)
-		local ic = if low then 40 else 64
+		local upperH = sh - barBoxH - 24 - 12
+		info.Position = UDim2.fromOffset(16, 14)
+		info.Size = UDim2.new(1, -32, 0, upperH)
+		local ic = 64
 		infoIcon.Position = UDim2.fromOffset(0, 0)
 		infoIcon.Size = UDim2.fromOffset(ic, ic)
-		infoTitle.TextSize = if low then 17 else 21
-		infoTitle.Position = UDim2.fromOffset(ic + 8, 0)
-		infoTitle.Size = UDim2.new(1, -(ic + 8), 0, if low then 22 else 28)
-		infoKind.Position = UDim2.fromOffset(ic + 8, if low then 22 else 30)
-		infoKind.Size = UDim2.new(1, -(ic + 8), 0, 16)
-		local btnH = if low then 30 else 38
+		infoTitle.TextSize = 21
+		infoTitle.Position = UDim2.fromOffset(ic + 10, 2)
+		infoTitle.Size = UDim2.new(1, -(ic + 10), 0, 28)
+		infoKind.Position = UDim2.fromOffset(ic + 10, 32)
+		infoKind.Size = UDim2.new(1, -(ic + 10), 0, 16)
+		local btnH = 40
 		actions.AnchorPoint = Vector2.new(0, 1)
 		actions.Position = UDim2.fromScale(0, 1)
 		actions.Size = UDim2.new(1, 0, 0, btnH)
@@ -848,11 +967,11 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		removeBtn.Position = UDim2.fromScale(0, 0)
 		removeBtn.Size = UDim2.fromScale(1, 1)
 		for _, b in { dropOne, dropAll, removeBtn } do
-			b.TextSize = if low then 13 else 16
+			b.TextSize = 15
 		end
-		infoScroll.Position = UDim2.fromOffset(0, ic + 4)
-		infoScroll.Size = UDim2.new(1, 0, 1, -(ic + 4 + btnH + 6))
-		infoText.TextSize = if low then 13 else 15
+		infoScroll.Position = UDim2.fromOffset(0, ic + 8)
+		infoScroll.Size = UDim2.new(1, 0, 1, -(ic + 8 + btnH + 8))
+		infoText.TextSize = 15
 	end
 	container:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
 
@@ -870,17 +989,17 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		items = {}
 		allItems = collect()
 		for _, it in allItems do
-			if filter == "All" or it.kind == filter then
+			if not it.equip and (filter == "All" or it.kind == filter) then
 				table.insert(items, it)
 			end
 		end
 		if ctx and ctx.sub then
 			ctx.sub(string.format("%d items", #items))
 		end
-		local low = grid.CellSize.Y.Offset < 100
-		-- caselle vuote fino a riempire almeno tre file: sembra uno zaino, non una lista
-		local cols = math.max(1, math.floor((list.AbsoluteSize.X / uiScale() - 4) / (grid.CellSize.X.Offset + grid.CellPadding.X.Offset)))
-		local total = math.max(cols * 3, math.ceil((#items + 1) / cols) * cols)
+		-- caselle vuote fino a riempire tutta la griglia visibile: sembra un inventario vero
+		local cols = math.max(1, math.floor((list.AbsoluteSize.X / uiScale() - 10 + GAP) / (CELL + GAP)))
+		local rowsShown = math.max(2, math.floor((list.AbsoluteSize.Y / uiScale() + GAP) / (CELL + GAP)))
+		local total = math.max(cols * rowsShown, math.ceil((#items + 1) / cols) * cols)
 		local inBar: { [string]: number } = {}
 		for i, t in Hotbar.layout(player) do
 			inBar[t.Name] = i
@@ -893,6 +1012,8 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 			slot.AutoButtonColor = it ~= nil
 			slot.LayoutOrder = i
 			slot.Parent = list
+			-- cornice sottile (Mirko 16/10: "le cornici delle caselle sono troppo grosse")
+			slot:SetAttribute("CorniceScala", THIN_SLOT)
 			if it then
 				UiKit.card(slot, it.key == selectedKey)
 				UiKit.slot(slot, if it.key == selectedKey then "selected" else "normal")
@@ -907,11 +1028,13 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 				continue
 			end
 			local item = it :: Item
+			-- icona al centro dello spazio libero della cornice (prima era spostata in alto)
 			local icon = Instance.new("ImageLabel")
 			icon.BackgroundTransparency = 1
-			icon.AnchorPoint = Vector2.new(0.5, 0)
-			icon.Position = UDim2.new(0.5, 0, 0, if low then 6 else 10)
-			icon.Size = if low then UDim2.fromOffset(48, 48) else UDim2.fromOffset(70, 70)
+			icon.AnchorPoint = Vector2.new(0.5, 0.5)
+			icon.Position = UDim2.fromScale(0.5, 0.5)
+			icon.Size = UDim2.fromScale(0.64, 0.64)
+			icon.ZIndex = 3
 			icon.Parent = slot
 			if item.tool then
 				toolIcon(icon, item.tool, nil)
@@ -920,32 +1043,27 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 			else
 				Theme.assetPreview(icon, item.asset, item.model)
 			end
-			local name = UiKit.label(slot, item.title, "status", if low then 11 else 13)
-			name.TextColor3 = UiKit.TEXT
-			name.AnchorPoint = Vector2.new(0.5, 1)
-			name.Position = UDim2.new(0.5, 0, 1, -3)
-			name.Size = UDim2.new(1, -6, 0, if low then 24 else 30)
-			name.TextXAlignment = Enum.TextXAlignment.Center
-			name.TextWrapped = true
-			name.TextTruncate = Enum.TextTruncate.AtEnd
+			-- caselle piccole come in Diablo IV: niente nome (sta nella scheda a destra), solo il
+			-- numero in basso a destra
 			if item.drop then
-				local count = UiKit.label(slot, "x" .. item.count, "stat", if low then 13 else 15)
-				count.TextColor3 = UiKit.ACCENT
-				count.AnchorPoint = Vector2.new(1, 0)
-				count.Position = UDim2.new(1, -4, 0, 2)
-				count.Size = UDim2.fromOffset(50, 18)
+				local count = UiKit.label(slot, tostring(item.count), "stat", 13)
+				count.TextColor3 = UiKit.TEXT
+				count.TextStrokeTransparency = 0.2
+				count.AnchorPoint = Vector2.new(1, 1)
+				count.Position = UDim2.new(1, -7, 1, -5)
+				count.Size = UDim2.fromOffset(40, 16)
 				count.TextXAlignment = Enum.TextXAlignment.Right
-				count.ZIndex = 4
+				count.ZIndex = 5
 			end
 			-- attrezzo gia' nella barra: numero della casella in alto a sinistra
 			if item.tool and inBar[item.tool] then
-				local tag = UiKit.label(slot, tostring(inBar[item.tool]), "stat", 13)
+				local tag = UiKit.label(slot, tostring(inBar[item.tool]), "stat", 12)
 				tag.TextColor3 = UiKit.INK
 				tag.BackgroundColor3 = UiKit.ACCENT
 				tag.BackgroundTransparency = 0
 				tag.TextXAlignment = Enum.TextXAlignment.Center
-				tag.Position = UDim2.fromOffset(3, 3)
-				tag.Size = UDim2.fromOffset(18, 18)
+				tag.Position = UDim2.fromOffset(6, 6)
+				tag.Size = UDim2.fromOffset(15, 15)
 				tag.ZIndex = 5
 			end
 
@@ -995,8 +1113,75 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 				end
 			end)
 		end
+		-- EQUIPAGGIAMENTO attorno al personaggio: quello che hai acceso, quello che manca spento
+		for _, id in EQUIP do
+			local b = equipSlots[id]
+			for _, c in b:GetChildren() do
+				if c:IsA("GuiObject") and c.Name ~= "Cornice" and c.Name ~= "Fondo" then
+					c:Destroy()
+				end
+			end
+			local key = "gear:" .. id
+			local entry: Item? = nil
+			for _, x in allItems do
+				if x.key == key then
+					entry = x
+				end
+			end
+			local owned = entry ~= nil and not entry.missing
+			b:SetAttribute("CorniceScala", THIN_SLOT)
+			UiKit.card(b, selectedKey == key)
+			if not UiKit.slot(b, if selectedKey == key then "selected" elseif owned then "normal" else "disabled") then
+				b.BackgroundColor3 = UiKit.INK
+				b.BackgroundTransparency = 0.4
+			end
+			local icon = Instance.new("ImageLabel")
+			icon.BackgroundTransparency = 1
+			icon.AnchorPoint = Vector2.new(0.5, 0.5)
+			icon.Position = UDim2.fromScale(0.5, 0.5)
+			icon.Size = UDim2.fromScale(0.64, 0.64)
+			icon.ZIndex = 5
+			icon.Parent = b
+			Theme.itemIcon(icon, id, entry and entry.model)
+			if not owned then
+				-- sagoma spenta: si vede cosa manca
+				icon.ImageTransparency = 0.72
+				icon.ImageColor3 = Color3.fromRGB(150, 150, 160)
+			end
+		end
+		-- statistiche (attacco, scudo, stamina, salute + draghi e vette)
+		local stats = ProfileUI.stats()
+		local okData, dd = pcall(HttpService.JSONDecode, HttpService, (player:GetAttribute("DragonData") or "{}") :: string)
+		local dragons = if okData and type(dd) == "table" then #(dd.dragons or {}) else 0
+		local extra = {
+			{ name = "DRAGONS", value = dragons, color = Theme.PURPLE },
+			{ name = "SUMMITS", value = (player:GetAttribute("Summits") or 0) :: number, color = Theme.TEAL },
+		}
+		for i, r in statRows do
+			local st = stats[i] or extra[i - #stats]
+			r.key.Text = if st then st.name else ""
+			r.key.TextColor3 = if st then st.color else UiKit.MUTED
+			r.value.Text = if st then tostring(math.floor(st.value + 0.5)) else ""
+		end
+		-- monete, pietre del drago, chiodi
+		local function fmt(n: number): string
+			local t = tostring(math.floor(n))
+			return ((t:reverse():gsub("(%d%d%d)", "%1,"):reverse()):gsub("^,", ""))
+		end
+		purseItems[1].text.Text = fmt((player:GetAttribute("Coins") or 0) :: number)
+		purseItems[2].text.Text = fmt(if okData and type(dd) == "table" then tonumber(dd.stones) or 0 else 0)
+		purseItems[3].text.Text = fmt((player:GetAttribute("Pitons") or 0) :: number)
 		avatar.rebuild()
 		showInfo()
+	end
+	for _, id in EQUIP do
+		equipSlots[id].Activated:Connect(function()
+			local key = "gear:" .. id
+			confirmAll = false
+			pickedSlot = nil
+			selectedKey = if selectedKey == key then nil else key
+			render()
+		end)
 	end
 	-- la barra cambia anche fuori dal menu (attrezzo comprato, respawn): si ridisegna
 	player:GetAttributeChangedSignal("HotbarOrder"):Connect(function()
@@ -1035,7 +1220,7 @@ local TABS = {
 	{ key = "Store", label = "SHOP", icon = "icon_shop", color = Theme.ACCENT, keyName = "B", title = "Shop" },
 	{ key = "Teleport", label = "TRAVEL", icon = "icon_teleport", color = Theme.BLUE, keyName = "T", title = "Travel" },
 	{ key = "Crafting", label = "CRAFTING", icon = "icon_crafting", color = Theme.TEAL, keyName = "N", title = "Crafting" },
-	{ key = "Backpack", label = "INVENTORY", icon = "icon_backpack", color = Theme.ORANGE, keyName = "I", title = "Backpack" },
+	{ key = "Backpack", label = "INVENTORY", icon = "icon_backpack", color = Theme.ORANGE, keyName = "I", title = "Inventory" },
 	{ key = "Upgrades", label = "UPGRADES", icon = "icon_settings", color = Theme.GOOD, keyName = "U", title = "Upgrades" },
 }
 local KEYS = {
@@ -1630,147 +1815,94 @@ function MainMenu.start()
 	-- cosi' resta centrata). Computer: in basso a sinistra. Telefono: sul bordo sinistro a meta'
 	-- altezza (in basso a sinistra c'e' il joystick); col tasto ⚙ dei comandi si sposta come gli
 	-- altri pulsanti e la posizione si salva insieme a loro (ControlsLayout, voce MenuFrac)
-	local ClientState = require(script.Parent.ClientState)
-	local function menuFrac(): { number }?
-		local custom = (ClientState :: any).controlsCustom
-		local v = custom and custom.MenuFrac
-		if Ui.touch() and type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" then
-			return { math.clamp(v[1], 0.02, 0.98), math.clamp(v[2], 0.04, 0.96) }
-		end
-		return nil
-	end
+	-- il tasto si sposta come gli altri elementi dell'HUD (client/HudLayout: tasto ⚙, anche sul
+	-- computer); la posizione si salva in ControlsLayout
+	local HudLayout = require(script.Parent.HudLayout)
 	local function placeOpener()
-		local w, h = if compactNow then 62 else 136, if compactNow then 54 else 50
-		local f = menuFrac()
-		if f then
-			opener.AnchorPoint = Vector2.new(0.5, 0.5)
-			opener.Position = UDim2.fromScale(f[1], f[2])
-			opener.Size = UDim2.fromOffset(w, h)
-		elseif Ui.touch() then
-			Ui.px(opener, 0, 6, 0.54, 0, w, h, 0, 0.5)
+		local w, h = if compactNow then 62 else 136, 50
+		if Ui.touch() then
+			Ui.px(opener, 0, 8, 0.54, 0, w, h, 0, 0.5)
 		else
 			Ui.px(opener, 0, 12, 1, -12, w, h, 0, 1)
 		end
+		HudLayout.place("Menu", opener)
 		Ui.px(openerIcon, 0, if compactNow then 10 else 12, 0.5, 0, 30, 30, 0, 0.5)
 		openerText.Visible = not compactNow
 		Ui.px(openerText, 0, 50, 0, 0, 60, h)
 		openerKey.Visible = not compactNow and not Ui.touch()
 		Ui.px(openerKey, 1, -18, 0, 0, 20, h, 1, 0)
 	end
-	-- trascinamento nella modalita' "sposta i tasti" del telefono
-	do
-		local UISd = game:GetService("UserInputService")
-		local dragging: InputObject? = nil
-		opener.InputBegan:Connect(function(input)
-			if ClientState.editingControls and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
-				dragging = input
-			end
-		end)
-		UISd.InputChanged:Connect(function(input)
-			local d = dragging
-			if not d or not ClientState.editingControls then
-				return
-			end
-			if input == d or input.UserInputType == Enum.UserInputType.MouseMovement then
-				local size = gui.AbsoluteSize
-				if size.X < 1 then
-					return
-				end
-				local p = Vector2.new(input.Position.X, input.Position.Y) - gui.AbsolutePosition
-				local custom = (ClientState :: any).controlsCustom
-				if custom then
-					custom.MenuFrac = { p.X / size.X, p.Y / size.Y }
-				end
-				placeOpener()
-			end
-		end)
-		UISd.InputEnded:Connect(function(input)
-			if dragging and (input == dragging or input.UserInputType == Enum.UserInputType.MouseButton1) then
-				dragging = nil
-			end
-		end)
-	end
-	task.spawn(function()
-		-- la posizione salvata arriva coi dati del giocatore; Reset la toglie
-		local last = ""
-		while gui.Parent do
-			local f = menuFrac()
-			local key = if f then string.format("%.3f,%.3f", f[1], f[2]) else "-"
-			if key ~= last then
-				last = key
-				placeOpener()
-			end
-			task.wait(0.5)
-		end
-	end)
+	HudLayout.register("Menu", opener, "MENU")
+	HudLayout.onChange(placeOpener)
 	placeOpener()
+	-- UNA sola impaginazione (docs/UI_ADATTAMENTO.md): la scala unica di UiView porta ogni schermo
+	-- a un'area logica di almeno 1280x540 (telefono S24 Ultra: 1362x540 a scala 0,654), quindi
+	-- finestra, schede e pagine hanno le stesse misure sul telefono e sul computer. Prima c'erano
+	-- i rami compact/short e sul telefono la finestra usciva dallo schermo (Mirko 16/10)
 	Ui.viewportChanged(function(vp)
-		gui:SetAttribute("ShortUI", vp.Y < 560)
 		local logical = Ui.fitScale(gui, vp)
-		local compact = Ui.compact(vp) or logical.X < 900
-		local short = logical.Y < 520
+		UiKit.setScale((gui:GetAttribute("ScalaVera") or 1) :: number)
+		-- solo schermi in verticale (area logica stretta): niente telefono in orizzontale
+		local compact = Ui.compact(vp)
+		gui:SetAttribute("ShortUI", false)
 		compactNow = compact
 		UiKit.compact = compact
 		placeOpener()
-		-- finestra: quasi tutto lo schermo; sul telefono tutta l'altezza (prima perdeva 60 px per
-		-- la riga del vecchio tasto e restava una striscia)
-		local w = math.min(1260, logical.X - (if compact then 12 else 24))
-		local top = if compact then 4 else 12
-		local h = logical.Y - top - (if compact then 4 else 12)
-		Ui.px(window, 0.5, 0, 0, top, w, h, 0.5, 0)
-		local headH = if short then 44 else 62
+		-- finestra: tutto lo spazio utile (la ScreenGui ha gia' tolto la barra di Roblox)
+		local w = math.min(1260, logical.X - 20)
+		local h = math.min(logical.Y - 16, 760)
+		Ui.px(window, 0.5, 0, 0.5, 0, w, h, 0.5, 0.5)
+		local headH = 56
 		-- bordo della cornice: il fondo scuro sta dentro
-		local border = if compact then 10 else 16
+		local border = 14
 		UiKit.Cornici.apply(window, "frame_panel", { border = border })
 		Ui.px(inner, 0, border, 0, border, w - 2 * border, h - 2 * border)
 		Ui.px(head, 0, 0, 0, 0, w, headH)
-		Ui.px(headIcon, 0, 16, 0, 8, headH - 16, headH - 16)
-		Ui.px(headTitle, 0, headH + 6, 0, 0, 280, headH)
-		UiKit.text(headTitle, "title", if short then 26 else 34)
+		Ui.px(headIcon, 0, 18, 0, 9, headH - 18, headH - 18)
+		Ui.px(headTitle, 0, headH + 8, 0, 0, 280, headH)
+		UiKit.text(headTitle, "title", 30)
 		headTitle.TextXAlignment = Enum.TextXAlignment.Left
 		Ui.px(headSub, 0, headH + 10 + 160, 0, 0, 420, headH)
-		UiKit.text(headSub, "section", if short then 14 else 17)
+		UiKit.text(headSub, "section", 16)
 		headSub.TextXAlignment = Enum.TextXAlignment.Left
-		local closeW = if compact then 76 else 88
-		Ui.px(close, 1, -10, 0, if compact then 5 else 8, closeW, headH - (if compact then 10 else 16), 1, 0)
-		local coinsW = if compact then 150 else 190
-		Ui.px(coinsBox, 1, -(closeW + (if compact then 18 else 24)), 0, 0, coinsW, headH, 1, 0)
-		UiKit.text(coinsLabel, "stat", if short then 19 else 24)
+		local closeW = 96
+		Ui.px(close, 1, -12, 0, 9, closeW, headH - 18, 1, 0)
+		local coinsW = 190
+		Ui.px(coinsBox, 1, -(closeW + 26), 0, 0, coinsW, headH, 1, 0)
+		UiKit.text(coinsLabel, "stat", 22)
 		coinsLabel.TextXAlignment = Enum.TextXAlignment.Left
-		-- schede: colonna a parallelogrammi anche sul telefono (Mirko 16/10: la fila di quadratini
-		-- nell'intestazione era sbagliata), solo piu' stretta
-		local colW = if compact then 132 else 250
-		local tabsTop = headH + (if compact then 6 else 8)
-		local gap = if short then 6 else 10
-		local avail = h - tabsTop - 12
-		local tabH = math.clamp(math.floor((avail - 5 * gap) / 6), 36, 74)
+		-- schede: colonna a parallelogrammi; sei schede sempre tutte dentro la finestra (prima
+		-- sul telefono UPGRADES finiva sotto il bordo)
+		local colW = if compact then 150 else 232
+		local tabsTop = headH + 8
+		local gap = 8
+		local avail = h - tabsTop - 14
+		local tabH = math.clamp(math.floor((avail - 5 * gap) / 6), 36, 64)
 		tabMetrics.x, tabMetrics.y, tabMetrics.w, tabMetrics.h, tabMetrics.gap = 0, tabsTop, colW + 14, tabH, gap
 		for _, def in TABS do
 			local t = tabs[def.key]
 			t.button.Visible = true
 			local isz = math.floor(tabH * 0.56)
-			Ui.px(t.icon, 0, if compact then 38 else 44, 0.5, 0, isz, isz, 0, 0.5)
-			Ui.px(t.label, 0, (if compact then 42 else 50) + isz, 0, 0, colW - isz - (if compact then 24 else 60), tabH)
-			UiKit.text(t.label, "button", if compact then 15 else 21)
+			Ui.px(t.icon, 0, 40, 0.5, 0, isz, isz, 0, 0.5)
+			Ui.px(t.label, 0, 48 + isz, 0, 0, colW - isz - 56, tabH)
+			UiKit.text(t.label, "button", 19)
 			t.label.TextXAlignment = Enum.TextXAlignment.Left
-			Ui.px(t.key, 1, -34, 0, 0, 24, tabH, 1, 0)
-			t.key.Visible = not Ui.touch() and not compact
+			Ui.px(t.key, 1, -40, 0, 0, 24, tabH, 1, 0)
+			t.key.Visible = not Ui.touch()
 		end
-		headSub.Visible = not compact
+		headSub.Visible = true
 		styleTabs(false)
-		-- pagina: mai piu' alta dello spazio visibile (prima sul telefono aveva un'altezza minima
-		-- di 440 e le liste dentro finivano sotto il bordo: per arrivare all'ultima riga bisognava
-		-- scorrere due cose insieme)
-		local cx = colW + 26 + (if compact then 8 else 12)
-		local pageW = w - cx - (if compact then 8 else 12)
-		local pageH = h - tabsTop - (if compact then 6 else 14)
+		-- pagina: mai piu' alta dello spazio visibile (scorrono solo le liste dentro)
+		local cx = colW + 38
+		local pageW = w - cx - 16
+		local pageH = h - tabsTop - 16
 		Ui.px(pageScroll, 0, cx, 0, tabsTop, pageW, pageH)
 		pageBox.w, pageBox.h, pageBox.min = pageW, pageH, 0
 		fitPage()
 		toast.AnchorPoint = Vector2.new(0.5, 0)
 		toast.Position = UDim2.new(0, cx + pageW / 2, 0, tabsTop + 4)
-		toast.Size = UDim2.fromOffset(math.min(560, pageW - 40), if compact then 34 else 40)
-	end)
+		toast.Size = UDim2.fromOffset(math.min(560, pageW - 40), 40)
+	end, gui)
 
 	-- PARALLASSE leggera (solo col mouse, solo a menu aperto): fondo, fumo e pagina si spostano
 	-- di poco e a velocita' diverse, come strati a profondita' diverse

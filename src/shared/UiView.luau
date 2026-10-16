@@ -100,6 +100,17 @@ function UiView.skin(target: GuiObject, name: string)
  end
  target:SetAttribute("UiAsset", name)
  if target:IsA("ImageLabel") then UiView.asset(target, name); return end
+ -- pulsanti con la cornice di Codex (client/UiKit, attributo UiNative): niente vecchie immagini
+ -- e NON si tocca la trasparenza. Prima UIPolish, al passaggio del mouse, chiamava skin che
+ -- rimetteva BackgroundTransparency = 0: sotto la cornice compariva il fondo rosso del vecchio
+ -- pulsante "sell" (Mirko 16/10: "diventano rossi tutti i Sell")
+ if target:GetAttribute("UiNative") and target:FindFirstChild("Cornice") then
+  for _, n in { "AssetSurface", "AssetCaption" } do
+   local old = target:FindFirstChild(n)
+   if old then old:Destroy() end
+  end
+  return
+ end
  local id = UiAssets.get(name)
  -- I pannelli nuovi sono nativi: nessuna vecchia cornice scura o alone.
  if name:sub(1, 6) == "panel_" or target:GetAttribute("UiNative") then id = nil end
@@ -628,13 +639,23 @@ function UiView.open(panel: GuiObject)
 	end
 end
 
--- Scala unica di una schermata: tutto si disegna in pixel "logici" per uno schermo di
--- 1280x680 e un UIScale sulla ScreenGui lo adatta (telefono piu' piccolo, monitor grande piu'
--- grande). Restituisce la grandezza logica dello schermo.
--- Schermi bassi (telefono, 844x390 meno la barra di Roblox) usano l'impaginazione compatta,
--- pensata per 1000x430 logici: con la scala del computer i testi diventavano di 7 pixel.
+-- Scala unica di una schermata (docs/UI_ADATTAMENTO.md, 17/10): UNA sola impaginazione,
+-- disegnata per un'area logica di almeno 1280x540, e un UIScale "ScalaUI" sulla ScreenGui che la
+-- adatta allo schermo vero. Sul telefono (S24 Ultra 891x353) la scala e' 0,654 e l'area logica
+-- 1362x540: la stessa UI del computer, piu' piccola, come Blox Fruits. Prima il telefono aveva
+-- scala 1 e un'area di 891x353 con un'impaginazione "compact" a parte che si rompeva.
+UiView.REF = Vector2.new(1280, 540)
+UiView.MIN_SCALE = 0.55
+UiView.MAX_SCALE = 2.5
+function UiView.scaleFor(vp: Vector2): number
+	return math.clamp(math.min(vp.X / UiView.REF.X, vp.Y / UiView.REF.Y), UiView.MIN_SCALE, UiView.MAX_SCALE)
+end
+
+-- impaginazione stretta: solo schermi in verticale (area logica piu' stretta del riferimento).
+-- Il telefono in orizzontale NON e' piu' "compact": usa la stessa impaginazione del computer
 function UiView.compact(vp: Vector2): boolean
-	return vp.X < 600 or vp.Y < 560 or (game:GetService("UserInputService").TouchEnabled and vp.Y < 760)
+	local logical = vp / UiView.scaleFor(vp)
+	return logical.X < 760
 end
 
 -- schermo touch (telefono, tablet); dal computer si prova con l'attributo SimTouch = true sul
@@ -713,8 +734,8 @@ end
 local simReal: Vector2? = nil
 
 function UiView.fitScale(gui: ScreenGui, vp: Vector2): Vector2
-	local s = if UiView.compact(vp) then 1 else math.clamp(math.min(vp.X / 1280, vp.Y / 680), 1, 1.5)
- local logical = vp / s
+	local s = UiView.scaleFor(vp)
+	local logical = vp / s
 	if simReal then
 		-- tutto lo schermo simulato dentro la finestra di Studio (prima si adattava solo alla
 		-- larghezza e il fondo del telefono finiva fuori dalla vista)
@@ -728,7 +749,24 @@ function UiView.fitScale(gui: ScreenGui, vp: Vector2): Vector2
 		u = nu
 	end
 	(u :: UIScale).Scale = s
+	-- scala vera sullo schermo (anche simulando): serve al testo minimo (UiKit.minText)
+	gui:SetAttribute("ScalaVera", UiView.scaleFor(vp))
 	return logical
+end
+
+-- spazio libero nella fila della barra di Roblox (GuiService.TopbarInset), in pixel logici
+-- di una ScreenGui con scala s e IgnoreGuiInset = true: x da cui si puo' iniziare a sinistra,
+-- larghezza libera, altezza della barra. Sul telefono i tasti di Roblox sono piu' grandi che in
+-- Studio: per questo monete e "Home ... m" finivano sotto il menu e la chat di Roblox
+function UiView.topbar(s: number): (number, number, number)
+	local ok, r = pcall(function()
+		return GuiService.TopbarInset
+	end)
+	if ok and typeof(r) == "Rect" and r.Height > 0 then
+		return r.Min.X / s, r.Width / s, r.Height / s
+	end
+	local inset = GuiService:GetGuiInset()
+	return 0, 10000, math.max(36, inset.Y) / s
 end
 
 -- posiziona in pixel logici: (ax, x) e (ay, y) come UDim, w e h in pixel; anchor opzionale
@@ -766,8 +804,13 @@ function UiView.fit(o: Instance?, size: number, min: number, bold: boolean?)
 	end
 end
 
-function UiView.viewportChanged(callback: (Vector2) -> ())
+-- chiama callback con l'area utile (pixel veri). Con gui: l'area vera di quella ScreenGui
+-- (AbsoluteSize, cioe' gia' senza la barra di Roblox e le tacche del telefono secondo i suoi
+-- ScreenInsets). Prima si usava la telecamera meno GetGuiInset: sul telefono vero la barra e'
+-- piu' alta e la finestra del menu usciva dallo schermo in basso (Mirko 16/10)
+function UiView.viewportChanged(callback: (Vector2) -> (), gui: ScreenGui?)
 	local connection: RBXScriptConnection? = nil
+	local last = ""
 	local function bind()
 		if connection then
 			connection:Disconnect()
@@ -777,8 +820,13 @@ function UiView.viewportChanged(callback: (Vector2) -> ())
 			return
 		end
 		local function update()
-			local topLeft, bottomRight = GuiService:GetGuiInset()
-			local size = camera.ViewportSize - topLeft - bottomRight
+			local size: Vector2
+			if gui and gui.AbsoluteSize.X > 1 and gui.AbsoluteSize.Y > 1 then
+				size = gui.AbsoluteSize
+			else
+				local topLeft, bottomRight = GuiService:GetGuiInset()
+				size = camera.ViewportSize - topLeft - bottomRight
+			end
 			local sim = Players.LocalPlayer:GetAttribute("SimViewport")
 			if typeof(sim) == "Vector2" then
 				simReal = size
@@ -786,11 +834,29 @@ function UiView.viewportChanged(callback: (Vector2) -> ())
 			else
 				simReal = nil
 			end
-			callback(Vector2.new(math.max(1, size.X), math.max(1, size.Y)))
+			size = Vector2.new(math.max(1, size.X), math.max(1, size.Y))
+			local key = string.format("%d,%d,%s", math.floor(size.X), math.floor(size.Y), tostring(simReal))
+			if key == last then
+				return -- AbsoluteSize e telecamera cambiano insieme: una volta sola
+			end
+			last = key
+			callback(size)
 		end
 		connection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(update)
 		update()
-		Players.LocalPlayer:GetAttributeChangedSignal("SimViewport"):Connect(update)
+	end
+	Players.LocalPlayer:GetAttributeChangedSignal("SimViewport"):Connect(function()
+		last = ""
+		bind()
+	end)
+	if gui then
+		gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+			local camera = workspace.CurrentCamera
+			if camera then
+				-- stessa strada di update (passa dal confronto con l'ultima misura)
+				bind()
+			end
+		end)
 	end
 	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bind)
 	bind()

@@ -147,11 +147,13 @@ function ProfileUI.mount(container: Frame, ctx: any?): () -> ()
 	statBox.Name = "Statistiche"
 	UiKit.panel(statBox, { transparency = 0.18 })
 	local statRows: { any } = {}
+	-- barre con la cornice di Codex (a parallelogramma quando c'e' la cornice obliqua) ed etichette
+	-- in Oswald come il resto del menu (Mirko 16/10: il carattere di prima non piaceva)
+	local BAR_KIND = { "health", "shield", "stamina", "health" }
 	for i = 1, 4 do
-		local label = UiKit.label(statBox, "", "status", 14)
+		local label = UiKit.label(statBox, "", "name", 16)
 		label.ZIndex = 3
-		local bar = Slant.bar(statBox, Theme.DARK3, Theme.GOOD, 10)
-		Slant.setZ(bar, 3)
+		local bar = UiKit.bar(statBox, BAR_KIND[i], Theme.GOOD, UiKit.INK, 7)
 		local value = UiKit.label(statBox, "", "stat", 18)
 		value.TextXAlignment = Enum.TextXAlignment.Right
 		value.ZIndex = 4
@@ -209,8 +211,9 @@ function ProfileUI.mount(container: Frame, ctx: any?): () -> ()
 			local y = 10 + (i - 1) * rowH
 			r.label.Position = UDim2.fromOffset(14, y)
 			r.label.Size = UDim2.new(0, 92, 0, rowH - 4)
-			r.bar.Position = UDim2.fromOffset(108, y + rowH * 0.22)
-			r.bar.Size = UDim2.new(1, -(108 + 70), 0, rowH * 0.5)
+			-- (la cornice sta fuori dalla barra: barra un po' piu' bassa e rientrata)
+			r.bar.Position = UDim2.fromOffset(116, y + rowH * 0.28)
+			r.bar.Size = UDim2.new(1, -(116 + 84), 0, math.floor(rowH * 0.4))
 			r.value.Position = UDim2.new(1, -66, 0, y)
 			r.value.Size = UDim2.fromOffset(54, rowH - 4)
 		end
@@ -302,6 +305,8 @@ function ProfileUI.mount(container: Frame, ctx: any?): () -> ()
 		for i, s in ProfileUI.stats() do
 			local r = statRows[i]
 			r.label.Text = s.name
+			r.label.TextColor3 = s.color
+			UiKit.text(r.label, "name", 16)
 			r.label.TextColor3 = s.color
 			Slant.paint(r.bar:FindFirstChild("Pieno") :: Instance, s.color, 0)
 			Slant.setFill(r.bar, s.value / s.max)

@@ -52,17 +52,35 @@ function EventBanner.start()
 	UiKit.button(pill, "secondary")
 	pill.TextColor3 = UiKit.ACCENT
 
-	local compact = false
-	Ui.viewportChanged(function(vp)
-		compact = Ui.compact(vp)
-		-- stessa misura del Prize Pool (striscia alta 40, ridotta a 0.75 sul telefono)
-		local top = if compact then 4 + 30 + 6 else 4 + 40 + 8
+	-- stessa scala del Prize Pool (client/Montepremi) e subito sotto la sua striscia, che puo'
+	-- spostarsi (spazio libero della barra di Roblox) o scendere sotto la barra
+	local lastVp: Vector2? = nil
+	local function place()
+		local vp = lastVp
+		if not vp then
+			return
+		end
+		local logical = Ui.fitScale(gui, vp)
+		local strip = player.PlayerGui:FindFirstChild("Montepremi")
+		local below = strip and strip:GetAttribute("StrisciaBasso")
+		local top = (if type(below) == "number" then below else 44) + 8
 		banner.Position = UDim2.new(0.5, 0, 0, top)
-		banner.Size = UDim2.fromOffset(math.min(if compact then 360 else 480, vp.X - 24), if compact then 36 else 46)
-		line.TextSize = if compact then 15 else 19
+		banner.Size = UDim2.fromOffset(math.min(480, logical.X - 24), 46)
+		line.TextSize = 19
 		pill.Position = UDim2.new(0.5, 0, 0, top)
-		pill.Size = UDim2.fromOffset(if compact then 220 else 280, if compact then 22 else 26)
-		pill.TextSize = if compact then 12 else 14
+		pill.Size = UDim2.fromOffset(280, 26)
+		pill.TextSize = 14
+	end
+	Ui.viewportChanged(function(vp)
+		lastVp = vp
+		place()
+	end, gui)
+	task.spawn(function()
+		local strip = player.PlayerGui:WaitForChild("Montepremi", 30)
+		if strip then
+			strip:GetAttributeChangedSignal("StrisciaBasso"):Connect(place)
+			place()
+		end
 	end)
 
 	local version = 0

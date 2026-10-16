@@ -1,0 +1,192 @@
+{
+  "frame_panel": {
+    "size": [
+      800,
+      600
+    ],
+    "slice": [
+      112,
+      112,
+      112,
+      112
+    ],
+    "free_rect": [
+      87,
+      107,
+      626,
+      388
+    ],
+    "note": "fondo carbone fino alla cornice (41860 pixel riempiti)"
+  },
+  "frame_tab_normal": {
+    "size": [
+      552,
+      128
+    ],
+    "slice": [
+      109,
+      38,
+      109,
+      38
+    ],
+    "note": "fondo interno uniforme"
+  },
+  "frame_tab_hover": {
+    "size": [
+      552,
+      128
+    ],
+    "slice": [
+      109,
+      38,
+      109,
+      38
+    ],
+    "note": "fondo interno uniforme"
+  },
+  "frame_tab_selected": {
+    "size": [
+      552,
+      128
+    ],
+    "slice": [
+      109,
+      38,
+      109,
+      38
+    ],
+    "note": "fondo interno uniforme"
+  },
+  "frame_bar_health": {
+    "size": [
+      640,
+      72
+    ],
+    "free_rect_vero": [
+      22,
+      17,
+      596,
+      39
+    ],
+    "note": "solo misure (PNG di Codex invariato)"
+  },
+  "frame_bar_health_slant": {
+    "size": [
+      680,
+      72
+    ],
+    "slice": [
+      89,
+      17,
+      89,
+      16
+    ],
+    "free_rect": [
+      30,
+      17,
+      617,
+      39
+    ],
+    "shear_px": 21,
+    "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
+  },
+  "frame_bar_stamina": {
+    "size": [
+      600,
+      56
+    ],
+    "free_rect_vero": [
+      28,
+      14,
+      544,
+      28
+    ],
+    "note": "solo misure (PNG di Codex invariato)"
+  },
+  "frame_bar_stamina_slant": {
+    "size": [
+      631,
+      56
+    ],
+    "slice": [
+      78,
+      14,
+      78,
+      14
+    ],
+    "free_rect": [
+      35,
+      14,
+      559,
+      28
+    ],
+    "shear_px": 15,
+    "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
+  },
+  "frame_bar_shield": {
+    "size": [
+      560,
+      56
+    ],
+    "free_rect_vero": [
+      26,
+      14,
+      508,
+      28
+    ],
+    "note": "solo misure (PNG di Codex invariato)"
+  },
+  "frame_bar_shield_slant": {
+    "size": [
+      591,
+      56
+    ],
+    "slice": [
+      68,
+      14,
+      68,
+      14
+    ],
+    "free_rect": [
+      33,
+      14,
+      523,
+      28
+    ],
+    "shear_px": 15,
+    "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
+  },
+  "frame_bar_xp": {
+    "size": [
+      560,
+      48
+    ],
+    "free_rect_vero": [
+      21,
+      11,
+      518,
+      26
+    ],
+    "note": "solo misure (PNG di Codex invariato)"
+  },
+  "frame_bar_xp_slant": {
+    "size": [
+      586,
+      48
+    ],
+    "slice": [
+      60,
+      11,
+      60,
+      11
+    ],
+    "free_rect": [
+      26,
+      11,
+      532,
+      26
+    ],
+    "shear_px": 14,
+    "note": "barra a parallelogramma: il riempimento e' obliquo di shear_px (pixel del PNG 2x)"
+  }
+}

@@ -16,6 +16,7 @@ local PickaxeThrow = require(script.Parent.PickaxeThrow)
 local TrainingFX = require(script.Parent.TrainingFX)
 local Glider = require(script.Parent.Glider)
 local DragonRide = require(script.Parent.DragonRide)
+local HudLayout = require(script.Parent.HudLayout)
 local player = Players.LocalPlayer
 local MobileControls = {}
 
@@ -286,31 +287,16 @@ function MobileControls.start()
 		vp = size
 	end)
 	local last = ""
-	-- tasti spostati dal giocatore: { Nome = { x, y } } in pixel dall'angolo in basso a destra
-	local custom: { [string]: { number } } = {}
-	local function loadCustom()
-		custom = {}
-		local raw = player:GetAttribute("ControlsLayout")
-		if type(raw) == "string" then
-			local ok, t = pcall(function()
-				return game:GetService("HttpService"):JSONDecode(raw)
-			end)
-			if ok and type(t) == "table" then
-				for k, v in t do
-					if type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" then
-						custom[k] = { v[1], v[2] }
-					end
-				end
-			end
-		end
-		-- (anche il tasto del menu si sposta: client/MainMenu legge e scrive custom.MenuFrac)
-		;(ClientState :: any).controlsCustom = custom
+	-- tasti spostati dal giocatore: { Nome = { x, y } } in pixel dall'angolo in basso a destra,
+	-- dentro ControlsLayout insieme alle posizioni dell'HUD (client/HudLayout)
+	local custom: { [string]: any } = HudLayout.data()
+	HudLayout.onChange(function()
+		custom = HudLayout.data()
 		last = ""
-	end
-	player:GetAttributeChangedSignal("ControlsLayout"):Connect(loadCustom)
-	loadCustom()
+	end)
 	local function refresh()
 		local touch = Ui.touch()
+		custom = HudLayout.data()
 		local pg = player.PlayerGui
   local menu = pg:FindFirstChild("MainMenu")
   local travel = pg:FindFirstChild("Teletrasporto")
@@ -383,7 +369,7 @@ function MobileControls.start()
 			b.Size = UDim2.fromOffset(if i == 1 then size + 8 else size, if i == 1 then size + 8 else size)
 			local c = custom[name]
 			-- posizione scelta dal giocatore (ControlsLayout), se no l'arco attorno al salto
-			b.Position = if c then UDim2.fromOffset(c[1], c[2]) else UDim2.fromOffset(-jx + math.cos(a) * s[1], -jy - math.sin(a) * s[1])
+			b.Position = if type(c) == "table" and type(c[1]) == "number" and type(c[2]) == "number" then UDim2.fromOffset(c[1], c[2]) else UDim2.fromOffset(-jx + math.cos(a) * s[1], -jy - math.sin(a) * s[1])
 			b.TextSize = if small then 11 else 15
 			local tag = b:FindFirstChild("Etichetta") :: TextLabel?
 			if tag then
@@ -392,86 +378,14 @@ function MobileControls.start()
 			end
 		end
 	end
-	-- Modifica dei tasti: ⚙ sotto il meteo; si trascinano i pulsanti, "Done" salva (Progression,
-	-- attributo ControlsLayout), "Reset" torna all'arco. Mirko: "su alcuni telefoni la UI fa
-	-- schifo, ci starebbe un'impostazione per spostare i tasti"
-	local gear = Instance.new("TextButton")
-	gear.Name = "ModificaTasti"
-	gear.AnchorPoint = Vector2.new(1, 0)
-	gear.Position = UDim2.new(1, -12, 0, 84)
-	gear.Size = UDim2.fromOffset(44, 44)
-	gear.Text = "⚙"
-	gear.TextScaled = true
-	gear.Font = Enum.Font.GothamBlack
-	gear.TextColor3 = Color3.new(1, 1, 1)
-	gear.BackgroundColor3 = Theme.CARD
-	gear.BackgroundTransparency = 0.2
-	gear.Parent = gui
-	local gc = Instance.new("UICorner")
-	gc.CornerRadius = UDim.new(0.5, 0)
-	gc.Parent = gear
-	local panel = Instance.new("Frame")
-	panel.Name = "PannelloModifica"
-	panel.AnchorPoint = Vector2.new(0.5, 0)
-	panel.Position = UDim2.new(0.5, 0, 0, 70)
-	panel.Size = UDim2.fromOffset(360, 96)
-	panel.BackgroundColor3 = Theme.CARD
-	panel.BackgroundTransparency = 0.1
-	panel.Visible = false
-	panel.Parent = gui
-	local pc = Instance.new("UICorner")
-	pc.CornerRadius = UDim.new(0, 12)
-	pc.Parent = panel
-	local info = Instance.new("TextLabel")
-	info.BackgroundTransparency = 1
-	info.Position = UDim2.fromOffset(10, 6)
-	info.Size = UDim2.new(1, -20, 0, 30)
-	info.Font = Enum.Font.GothamBold
-	info.TextScaled = true
-	info.TextColor3 = Color3.new(1, 1, 1)
-	info.Text = "Drag the buttons and MENU where you like"
-	info.Parent = panel
-	local function panelButton(text: string, color: Color3, x: number): TextButton
-		local b = Instance.new("TextButton")
-		b.AnchorPoint = Vector2.new(0.5, 1)
-		b.Position = UDim2.new(x, 0, 1, -8)
-		b.Size = UDim2.new(0.42, 0, 0, 44)
-		b.Text = text
-		b.Font = Enum.Font.GothamBlack
-		b.TextScaled = true
-		b.TextColor3 = Color3.new(1, 1, 1)
-		b.BackgroundColor3 = color
-		b.Parent = panel
-		local c = Instance.new("UICorner")
-		c.CornerRadius = UDim.new(0, 10)
-		c.Parent = b
-		return b
-	end
-	local reset = panelButton("Reset", Theme.BAD, 0.26)
-	local done = panelButton("Done", Theme.GOOD, 0.74)
+	-- Modifica dei tasti: la apre il tasto ⚙ dell'HUD (client/HudLayout, barra DONE / RESET in
+	-- alto, anche sul computer). Prima c'era qui un ingranaggio azzurro che finiva sopra THROW
+	-- (Mirko 16/10: "fa schifo") e un pannello Reset/Done a parte
 	local function setEditing(on: boolean)
 		editing = on
-		ClientState.editingControls = on
-		panel.Visible = on
-		gear.Visible = not on
 		last = ""
 	end
-	gear.Activated:Connect(function()
-		setEditing(true)
-	end)
-	reset.Activated:Connect(function()
-		custom = {}
-		;(ClientState :: any).controlsCustom = custom
-		last = ""
-	end)
-	done.Activated:Connect(function()
-		setEditing(false)
-		local remote = RS:FindFirstChild("Remotes") and RS.Remotes:FindFirstChild("SaveControls")
-		if remote then
-			local any = next(custom) ~= nil
-			(remote :: RemoteEvent):FireServer(if any then game:GetService("HttpService"):JSONEncode(custom) else nil)
-		end
-	end)
+	HudLayout.onEditing(setEditing)
 	-- trascinamento (dito o mouse): il pulsante segue il dito, la posizione e' dall'angolo
 	local dragging: TextButton? = nil
 	local UIS = game:GetService("UserInputService")
@@ -501,31 +415,9 @@ function MobileControls.start()
 			dragging = nil
 		end
 	end)
-	gui:GetPropertyChangedSignal("Enabled"):Connect(function()
-		if not gui.Enabled and editing then
-			setEditing(false)
-		end
-	end)
-
-	-- Solo il controllo del contesto a 10 Hz; nessuna animazione per-frame aggiunta.
-	-- l'ingranaggio sta sotto il meteo dell'HUD, che ora si apre e si chiude (prima a una quota
-	-- fissa: col meteo aperto ci finiva sopra)
-	local function placeGear()
-		local hud = player.PlayerGui:FindFirstChild("ClimbHUD")
-		local meteo = hud and hud:FindFirstChild("Meteo") :: GuiObject?
-		if meteo and meteo.Visible and meteo.AbsoluteSize.Y > 0 then
-			local su = gui:FindFirstChildOfClass("UIScale")
-			local s = if su and su.Scale > 0 then su.Scale else 1
-			local inset = if gui.IgnoreGuiInset then game:GetService("GuiService"):GetGuiInset() else Vector2.zero
-			gear.Position = UDim2.new(1, -12, 0, (meteo.AbsolutePosition.Y + meteo.AbsoluteSize.Y + inset.Y) / s + 8)
-		else
-			gear.Position = UDim2.new(1, -12, 0, 50)
-		end
-	end
 	task.spawn(function()
 		while gui.Parent do
 			refresh()
-			placeGear()
 			task.wait(0.1)
 		end
 	end)

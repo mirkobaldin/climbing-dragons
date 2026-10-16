@@ -10,7 +10,10 @@
 -- Tutto leggero: niente cicli per frame, gli stati si cambiano solo agli eventi.
 
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Cornici = require(script.Parent.Cornici)
+local Slant = require(script.Parent.Slant)
+local UiAssets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UiAssets"))
 
 local UiKit = {}
 UiKit.Cornici = Cornici
@@ -52,8 +55,16 @@ UiKit.TYPE = {
 	status = { font = UiKit.FONT.bodyBold, size = 13, color = UiKit.MUTED, upper = true, stroke = 1 },
 } :: { [string]: Spec }
 
--- telefono: testi appena piu' piccoli, mai sotto i 13 px (i giocatori sono anche bambini)
+-- schermo in verticale: testi appena piu' piccoli, mai sotto i 13 px
 UiKit.compact = false
+-- testo minimo in pixel LOGICI: con la scala unica (UiView.fitScale) il telefono rimpicciolisce
+-- tutto a 0,65; perche' sullo schermo un testo non scenda sotto 10 pixel veri chi impagina mette
+-- qui 10 / scala (vedi UiKit.setScale). Sul computer la scala e' >= 1 e non cambia niente
+UiKit.minText = 0
+UiKit.MIN_PHYSICAL = 10
+function UiKit.setScale(scale: number)
+	UiKit.minText = if scale < 1 then math.ceil(UiKit.MIN_PHYSICAL / math.max(0.3, scale)) else 0
+end
 
 function UiKit.text(label: TextLabel | TextButton | TextBox, kind: TextKind, size: number?)
 	local spec = UiKit.TYPE[kind]
@@ -62,6 +73,7 @@ function UiKit.text(label: TextLabel | TextButton | TextBox, kind: TextKind, siz
 	if UiKit.compact then
 		s = math.max(13, math.floor(s * 0.88))
 	end
+	s = math.max(s, UiKit.minText)
 	label.TextScaled = false
 	label.TextSize = s
 	label.TextColor3 = spec.color
@@ -80,7 +92,7 @@ function UiKit.label(parent: Instance, text: string, kind: TextKind, size: numbe
 	l.RichText = true
 	l.TextXAlignment = Enum.TextXAlignment.Left
 	l.TextTruncate = Enum.TextTruncate.AtEnd
-	l.Size = UDim2.new(1, 0, 0, (size or UiKit.TYPE[kind].size) + 8)
+	l.Size = UDim2.new(1, 0, 0, math.max(size or UiKit.TYPE[kind].size, UiKit.minText) + 8)
 	UiKit.text(l, kind, size)
 	l.Parent = parent
 	return l
@@ -290,7 +302,10 @@ function UiKit.state(o: GuiObject, state: string, accent: Color3?)
 	local s = scaleOf(o)
 	local selected = o:GetAttribute("Scelto") == true
 	local goal = 1
-	if state == "pressed" then
+	local fixedSize = o:GetAttribute("SenzaZoom") == true
+	if fixedSize then
+		goal = 1
+	elseif state == "pressed" then
 		goal = 0.97
 	elseif selected then
 		goal = if state == "hover" then 1.04 else 1.03
@@ -425,6 +440,21 @@ end
 
 -- pulsanti: "primary" (oro pieno, testo scuro, taglio obliquo), "secondary" (solo bordo),
 -- "danger", "disabled"
+-- sotto una cornice di Codex non deve restare niente dei vecchi modelli: immagine (AssetSurface,
+-- il bordino blu che spuntava dopo il terminale obliquo delle schede dello Shop), la sua
+-- scritta e i contorni (UIStroke) che non sono il nostro "Bordo"
+local function stripOld(b: GuiObject)
+	b:SetAttribute("UiAsset", nil)
+	b:SetAttribute("ButtonKind", nil)
+	for _, c in b:GetChildren() do
+		if c.Name == "AssetSurface" or c.Name == "AssetCaption" then
+			c:Destroy()
+		elseif c:IsA("UIStroke") and c.Name ~= "Bordo" then
+			c.Enabled = false
+		end
+	end
+end
+
 function UiKit.button(b: TextButton, kind: string)
 	b:SetAttribute("UiNative", true)
 	local corner = b:FindFirstChildOfClass("UICorner")
@@ -448,7 +478,16 @@ function UiKit.button(b: TextButton, kind: string)
 	})
 	if framed then
 		b.BackgroundTransparency = 1
-		Cornici.caption(b, math.max(10, Cornici.logical(b).Y * 0.6))
+		-- le vecchie immagini dei modelli non tornano piu' (UIPolish le rimetteva al passaggio del
+		-- mouse) e il fondo non e' piu' colorato (il rosso dei vecchi "sell")
+		stripOld(b)
+		b.BackgroundColor3 = UiKit.INK
+		-- la scritta delle vecchie immagini (UiView.skin) farebbe una seconda scritta sotto la nostra
+		local oldCaption = b:FindFirstChild("AssetCaption")
+		if oldCaption then
+			oldCaption:Destroy()
+		end
+		Cornici.caption(b)
 		b.TextColor3 = if kind == "primary" then Color3.fromRGB(255, 222, 140)
 			elseif kind == "danger" then Color3.fromRGB(255, 170, 170)
 			elseif kind == "disabled" then UiKit.DIM
@@ -504,9 +543,13 @@ function UiKit.tab(b: TextButton, on: boolean, accent: Color3?)
 	b.TextColor3 = if on then UiKit.TEXT else UiKit.DIM
 	-- scheda di Codex (lato destro obliquo): scelta = oro acceso
 	b:SetAttribute("Scelto", on)
+	-- (le schede non si ingrandiscono: in fondo alla fila il terminale obliquo destro finiva fuori
+	-- dalla pagina e sembrava tagliato, Mirko 16/10)
+	b:SetAttribute("SenzaZoom", true)
 	if Cornici.apply(b, if on then "frame_tab_selected" else "frame_tab_normal") then
 		b.BackgroundTransparency = 1
-		Cornici.caption(b, 14)
+		stripOld(b)
+		Cornici.caption(b)
 		b.TextColor3 = if on then Color3.fromRGB(255, 222, 140) else UiKit.MUTED
 		local old = b:FindFirstChild("Sotto")
 		if old then
@@ -534,6 +577,38 @@ function UiKit.tab(b: TextButton, on: boolean, accent: Color3?)
 	l.Visible = on
 	UiKit.edge(b, UiKit.LINE, 1, if on then 0.6 else 0.86)
 	UiKit.physical(b)
+end
+
+-- Barra con la cornice di Codex (vita, stamina, scudo, xp): A PARALLELOGRAMMA se c'e' la cornice
+-- obliqua (frame_bar_<kind>_slant, Mirko 16/10: "com'erano prima"), altrimenti dritta nella
+-- cornice dritta, altrimenti la barra obliqua disegnata. Il riempimento si cambia con
+-- Slant.setFill(bar, 0..1) e Slant.paint(bar.Pieno, colore). z = ZIndex della cornice
+function UiKit.bar(parent: Instance, kind: string, fill: Color3, back: Color3?, z: number?): Frame
+	local zz = z or 5
+	local slantId = "frame_bar_" .. kind .. "_slant"
+	local straightId = "frame_bar_" .. kind
+	local oblique = Cornici.has(slantId)
+	local framed = oblique or Cornici.has(straightId)
+	-- (obliqua: si crea con le punte, poi fit le porta alla larghezza giusta)
+	local bar = Slant.bar(parent, back or UiKit.INK, fill, if oblique then 8 elseif framed then 0 else 14, if oblique then "para" else "right")
+	Slant.setZ(bar, zz - 3)
+	if framed then
+		Cornici.apply(bar, if oblique then slantId else straightId, { mode = "outset", z = zz })
+	end
+	if oblique then
+		-- obliquo del riempimento = obliquo dello spazio libero della cornice, all'altezza vera
+		local fi = (UiAssets.frames :: any)[slantId]
+		local function fit()
+			local h = Cornici.logical(bar).Y
+			if fi and h > 1 then
+				Slant.setSlant(bar, math.floor(fi.shear * h / math.max(1, fi.free.Height) + 0.5))
+			end
+		end
+		bar:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+		task.defer(fit)
+	end
+	bar:SetAttribute("Cornice", framed)
+	return bar
 end
 
 return UiKit

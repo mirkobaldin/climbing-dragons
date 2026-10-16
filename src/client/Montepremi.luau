@@ -13,6 +13,7 @@ local Sfx = require(script.Parent.Sfx)
 local Theme = require(script.Parent.Theme)
 local Slant = require(script.Parent.Slant)
 local Cornici = require(script.Parent.Cornici)
+local UiKit = require(script.Parent.UiKit)
 local Ui = require(game:GetService("ReplicatedStorage").Shared.UiView)
 local Montepremi = {}
 
@@ -76,8 +77,7 @@ function Montepremi.start()
 		l.BackgroundTransparency = 1
 		l.Position = UDim2.fromOffset(if framed then 44 elseif slantSide == "left" then 54 else 38, 0)
 		l.Size = UDim2.new(1, if framed then -60 else -72, 1, 0)
-		l.Font = Enum.Font.GothamBlack
-		l.TextSize = 18
+		UiKit.text(l, "stat", 19)
 		l.TextColor3 = color
 		l.TextStrokeTransparency = 0.3
 		l.TextXAlignment = Enum.TextXAlignment.Left
@@ -88,6 +88,9 @@ function Montepremi.start()
 	end
 	local _, coinsText = side(0, 0, "left", "icon_coin", GOLD)
 	local _, stonesText = side(1, 1, "right", "icon_stone", Theme.PURPLE)
+	-- montepremi: stesso contatore di Codex delle monete e delle pietre, col metallo tinto di rosa
+	-- (Mirko 16/10: la striscia aveva tre stili diversi; il rosa resta, e' il segno del montepremi)
+	local PINK_METAL = Color3.fromRGB(255, 150, 175)
 	local box = Instance.new("Frame")
 	box.Name = "Riquadro"
 	box.AnchorPoint = Vector2.new(0.5, 0)
@@ -96,34 +99,40 @@ function Montepremi.start()
 	box.BackgroundColor3 = Theme.DARK
 	box.BackgroundTransparency = 0.08
 	box.Parent = strip
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 8)
-	corner.Parent = box
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = PINK
 	stroke.Thickness = 2
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	stroke:SetAttribute("KeepStroke", true)
 	stroke.Parent = box
+	local boxFrame = Cornici.apply(box, "frame_currency_counter", { fill = Theme.DARK, fillTransparency = 0.08, color = PINK_METAL })
+	if boxFrame then
+		box.BackgroundTransparency = 1
+		stroke.Enabled = false
+	else
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 8)
+		corner.Parent = box
+	end
 	local title = Instance.new("TextLabel")
 	title.BackgroundTransparency = 1
-	title.Position = UDim2.fromOffset(10, 4)
-	title.Size = UDim2.new(0, 104, 1, -8)
-	title.Font = Enum.Font.Arcade
-	title.TextScaled = true
-	title.TextWrapped = true
+	title.Position = UDim2.fromOffset(28, 4)
+	title.Size = UDim2.new(0, 100, 1, -8)
+	UiKit.text(title, "button", 15)
 	title.TextColor3 = PINK
 	title.Text = "PRIZE POOL"
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.ZIndex = 3
 	title.Parent = box
 	local num = Instance.new("TextLabel")
 	num.BackgroundTransparency = 1
-	num.Position = UDim2.fromOffset(118, 4)
-	num.Size = UDim2.new(1, -128, 1, -8)
-	num.Font = Enum.Font.Arcade
-	num.TextScaled = true
+	num.Position = UDim2.fromOffset(124, 4)
+	num.Size = UDim2.new(1, -150, 1, -8)
+	UiKit.text(num, "stat", 20)
 	num.TextColor3 = GOLD
 	num.TextXAlignment = Enum.TextXAlignment.Right
 	num.Text = "0"
+	num.ZIndex = 3
 	num.Parent = box
 	local function counters()
 		coinsText.Text = fmt((player:GetAttribute("Coins") or 0) :: number)
@@ -158,14 +167,48 @@ function Montepremi.start()
 	pop.TextTransparency = 1
 	pop.TextStrokeColor3 = Color3.new(0, 0, 0)
 	pop.Parent = gui
-	Theme.fitText(title, 12, false)
-	Theme.fitText(num, 18, false)
 	Theme.fitText(pop, 16, true)
 	local popY = 220
+	-- La striscia sta nella fila della barra di Roblox, ma SOLO nello spazio libero
+	-- (GuiService.TopbarInset): sul telefono vero i tasti di Roblox sono piu' larghi che in
+	-- Studio e coprivano le monete (Mirko 16/10). Se al centro non c'e' posto si sposta a destra
+	-- dei tasti, poi si rimpicciolisce, e se ancora non basta scende sotto la barra
+	local lastVp: Vector2? = nil
+	local function place()
+		local vp = lastVp
+		if not vp then
+			return
+		end
+		local logical = Ui.fitScale(gui, vp)
+		local s = (gui:FindFirstChild("ScalaUI") :: UIScale).Scale
+		local tbX, tbW, tbH = Ui.topbar(s)
+		local W = 600
+		local k = 1
+		local free = tbW - 16
+		if free < W then
+			k = math.max(0.72, free / W)
+		end
+		fit.Scale = k
+		local half = W * k / 2
+		local cx = logical.X / 2
+		cx = math.max(cx, tbX + 8 + half)
+		local y = math.max(2, (tbH - 40 * k) / 2)
+		if cx + half > tbX + tbW - 8 then
+			-- non c'entra nella barra: sotto, al centro
+			cx = logical.X / 2
+			y = tbH + 4
+		end
+		strip.Position = UDim2.fromOffset(cx, y)
+		popY = y + 40 * k + 60
+		pop.Size = UDim2.fromOffset(math.min(420, logical.X - 24), 48)
+		gui:SetAttribute("StrisciaBasso", y + 40 * k)
+	end
 	Ui.viewportChanged(function(vp)
-		popY = Ui.menuMetrics(vp).y + 144
-		fit.Scale = if Ui.compact(vp) then 0.75 else 1
-		pop.Size = UDim2.fromOffset(math.min(420, vp.X - 24), 48)
+		lastVp = vp
+		place()
+	end, gui)
+	pcall(function()
+		game:GetService("GuiService"):GetPropertyChangedSignal("TopbarInset"):Connect(place)
 	end)
 
 	-- il numero scorre fino al valore nuovo (come un contatore)
@@ -181,6 +224,10 @@ function Montepremi.start()
 			TweenService:Create(scale, TweenInfo.new(0.35, Enum.EasingStyle.Back), { Scale = 1 }):Play()
 			stroke.Color = GOLD
 			TweenService:Create(stroke, TweenInfo.new(0.8), { Color = PINK }):Play()
+			if boxFrame then
+				boxFrame.ImageColor3 = Color3.fromRGB(255, 225, 140)
+				TweenService:Create(boxFrame, TweenInfo.new(0.8), { ImageColor3 = PINK_METAL }):Play()
+			end
 		end
 	end)
 	RunService.RenderStepped:Connect(function(dt)

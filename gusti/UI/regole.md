@@ -23,6 +23,17 @@
   parallelogrammi anche li' - 16/10.
 - Barra degli attrezzi spostata a sinistra del centro e tasto MENU attaccato alla barra - 16/10.
 - Tutte le uova fatte finora (icone piatte, uova con le ali, set Blender senza rilievo) - 16/10.
+- Rebirth e Bounties rimasti nello stile vecchio (riquadri blu, pillola azzurra "NOT READY YET") - 16/10 sera.
+- Cornice delle schede "sfasata, come tagliata" (gradino nel fondo del PNG al margine 9-slice) - 16/10 sera.
+- Hover su un pulsante che cambia anche gli altri, testo dei pulsanti coi puntini ("SE...") - 16/10 sera.
+- Caselle dello zaino con cornici grosse, oggetti non centrati, due nomi (Backpack/Inventory) - 16/10 sera.
+- Ritratto del giocatore troppo grande e spazio fra la foto e la cornice; fondo del cerchio che sporge - 16/10 sera.
+- Barre vita/stamina/scudo grosse e staccate; nome e XP del drago senza cornice - 16/10 sera.
+- Etichette colorate delle statistiche in un carattere diverso da Oswald; fessura fra fondo e cornice dei pannelli - 16/10 sera.
+- Menu draghi a due colonne con un vuoto a destra; fondo nero con la "bolla grigia" dietro il drago - 16/10 sera.
+- Ingranaggio azzurro (⚙) sopra gli altri tasti; meteo e ora come due pezzi staccati con la casella blu - 16/10 sera.
+- Striscia monete | montepremi | pietre di tre stili diversi; sul telefono vero sotto i tasti di Roblox - 16/10 sera.
+- Pagine del menu che sul telefono si schiacciano o non si vedono, finestra piu' alta dello schermo - 16/10 sera.
 
 ## Buono
 - Pulsanti pieni e saturi (barra in alto Shop/Backpack/Dragons...).
@@ -62,3 +73,12 @@
 - Tasti del telefono in rilievo (faccia colorata, base scura sotto, premuto = si abbassa) e una
   sola scritta per tasto (due scritte sovrapposte = sbagliato) - 16/10 sera.
 - Palafitte nel lago del teschio (dietro il laghetto), senza le due baite rosse - 16/10 sera.
+- La STESSA UI del computer anche sul telefono (come Blox Fruits), cambiano solo i tasti da toccare - 16/10 sera.
+- Inventario come Diablo IV: statistiche a sinistra, personaggio al centro-destra con
+  l'equipaggiamento attorno, griglia di caselle piccole e fitte sotto, monete in fondo - 16/10 sera.
+- Barre del giocatore e del drago a parallelogramma, una sotto l'altra, attaccate, con la cornice - 16/10 sera.
+- HUD che si sposta anche dal computer (barra DONE / RESET, contorno degli elementi spostabili) - 16/10 sera.
+- Sfondo del palco del drago come una valle con i ghiacciai dietro - 16/10 sera.
+- APPROVATA la rifinitura della sessione cloud del 17/10 (una sola UI scalata per telefono e
+  computer, Bounties/Rebirth nuovi, Inventory come Diablo IV, barre a parallelogramma nelle
+  cornici, HUD modificabile col ⚙ anche dal computer, draghi con la valle dietro) - 17/10.

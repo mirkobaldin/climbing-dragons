@@ -180,8 +180,16 @@ function Guide.start()
 			local half = vp / 2 - Vector2.new(48, 48)
 			local k = math.min(half.X / math.max(math.abs(dir.X), 0.001), half.Y / math.max(math.abs(dir.Y), 0.001))
 			local at = vp / 2 + dir * k
-			-- mai sopra la barra degli attrezzi e i comandi in basso
-			at = Vector2.new(at.X, math.min(at.Y, vp.Y - 160))
+			-- mai sopra la barra degli attrezzi e i comandi in basso, e mai sotto i tasti di Roblox
+			-- in alto (sul telefono vero coprivano "Home ... m": GuiService.TopbarInset)
+			local topbar = 58
+			pcall(function()
+				local r = game:GetService("GuiService").TopbarInset
+				if r.Height > 0 then
+					topbar = r.Max.Y
+				end
+			end)
+			at = Vector2.new(at.X, math.clamp(at.Y, topbar + 34, math.max(topbar + 34, vp.Y - 160)))
 			edge.Position = UDim2.fromOffset(at.X, at.Y)
 			arrow.Rotation = math.deg(math.atan2(dir.X, -dir.Y)) -- gira solo la freccia
 			edgeLabel.Text = string.format("Home %d m", math.floor(dist))

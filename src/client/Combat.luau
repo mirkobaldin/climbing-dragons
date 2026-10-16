@@ -650,21 +650,36 @@ function Combat.start()
 	-- e evento in alto al centro sotto la missione (prima stavano in mezzo allo schermo)
 	Ui.text(timer, 26, true)
 	Ui.text(eventLabel, 18, true)
-	Ui.viewportChanged(function(vp)
+	-- Roar / Z si sposta come gli altri elementi dell'HUD (client/HudLayout, tasto ⚙)
+	local HudLayout = require(script.Parent.HudLayout)
+	HudLayout.register("Roar", spBtn, if Ui.touch() then "ROAR" else "DRAGON SPECIAL (Z)")
+	local lastVp: Vector2? = nil
+	local function layoutCombat()
+		local vp = lastVp
+		if not vp then
+			return
+		end
 		local logical = Ui.fitScale(gui, vp)
 		if Ui.touch() then
 			-- in basso, a sinistra dell'arco dei comandi (MobileControls: arco attorno al salto,
-			-- raggio fino a ~230 px dall'angolo), lontano dal meteo
+			-- raggio fino a ~230 px veri dall'angolo, i tasti del telefono non seguono la scala),
+			-- piu' in la' del secondo giro di tasti (prima toccava RIDE e la barra 1-5)
 			local k = logical.X / vp.X
 			local small = math.min(vp.X, vp.Y) <= 500
-			local x, y = if small then 270 else 400, if small then 55 else 150
-			Ui.px(spBtn, 1, -x * k, 1, -y * k, 68, 68, 0.5, 0.5)
+			local x, y = if small then 285 else 420, if small then 58 else 150
+			Ui.px(spBtn, 1, -x * k, 1, -y * k, 76, 76, 0.5, 0.5)
 		else
 			Ui.px(spBtn, 1, -24, 1, -24, 76, 76, 1, 1)
 		end
-		Ui.px(timer, 0.5, 0, 0, if Ui.compact(vp) then 206 else 190, math.min(520, logical.X - 32), 34, 0.5, 0)
-		Ui.px(eventLabel, 0.5, 0, 0, if Ui.compact(vp) then 240 else 228, math.min(620, logical.X - 32), 28, 0.5, 0)
-	end)
+		HudLayout.place("Roar", spBtn)
+		Ui.px(timer, 0.5, 0, 0, 190, math.min(520, logical.X - 32), 34, 0.5, 0)
+		Ui.px(eventLabel, 0.5, 0, 0, 228, math.min(620, logical.X - 32), 28, 0.5, 0)
+	end
+	HudLayout.onChange(layoutCombat)
+	Ui.viewportChanged(function(vp)
+		lastVp = vp
+		layoutCombat()
+	end, gui)
 
 	local accum = 0
 	RunService.RenderStepped:Connect(function(dt)

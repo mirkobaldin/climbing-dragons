@@ -269,14 +269,22 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		local gui = container:FindFirstAncestorWhichIsA("ScreenGui")
 		return gui ~= nil and gui:GetAttribute("ShortUI") == true
 	end
+	-- misure in pixel LOGICI (AbsoluteSize diviso la scala della schermata). Prima si usavano i
+	-- pixel veri: col computer a scala 1,5 le celle uscivano dalla griglia, che andava a capo con
+	-- due colonne e un grande vuoto a destra (Mirko 16/10)
+	local function uiScale(): number
+		local gui = container:FindFirstAncestorWhichIsA("ScreenGui")
+		local su = gui and gui:FindFirstChild("ScalaUI")
+		return if su and su:IsA("UIScale") and su.Scale > 0 then su.Scale else 1
+	end
 	local function arrange()
 		local tabH = if short() then 34 else 44
 		top.Size = UDim2.new(1, 0, 0, tabH)
 		body.Position = UDim2.new(0, 0, 0, tabH + 8)
 		body.Size = UDim2.new(1, 0, 1, -(tabH + 8))
-  local narrow = body.AbsoluteSize.X < 520
-  -- telefono in orizzontale: collezione 56% a sinistra, scheda 44% a destra (riferimento 16/10)
-  local gridShare = if short() then 0.56 else 0.42
+  local narrow = body.AbsoluteSize.X / uiScale() < 520
+  -- collezione a sinistra e scheda a destra a meta' (stessa impaginazione su telefono e computer)
+  local gridShare = 0.5
   footH = if short() then 46 else 56
   gridBox.Position = UDim2.fromScale(0, 0)
   gridBox.Size = if narrow then UDim2.new(1, 0, 0.30, -4) else UDim2.new(gridShare, -8, 1, 0)
@@ -319,12 +327,11 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 
 	-- celle della griglia: 3-5 colonne secondo la larghezza
 	local function sizeGrid(aspect: number)
-		local width = math.max(grid.AbsoluteSize.X - 12, 160)
-		-- telefono: tessere un po' piu' strette, quattro per fila (si vedono piu' draghi insieme)
-		local cols = math.clamp(math.floor(width / (if short() then 118 else 150)), 1, 5)
-		local cell = (width - (cols - 1) * 8) / cols
-		local minH = if short() then (if aspect > 1.3 then 200 else 130) else (if aspect > 1.3 then 300 else 220)
-		layout.CellSize = UDim2.fromOffset(cell, math.max(minH, cell * aspect))
+		-- tessere che riempiono tutta la larghezza: 2-5 colonne di almeno 130 px
+		local width = math.max(grid.AbsoluteSize.X / uiScale() - 14, 160)
+		local cols = math.clamp(math.floor((width + 8) / 138), 2, 5)
+		local cell = math.floor((width - (cols - 1) * 8) / cols)
+		layout.CellSize = UDim2.fromOffset(cell, math.max(if aspect > 1.3 then 190 else 150, math.floor(cell * aspect)))
 	end
 
 	-- pannello di destra: il drago scelto
@@ -383,7 +390,37 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		stageBox.Name = "Palco"
 		stageBox.Position = if wide then UDim2.fromOffset(10, 66) else UDim2.new(0.5, -S / 2, 0, 66)
 		stageBox.Size = UDim2.fromOffset(S, S)
-		halo(stageBox, tone)
+		-- sfondo: la valle col ghiacciaio dell'illustrazione del caricamento (bg_loading, gia'
+		-- caricata), al posto del fondo nero con la "bolla grigia" (Mirko 16/10: "fa schifo").
+		-- Il drago esce un po' dal quadro, che sfuma in basso nel pannello
+		local valley = Instance.new("ImageLabel")
+		valley.Name = "Valle"
+		valley.BackgroundTransparency = 1
+		valley.Size = UDim2.fromScale(1, 1)
+		valley.ZIndex = 1
+		valley.Parent = stageBox
+		if Ui.asset(valley, "bg_drago_valle") then
+			valley.ScaleType = Enum.ScaleType.Crop
+		elseif Ui.asset(valley, "bg_loading") then
+			-- solo la parte destra (cima e ghiacciaio, senza lo scalatore), quadrata
+			valley.ScaleType = Enum.ScaleType.Stretch
+			valley.ImageRectOffset = Vector2.new(440, 0)
+			valley.ImageRectSize = Vector2.new(576, 576)
+		else
+			valley:Destroy()
+			halo(stageBox, tone)
+		end
+		if valley.Parent then
+			local fade = Instance.new("UIGradient")
+			fade.Rotation = 90
+			fade.Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.05),
+				NumberSequenceKeypoint.new(0.7, 0.15),
+				NumberSequenceKeypoint.new(1, 1),
+			})
+			fade.Parent = valley
+			UiKit.edge(valley, UiKit.LINE, 1, 0.75)
+		end
 		local view = dragonView(stageBox, d, true)
 		view.AnchorPoint = Vector2.new(0.5, 0.5)
 		view.Position = UDim2.fromScale(0.5, 0.48)
