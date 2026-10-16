@@ -1638,79 +1638,25 @@ function MainMenu.start()
 	-- cosi' resta centrata). Computer: in basso a sinistra. Telefono: sul bordo sinistro a meta'
 	-- altezza (in basso a sinistra c'e' il joystick); col tasto ⚙ dei comandi si sposta come gli
 	-- altri pulsanti e la posizione si salva insieme a loro (ControlsLayout, voce MenuFrac)
-	local ClientState = require(script.Parent.ClientState)
-	local function menuFrac(): { number }?
-		local custom = (ClientState :: any).controlsCustom
-		local v = custom and custom.MenuFrac
-		if Ui.touch() and type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" then
-			return { math.clamp(v[1], 0.02, 0.98), math.clamp(v[2], 0.04, 0.96) }
-		end
-		return nil
-	end
+	-- il tasto si sposta come gli altri elementi dell'HUD (client/HudLayout: tasto ⚙, anche sul
+	-- computer); la posizione si salva in ControlsLayout
+	local HudLayout = require(script.Parent.HudLayout)
 	local function placeOpener()
-		local w, h = if compactNow then 62 else 136, if compactNow then 54 else 50
-		local f = menuFrac()
-		if f then
-			opener.AnchorPoint = Vector2.new(0.5, 0.5)
-			opener.Position = UDim2.fromScale(f[1], f[2])
-			opener.Size = UDim2.fromOffset(w, h)
-		elseif Ui.touch() then
-			Ui.px(opener, 0, 6, 0.54, 0, w, h, 0, 0.5)
+		local w, h = if compactNow then 62 else 136, 50
+		if Ui.touch() then
+			Ui.px(opener, 0, 8, 0.54, 0, w, h, 0, 0.5)
 		else
 			Ui.px(opener, 0, 12, 1, -12, w, h, 0, 1)
 		end
+		HudLayout.place("Menu", opener)
 		Ui.px(openerIcon, 0, if compactNow then 10 else 12, 0.5, 0, 30, 30, 0, 0.5)
 		openerText.Visible = not compactNow
 		Ui.px(openerText, 0, 50, 0, 0, 60, h)
 		openerKey.Visible = not compactNow and not Ui.touch()
 		Ui.px(openerKey, 1, -18, 0, 0, 20, h, 1, 0)
 	end
-	-- trascinamento nella modalita' "sposta i tasti" del telefono
-	do
-		local UISd = game:GetService("UserInputService")
-		local dragging: InputObject? = nil
-		opener.InputBegan:Connect(function(input)
-			if ClientState.editingControls and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
-				dragging = input
-			end
-		end)
-		UISd.InputChanged:Connect(function(input)
-			local d = dragging
-			if not d or not ClientState.editingControls then
-				return
-			end
-			if input == d or input.UserInputType == Enum.UserInputType.MouseMovement then
-				local size = gui.AbsoluteSize
-				if size.X < 1 then
-					return
-				end
-				local p = Vector2.new(input.Position.X, input.Position.Y) - gui.AbsolutePosition
-				local custom = (ClientState :: any).controlsCustom
-				if custom then
-					custom.MenuFrac = { p.X / size.X, p.Y / size.Y }
-				end
-				placeOpener()
-			end
-		end)
-		UISd.InputEnded:Connect(function(input)
-			if dragging and (input == dragging or input.UserInputType == Enum.UserInputType.MouseButton1) then
-				dragging = nil
-			end
-		end)
-	end
-	task.spawn(function()
-		-- la posizione salvata arriva coi dati del giocatore; Reset la toglie
-		local last = ""
-		while gui.Parent do
-			local f = menuFrac()
-			local key = if f then string.format("%.3f,%.3f", f[1], f[2]) else "-"
-			if key ~= last then
-				last = key
-				placeOpener()
-			end
-			task.wait(0.5)
-		end
-	end)
+	HudLayout.register("Menu", opener, "MENU")
+	HudLayout.onChange(placeOpener)
 	placeOpener()
 	-- UNA sola impaginazione (docs/UI_ADATTAMENTO.md): la scala unica di UiView porta ogni schermo
 	-- a un'area logica di almeno 1280x540 (telefono S24 Ultra: 1362x540 a scala 0,654), quindi

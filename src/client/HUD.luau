@@ -26,6 +26,7 @@ local Slant = require(script.Parent.Slant)
 local UiKit = require(script.Parent.UiKit)
 local Cornici = require(script.Parent.Cornici)
 local Sfx = require(script.Parent.Sfx)
+local HudLayout = require(script.Parent.HudLayout)
 local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
@@ -214,19 +215,26 @@ local function toolBar(gui: ScreenGui)
 			equip(i)
 		end
 	end)
-	Ui.viewportChanged(function(vp)
-		local logical = Ui.fitScale(gui, vp)
-		local small = Ui.compact(vp) or Ui.touch()
+	-- una sola misura (la scala unica di UiView la adatta allo schermo), centrata in basso;
+	-- si sposta come gli altri elementi dell'HUD (client/HudLayout)
+	HudLayout.register("Barra", bar, "HOTBAR 1-5")
+	local lastLogical = Vector2.new(1280, 680)
+	local function placeBar()
 		local was = cell
-		cell = if small then 54 else 74
-		-- centrata anche sul telefono (Mirko 16/10: era spostata a sinistra); il tasto del menu ora
-		-- sta nell'angolo a sinistra, non piu' accanto alla barra
-		bar.Position = if logical.X < 600 then UDim2.new(0.5, 0, 1, -190) elseif small then UDim2.new(0.5, 0, 1, -6) else UDim2.new(0.5, 0, 1, -10)
+		cell = 70
+		bar.AnchorPoint = Vector2.new(0.5, 1)
+		bar.Position = if lastLogical.X < 600 then UDim2.new(0.5, 0, 1, -190) else UDim2.new(0.5, 0, 1, -10)
 		bar.Size = UDim2.fromOffset(SLOTS * (cell + 6), cell)
+		HudLayout.place("Barra", bar)
 		if was ~= cell then
 			queue()
 		end
-	end)
+	end
+	HudLayout.onChange(placeBar)
+	Ui.viewportChanged(function(vp)
+		lastLogical = Ui.fitScale(gui, vp)
+		placeBar()
+	end, gui)
 	gui:SetAttribute("CustomToolBar", true)
 	-- in groppa o nella forma di drago gli attrezzi non si usano: barra nascosta
 	local function ridingBar()
@@ -319,7 +327,9 @@ function HUD.start()
 	end
 	player:GetAttributeChangedSignal("NoticeTime"):Connect(showNotice)
 
-	-- GIOCATORE: avatar tondo e tre barre oblique
+	-- GIOCATORE: ritratto tondo e, accanto, le tre barre a parallelogramma una sotto l'altra con le
+	-- cornici di Codex (Mirko 16/10: barre troppo grosse e staccate, ritratto troppo grande e con
+	-- uno spazio fra la foto e la cornice)
 	local me = Instance.new("Frame")
 	me.Name = "Giocatore"
 	me.BackgroundTransparency = 1
@@ -327,47 +337,47 @@ function HUD.start()
 	local barsBox = Instance.new("Frame")
 	barsBox.BackgroundTransparency = 1
 	barsBox.Parent = me
-	-- barre dritte dentro le cornici di Codex (terminali ornati); se le immagini mancano restano
-	-- le barre oblique di prima
-	local framedBars = Cornici.has("frame_bar_health")
-	local healthBar = Slant.bar(barsBox, Theme.DARK, Theme.BAD, if framedBars then 0 else 18)
-	local staminaBar = Slant.bar(barsBox, Theme.DARK, Theme.GOOD, if framedBars then 0 else 16)
-	local shieldBar = Slant.bar(barsBox, Theme.DARK, Theme.BLUE, if framedBars then 0 else 14)
-	if framedBars then
-		Cornici.apply(healthBar, "frame_bar_health", { mode = "outset", z = 5 })
-		Cornici.apply(staminaBar, "frame_bar_stamina", { mode = "outset", z = 5 })
-		Cornici.apply(shieldBar, "frame_bar_shield", { mode = "outset", z = 5 })
-	end
-	Slant.setZ(healthBar, 2)
-	Slant.setZ(staminaBar, 2)
-	Slant.setZ(shieldBar, 2)
-	local healthText = text(healthBar, "", 16)
-	local staminaText = text(staminaBar, "", 13)
-	local shieldText = text(shieldBar, "", 13)
+	local healthBar = UiKit.bar(barsBox, "health", Theme.BAD, Theme.DARK, 6)
+	local staminaBar = UiKit.bar(barsBox, "stamina", Theme.GOOD, Theme.DARK, 6)
+	local shieldBar = UiKit.bar(barsBox, "shield", Theme.BLUE, Theme.DARK, 6)
+	local framedBars = healthBar:GetAttribute("Cornice") == true
+	local healthText = text(healthBar, "", 15)
+	local staminaText = text(staminaBar, "", 12)
+	local shieldText = text(shieldBar, "", 12)
 	for _, l in { healthText, staminaText, shieldText } do
-		l.ZIndex = 6
+		l.ZIndex = 8
 		l.Size = UDim2.new(1, -20, 1, 0)
 		l.Position = UDim2.fromOffset(0, 0)
 		l.TextXAlignment = Enum.TextXAlignment.Left
 	end
-	local avatar = circle(me, Theme.DARK2, Theme.ACCENT)
+	-- ritratto: la foto riempie tutto il foro della cornice (un filo piu' grande: il bordo sta sotto
+	-- l'anello) e il suo fondo e' quello della foto stessa, tondo: niente cerchio che sporge
+	local avatar = Instance.new("Frame")
 	avatar.Name = "Avatar"
+	avatar.BackgroundTransparency = 1
 	avatar.ZIndex = 8
-	-- ritratto di Codex: il foro coincide col cerchio della foto
-	if Cornici.apply(avatar, "frame_portrait_player", { mode = "circle", z = 12 }) then
-		local st = avatar:FindFirstChildOfClass("UIStroke")
-		if st then
-			st.Enabled = false
-		end
-	end
+	avatar.Parent = me
 	local photo = Instance.new("ImageLabel")
-	photo.BackgroundTransparency = 1
-	photo.Size = UDim2.fromScale(1, 1)
+	photo.Name = "Foto"
+	photo.BackgroundColor3 = Color3.fromRGB(28, 32, 44)
+	photo.BackgroundTransparency = 0
+	photo.BorderSizePixel = 0
+	photo.AnchorPoint = Vector2.new(0.5, 0.5)
+	photo.Position = UDim2.fromScale(0.5, 0.5)
+	photo.Size = UDim2.fromScale(1.08, 1.08)
 	photo.ZIndex = 9
 	photo.Parent = avatar
 	local pc = Instance.new("UICorner")
 	pc.CornerRadius = UDim.new(0.5, 0)
 	pc.Parent = photo
+	if not Cornici.apply(avatar, "frame_portrait_player", { mode = "circle", z = 12 }) then
+		photo.Size = UDim2.fromScale(1, 1)
+		local st = Instance.new("UIStroke")
+		st.Color = Theme.ACCENT
+		st.Thickness = 3
+		st:SetAttribute("KeepStroke", true)
+		st.Parent = photo
+	end
 	task.spawn(function()
 		local ok, img = pcall(function()
 			return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
@@ -378,8 +388,10 @@ function HUD.start()
 	end)
 	local nameLabel = text(me, player.DisplayName, 15)
 	nameLabel.ZIndex = 8
+	HudLayout.register("Giocatore", me, "YOU")
 
-	-- DRAGO: cerchio dell'elemento, livello nel cerchietto sopra, nome-rarita' e XP obliqui
+	-- DRAGO: cerchio dell'elemento col livello nel cerchietto, barra del nome e barra dell'XP a
+	-- parallelogramma con la cornice (come quelle del giocatore)
 	local pet = Instance.new("Frame")
 	pet.Name = "Drago"
 	pet.BackgroundTransparency = 1
@@ -388,126 +400,150 @@ function HUD.start()
 	local petBars = Instance.new("Frame")
 	petBars.BackgroundTransparency = 1
 	petBars.Parent = pet
-	local nameBar = Slant.new(petBars, Theme.DARK2, 0.1, 16)
-	Slant.setZ(nameBar, 2)
+	local nameBar = UiKit.bar(petBars, "stamina", Theme.DARK2, Theme.DARK2, 6)
+	Slant.setFill(nameBar, 1)
 	local nameStripe = Theme.frame(nameBar, Theme.ACCENT, 0)
-	nameStripe.ZIndex = 3
-	local petName = text(nameBar, "", 16)
-	petName.ZIndex = 4
-	local xpBar = Slant.bar(petBars, Theme.DARK, Theme.PURPLE, if framedBars then 0 else 14)
-	Slant.setZ(xpBar, 2)
-	if framedBars then
-		Cornici.apply(xpBar, "frame_bar_xp", { mode = "outset", z = 5 })
-	end
-	local xpText = text(xpBar, "", 13)
-	xpText.ZIndex = 6
+	nameStripe.ZIndex = 7
+	local petName = text(nameBar, "", 15)
+	petName.ZIndex = 8
+	local xpBar = UiKit.bar(petBars, "xp", Theme.PURPLE, Theme.DARK, 6)
+	local xpText = text(xpBar, "", 12)
+	xpText.ZIndex = 8
 	xpText.TextXAlignment = Enum.TextXAlignment.Left
-	local elemCircle = circle(pet, Theme.DARK2, Theme.PURPLE)
+	local elemCircle = Instance.new("Frame")
+	elemCircle.Name = "Elemento"
+	elemCircle.BackgroundTransparency = 1
 	elemCircle.ZIndex = 8
+	elemCircle.Parent = pet
+	-- fondo tondo dell'elemento: riempie il foro (sotto l'anello), non sporge
+	local elemBack = circle(elemCircle, Theme.DARK2)
+	elemBack.AnchorPoint = Vector2.new(0.5, 0.5)
+	elemBack.Position = UDim2.fromScale(0.5, 0.5)
+	elemBack.Size = UDim2.fromScale(1.06, 1.06)
+	elemBack.ZIndex = 8
+	local elemRing: UIStroke? = nil
 	-- ritratto del drago di Codex: cornice, filo della rarita' e gemme dell'elemento (livelli
 	-- grigi colorati in refreshPet)
 	if Cornici.apply(elemCircle, "frame_portrait_dragon", { mode = "circle", z = 12 }) then
 		Cornici.apply(elemCircle, "frame_portrait_dragon_rarity", { mode = "circle", z = 13, name = "CorniceRarita" })
 		Cornici.apply(elemCircle, "frame_portrait_dragon_gem", { mode = "circle", z = 13, name = "CorniceGemme" })
-		local st = elemCircle:FindFirstChildOfClass("UIStroke")
-		if st then
-			st.Enabled = false
-		end
+	else
+		elemBack.Size = UDim2.fromScale(1, 1)
+		local st = Instance.new("UIStroke")
+		st.Color = Theme.PURPLE
+		st.Thickness = 3
+		st:SetAttribute("KeepStroke", true)
+		st.Parent = elemBack
+		elemRing = st
 	end
 	local elemIcon = Instance.new("ImageLabel")
 	elemIcon.BackgroundTransparency = 1
 	elemIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 	elemIcon.Position = UDim2.fromScale(0.5, 0.5)
-	elemIcon.Size = UDim2.fromScale(0.78, 0.78)
+	elemIcon.Size = UDim2.fromScale(0.86, 0.86)
 	elemIcon.ZIndex = 9
 	elemIcon.Parent = elemCircle
-	local lvCircle = circle(pet, Theme.ACCENT, Color3.fromRGB(60, 40, 0))
+	local lvCircle = Instance.new("Frame")
+	lvCircle.Name = "Livello"
+	lvCircle.BackgroundTransparency = 1
 	lvCircle.ZIndex = 10
-	if Cornici.apply(lvCircle, "frame_level_badge", { mode = "circle", z = 12 }) then
-		local st = lvCircle:FindFirstChildOfClass("UIStroke")
-		if st then
-			st.Enabled = false
-		end
+	lvCircle.Parent = pet
+	local lvDisc = circle(lvCircle, Theme.ACCENT)
+	lvDisc.AnchorPoint = Vector2.new(0.5, 0.5)
+	lvDisc.Position = UDim2.fromScale(0.5, 0.5)
+	lvDisc.Size = UDim2.fromScale(1.08, 1.08)
+	lvDisc.ZIndex = 10
+	if not Cornici.apply(lvCircle, "frame_level_badge", { mode = "circle", z = 12 }) then
+		lvDisc.Size = UDim2.fromScale(1, 1)
 	end
 	local lvText = text(lvCircle, "", 15, Color3.fromRGB(40, 24, 0))
 	lvText.Size = UDim2.fromScale(1, 1)
 	lvText.TextXAlignment = Enum.TextXAlignment.Center
 	lvText.TextStrokeTransparency = 1
 	lvText.ZIndex = 11
+	HudLayout.register("Drago", pet, "YOUR DRAGON")
 
-	-- METEO in alto a destra
+	-- METEO in alto a destra (Mirko 16/10: "il cerchio col sole e la casella blu dell'ora sono due
+	-- pezzi staccati"): UN solo elemento nello stile delle cornici. Il medaglione col meteo si
+	-- appoggia sulla targa dell'ora e della quota; aperto, sotto, giorno/notte e tempo, calore e
+	-- uovo. Piegato resta solo medaglione + targa
 	local weather = Instance.new("Frame")
 	weather.Name = "Meteo"
-	weather.BackgroundColor3 = Theme.DARK
-	weather.BackgroundTransparency = 0.2
+	weather.BackgroundTransparency = 1
 	weather.Parent = gui
-	Theme.corner(weather, 14)
-	local ws = Instance.new("UIStroke")
-	ws.Color = Color3.fromRGB(10, 12, 20)
-	ws.Thickness = 2
-	ws:SetAttribute("KeepStroke", true)
-	ws.Parent = weather
-	local wCircle = circle(weather, Theme.DARK2, Theme.BLUE)
-	wCircle.ZIndex = 2
-	-- cornice di Codex attorno al meteo e medaglione attorno all'icona
-	if Cornici.apply(weather, "frame_panel", { border = 8 }) then
-		weather.BackgroundTransparency = 1
-		ws.Enabled = false
-		local wc = weather:FindFirstChildOfClass("UICorner")
-		if wc then
-			wc:Destroy()
-		end
-		if Cornici.apply(wCircle, "frame_currency_medallion", { mode = "circle", z = 4 }) then
-			local st = wCircle:FindFirstChildOfClass("UIStroke")
-			if st then
-				st.Enabled = false
-			end
-		end
+	local plate = Instance.new("Frame")
+	plate.Name = "Targa"
+	plate.BackgroundColor3 = Color3.fromRGB(18, 19, 21)
+	plate.BackgroundTransparency = 0.12
+	plate.BorderSizePixel = 0
+	plate.ZIndex = 2
+	plate.Parent = weather
+	if Cornici.apply(plate, "frame_currency_counter", { fill = Color3.fromRGB(18, 19, 21), fillTransparency = 0.08, z = 3 }) then
+		plate.BackgroundTransparency = 1
+	else
+		UiKit.edge(plate, UiKit.ACCENT, 1, 0.4)
+	end
+	local timeText = UiKit.label(plate, "12:00", "stat", 24)
+	timeText.TextXAlignment = Enum.TextXAlignment.Left
+	timeText.ZIndex = 5
+	local plateSep = Theme.frame(plate, UiKit.ACCENT, 0.55)
+	plateSep.ZIndex = 5
+	local altText = UiKit.label(plate, "", "stat", 16)
+	altText.TextXAlignment = Enum.TextXAlignment.Right
+	altText.TextColor3 = UiKit.ICE
+	altText.ZIndex = 5
+	local wCircle = Instance.new("Frame")
+	wCircle.Name = "Medaglione"
+	wCircle.BackgroundTransparency = 1
+	wCircle.ZIndex = 6
+	wCircle.Parent = weather
+	local wBack = circle(wCircle, Color3.fromRGB(28, 32, 44))
+	wBack.AnchorPoint = Vector2.new(0.5, 0.5)
+	wBack.Position = UDim2.fromScale(0.5, 0.5)
+	wBack.Size = UDim2.fromScale(1.06, 1.06)
+	wBack.ZIndex = 6
+	if not Cornici.apply(wCircle, "frame_currency_medallion", { mode = "circle", z = 9 }) then
+		wBack.Size = UDim2.fromScale(1, 1)
+		local st = Instance.new("UIStroke")
+		st.Color = UiKit.ACCENT
+		st.Thickness = 2
+		st:SetAttribute("KeepStroke", true)
+		st.Parent = wBack
 	end
 	local wIcon = Instance.new("ImageLabel")
 	wIcon.BackgroundTransparency = 1
 	wIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 	wIcon.Position = UDim2.fromScale(0.5, 0.5)
-	wIcon.Size = UDim2.fromScale(0.8, 0.8)
-	wIcon.ZIndex = 3
+	wIcon.Size = UDim2.fromScale(0.82, 0.82)
+	wIcon.ZIndex = 7
 	wIcon.Parent = wCircle
-	local wFallback = text(wCircle, "", 26)
+	local wFallback = text(wCircle, "", 24)
 	wFallback.Size = UDim2.fromScale(1, 1)
 	wFallback.TextXAlignment = Enum.TextXAlignment.Center
-	wFallback.ZIndex = 3
-	local timeBox = Instance.new("Frame")
-	timeBox.BackgroundColor3 = Theme.DARK2
-	timeBox.ZIndex = 2
-	timeBox.Parent = weather
-	Theme.corner(timeBox, 10)
-	local timeText = text(timeBox, "12:00", 30)
-	timeText.Size = UDim2.fromScale(1, 1)
-	timeText.TextXAlignment = Enum.TextXAlignment.Center
-	timeText.ZIndex = 3
-	local condBox = Instance.new("Frame")
-	condBox.BackgroundColor3 = Theme.DARK2
-	condBox.ZIndex = 2
-	condBox.Parent = weather
-	Theme.corner(condBox, 10)
-	local dayText = text(condBox, "Day", 16, Theme.ACCENT)
-	dayText.ZIndex = 3
-	dayText.TextXAlignment = Enum.TextXAlignment.Center
-	local condText = text(condBox, "Clear", 16, Theme.BLUE)
-	condText.ZIndex = 3
-	condText.TextXAlignment = Enum.TextXAlignment.Center
-	local altText = text(weather, "", 15, Theme.MUTED)
-	altText.ZIndex = 3
-	local warmBar = Slant.bar(weather, Theme.DARK2, Theme.ORANGE, 10)
-	Slant.setZ(warmBar, 3)
-	local warmText = text(warmBar, "", 12)
-	warmText.ZIndex = 6
+	wFallback.ZIndex = 7
+	-- dettagli (aperto): pannello attaccato sotto la targa
+	local details = Instance.new("Frame")
+	details.Name = "Dettagli"
+	details.BackgroundTransparency = 1
+	details.ZIndex = 1
+	details.Parent = weather
+	UiKit.panel(details, { border = 8 })
+	local dayText = UiKit.label(details, "DAY", "name", 15)
+	dayText.ZIndex = 4
+	local condText = UiKit.label(details, "Clear", "name", 15)
+	condText.TextXAlignment = Enum.TextXAlignment.Right
+	condText.TextColor3 = UiKit.ICE
+	condText.ZIndex = 4
+	local warmBar = UiKit.bar(details, "stamina", Theme.ORANGE, Theme.DARK2, 6)
+	local warmText = text(warmBar, "", 11)
+	warmText.ZIndex = 8
 	warmText.Size = UDim2.fromScale(1, 1)
 	warmText.TextXAlignment = Enum.TextXAlignment.Center
-	local finder = text(weather, "", 14, Theme.ACCENT)
-	finder.ZIndex = 3
+	local finder = text(details, "", 14, Theme.ACCENT)
+	finder.ZIndex = 4
 	finder.TextWrapped = true
 	finder.TextXAlignment = Enum.TextXAlignment.Center
-
+	HudLayout.register("Meteo", weather, "WEATHER")
 
 	-- MISSIONE ATTUALE, sotto il drago su tutti i dispositivi (Mirko 16/10: "IO -> IL MIO DRAGO ->
 	-- COSA DEVO FARE"). Un solo obiettivo corto (rombo + VERBO...), la distanza dalla meta e
@@ -622,25 +658,70 @@ function HUD.start()
 		end
 	end)
 
-	-- NASCONDI HUD: via le informazioni (giocatore, drago, missione, monete, montepremi, meteo),
-	-- restano i comandi di gioco, le frecce guida e i suggerimenti del tutorial. Il tasto resta
-	-- sempre al suo posto (in alto a destra, accanto al meteo)
-	local hideBtn = Instance.new("TextButton")
-	hideBtn.Name = "NascondiHUD"
-	hideBtn.Text = "HIDE HUD"
-	hideBtn.ZIndex = 5
-	hideBtn.Parent = gui
-	UiKit.button(hideBtn, "secondary")
-	-- "?" = pannello dei comandi (client/ControlsPanel), sempre consultabile dopo il tutorial
+	-- TASTI DELL'HUD in un gruppo spostabile: ⚙ (modifica dell'HUD, client/HudLayout), "?"
+	-- (pannello dei comandi, client/ControlsPanel) e HIDE HUD (via le informazioni: giocatore,
+	-- drago, missione, monete, montepremi, meteo; restano i comandi, le frecce e i suggerimenti)
+	local opts = Instance.new("Frame")
+	opts.Name = "Opzioni"
+	opts.BackgroundTransparency = 1
+	opts.Parent = gui
+	-- ⚙ nello stile delle cornici: medaglione con l'icona delle impostazioni (Mirko 16/10:
+	-- l'ingranaggio azzurro di prima "fa schifo" e copriva THROW)
+	local gear = Instance.new("TextButton")
+	gear.Name = "ModificaHUD"
+	gear.Text = ""
+	gear.BackgroundTransparency = 1
+	gear.AutoButtonColor = false
+	gear.ZIndex = 5
+	gear:SetAttribute("UiNative", true)
+	gear.Parent = opts
+	local gearBack = circle(gear, Color3.fromRGB(28, 32, 44))
+	gearBack.AnchorPoint = Vector2.new(0.5, 0.5)
+	gearBack.Position = UDim2.fromScale(0.5, 0.5)
+	gearBack.Size = UDim2.fromScale(1.04, 1.04)
+	gearBack.ZIndex = 5
+	if not Cornici.apply(gear, "frame_currency_medallion", { mode = "circle", z = 7 }) then
+		gearBack.Size = UDim2.fromScale(1, 1)
+		UiKit.edge(gearBack, UiKit.ACCENT, 1, 0.3)
+	end
+	local gearIcon = Instance.new("ImageLabel")
+	gearIcon.BackgroundTransparency = 1
+	gearIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+	gearIcon.Position = UDim2.fromScale(0.5, 0.5)
+	gearIcon.Size = UDim2.fromScale(0.66, 0.66)
+	gearIcon.ZIndex = 6
+	gearIcon.Parent = gear
+	if not Ui.asset(gearIcon, "icon_settings") then
+		local g = text(gear, "⚙", 20)
+		g.Size = UDim2.fromScale(1, 1)
+		g.TextXAlignment = Enum.TextXAlignment.Center
+		g.ZIndex = 6
+	end
+	gear.MouseEnter:Connect(function()
+		gearIcon.ImageColor3 = UiKit.ACCENT
+	end)
+	gear.MouseLeave:Connect(function()
+		gearIcon.ImageColor3 = Color3.new(1, 1, 1)
+	end)
+	gear.Activated:Connect(function()
+		HudLayout.setEditing(not HudLayout.editing())
+	end)
 	local helpBtn = Instance.new("TextButton")
 	helpBtn.Name = "Comandi"
 	helpBtn.ZIndex = 5
-	helpBtn.Parent = gui
+	helpBtn.Parent = opts
 	UiKit.button(helpBtn, "secondary")
 	helpBtn.Text = "?"
 	helpBtn.Activated:Connect(function()
 		require(script.Parent.ControlsPanel).open(true)
 	end)
+	local hideBtn = Instance.new("TextButton")
+	hideBtn.Name = "NascondiHUD"
+	hideBtn.Text = "HIDE HUD"
+	hideBtn.ZIndex = 5
+	hideBtn.Parent = opts
+	UiKit.button(hideBtn, "secondary")
+	HudLayout.register("Opzioni", opts, "HUD BUTTONS")
 	local hidden = false
 	local function applyHidden()
 		player:SetAttribute("HudNascosto", hidden)
@@ -653,246 +734,178 @@ function HUD.start()
 		applyHidden()
 	end)
 
-	-- METEO pieghevole: tocco/click = solo icona e ora, di nuovo = tutto (quota, calore, uovo).
+	-- METEO pieghevole: tocco/click = solo medaglione e targa, di nuovo = anche i dettagli.
 	-- Lo stato resta per tutta la partita, anche nascondendo e rimostrando l'HUD
 	local weatherFolded = Ui.touch() -- sul telefono parte chiuso (meno spazio occupato)
 	weather.Active = true
 
 	local P = Ui.px
-	local compact = false
 	local logical = Vector2.new(1280, 680)
 	local shieldOn = false
-	-- impaginazione in pixel logici (UiView.fitScale adatta tutto allo schermo)
-	-- telefono: dettagli del drago (nome e rarita') aperti toccando il suo cerchio
-	local petExpanded = false
+	-- UNA sola impaginazione in pixel logici (UiView.fitScale porta ogni schermo ad almeno
+	-- 1280x540: sul telefono e' la stessa del computer, piu' piccola). Prima c'era un ramo
+	-- "telefono" a parte con misure diverse
 	local function layoutLeft()
-		local x0 = 12
-		local y0 = 6
-		if compact then
-			-- TELEFONO (Mirko 16/10: ritratti troppo grandi): avatar da 50, barre sottili coi
-			-- valori essenziali, drago piccolo con livello e XP; nome e rarita' a richiesta
-			local av = 50
-			P(me, 0, 8, 0, 4, 250, av + 6)
-			P(avatar, 0, 0, 0, 3, av, av)
-			local bx = math.floor(av * 0.5)
-			P(barsBox, 0, bx, 0, 0, 220, av + 6)
-			local barX = bx + 5
-			if framedBars then
-				-- cornici di Codex: barre piu' sottili e piu' distanti (la cornice sta fuori dalla barra)
-				P(healthBar, 0, 0, 0, 5, 196, 14)
-				P(staminaBar, 0, 0, 0, 31, 178, 11)
-				P(shieldBar, 0, 0, 0, 53, 162, 11)
-			else
-				P(healthBar, 0, 0, 0, 4, 200, 19)
-				P(staminaBar, 0, 0, 0, 4 + 19 + 3, 182, 15)
-				P(shieldBar, 0, 0, 0, 4 + 19 + 3 + 15 + 3, 166, 15)
-			end
-			shieldBar.Visible = shieldOn
-			for _, l in { healthText, staminaText, shieldText } do
-				l.Position = UDim2.fromOffset(barX, 0)
-				l.Size = UDim2.new(1, -(barX + 14), 1, 0)
-			end
-			Ui.text(healthText, if framedBars then 12 else 13, true)
-			Ui.text(staminaText, if framedBars then 11 else 12, true)
-			Ui.text(shieldText, if framedBars then 11 else 12, true)
-			nameLabel.Visible = false
-			local py = 4 + av + 10 + (if framedBars and shieldOn then 14 else 0)
-			local ec = 38
-			P(pet, 0, x0, 0, py, 240, ec + 4)
-			P(elemCircle, 0, 0, 0, 3, ec, ec)
-			local lv = 20
-			P(lvCircle, 0, -5, 0, -3, lv, lv)
-			Ui.text(lvText, 12, true)
-			P(petBars, 0, math.floor(ec * 0.5), 0, 3, 200, ec)
-			nameBar.Visible = petExpanded
-			local nb = 18
-			P(nameBar, 0, 0, 0, 0, 190, nb)
-			nameStripe.Position = UDim2.fromOffset(math.floor(ec * 0.5) + 2, 0)
-			nameStripe.Size = UDim2.fromOffset(3, nb)
-			P(petName, 0, math.floor(ec * 0.5) + 8, 0, 0, 150, nb)
-			Ui.text(petName, 12, true)
-			P(xpBar, 0, 0, 0, if petExpanded then nb + 3 else 10, 160, 15)
-			xpText.Position = UDim2.fromOffset(math.floor(ec * 0.5) + 8, 0)
-			xpText.Size = UDim2.new(1, -(math.floor(ec * 0.5) + 18), 1, 0)
-			Ui.text(xpText, 12, true)
-			-- missione: riquadro stretto sotto il drago
-			local my = if pet.Visible then py + ec + 10 else py
-			local mw = 248
-			local mh = if helpShown then 76 else 50
-			P(mission, 0, x0 - 4, 0, my, mw, mh)
-			P(mDiamond, 0, 10, 0, 27, 7, 7)
-			P(mStep, 0, 9, 0, 2, mw - 112, 15)
-			UiKit.text(mStep, "status", 11)
-			P(skip, 1, -4, 0, 3, 50, 17, 1, 0)
-			skip.TextSize = 12
-			P(hideMission, 1, -58, 0, 3, 50, 17, 1, 0)
-			hideMission.TextSize = 12
-			P(missionPill, 0, x0 - 4, 0, my, 128, 26)
-			missionPill.TextSize = 13
-			P(mGoal, 0, 24, 0, 19, mw - 90, 24)
-			UiKit.text(mGoal, "name", 15)
-			P(mDist, 1, -8, 0, 21, 64, 22, 1, 0)
-			UiKit.text(mDist, "stat", 15)
-			mDist.TextColor3 = UiKit.ICE
-			mDist.TextXAlignment = Enum.TextXAlignment.Right
-			P(mHelp, 0, 10, 0, 44, mw - 20, 30)
-			UiKit.text(mHelp, "body", 13)
-			mHelp.TextColor3 = UiKit.MUTED
-			mHelp.Visible = helpShown
-			gui:SetAttribute("LeftBottom", my + mh + 8)
-			return
-		end
-		local k = 1
-		local av = math.floor(96 * k)
-		P(me, 0, x0, 0, y0, math.floor(380 * k), av + 4)
-		P(avatar, 0, 0, 0, 2, av, av)
-		-- barre: partono da meta' cerchio (il cerchio le copre a sinistra), via via piu' corte
+		local x0, y0 = 12, 8
+		local av = 76 -- ritratto (prima 96: troppo grande)
 		local bx = math.floor(av * 0.5)
-		P(barsBox, 0, bx, 0, 0, math.floor(320 * k), av + 4)
-		local hH, sH = math.floor(30 * k), math.floor(22 * k)
-		local barX = math.floor(av * 0.5) + 6
-		if framedBars then
-			hH, sH = 24, 18
-			P(healthBar, 0, 0, 0, 10, math.floor(300 * k), hH)
-			P(staminaBar, 0, 0, 0, 54, math.floor(270 * k), sH)
-			P(shieldBar, 0, 0, 0, 90, math.floor(244 * k), sH)
-		else
-			P(healthBar, 0, 0, 0, math.floor(8 * k), math.floor(300 * k), hH)
-			P(staminaBar, 0, 0, 0, math.floor(8 * k) + hH + 4, math.floor(270 * k), sH)
-			P(shieldBar, 0, 0, 0, math.floor(8 * k) + hH + sH + 8, math.floor(244 * k), sH)
-		end
+		local barX = bx + 8 -- testo delle barre: dopo il ritratto
+		-- barre una sotto l'altra, attaccate: la cornice di una tocca quella dopo
+		local hH, sH = 20, 15
+		local hW, sW, shW = 268, 246, 228
+		local gap = if framedBars then 13 else 3
+		local yH = if shieldOn then 4 else 12
+		local yS = yH + hH + gap
+		local ySh = yS + sH + gap
+		P(me, 0, x0, 0, y0, bx + hW + 24, av + 8)
+		HudLayout.place("Giocatore", me)
+		P(avatar, 0, 0, 0, 4, av, av)
+		P(barsBox, 0, bx, 0, 0, hW + 20, av + 8)
+		P(healthBar, 0, 0, 0, yH, hW, hH)
+		P(staminaBar, 0, 0, 0, yS, sW, sH)
+		P(shieldBar, 0, 0, 0, ySh, shW, sH)
 		shieldBar.Visible = shieldOn
 		for _, l in { healthText, staminaText, shieldText } do
-			l.Position = UDim2.fromOffset(barX, 0)
-			l.Size = UDim2.new(1, -(barX + 20), 1, 0)
+			l.Position = UDim2.fromOffset(barX - bx + 4, 0)
+			l.Size = UDim2.new(1, -(barX - bx + 18), 1, 0)
 		end
-		Ui.text(healthText, math.floor(17 * k), true)
-		Ui.text(staminaText, math.floor(13 * k), true)
-		Ui.text(shieldText, math.floor(13 * k), true)
-		P(nameLabel, 0, av + 8, 0, math.floor(8 * k) + hH + sH * 2 + 12, 200, math.floor(18 * k))
+		Ui.text(healthText, 15, true)
+		Ui.text(staminaText, 12, true)
+		Ui.text(shieldText, 12, true)
+		-- nome sotto la stamina quando non c'e' lo scudo
+		P(nameLabel, 0, barX + 4, 0, ySh - 2, 200, 18)
 		nameLabel.Visible = not shieldOn
-		Ui.text(nameLabel, 14, true)
+		Ui.text(nameLabel, 13, true)
 		-- drago sotto
-		local py = y0 + av + math.floor(14 * k) + (if framedBars and shieldOn then 18 else 0)
-		local ec = math.floor(70 * k)
-		P(pet, 0, x0 + math.floor(12 * k), 0, py, math.floor(360 * k), ec + 6)
-		P(elemCircle, 0, 0, 0, 6, ec, ec)
-		local lv = math.floor(34 * k)
-		P(lvCircle, 0, -math.floor(8 * k), 0, -math.floor(4 * k), lv, lv)
-		Ui.text(lvText, math.floor(15 * k), true)
-		P(petBars, 0, math.floor(ec * 0.5), 0, 6, math.floor(310 * k), ec)
+		local py = y0 + av + 16
+		local ec = 60
+		P(pet, 0, x0 + 8, 0, py, ec / 2 + 262, ec + 8)
+		HudLayout.place("Drago", pet)
+		P(elemCircle, 0, 0, 0, 4, ec, ec)
+		local lv = 30
+		P(lvCircle, 0, -8, 0, -2, lv, lv)
+		Ui.text(lvText, 14, true)
+		P(petBars, 0, math.floor(ec * 0.5), 0, 4, 262, ec)
 		nameBar.Visible = true
-		local nb = math.floor(28 * k)
-		P(nameBar, 0, 0, 0, math.floor(6 * k), math.floor(290 * k), nb)
-		P(nameStripe, 0, 0, 0, 0, 4, nb)
-		nameStripe.Position = UDim2.fromOffset(math.floor(ec * 0.5) + 2, 0)
-		P(petName, 0, math.floor(ec * 0.5) + 10, 0, 0, math.floor(220 * k), nb)
-		Ui.text(petName, math.floor(16 * k), true)
-		P(xpBar, 0, 0, 0, math.floor(6 * k) + nb + 4, math.floor(262 * k), math.floor(22 * k))
-		xpText.Position = UDim2.fromOffset(math.floor(ec * 0.5) + 10, 0)
-		xpText.Size = UDim2.new(1, -(math.floor(ec * 0.5) + 24), 1, 0)
-		Ui.text(xpText, math.floor(13 * k), true)
+		local nb, xb = 20, 13
+		local nbY = 6
+		local xbY = nbY + nb + (if framedBars then 12 else 3)
+		P(nameBar, 0, 0, 0, nbY, 250, nb)
+		local inset = math.floor(ec * 0.5) + 6
+		P(nameStripe, 0, inset - 4, 0, 3, 3, nb - 6)
+		P(petName, 0, inset + 2, 0, 0, 200, nb)
+		Ui.text(petName, 14, true)
+		P(xpBar, 0, 0, 0, xbY, 226, xb)
+		xpText.Position = UDim2.fromOffset(inset + 2, 0)
+		xpText.Size = UDim2.new(1, -(inset + 16), 1, 0)
+		Ui.text(xpText, 11, true)
 		-- missione sotto il drago (o sotto il giocatore se non hai un drago al seguito)
-		local my = if pet.Visible then py + ec + math.floor(14 * k) else py
-		local mw = math.floor(340 * k)
-		local mh = math.floor((if helpShown then 98 else 62) * k)
+		local my = if pet.Visible then py + ec + 18 else py
+		local mw = 340
+		local mh = if helpShown then 98 else 62
 		P(mission, 0, x0, 0, my, mw, mh)
-		P(mDiamond, 0, math.floor(14 * k), 0, math.floor(34 * k), math.floor(9 * k), math.floor(9 * k))
-		P(mStep, 0, math.floor(12 * k), 0, math.floor(4 * k), mw - math.floor(160 * k), math.floor(18 * k))
-		UiKit.text(mStep, "status", math.floor(12 * k + 0.5))
+		HudLayout.place("Missione", mission)
+		P(mDiamond, 0, 14, 0, 34, 9, 9)
+		P(mStep, 0, 12, 0, 4, mw - 160, 18)
+		UiKit.text(mStep, "status", 12)
 		P(skip, 1, -6, 0, 5, 64, 22, 1, 0)
 		skip.TextSize = 13
 		P(hideMission, 1, -76, 0, 5, 64, 22, 1, 0)
 		hideMission.TextSize = 13
-		P(missionPill, 0, x0, 0, my, 150, 30)
+		if HudLayout.get("Missione") then
+			-- spostata: la pillola si riapre dove sta il riquadro
+			missionPill.AnchorPoint = Vector2.new(0.5, 0.5)
+			missionPill.Position = mission.Position
+			missionPill.Size = UDim2.fromOffset(150, 30)
+		else
+			P(missionPill, 0, x0, 0, my, 150, 30)
+		end
 		missionPill.TextSize = 15
-		P(mGoal, 0, math.floor(32 * k), 0, math.floor(25 * k), mw - math.floor(120 * k), math.floor(30 * k))
-		UiKit.text(mGoal, "name", math.floor(19 * k + 0.5))
-		P(mDist, 1, -math.floor(10 * k), 0, math.floor(28 * k), math.floor(84 * k), math.floor(28 * k), 1, 0)
-		UiKit.text(mDist, "stat", math.floor(18 * k + 0.5))
+		P(mGoal, 0, 32, 0, 25, mw - 120, 30)
+		UiKit.text(mGoal, "name", 19)
+		P(mDist, 1, -10, 0, 28, 84, 28, 1, 0)
+		UiKit.text(mDist, "stat", 18)
 		mDist.TextColor3 = UiKit.ICE
 		mDist.TextXAlignment = Enum.TextXAlignment.Right
-		P(mHelp, 0, math.floor(14 * k), 0, math.floor(56 * k), mw - math.floor(28 * k), math.floor(38 * k))
-		UiKit.text(mHelp, "body", math.max(13, math.floor(15 * k)))
+		P(mHelp, 0, 14, 0, 56, mw - 28, 38)
+		UiKit.text(mHelp, "body", 15)
 		mHelp.TextColor3 = UiKit.MUTED
 		mHelp.Visible = helpShown
 		gui:SetAttribute("LeftBottom", my + mh + 10)
 	end
-	elemCircle.Active = true
-	elemCircle.InputBegan:Connect(function(input)
-		if compact and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
-			petExpanded = not petExpanded
-			layoutLeft()
-		end
-	end)
+	HudLayout.register("Missione", mission, "MISSION")
 	local function layoutWeather()
-		local k = if compact then 0.8 else 1
 		local folded = weatherFolded
-		local w = math.floor((if folded then 168 else 250) * k)
+		local c = 58 -- medaglione
+		local plateW, plateH = 196, 42
+		local over = math.floor(c * 0.5) -- il medaglione copre l'inizio della targa
+		local w = over + plateW
 		local frozen = warmBar.Visible and not folded
 		local hasFinder = finder.Visible and not folded
-		local c = math.floor((if folded then 44 else 64) * k)
-		local h = if folded then c + math.floor(16 * k)
-			else math.floor(122 * k) + (if frozen then math.floor(26 * k) else 0) + (if hasFinder then math.floor(40 * k) else 0)
-		-- in alto a destra, subito sotto la barra di Roblox
-		TweenService:Create(weather, TweenInfo.new(0.14, Enum.EasingStyle.Quad), { Size = UDim2.fromOffset(w, h) }):Play()
-		weather.AnchorPoint = Vector2.new(1, 0)
-		weather.Position = UDim2.new(1, -12, 0, 6)
-		P(hideBtn, 1, -(12 + w + 8), 0, 6, math.floor(92 * k), math.floor(30 * k), 1, 0)
-		hideBtn.TextSize = math.max(13, math.floor(15 * k))
-		P(helpBtn, 1, -(12 + w + 8 + math.floor(92 * k) + 6), 0, 6, math.floor(30 * k), math.floor(30 * k), 1, 0)
-		helpBtn.TextSize = math.max(14, math.floor(17 * k))
-		P(wCircle, 0, math.floor(8 * k), 0, math.floor(8 * k), c, c)
-		P(timeBox, 0, c + math.floor(16 * k), 0, math.floor(8 * k), w - c - math.floor(24 * k), if folded then c else math.floor(48 * k))
-		for _, o in { condBox, altText } do
-			o.Visible = not folded
-		end
-		Ui.text(timeText, math.floor(30 * k), true)
-		P(condBox, 0, math.floor(10 * k), 0, c + math.floor(18 * k), w - math.floor(20 * k), math.floor(28 * k))
-		P(dayText, 0, 0, 0, 0, math.floor((w - 20 * k) / 2), math.floor(28 * k))
-		P(condText, 0.5, 0, 0, 0, math.floor((w - 20 * k) / 2), math.floor(28 * k))
-		Ui.text(dayText, math.floor(15 * k), true)
-		Ui.text(condText, math.floor(15 * k), true)
-		local y = c + math.floor(50 * k)
-		P(altText, 0, math.floor(12 * k), 0, y, w - math.floor(24 * k), math.floor(20 * k))
-		Ui.text(altText, math.floor(14 * k), true)
-		y += math.floor(22 * k)
-		P(warmBar, 0, math.floor(12 * k), 0, y, w - math.floor(24 * k), math.floor(18 * k))
-		Ui.text(warmText, math.floor(12 * k), true)
+		local detH = 44 + (if frozen then 30 else 0) + (if hasFinder then 44 else 0)
+		local h = if folded then c else c + detH
+		P(weather, 1, -12, 0, 8, w, h, 1, 0)
+		HudLayout.place("Meteo", weather)
+		P(wCircle, 0, 0, 0, 0, c, c)
+		P(plate, 0, over, 0, math.floor((c - plateH) / 2), plateW, plateH)
+		-- dentro la targa: ora a sinistra (dopo il medaglione), quota a destra, filo in mezzo
+		local tx = math.floor(c * 0.5) + 10
+		P(timeText, 0, tx, 0, 0, 70, plateH)
+		UiKit.text(timeText, "stat", 24)
+		P(plateSep, 0, tx + 74, 0.5, 0, 1, math.floor(plateH * 0.46), 0, 0.5)
+		P(altText, 0, tx + 80, 0, 0, plateW - (tx + 80) - 18, plateH)
+		UiKit.text(altText, "stat", 16)
+		altText.TextColor3 = UiKit.ICE
+		altText.TextXAlignment = Enum.TextXAlignment.Right
+		details.Visible = not folded
+		P(details, 0, 10, 0, c - 6, w - 10, detH + 6)
+		P(dayText, 0, 18, 0, 12, (w - 46) / 2, 22)
+		P(condText, 1, -18, 0, 12, (w - 46) / 2, 22, 1, 0)
+		local y = 42
+		P(warmBar, 0, 20, 0, y, w - 50, 13)
+		Ui.text(warmText, 11, true)
 		if frozen then
-			y += math.floor(26 * k)
+			y += 30
 		end
-		P(finder, 0, math.floor(8 * k), 0, y, w - math.floor(16 * k), math.floor(38 * k))
-		Ui.fit(finder, math.floor(14 * k), 10, true)
+		P(finder, 0, 14, 0, y, w - 38, 38)
+		Ui.fit(finder, 14, 10, true)
 		finder.TextXAlignment = Enum.TextXAlignment.Center
+		-- tasti dell'HUD: a sinistra del meteo, alla sua altezza (non si sovrappongono)
+		local bH = 36
+		P(opts, 1, -(12 + w + 12), 0, 8 + math.floor((c - bH) / 2), bH * 2 + 104 + 12, bH, 1, 0)
+		HudLayout.place("Opzioni", opts)
+		P(gear, 0, 0, 0, 0, bH, bH)
+		P(helpBtn, 0, bH + 6, 0, 0, bH, bH)
+		helpBtn.TextSize = 17
+		P(hideBtn, 0, 2 * bH + 12, 0, 0, 104, bH)
+		hideBtn.TextSize = 15
 	end
 	local function layoutAll()
 		layoutLeft()
 		layoutWeather()
 		local portrait = logical.X < 600
-		local x = if portrait then 10 elseif compact then 270 else 420
-		local w = if portrait then logical.X - 20 else math.max(220, logical.X - x - (if compact then 200 else 290))
-		w = math.min(w, if compact then 340 else 520)
-		local y = if portrait then ((gui:GetAttribute("LeftBottom") or 300) :: number) + 92 else (if compact then 46 else 64)
-		local _ = y
+		local w = if portrait then logical.X - 20 else math.min(520, math.max(220, logical.X - 420 - 290))
 		-- avvisi in alto al centro, sotto la striscia delle monete
-		P(noticePanel, 0.5, 0, 0, if compact then 100 else 126, w, 44, 0.5, 0)
+		P(noticePanel, 0.5, 0, 0, 126, w, 44, 0.5, 0)
 		P(noticePanel.Text, 0, 8, 0, 6, w - 16, 32)
-		-- (sul telefono piu' in alto: sopra la barra c'e' l'apri-menu)
-		P(hint, 0.5, 0, 1, if compact then -132 else -100, math.min(560, logical.X - 32), 40, 0.5, 1)
-		Ui.text(noticePanel.Text, if compact then 14 else 17, true)
-		Ui.text(hint, if compact then 15 else 19, true)
+		P(hint, 0.5, 0, 1, -100, math.min(560, logical.X - 32), 40, 0.5, 1)
+		Ui.text(noticePanel.Text, 17, true)
+		Ui.text(hint, 19, true)
 		local _ = questTitle
 		local _ = questText
 		noticePosition = noticePanel.Position
 	end
+	HudLayout.onChange(layoutAll)
 	Ui.viewportChanged(function(vp)
 		logical = Ui.fitScale(gui, vp)
-		compact = Ui.compact(vp)
+		UiKit.setScale((gui:GetAttribute("ScalaVera") or 1) :: number)
 		layoutAll()
-		P(toast, 0.5, 0, 0, if compact then 52 else 66, if compact then 340 else 440, if compact then 44 else 54, 0.5, 0)
-	end)
+		P(toast, 0.5, 0, 0, 66, 440, 54, 0.5, 0)
+	end, gui)
 	weather.InputBegan:Connect(function(input)
+		if HudLayout.editing() then
+			return
+		end
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			weatherFolded = not weatherFolded
 			layoutWeather()
@@ -928,9 +941,8 @@ function HUD.start()
 		end
 		Ui.asset(elemIcon, "elem_" .. d.element)
 		local tone = Theme.ELEMENT[d.element] or Theme.PURPLE
-		local ring = elemCircle:FindFirstChildOfClass("UIStroke")
-		if ring then
-			ring.Color = tone
+		if elemRing then
+			elemRing.Color = tone
 		end
 		local lv = d.level or 1
 		local need = DragonConfig.xpForLevel(lv)
@@ -1139,7 +1151,7 @@ function HUD.start()
 		dayText.TextColor3 = if day then Theme.ACCENT else Theme.MUTED
 		condText.Text = WEATHER_NAMES[w] or "Clear"
 		local alt = if root then math.max(0, math.floor(root.Position.Y - 20)) else 0
-		altText.Text = string.format("ALTITUDE  %d m", alt)
+		altText.Text = string.format("▲ %d m", alt)
 		local warmth = (player:GetAttribute("Warmth") or 100) :: number
 		warmBar.Visible = (warmth < 99.5 or alt > Gear.COLD_ALTITUDE - 20) and not weatherFolded
 		Slant.setFill(warmBar, warmth / 100)
@@ -1177,8 +1189,8 @@ function HUD.start()
 		hint.Text = if os.clock() - hintTime < 4 then lastHint else ""
 		local combat = gui.Parent and gui.Parent:FindFirstChild("CombatHUD")
 		hint.Visible = not combat or (Ui.node(combat, "Timer").Text == "" and Ui.node(combat, "Event").Text == "")
-		if compact and noticePanel.Visible then
-			hint.Visible = false
+		if logical.Y < 560 and noticePanel.Visible then
+			hint.Visible = false -- schermi bassi: un avviso alla volta
 		end
 	end)
 end
