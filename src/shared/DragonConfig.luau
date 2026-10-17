@@ -26,7 +26,9 @@ DragonConfig.SUMMIT_EGG = "Cosmico" -- elemento dell'uovo leggendario sull'altar
 -- elementi tolti (Mirko: restano solo 8 draghi). Le voci in ELEMENTS restano per i draghi gia'
 -- salvati, ma nessun uovo nuovo nasce di questi elementi: diventano quello a destra
 DragonConfig.RETIRED = { Sole = "Cosmico", Ombra = "Eclissi", Brace = "Roccia" } :: { [string]: string }
-DragonConfig.STARTER_DRAGON = "Eclissi" -- il drago che ricevi al primo accesso
+-- drago regalato al primo accesso: NESSUNO (Mirko 17/10). Il primo drago nasce dall'uovo del
+-- tutorial; l'Eclissi e' il drago della vetta e non deve arrivare gratis. Chi l'aveva gia' lo tiene
+DragonConfig.STARTER_DRAGON = nil :: string?
 
 DragonConfig.ELEMENTS = {
 	{

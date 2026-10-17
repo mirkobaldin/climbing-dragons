@@ -6,6 +6,9 @@
 --   busto: si torce e si inclina verso l'interno della curva (il petto piu' dell'anca)
 --   coda: segue in ritardo dalla parte opposta e ondeggia in volo
 --   picchiata: il collo si distende in linea col corpo; in salita la testa si alza
+--   collo che si DISTENDE (Mirko 17/10: "il collo rimane sempre piegato a S, non si distende
+--   mai"): ogni vertebra si raddrizza di una parte della sua piega a riposo (j.straight), poco a
+--   terra, molto in volo veloce e in picchiata; da fermo ogni tanto il drago si stiracchia
 --   a terra: il bacino ondeggia col passo
 -- I ruoli e gli assi delle ossa li scrive il server (DragonModels.markBones, attributi Ruolo,
 -- Indice, AsseSu, AsseDx, AsseAv e CollaAlzo sul modello).
@@ -13,6 +16,7 @@
 local KfsPlayer = require(script.Parent.KfsPlayer)
 
 local DragonMotion = {}
+DragonMotion.STRETCH = true -- collo che si distende (vedi update)
 
 export type Motion = {
 	turn: number, -- velocita' di virata (rad/s, + a sinistra)
@@ -21,9 +25,10 @@ export type Motion = {
 	air: number, -- 0 a terra, 1 in volo
 	walk: number, -- fase del passo (radianti)
 	t: number, -- tempo
+	ridden: boolean?, -- qualcuno e' in groppa (seduto sulla base del collo)
 }
 
-type Joint = { bone: Bone, w: number, up: Vector3, right: Vector3, fwd: Vector3, i: number, n: number }
+type Joint = { bone: Bone, w: number, up: Vector3, right: Vector3, fwd: Vector3, i: number, n: number, straight: number }
 type Rig = {
 	neck: { Joint },
 	spine: { Joint },
@@ -58,6 +63,7 @@ local function build(model: Model): Rig | false
 					fwd = vec(d, "AsseAv", -Vector3.zAxis),
 					i = (d:GetAttribute("Indice") or 1) :: number,
 					n = (d:GetAttribute("Di") or 1) :: number,
+					straight = 0,
 				})
 			end
 		end
@@ -82,6 +88,45 @@ local function build(model: Model): Rig | false
 	end
 	weigh(lists.neck)
 	weigh(lists.tail)
+	-- raddrizzamento del collo: per ogni vertebra, l'angolo attorno al suo asse destro che porta
+	-- il pezzo dopo (fino alla vertebra seguente, o alla testa) in linea col pezzo prima. Dalla
+	-- posa a riposo (Bone.WorldCFrame non contiene le animazioni). Ruotare l'osso di questo angolo
+	-- toglie la sua parte di "S"; se ne usa una frazione (extend in update)
+	local neck = lists.neck
+	for k, j in neck do
+		local b = j.bone
+		local prev: Vector3? = nil
+		local nextP: Vector3? = nil
+		local parent = b.Parent
+		if k > 1 then
+			prev = neck[k - 1].bone.WorldPosition
+		elseif parent and parent:IsA("Bone") then
+			prev = parent.WorldPosition
+		end
+		if k < #neck then
+			nextP = neck[k + 1].bone.WorldPosition
+		else
+			for _, c in b:GetChildren() do
+				if c:IsA("Bone") then
+					nextP = c.WorldPosition
+					break
+				end
+			end
+		end
+		if prev and nextP then
+			local cf = b.WorldCFrame
+			local ax = j.right
+			local pv = cf:VectorToObjectSpace(b.WorldPosition - (prev :: Vector3))
+			local cv = cf:VectorToObjectSpace((nextP :: Vector3) - b.WorldPosition)
+			pv -= ax * pv:Dot(ax)
+			cv -= ax * cv:Dot(ax)
+			if pv.Magnitude > 1e-3 and cv.Magnitude > 1e-3 then
+				-- la prima vertebra parte dal petto, con un angolo che cambia molto da drago a
+				-- drago: si raddrizza solo in parte
+				j.straight = math.clamp(math.atan2(cv:Cross(pv):Dot(ax), cv:Dot(pv)), -0.9, 0.9) * (if k == 1 then 0.5 else 1)
+			end
+		end
+	end
 	-- la colonna: il petto conta come ultimo pezzo (si torce di piu')
 	for _, c in lists.chest do
 		table.insert(lists.spine, c)
@@ -207,7 +252,13 @@ function DragonMotion.update(model: Model, dt: number, m: Motion)
 	end
 	local rig = r :: Rig
 	local air = math.clamp(m.air, 0, 1)
-	local turn = math.clamp(m.turn, -3, 3)
+	-- virata filtrata (Mirko 17/10: tremolii): sotto 0,15 rad/s e da quasi fermi la direzione del
+	-- drago cambia per piccoli aggiustamenti, non per una curva vera: era rumore che faceva
+	-- tremare collo, busto e coda
+	local rawTurn = math.clamp(m.turn, -3, 3)
+	rawTurn = if math.abs(rawTurn) < 0.15 then 0 else rawTurn - math.sign(rawTurn) * 0.15
+	rawTurn *= math.clamp((m.speed - 2) / 10, 0, 1)
+	local turn = spring(rig, "turnIn", rawTurn, dt, 3)
 	local moving = math.clamp(m.speed / 30, 0, 1)
 	local dive = math.clamp((-m.vy - 15) / 35, 0, 1) * air
 	local climb = math.clamp((m.vy - 8) / 25, 0, 1) * air
@@ -220,9 +271,29 @@ function DragonMotion.update(model: Model, dt: number, m: Motion)
 	-- alza in salita; in volo ondeggia appena col battito
 	local neckYaw = spring(rig, "ny", math.clamp(turn * 0.5, -0.95, 0.95) * math.max(air, 0.4) + lookYaw, dt, 4)
 	local neckPitch = spring(rig, "np", -math.rad(rig.lift) * 0.9 * dive + 0.35 * climb + lookPitch, dt, 3)
-	local neckWave = math.sin(m.t * 5.2) * 0.05 * air * (1 - dive)
-	for _, j in rig.neck do
-		rig.map[j.bone] = rot(j, neckYaw * j.w, (neckPitch + neckWave) * j.w, 0)
+	local neckWave = math.sin(m.t * 5.2) * 0.03 * air * (1 - dive)
+	-- quanto si distende il collo (0 = la posa dell'animazione, 1 = dritto): in volo veloce e
+	-- in planata si allunga davanti, in picchiata tutto, camminando un po'; da fermo ogni 14 s
+	-- circa si stiracchia (sale piano, resta un attimo, torna)
+	local stretchPulse = math.max(0, math.sin(m.t * (2 * math.pi / 14) + rig.seed)) ^ 4 * 0.65 * still
+	local extendT = math.max(
+		air * (0.35 + 0.45 * moving),
+		dive,
+		0.25 * climb + 0.3 * air,
+		0.3 * moving * (1 - air),
+		stretchPulse
+	)
+	-- prova in Studio: attributo ColloDisteso = false sul modello (o DragonMotion.STRETCH =
+	-- false) per confrontare con la posa dell'animazione
+	if not DragonMotion.STRETCH or model:GetAttribute("ColloDisteso") == false then
+		extendT = 0
+	end
+	local extend = spring(rig, "ext", math.clamp(extendT, 0, 1), dt, 2)
+	for k, j in rig.neck do
+		-- in groppa le prime due vertebre (dove e' seduto il giocatore) non si raddrizzano: si
+		-- distende la parte alta del collo, chi monta non si stacca dalla sella
+		local ext = if m.ridden and k <= 2 then 0 else extend
+		rig.map[j.bone] = rot(j, neckYaw * j.w, (neckPitch + neckWave) * j.w + j.straight * ext, 0)
 	end
 
 	-- busto: piega verso l'interno della curva e si inclina (rollio), il petto piu' dell'anca;

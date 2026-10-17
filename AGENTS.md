@@ -222,3 +222,8 @@ Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, anim
 - Barre con la cornice: `UiKit.bar(parent, "health"|"stamina"|"shield"|"xp", colore)` (a
   parallelogramma con i PNG `frame_bar_*_slant`). Caselle con cornice sottile: attributo
   `CorniceScala` sull'elemento prima di `UiKit.slot`.
+- Uova 3D di Codex (v6) in `ServerStorage.Uova` (caricate con `tools/modelli/esporta_uova.py` +
+  `carica_uova.luau`, note in `artifacts/uova-3d-20261016/CARICATE.md`); le vecchie nel Cestino.
+- Schiusa (`client/EggHatch`): fondale con la valle, fulmini per ogni elemento, fulmini dal cielo e
+  onda d'urto alla rottura. Notizie: medaglione nel gruppo ⚙ ? HIDE HUD (il ritratto resta).
+- Prova del primo accesso in Studio: `ServerStorage.ProvaProfiloNuovo` (profilo vuoto, nosave).

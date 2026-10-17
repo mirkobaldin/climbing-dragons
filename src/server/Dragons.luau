@@ -474,11 +474,14 @@ function Dragons.load(player: Player, data: any)
 	end
 	states[player] = s
 	checkPasses(player)
-	-- Primo accesso: il famiglio iniziale, un cucciolo di drago Ombra che ti segue subito (il
-	-- modello con lo scheletro e le animazioni fatte nell'Animation Editor)
+	-- Primo accesso: niente piu' drago regalato (Mirko 17/10: il primo drago nasce dall'uovo del
+	-- tutorial, l'Eclissi e' il drago della vetta). Si regala solo se STARTER_DRAGON torna a esserci
 	if not s.starter then
 		s.starter = true
-		Dragons.give(player, DragonConfig.STARTER_DRAGON or "Ombra", "Comune", 1)
+		local starter = DragonConfig.STARTER_DRAGON
+		if starter then
+			Dragons.give(player, starter, "Comune", 1)
+		end
 	end
 	changed(player, true)
 end

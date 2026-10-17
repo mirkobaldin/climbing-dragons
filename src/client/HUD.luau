@@ -721,6 +721,61 @@ function HUD.start()
 	hideBtn.ZIndex = 5
 	hideBtn.Parent = opts
 	UiKit.button(hideBtn, "secondary")
+	-- NOTIZIE: medaglione come il ⚙, primo del gruppo, col pallino rosso quando c'e' un
+	-- aggiornamento non visto (Mirko 17/10: il ritratto resta, le notizie stanno da un'altra parte)
+	local NewsPanel = require(script.Parent.NewsPanel)
+	local news = Instance.new("TextButton")
+	news.Name = "Notizie"
+	news.Text = ""
+	news.BackgroundTransparency = 1
+	news.AutoButtonColor = false
+	news.ZIndex = 5
+	news:SetAttribute("UiNative", true)
+	news.Parent = opts
+	local newsBack = circle(news, Color3.fromRGB(28, 32, 44))
+	newsBack.AnchorPoint = Vector2.new(0.5, 0.5)
+	newsBack.Position = UDim2.fromScale(0.5, 0.5)
+	newsBack.Size = UDim2.fromScale(1, 1)
+	newsBack.ZIndex = 4
+	Cornici.apply(news, "frame_currency_medallion", { mode = "circle", z = 7 })
+	local newsIcon = Instance.new("ImageLabel")
+	newsIcon.BackgroundTransparency = 1
+	newsIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+	newsIcon.Position = UDim2.fromScale(0.5, 0.5)
+	newsIcon.Size = UDim2.fromScale(0.62, 0.62)
+	newsIcon.ZIndex = 6
+	newsIcon.Parent = news
+	if not Ui.asset(newsIcon, "icon_news") then
+		Ui.asset(newsIcon, "icon_quest")
+	end
+	local dot = circle(news, Color3.fromRGB(235, 60, 60))
+	dot.Name = "Nuovo"
+	dot.AnchorPoint = Vector2.new(0.5, 0.5)
+	dot.Position = UDim2.fromScale(0.84, 0.16)
+	dot.Size = UDim2.fromScale(0.32, 0.32)
+	dot.ZIndex = 9
+	local ds = Instance.new("UIStroke")
+	ds.Color = Color3.fromRGB(20, 10, 10)
+	ds.Thickness = 2
+	ds:SetAttribute("KeepStroke", true)
+	ds.Parent = dot
+	local function paintNews()
+		dot.Visible = NewsPanel.unread()
+	end
+	NewsPanel.onSeen(paintNews)
+	HudLayout.onChange(paintNews) -- ControlsLayout arriva dal server dopo l'avvio
+	paintNews()
+	news.MouseEnter:Connect(function()
+		newsIcon.ImageColor3 = Color3.fromRGB(255, 225, 150)
+	end)
+	news.MouseLeave:Connect(function()
+		newsIcon.ImageColor3 = Color3.new(1, 1, 1)
+	end)
+	news.Activated:Connect(function()
+		if not HudLayout.editing() then
+			NewsPanel.open()
+		end
+	end)
 	HudLayout.register("Opzioni", opts, "HUD BUTTONS")
 	local hidden = false
 	local function applyHidden()
@@ -874,12 +929,13 @@ function HUD.start()
 		finder.TextXAlignment = Enum.TextXAlignment.Center
 		-- tasti dell'HUD: a sinistra del meteo, alla sua altezza (non si sovrappongono)
 		local bH = 36
-		P(opts, 1, -(12 + w + 12), 0, 8 + math.floor((c - bH) / 2), bH * 2 + 104 + 12, bH, 1, 0)
+		P(opts, 1, -(12 + w + 12), 0, 8 + math.floor((c - bH) / 2), bH * 3 + 104 + 18, bH, 1, 0)
 		HudLayout.place("Opzioni", opts)
-		P(gear, 0, 0, 0, 0, bH, bH)
-		P(helpBtn, 0, bH + 6, 0, 0, bH, bH)
+		P(news, 0, 0, 0, 0, bH, bH)
+		P(gear, 0, bH + 6, 0, 0, bH, bH)
+		P(helpBtn, 0, 2 * bH + 12, 0, 0, bH, bH)
 		helpBtn.TextSize = 17
-		P(hideBtn, 0, 2 * bH + 12, 0, 0, 104, bH)
+		P(hideBtn, 0, 3 * bH + 18, 0, 0, 104, bH)
 		hideBtn.TextSize = 15
 	end
 	local function layoutAll()

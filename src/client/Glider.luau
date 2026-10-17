@@ -106,7 +106,9 @@ local function modelCanopy(owner: Player, root: BasePart): Model?
 	if not vele then
 		return nil
 	end
-	local skin = owner:GetAttribute("GliderSkin")
+	-- la vela migliore che ha (Gear.glider); GliderSkin = scelta dell'admin per le prove
+	local own = Gear.glider(owner)
+	local skin = owner:GetAttribute("GliderSkin") or (if own then own.skin else nil)
 	local tpl = (type(skin) == "string" and vele:FindFirstChild(skin)) or vele:FindFirstChild("AlpineParaglider")
 	if not tpl or not tpl:IsA("Model") then
 		return nil
@@ -213,7 +215,7 @@ function Glider.available(): boolean
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	return root ~= nil and humanoid ~= nil and Gear.has(player, "Parapendio") and not ClientState.climbing
+	return root ~= nil and humanoid ~= nil and Gear.hasGlider(player) and not ClientState.climbing
 		and not ClientState.riding and humanoid.FloorMaterial == Enum.Material.Air and root.AssemblyLinearVelocity.Y < 2
 end
 
@@ -227,7 +229,7 @@ function Glider.toggle(anyFall: boolean?): boolean
 		return true
 	end
 	-- in groppa al drago niente vela (Spazio li' fa salire il drago)
-	if not root or not humanoid or not Gear.has(player, "Parapendio") or ClientState.climbing or ClientState.riding or player:GetAttribute("Riding") == true then
+	if not root or not humanoid or not Gear.hasGlider(player) or ClientState.climbing or ClientState.riding or player:GetAttribute("Riding") == true then
 		return false
 	end
 	local vy = root.AssemblyLinearVelocity.Y
@@ -263,10 +265,15 @@ function Glider.start()
 				local look = workspace.CurrentCamera.CFrame.LookVector
 				local flat = Vector3.new(look.X, 0, look.Z)
 				flat = if flat.Magnitude > 0.05 then flat.Unit else Vector3.new(root.CFrame.LookVector.X, 0, root.CFrame.LookVector.Z).Unit
-				local speed = if dragonLevel() >= UpgradeConfig.DRAGON_GLIDE_LEVEL then G.DRAGON_SPEED else G.SPEED
+				-- velocita' e discesa della vela che hai (Gear.GLIDERS); col drago al seguito dal
+				-- livello DRAGON_GLIDE_LEVEL ancora piu' veloce
+				local sail = Gear.glider(player)
+				local base = if sail then sail.speed else G.SPEED
+				local speed = if dragonLevel() >= UpgradeConfig.DRAGON_GLIDE_LEVEL then base + (G.DRAGON_SPEED - G.SPEED) else base
+				local fall = if sail then sail.fall else G.FALL
 				-- guardando in giu' si scende piu' in fretta (e si va piu' veloci)
 				local dive = math.clamp(-look.Y, 0, 0.8)
-				local want = flat * speed * (1 + dive * 0.5) + Vector3.new(0, -G.FALL - dive * 30, 0)
+				local want = flat * speed * (1 + dive * 0.5) + Vector3.new(0, -fall - dive * 30, 0)
 				local current = (mover :: LinearVelocity).VectorVelocity
 				;(mover :: LinearVelocity).VectorVelocity = current:Lerp(want, math.min(1, dt * 2.5))
 				root.CFrame = CFrame.lookAt(root.Position, root.Position + flat)

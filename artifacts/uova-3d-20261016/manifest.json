@@ -1,0 +1,2863 @@
+{
+  "version": 6,
+  "units": "stud",
+  "source_up": "Z",
+  "fbx_up": "Y",
+  "texture_size": [
+    1024,
+    1024
+  ],
+  "emission_scale": 8,
+  "approval": "Base v5 accettata da Mirko; rifinitura texture ali richiesta il 17/10",
+  "import_note": "Intero e Frammenti sono gruppi alternativi nello stesso FBX. Nascondere Frammenti all avvio.",
+  "elements": {
+    "Roccia": {
+      "fbx": "fbx/Uovo_Roccia.fbx",
+      "textures": {
+        "body": {
+          "normal": "textures/Uovo_Roccia/body/normal.png",
+          "color": "textures/Uovo_Roccia/body/color.png",
+          "roughness": "textures/Uovo_Roccia/body/roughness.png",
+          "metalness": "textures/Uovo_Roccia/body/metalness.png",
+          "emission": "textures/Uovo_Roccia/body/emission.png"
+        },
+        "wings": {
+          "normal": "textures/Uovo_Roccia/wings/normal.png",
+          "color": "textures/Uovo_Roccia/wings/color.png",
+          "roughness": "textures/Uovo_Roccia/wings/roughness.png",
+          "metalness": "textures/Uovo_Roccia/wings/metalness.png",
+          "emission": "textures/Uovo_Roccia/wings/emission.png"
+        }
+      },
+      "whole_group": "Uovo_Roccia_Intero",
+      "fragments_group": "Uovo_Roccia_Frammenti",
+      "whole": [
+        {
+          "name": "Uovo_Roccia",
+          "texture_set": "body",
+          "triangles": 8806,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -1.0,
+              -1.2999999523162842
+            ],
+            [
+              1.0,
+              1.0,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Luce",
+          "texture_set": "body",
+          "triangles": 3164,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.8192166686058044,
+              -0.8267778754234314,
+              -1.1456905603408813
+            ],
+            [
+              0.8229950070381165,
+              0.8030843138694763,
+              1.0851236581802368
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Gemma",
+          "texture_set": "body",
+          "triangles": 112,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.36000001430511475,
+              -1.145402431488037,
+              -0.2199999988079071
+            ],
+            [
+              0.3149999976158142,
+              -0.7168768644332886,
+              0.7789999842643738
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_CastoneDecori",
+          "texture_set": "body",
+          "triangles": 888,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.5596252083778381,
+              -1.0273125171661377,
+              -0.6145285964012146
+            ],
+            [
+              0.5596252083778381,
+              -0.626465380191803,
+              0.8221402764320374
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Ali",
+          "texture_set": "wings",
+          "triangles": 8896,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -2.1347129344940186,
+              -0.1889590322971344,
+              -0.7360965609550476
+            ],
+            [
+              2.1347129344940186,
+              0.38729792833328247,
+              1.6249969005584717
+            ]
+          ]
+        }
+      ],
+      "fragments": [
+        {
+          "name": "Uovo_Roccia_Frammento_01",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            0.5060984492301941,
+            -0.021420568227767944,
+            -0.0032615065574645996
+          ],
+          "bounds_source": [
+            [
+              0.012196868658065796,
+              -0.4411049485206604,
+              -1.2999999523162842
+            ],
+            [
+              1.0,
+              0.3982638120651245,
+              1.2934768199920654
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Frammento_02",
+          "texture_set": "body",
+          "triangles": 1044,
+          "pivot_source": [
+            0.424421489238739,
+            0.4214109778404236,
+            0.04342472553253174
+          ],
+          "bounds_source": [
+            [
+              -0.03915590047836304,
+              -0.004101961851119995,
+              -1.2056362628936768
+            ],
+            [
+              0.8879988789558411,
+              0.8469238877296448,
+              1.2924857139587402
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Frammento_03",
+          "texture_set": "body",
+          "triangles": 1044,
+          "pivot_source": [
+            0.013367310166358948,
+            0.5058759450912476,
+            -0.07755690813064575
+          ],
+          "bounds_source": [
+            [
+              -0.43226802349090576,
+              0.011751890182495117,
+              -1.2916553020477295
+            ],
+            [
+              0.45900261402130127,
+              1.0,
+              1.1365416049957275
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Frammento_04",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            -0.43939900398254395,
+            0.41243138909339905,
+            0.006677031517028809
+          ],
+          "bounds_source": [
+            [
+              -0.8812834620475769,
+              -0.020118802785873413,
+              -1.285905361175537
+            ],
+            [
+              0.0024854838848114014,
+              0.8449816107749939,
+              1.2992594242095947
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Frammento_05",
+          "texture_set": "body",
+          "triangles": 986,
+          "pivot_source": [
+            -0.5635942816734314,
+            -0.008114069700241089,
+            0.026803016662597656
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -0.42118731141090393,
+              -1.2041600942611694
+            ],
+            [
+              -0.12718862295150757,
+              0.40495917201042175,
+              1.2577661275863647
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Frammento_06",
+          "texture_set": "body",
+          "triangles": 1448,
+          "pivot_source": [
+            -0.44781115651130676,
+            -0.5062728524208069,
+            0.007349193096160889
+          ],
+          "bounds_source": [
+            [
+              -0.8904305100440979,
+              -1.0159472227096558,
+              -1.2853014469146729
+            ],
+            [
+              -0.005191802978515625,
+              0.003401517868041992,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Frammento_07",
+          "texture_set": "body",
+          "triangles": 1760,
+          "pivot_source": [
+            -0.010785490274429321,
+            -0.5835501551628113,
+            -0.004265904426574707
+          ],
+          "bounds_source": [
+            [
+              -0.4564094841480255,
+              -1.145402431488037,
+              -1.2909356355667114
+            ],
+            [
+              0.43483850359916687,
+              -0.021697938442230225,
+              1.282403826713562
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Frammento_08",
+          "texture_set": "body",
+          "triangles": 1320,
+          "pivot_source": [
+            0.49865439534187317,
+            -0.5146876573562622,
+            0.04315030574798584
+          ],
+          "bounds_source": [
+            [
+              0.11627116799354553,
+              -1.0159472227096558,
+              -1.1917239427566528
+            ],
+            [
+              0.8810376524925232,
+              -0.013428092002868652,
+              1.2780245542526245
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Frammento_09",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            -1.3287596702575684,
+            0.09916944801807404,
+            0.44445016980171204
+          ],
+          "bounds_source": [
+            [
+              -2.1347129344940186,
+              -0.1889590471982956,
+              -0.7360966205596924
+            ],
+            [
+              -0.5228064656257629,
+              0.38729792833328247,
+              1.6249969005584717
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Roccia_Frammento_10",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            1.3287596702575684,
+            0.09916944801807404,
+            0.44445016980171204
+          ],
+          "bounds_source": [
+            [
+              0.5228064656257629,
+              -0.1889590471982956,
+              -0.7360966205596924
+            ],
+            [
+              2.1347129344940186,
+              0.38729792833328247,
+              1.6249969005584717
+            ]
+          ]
+        }
+      ],
+      "light_color": "#24ff40"
+    },
+    "Gelo": {
+      "fbx": "fbx/Uovo_Gelo.fbx",
+      "textures": {
+        "body": {
+          "normal": "textures/Uovo_Gelo/body/normal.png",
+          "color": "textures/Uovo_Gelo/body/color.png",
+          "roughness": "textures/Uovo_Gelo/body/roughness.png",
+          "metalness": "textures/Uovo_Gelo/body/metalness.png",
+          "emission": "textures/Uovo_Gelo/body/emission.png"
+        },
+        "wings": {
+          "normal": "textures/Uovo_Gelo/wings/normal.png",
+          "color": "textures/Uovo_Gelo/wings/color.png",
+          "roughness": "textures/Uovo_Gelo/wings/roughness.png",
+          "metalness": "textures/Uovo_Gelo/wings/metalness.png",
+          "emission": "textures/Uovo_Gelo/wings/emission.png"
+        }
+      },
+      "whole_group": "Uovo_Gelo_Intero",
+      "fragments_group": "Uovo_Gelo_Frammenti",
+      "whole": [
+        {
+          "name": "Uovo_Gelo",
+          "texture_set": "body",
+          "triangles": 8800,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -0.9999999403953552,
+              -1.2999999523162842
+            ],
+            [
+              1.0,
+              0.9999999403953552,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Luce",
+          "texture_set": "body",
+          "triangles": 3164,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.8145151138305664,
+              -0.8091294169425964,
+              -1.1561368703842163
+            ],
+            [
+              0.8089909553527832,
+              0.7960729002952576,
+              1.062540888786316
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Gemma",
+          "texture_set": "body",
+          "triangles": 112,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.36000001430511475,
+              -1.145402431488037,
+              -0.2199999988079071
+            ],
+            [
+              0.3149999976158142,
+              -0.7168768644332886,
+              0.7789999842643738
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_CastoneDecori",
+          "texture_set": "body",
+          "triangles": 888,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.5596252083778381,
+              -1.0273125171661377,
+              -0.6145285964012146
+            ],
+            [
+              0.5596252083778381,
+              -0.626465380191803,
+              0.8221402764320374
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Ali",
+          "texture_set": "wings",
+          "triangles": 8896,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -2.242945432662964,
+              -0.18961238861083984,
+              -0.7362973093986511
+            ],
+            [
+              2.242945432662964,
+              0.3873259127140045,
+              1.625205636024475
+            ]
+          ]
+        }
+      ],
+      "fragments": [
+        {
+          "name": "Uovo_Gelo_Frammento_01",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            0.5043507814407349,
+            -0.011061057448387146,
+            0.00515139102935791
+          ],
+          "bounds_source": [
+            [
+              0.008701592683792114,
+              -0.41398268938064575,
+              -1.2833597660064697
+            ],
+            [
+              1.0,
+              0.3918605446815491,
+              1.2936625480651855
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Frammento_02",
+          "texture_set": "body",
+          "triangles": 986,
+          "pivot_source": [
+            0.4359224736690521,
+            0.45981863141059875,
+            0.031662702560424805
+          ],
+          "bounds_source": [
+            [
+              0.0006695687770843506,
+              0.1013573706150055,
+              -1.2058390378952026
+            ],
+            [
+              0.8711754083633423,
+              0.8182799220085144,
+              1.2691644430160522
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Frammento_03",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            -0.007241055369377136,
+            0.5014946460723877,
+            -0.008603811264038086
+          ],
+          "bounds_source": [
+            [
+              -0.44506680965423584,
+              0.0029893815517425537,
+              -1.2916227579116821
+            ],
+            [
+              0.4305846691131592,
+              0.9999999403953552,
+              1.274415135383606
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Frammento_04",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            -0.43596118688583374,
+            0.40645289421081543,
+            -0.007543981075286865
+          ],
+          "bounds_source": [
+            [
+              -0.8793557286262512,
+              -0.01168370246887207,
+              -1.2914910316467285
+            ],
+            [
+              0.0074333250522613525,
+              0.8245894908905029,
+              1.2764029502868652
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Frammento_05",
+          "texture_set": "body",
+          "triangles": 986,
+          "pivot_source": [
+            -0.5566269159317017,
+            -0.003008931875228882,
+            0.02094137668609619
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -0.40441468358039856,
+              -1.21910560131073
+            ],
+            [
+              -0.11325383186340332,
+              0.3983968198299408,
+              1.2609883546829224
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Frammento_06",
+          "texture_set": "body",
+          "triangles": 1526,
+          "pivot_source": [
+            -0.44193699955940247,
+            -0.5063717365264893,
+            -0.0049523115158081055
+          ],
+          "bounds_source": [
+            [
+              -0.8792611956596375,
+              -1.0159472227096558,
+              -1.286854863166809
+            ],
+            [
+              -0.004612833261489868,
+              0.003203749656677246,
+              1.2769502401351929
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Frammento_07",
+          "texture_set": "body",
+          "triangles": 1668,
+          "pivot_source": [
+            0.0,
+            -0.5808059573173523,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.4270412027835846,
+              -1.145402431488037,
+              -1.2999999523162842
+            ],
+            [
+              0.4270412027835846,
+              -0.016209542751312256,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Frammento_08",
+          "texture_set": "body",
+          "triangles": 1328,
+          "pivot_source": [
+            0.4738646149635315,
+            -0.5111485719680786,
+            0.03820681571960449
+          ],
+          "bounds_source": [
+            [
+              0.08093366026878357,
+              -1.0159472227096558,
+              -1.2044363021850586
+            ],
+            [
+              0.8667955994606018,
+              -0.006349921226501465,
+              1.2808499336242676
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Frammento_09",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            -1.3980960845947266,
+            0.09885676205158234,
+            0.444454163312912
+          ],
+          "bounds_source": [
+            [
+              -2.242945432662964,
+              -0.18961237370967865,
+              -0.7362972497940063
+            ],
+            [
+              -0.5532466173171997,
+              0.38732588291168213,
+              1.625205636024475
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gelo_Frammento_10",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            1.3980960845947266,
+            0.09885676205158234,
+            0.444454163312912
+          ],
+          "bounds_source": [
+            [
+              0.5532466173171997,
+              -0.18961237370967865,
+              -0.7362972497940063
+            ],
+            [
+              2.242945432662964,
+              0.38732588291168213,
+              1.625205636024475
+            ]
+          ]
+        }
+      ],
+      "light_color": "#15cfff"
+    },
+    "Tempesta": {
+      "fbx": "fbx/Uovo_Tempesta.fbx",
+      "textures": {
+        "body": {
+          "normal": "textures/Uovo_Tempesta/body/normal.png",
+          "color": "textures/Uovo_Tempesta/body/color.png",
+          "roughness": "textures/Uovo_Tempesta/body/roughness.png",
+          "metalness": "textures/Uovo_Tempesta/body/metalness.png",
+          "emission": "textures/Uovo_Tempesta/body/emission.png"
+        },
+        "wings": {
+          "normal": "textures/Uovo_Tempesta/wings/normal.png",
+          "color": "textures/Uovo_Tempesta/wings/color.png",
+          "roughness": "textures/Uovo_Tempesta/wings/roughness.png",
+          "metalness": "textures/Uovo_Tempesta/wings/metalness.png",
+          "emission": "textures/Uovo_Tempesta/wings/emission.png"
+        }
+      },
+      "whole_group": "Uovo_Tempesta_Intero",
+      "fragments_group": "Uovo_Tempesta_Frammenti",
+      "whole": [
+        {
+          "name": "Uovo_Tempesta",
+          "texture_set": "body",
+          "triangles": 8836,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.9999999403953552,
+              -1.0,
+              -1.2999999523162842
+            ],
+            [
+              0.9999999403953552,
+              1.0,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Luce",
+          "texture_set": "body",
+          "triangles": 3164,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.8182650804519653,
+              -0.802010178565979,
+              -1.1559453010559082
+            ],
+            [
+              0.8057519793510437,
+              0.8017833232879639,
+              1.0713597536087036
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Gemma",
+          "texture_set": "body",
+          "triangles": 112,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.36000001430511475,
+              -1.145402431488037,
+              -0.2199999988079071
+            ],
+            [
+              0.3149999976158142,
+              -0.7168768644332886,
+              0.7789999842643738
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_CastoneDecori",
+          "texture_set": "body",
+          "triangles": 888,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.5596252083778381,
+              -1.0273125171661377,
+              -0.6145285964012146
+            ],
+            [
+              0.5596252083778381,
+              -0.626465380191803,
+              0.8221402764320374
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Ali",
+          "texture_set": "wings",
+          "triangles": 8896,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.1889927238225937,
+              -0.7361775636672974
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "fragments": [
+        {
+          "name": "Uovo_Tempesta_Frammento_01",
+          "texture_set": "body",
+          "triangles": 1044,
+          "pivot_source": [
+            0.5024136304855347,
+            0.004946351051330566,
+            0.003036797046661377
+          ],
+          "bounds_source": [
+            [
+              0.004827380180358887,
+              -0.4035598933696747,
+              -1.2847034931182861
+            ],
+            [
+              0.9999999403953552,
+              0.4134525954723358,
+              1.2907769680023193
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Frammento_02",
+          "texture_set": "body",
+          "triangles": 986,
+          "pivot_source": [
+            0.4755159020423889,
+            0.41508862376213074,
+            0.03445631265640259
+          ],
+          "bounds_source": [
+            [
+              0.07735535502433777,
+              -0.005991816520690918,
+              -1.2145636081695557
+            ],
+            [
+              0.8736764192581177,
+              0.8361690640449524,
+              1.2834761142730713
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Frammento_03",
+          "texture_set": "body",
+          "triangles": 1160,
+          "pivot_source": [
+            -0.0018770694732666016,
+            0.5044028162956238,
+            0.0021978020668029785
+          ],
+          "bounds_source": [
+            [
+              -0.44513264298439026,
+              0.008805632591247559,
+              -1.2875118255615234
+            ],
+            [
+              0.44137850403785706,
+              1.0,
+              1.2919073104858398
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Frammento_04",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            -0.44111502170562744,
+            0.4136335253715515,
+            0.003076612949371338
+          ],
+          "bounds_source": [
+            [
+              -0.8841014504432678,
+              -0.0007152557373046875,
+              -1.2889063358306885
+            ],
+            [
+              0.0018714070320129395,
+              0.8279823064804077,
+              1.2950594425201416
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Frammento_05",
+          "texture_set": "body",
+          "triangles": 1044,
+          "pivot_source": [
+            -0.540826678276062,
+            -0.006533131003379822,
+            0.03409457206726074
+          ],
+          "bounds_source": [
+            [
+              -0.9999999403953552,
+              -0.41492271423339844,
+              -1.214142918586731
+            ],
+            [
+              -0.08165338635444641,
+              0.4018564224243164,
+              1.2823320627212524
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Frammento_06",
+          "texture_set": "body",
+          "triangles": 1454,
+          "pivot_source": [
+            -0.4502542018890381,
+            -0.5081148147583008,
+            -0.006848573684692383
+          ],
+          "bounds_source": [
+            [
+              -0.8922238349914551,
+              -1.0159472227096558,
+              -1.2999999523162842
+            ],
+            [
+              -0.008284568786621094,
+              -0.0002824068069458008,
+              1.2863028049468994
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Frammento_07",
+          "texture_set": "body",
+          "triangles": 1718,
+          "pivot_source": [
+            -0.0021002739667892456,
+            -0.57722407579422,
+            0.0021058320999145508
+          ],
+          "bounds_source": [
+            [
+              -0.4312417507171631,
+              -1.145402431488037,
+              -1.295788288116455
+            ],
+            [
+              0.4270411729812622,
+              -0.009045720100402832,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Frammento_08",
+          "texture_set": "body",
+          "triangles": 1328,
+          "pivot_source": [
+            0.46144917607307434,
+            -0.5074424147605896,
+            0.037642598152160645
+          ],
+          "bounds_source": [
+            [
+              0.05633437633514404,
+              -1.0159472227096558,
+              -1.2149821519851685
+            ],
+            [
+              0.8665639758110046,
+              0.0010624527931213379,
+              1.2902673482894897
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Frammento_09",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            -1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              -0.5349729061126709,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Tempesta_Frammento_10",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              0.5349729061126709,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "light_color": "#058dff"
+    },
+    "Fulmine": {
+      "fbx": "fbx/Uovo_Fulmine.fbx",
+      "textures": {
+        "body": {
+          "normal": "textures/Uovo_Fulmine/body/normal.png",
+          "color": "textures/Uovo_Fulmine/body/color.png",
+          "roughness": "textures/Uovo_Fulmine/body/roughness.png",
+          "metalness": "textures/Uovo_Fulmine/body/metalness.png",
+          "emission": "textures/Uovo_Fulmine/body/emission.png"
+        },
+        "wings": {
+          "normal": "textures/Uovo_Fulmine/wings/normal.png",
+          "color": "textures/Uovo_Fulmine/wings/color.png",
+          "roughness": "textures/Uovo_Fulmine/wings/roughness.png",
+          "metalness": "textures/Uovo_Fulmine/wings/metalness.png",
+          "emission": "textures/Uovo_Fulmine/wings/emission.png"
+        }
+      },
+      "whole_group": "Uovo_Fulmine_Intero",
+      "fragments_group": "Uovo_Fulmine_Frammenti",
+      "whole": [
+        {
+          "name": "Uovo_Fulmine",
+          "texture_set": "body",
+          "triangles": 8798,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -1.0,
+              -1.2999999523162842
+            ],
+            [
+              1.0,
+              1.0,
+              1.3000000715255737
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Luce",
+          "texture_set": "body",
+          "triangles": 3164,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.8095399737358093,
+              -0.8076741099357605,
+              -1.1593389511108398
+            ],
+            [
+              0.8081514835357666,
+              0.8092886209487915,
+              1.074250340461731
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Gemma",
+          "texture_set": "body",
+          "triangles": 112,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.36000001430511475,
+              -1.145402431488037,
+              -0.2199999988079071
+            ],
+            [
+              0.3149999976158142,
+              -0.7168768644332886,
+              0.7789999842643738
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_CastoneDecori",
+          "texture_set": "body",
+          "triangles": 888,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.5596252083778381,
+              -1.0273125171661377,
+              -0.6145285964012146
+            ],
+            [
+              0.5596252083778381,
+              -0.626465380191803,
+              0.8221402764320374
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Ali",
+          "texture_set": "wings",
+          "triangles": 8896,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.1889927238225937,
+              -0.7361775636672974
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "fragments": [
+        {
+          "name": "Uovo_Fulmine_Frammento_01",
+          "texture_set": "body",
+          "triangles": 1044,
+          "pivot_source": [
+            0.5051847100257874,
+            0.0019851475954055786,
+            0.002393066883087158
+          ],
+          "bounds_source": [
+            [
+              0.010369449853897095,
+              -0.4116753339767456,
+              -1.2952139377593994
+            ],
+            [
+              1.0,
+              0.4156455993652344,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Frammento_02",
+          "texture_set": "body",
+          "triangles": 1044,
+          "pivot_source": [
+            0.43882250785827637,
+            0.4156615436077118,
+            0.04332178831100464
+          ],
+          "bounds_source": [
+            [
+              8.213520050048828e-05,
+              -0.00963863730430603,
+              -1.2130115032196045
+            ],
+            [
+              0.8775628805160522,
+              0.8409616947174072,
+              1.2996551990509033
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Frammento_03",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            -0.0016503185033798218,
+            0.5049415230751038,
+            -0.0015683174133300781
+          ],
+          "bounds_source": [
+            [
+              -0.44068896770477295,
+              0.009883075952529907,
+              -1.293116569519043
+            ],
+            [
+              0.4373883008956909,
+              1.0,
+              1.2899799346923828
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Frammento_04",
+          "texture_set": "body",
+          "triangles": 1160,
+          "pivot_source": [
+            -0.4402773380279541,
+            0.41729214787483215,
+            -0.00501406192779541
+          ],
+          "bounds_source": [
+            [
+              -0.8773879408836365,
+              -0.010056167840957642,
+              -1.2999999523162842
+            ],
+            [
+              -0.0031667351722717285,
+              0.8446404933929443,
+              1.2899718284606934
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Frammento_05",
+          "texture_set": "body",
+          "triangles": 928,
+          "pivot_source": [
+            -0.6238523721694946,
+            0.004095062613487244,
+            -0.019769608974456787
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -0.41159582138061523,
+              -1.2201366424560547
+            ],
+            [
+              -0.24770474433898926,
+              0.4197859764099121,
+              1.1805973052978516
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Frammento_06",
+          "texture_set": "body",
+          "triangles": 1518,
+          "pivot_source": [
+            -0.4306367039680481,
+            -0.5010338425636292,
+            0.0010933876037597656
+          ],
+          "bounds_source": [
+            [
+              -0.865420937538147,
+              -1.0159472227096558,
+              -1.2881466150283813
+            ],
+            [
+              0.0041474997997283936,
+              0.013879537582397461,
+              1.2903333902359009
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Frammento_07",
+          "texture_set": "body",
+          "triangles": 1608,
+          "pivot_source": [
+            0.005491390824317932,
+            -0.576759934425354,
+            -0.001644432544708252
+          ],
+          "bounds_source": [
+            [
+              -0.43170952796936035,
+              -1.145402431488037,
+              -1.2992677688598633
+            ],
+            [
+              0.44269227981567383,
+              -0.008117437362670898,
+              1.2959790229797363
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Frammento_08",
+          "texture_set": "body",
+          "triangles": 1394,
+          "pivot_source": [
+            0.4362300932407379,
+            -0.5052551031112671,
+            0.031315624713897705
+          ],
+          "bounds_source": [
+            [
+              -0.0027191638946533203,
+              -1.0159472227096558,
+              -1.2103321552276611
+            ],
+            [
+              0.8751793503761292,
+              0.005437076091766357,
+              1.272963285446167
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Frammento_09",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            -1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              -0.5349729061126709,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Fulmine_Frammento_10",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              0.5349729061126709,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "light_color": "#aa11ff"
+    },
+    "Cosmico": {
+      "fbx": "fbx/Uovo_Cosmico.fbx",
+      "textures": {
+        "body": {
+          "normal": "textures/Uovo_Cosmico/body/normal.png",
+          "color": "textures/Uovo_Cosmico/body/color.png",
+          "roughness": "textures/Uovo_Cosmico/body/roughness.png",
+          "metalness": "textures/Uovo_Cosmico/body/metalness.png",
+          "emission": "textures/Uovo_Cosmico/body/emission.png"
+        },
+        "wings": {
+          "normal": "textures/Uovo_Cosmico/wings/normal.png",
+          "color": "textures/Uovo_Cosmico/wings/color.png",
+          "roughness": "textures/Uovo_Cosmico/wings/roughness.png",
+          "metalness": "textures/Uovo_Cosmico/wings/metalness.png",
+          "emission": "textures/Uovo_Cosmico/wings/emission.png"
+        }
+      },
+      "whole_group": "Uovo_Cosmico_Intero",
+      "fragments_group": "Uovo_Cosmico_Frammenti",
+      "whole": [
+        {
+          "name": "Uovo_Cosmico",
+          "texture_set": "body",
+          "triangles": 8824,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -1.0,
+              -1.2999999523162842
+            ],
+            [
+              1.0,
+              1.0,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Luce",
+          "texture_set": "body",
+          "triangles": 3164,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.8073946833610535,
+              -0.7949429750442505,
+              -1.1513285636901855
+            ],
+            [
+              0.8079758882522583,
+              0.808938205242157,
+              1.0748260021209717
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Gemma",
+          "texture_set": "body",
+          "triangles": 112,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.36000001430511475,
+              -1.145402431488037,
+              -0.2199999988079071
+            ],
+            [
+              0.3149999976158142,
+              -0.7168768644332886,
+              0.7789999842643738
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_CastoneDecori",
+          "texture_set": "body",
+          "triangles": 888,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.5596252083778381,
+              -1.0273125171661377,
+              -0.6145285964012146
+            ],
+            [
+              0.5596252083778381,
+              -0.626465380191803,
+              0.8221402764320374
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Ali",
+          "texture_set": "wings",
+          "triangles": 8896,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.1889927238225937,
+              -0.7361775636672974
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "fragments": [
+        {
+          "name": "Uovo_Cosmico_Frammento_01",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            0.5056387782096863,
+            0.005793660879135132,
+            0.001584470272064209
+          ],
+          "bounds_source": [
+            [
+              0.011277616024017334,
+              -0.4115501940250397,
+              -1.2934629917144775
+            ],
+            [
+              1.0,
+              0.42313751578330994,
+              1.2966320514678955
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Frammento_02",
+          "texture_set": "body",
+          "triangles": 986,
+          "pivot_source": [
+            0.48478463292121887,
+            0.4213244318962097,
+            0.0382499098777771
+          ],
+          "bounds_source": [
+            [
+              0.09874966740608215,
+              -0.0033298730850219727,
+              -1.2052505016326904
+            ],
+            [
+              0.8708195686340332,
+              0.8459787368774414,
+              1.2817504405975342
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Frammento_03",
+          "texture_set": "body",
+          "triangles": 1218,
+          "pivot_source": [
+            0.0015787780284881592,
+            0.5078757405281067,
+            0.006498754024505615
+          ],
+          "bounds_source": [
+            [
+              -0.4398757517337799,
+              0.01575145125389099,
+              -1.2870023250579834
+            ],
+            [
+              0.4430333077907562,
+              1.0,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Frammento_04",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            -0.4437370300292969,
+            0.421657919883728,
+            -0.004637956619262695
+          ],
+          "bounds_source": [
+            [
+              -0.8816429972648621,
+              0.002023637294769287,
+              -1.2999999523162842
+            ],
+            [
+              -0.005831092596054077,
+              0.8412922024726868,
+              1.2907240390777588
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Frammento_05",
+          "texture_set": "body",
+          "triangles": 986,
+          "pivot_source": [
+            -0.5480468273162842,
+            0.0008877813816070557,
+            0.048831820487976074
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -0.411863774061203,
+              -1.1994718313217163
+            ],
+            [
+              -0.09609359502792358,
+              0.4136393368244171,
+              1.2971354722976685
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Frammento_06",
+          "texture_set": "body",
+          "triangles": 1462,
+          "pivot_source": [
+            -0.4391057789325714,
+            -0.4982296824455261,
+            0.0039664506912231445
+          ],
+          "bounds_source": [
+            [
+              -0.8796865344047546,
+              -1.0159472227096558,
+              -1.289859652519226
+            ],
+            [
+              0.0014749765396118164,
+              0.019487857818603516,
+              1.2977925539016724
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Frammento_07",
+          "texture_set": "body",
+          "triangles": 1638,
+          "pivot_source": [
+            -0.0014180690050125122,
+            -0.573620080947876,
+            -0.0035005807876586914
+          ],
+          "bounds_source": [
+            [
+              -0.43488454818725586,
+              -1.145402431488037,
+              -1.288712739944458
+            ],
+            [
+              0.4320484399795532,
+              -0.0018377304077148438,
+              1.2817115783691406
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Frammento_08",
+          "texture_set": "body",
+          "triangles": 1330,
+          "pivot_source": [
+            0.44128015637397766,
+            -0.5568978190422058,
+            0.03819996118545532
+          ],
+          "bounds_source": [
+            [
+              -0.003589332103729248,
+              -1.0159472227096558,
+              -1.2030985355377197
+            ],
+            [
+              0.8861496448516846,
+              -0.09784838557243347,
+              1.2794983386993408
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Frammento_09",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            -1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              -0.5349729061126709,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Cosmico_Frammento_10",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              0.5349729061126709,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "light_color": "#6526ff"
+    },
+    "Eclissi": {
+      "fbx": "fbx/Uovo_Eclissi.fbx",
+      "textures": {
+        "body": {
+          "normal": "textures/Uovo_Eclissi/body/normal.png",
+          "color": "textures/Uovo_Eclissi/body/color.png",
+          "roughness": "textures/Uovo_Eclissi/body/roughness.png",
+          "metalness": "textures/Uovo_Eclissi/body/metalness.png",
+          "emission": "textures/Uovo_Eclissi/body/emission.png"
+        },
+        "wings": {
+          "normal": "textures/Uovo_Eclissi/wings/normal.png",
+          "color": "textures/Uovo_Eclissi/wings/color.png",
+          "roughness": "textures/Uovo_Eclissi/wings/roughness.png",
+          "metalness": "textures/Uovo_Eclissi/wings/metalness.png",
+          "emission": "textures/Uovo_Eclissi/wings/emission.png"
+        }
+      },
+      "whole_group": "Uovo_Eclissi_Intero",
+      "fragments_group": "Uovo_Eclissi_Frammenti",
+      "whole": [
+        {
+          "name": "Uovo_Eclissi",
+          "texture_set": "body",
+          "triangles": 8818,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -1.0,
+              -1.2999999523162842
+            ],
+            [
+              1.0,
+              1.0,
+              1.3000000715255737
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Luce",
+          "texture_set": "body",
+          "triangles": 3164,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.8101622462272644,
+              -0.7993068695068359,
+              -1.1500650644302368
+            ],
+            [
+              0.8116828203201294,
+              0.7965437173843384,
+              1.0762362480163574
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Gemma",
+          "texture_set": "body",
+          "triangles": 112,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.36000001430511475,
+              -1.145402431488037,
+              -0.2199999988079071
+            ],
+            [
+              0.3149999976158142,
+              -0.7168768644332886,
+              0.7789999842643738
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_CastoneDecori",
+          "texture_set": "body",
+          "triangles": 888,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.5596252083778381,
+              -1.0273125171661377,
+              -0.6145285964012146
+            ],
+            [
+              0.5596252083778381,
+              -0.626465380191803,
+              0.8221402764320374
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Ali",
+          "texture_set": "wings",
+          "triangles": 8896,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.1889927238225937,
+              -0.7361775636672974
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "fragments": [
+        {
+          "name": "Uovo_Eclissi_Frammento_01",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            0.5058873891830444,
+            -0.0029949992895126343,
+            0.004869818687438965
+          ],
+          "bounds_source": [
+            [
+              0.011774778366088867,
+              -0.4150596261024475,
+              -1.2788325548171997
+            ],
+            [
+              1.0,
+              0.40906959772109985,
+              1.2885721921920776
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Frammento_02",
+          "texture_set": "body",
+          "triangles": 986,
+          "pivot_source": [
+            0.43777263164520264,
+            0.466557115316391,
+            0.033936381340026855
+          ],
+          "bounds_source": [
+            [
+              0.0034840404987335205,
+              0.09784653782844543,
+              -1.204758644104004
+            ],
+            [
+              0.8720611929893494,
+              0.8352677226066589,
+              1.2726314067840576
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Frammento_03",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            0.000832289457321167,
+            0.5037104487419128,
+            0.009871244430541992
+          ],
+          "bounds_source": [
+            [
+              -0.42701220512390137,
+              0.007420927286148071,
+              -1.2787139415740967
+            ],
+            [
+              0.4286767840385437,
+              1.0,
+              1.2984564304351807
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Frammento_04",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            -0.43511584401130676,
+            0.4098893105983734,
+            0.003321707248687744
+          ],
+          "bounds_source": [
+            [
+              -0.8808817267417908,
+              -0.0048039257526397705,
+              -1.2933566570281982
+            ],
+            [
+              0.010650038719177246,
+              0.824582576751709,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Frammento_05",
+          "texture_set": "body",
+          "triangles": 1044,
+          "pivot_source": [
+            -0.5487957000732422,
+            -0.003930270671844482,
+            0.038431763648986816
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -0.4133964478969574,
+              -1.208896279335022
+            ],
+            [
+              -0.09759140014648438,
+              0.40553590655326843,
+              1.2857598066329956
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Frammento_06",
+          "texture_set": "body",
+          "triangles": 1398,
+          "pivot_source": [
+            -0.43817105889320374,
+            -0.5063698291778564,
+            -0.0011216998100280762
+          ],
+          "bounds_source": [
+            [
+              -0.8709856867790222,
+              -1.0159472227096558,
+              -1.2999999523162842
+            ],
+            [
+              -0.005356431007385254,
+              0.0032076239585876465,
+              1.2977564334869385
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Frammento_07",
+          "texture_set": "body",
+          "triangles": 1686,
+          "pivot_source": [
+            -0.007719665765762329,
+            -0.577889084815979,
+            -0.0028747916221618652
+          ],
+          "bounds_source": [
+            [
+              -0.44585177302360535,
+              -1.145402431488037,
+              -1.2942297458648682
+            ],
+            [
+              0.4304124414920807,
+              -0.010375738143920898,
+              1.2884800434112549
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Frammento_08",
+          "texture_set": "body",
+          "triangles": 1398,
+          "pivot_source": [
+            0.4332519769668579,
+            -0.504937469959259,
+            0.04428362846374512
+          ],
+          "bounds_source": [
+            [
+              -0.008595049381256104,
+              -1.0159472227096558,
+              -1.1981830596923828
+            ],
+            [
+              0.8750990033149719,
+              0.006072282791137695,
+              1.286750316619873
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Frammento_09",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            -1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              -0.5349729061126709,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Eclissi_Frammento_10",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              0.5349729061126709,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "light_color": "#ff4005"
+    },
+    "Gas": {
+      "fbx": "fbx/Uovo_Gas.fbx",
+      "textures": {
+        "body": {
+          "normal": "textures/Uovo_Gas/body/normal.png",
+          "color": "textures/Uovo_Gas/body/color.png",
+          "roughness": "textures/Uovo_Gas/body/roughness.png",
+          "metalness": "textures/Uovo_Gas/body/metalness.png",
+          "emission": "textures/Uovo_Gas/body/emission.png"
+        },
+        "wings": {
+          "normal": "textures/Uovo_Gas/wings/normal.png",
+          "color": "textures/Uovo_Gas/wings/color.png",
+          "roughness": "textures/Uovo_Gas/wings/roughness.png",
+          "metalness": "textures/Uovo_Gas/wings/metalness.png",
+          "emission": "textures/Uovo_Gas/wings/emission.png"
+        }
+      },
+      "whole_group": "Uovo_Gas_Intero",
+      "fragments_group": "Uovo_Gas_Frammenti",
+      "whole": [
+        {
+          "name": "Uovo_Gas",
+          "texture_set": "body",
+          "triangles": 8808,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -1.0,
+              -1.2999999523162842
+            ],
+            [
+              1.0,
+              1.0,
+              1.3000000715255737
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Luce",
+          "texture_set": "body",
+          "triangles": 3164,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.8088129162788391,
+              -0.7981907725334167,
+              -1.1526801586151123
+            ],
+            [
+              0.8048756718635559,
+              0.8037108778953552,
+              1.0746934413909912
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Gemma",
+          "texture_set": "body",
+          "triangles": 112,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.36000001430511475,
+              -1.145402431488037,
+              -0.2199999988079071
+            ],
+            [
+              0.3149999976158142,
+              -0.7168768644332886,
+              0.7789999842643738
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_CastoneDecori",
+          "texture_set": "body",
+          "triangles": 888,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.5596252083778381,
+              -1.0273125171661377,
+              -0.6145285964012146
+            ],
+            [
+              0.5596252083778381,
+              -0.626465380191803,
+              0.8221402764320374
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Ali",
+          "texture_set": "wings",
+          "triangles": 8896,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.1889927238225937,
+              -0.7361775636672974
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "fragments": [
+        {
+          "name": "Uovo_Gas_Frammento_01",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            0.5045271515846252,
+            0.0061987340450286865,
+            0.008327484130859375
+          ],
+          "bounds_source": [
+            [
+              0.0090542733669281,
+              -0.40718966722488403,
+              -1.283345103263855
+            ],
+            [
+              1.0,
+              0.4195871353149414,
+              1.3000000715255737
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Frammento_02",
+          "texture_set": "body",
+          "triangles": 986,
+          "pivot_source": [
+            0.48714110255241394,
+            0.41706326603889465,
+            0.03296363353729248
+          ],
+          "bounds_source": [
+            [
+              0.0942949652671814,
+              -0.006225287914276123,
+              -1.2112210988998413
+            ],
+            [
+              0.8799872398376465,
+              0.8403518199920654,
+              1.2771483659744263
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Frammento_03",
+          "texture_set": "body",
+          "triangles": 1218,
+          "pivot_source": [
+            -0.004929438233375549,
+            0.5058950781822205,
+            -0.0005840659141540527
+          ],
+          "bounds_source": [
+            [
+              -0.44356054067611694,
+              0.01179012656211853,
+              -1.2960798740386963
+            ],
+            [
+              0.43370169401168823,
+              1.0,
+              1.2949116230010986
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Frammento_04",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            -0.4414941966533661,
+            0.4162949323654175,
+            0.0044547319412231445
+          ],
+          "bounds_source": [
+            [
+              -0.8749892115592957,
+              -0.005603700876235962,
+              -1.284334659576416
+            ],
+            [
+              -0.007999181747436523,
+              0.8381935358047485,
+              1.2932441234588623
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Frammento_05",
+          "texture_set": "body",
+          "triangles": 986,
+          "pivot_source": [
+            -0.5606812834739685,
+            0.0008109807968139648,
+            0.031254351139068604
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -0.4170939028263092,
+              -1.203512191772461
+            ],
+            [
+              -0.12136250734329224,
+              0.41871586441993713,
+              1.2660207748413086
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Frammento_06",
+          "texture_set": "body",
+          "triangles": 1462,
+          "pivot_source": [
+            -0.4321133494377136,
+            -0.5040588974952698,
+            -0.008722364902496338
+          ],
+          "bounds_source": [
+            [
+              -0.872130811214447,
+              -1.0159472227096558,
+              -1.2999999523162842
+            ],
+            [
+              0.007904082536697388,
+              0.007829368114471436,
+              1.282555341720581
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Frammento_07",
+          "texture_set": "body",
+          "triangles": 1674,
+          "pivot_source": [
+            -0.005201742053031921,
+            -0.5757364630699158,
+            0.004598438739776611
+          ],
+          "bounds_source": [
+            [
+              -0.442329466342926,
+              -1.145402431488037,
+              -1.28737211227417
+            ],
+            [
+              0.4319259524345398,
+              -0.006070554256439209,
+              1.2965688705444336
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Frammento_08",
+          "texture_set": "body",
+          "triangles": 1278,
+          "pivot_source": [
+            0.48703518509864807,
+            -0.5617703795433044,
+            -0.007164895534515381
+          ],
+          "bounds_source": [
+            [
+              0.1082751452922821,
+              -1.0159472227096558,
+              -1.199270248413086
+            ],
+            [
+              0.8657952547073364,
+              -0.10759350657463074,
+              1.1849403381347656
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Frammento_09",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            -1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              -0.5349729061126709,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Gas_Frammento_10",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              0.5349729061126709,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "light_color": "#ff21cb"
+    },
+    "Ossa": {
+      "fbx": "fbx/Uovo_Ossa.fbx",
+      "textures": {
+        "body": {
+          "normal": "textures/Uovo_Ossa/body/normal.png",
+          "color": "textures/Uovo_Ossa/body/color.png",
+          "roughness": "textures/Uovo_Ossa/body/roughness.png",
+          "metalness": "textures/Uovo_Ossa/body/metalness.png",
+          "emission": "textures/Uovo_Ossa/body/emission.png"
+        },
+        "wings": {
+          "normal": "textures/Uovo_Ossa/wings/normal.png",
+          "color": "textures/Uovo_Ossa/wings/color.png",
+          "roughness": "textures/Uovo_Ossa/wings/roughness.png",
+          "metalness": "textures/Uovo_Ossa/wings/metalness.png",
+          "emission": "textures/Uovo_Ossa/wings/emission.png"
+        }
+      },
+      "whole_group": "Uovo_Ossa_Intero",
+      "fragments_group": "Uovo_Ossa_Frammenti",
+      "whole": [
+        {
+          "name": "Uovo_Ossa",
+          "texture_set": "body",
+          "triangles": 8806,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -1.0,
+              -1.2999999523162842
+            ],
+            [
+              1.0,
+              1.0,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Luce",
+          "texture_set": "body",
+          "triangles": 3164,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.8267263770103455,
+              -0.8351228833198547,
+              -1.1479713916778564
+            ],
+            [
+              0.8305691480636597,
+              0.8278225660324097,
+              1.1070364713668823
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Gemma",
+          "texture_set": "body",
+          "triangles": 112,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.36000001430511475,
+              -1.145402431488037,
+              -0.2199999988079071
+            ],
+            [
+              0.3149999976158142,
+              -0.7168768644332886,
+              0.7789999842643738
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_CastoneDecori",
+          "texture_set": "body",
+          "triangles": 1752,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -0.7566260695457458,
+              -1.1133184432983398,
+              -0.6633349657058716
+            ],
+            [
+              0.7566260695457458,
+              -0.5907924771308899,
+              0.8221402764320374
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Ali",
+          "texture_set": "wings",
+          "triangles": 8896,
+          "pivot_source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.1889927238225937,
+              -0.7361775636672974
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "fragments": [
+        {
+          "name": "Uovo_Ossa_Frammento_01",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            0.5061907768249512,
+            -0.00934012234210968,
+            -0.006884634494781494
+          ],
+          "bounds_source": [
+            [
+              0.01238161325454712,
+              -0.4371199607849121,
+              -1.2999999523162842
+            ],
+            [
+              1.0,
+              0.41843974590301514,
+              1.2862308025360107
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Frammento_02",
+          "texture_set": "body",
+          "triangles": 1044,
+          "pivot_source": [
+            0.4085271954536438,
+            0.44828835129737854,
+            -0.0064231157302856445
+          ],
+          "bounds_source": [
+            [
+              -0.09974342584609985,
+              0.02531716227531433,
+              -1.283899188041687
+            ],
+            [
+              0.9167978763580322,
+              0.8712595701217651,
+              1.2710529565811157
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Frammento_03",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            0.006903111934661865,
+            0.5019622445106506,
+            0.04246020317077637
+          ],
+          "bounds_source": [
+            [
+              -0.4616779386997223,
+              0.0039244890213012695,
+              -1.2076776027679443
+            ],
+            [
+              0.475484162569046,
+              1.0,
+              1.292598009109497
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Frammento_04",
+          "texture_set": "body",
+          "triangles": 1102,
+          "pivot_source": [
+            -0.44685617089271545,
+            0.42514824867248535,
+            0.006701409816741943
+          ],
+          "bounds_source": [
+            [
+              -0.8916631937026978,
+              -0.014217406511306763,
+              -1.28228759765625
+            ],
+            [
+              -0.002049177885055542,
+              0.8645138740539551,
+              1.2956905364990234
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Frammento_05",
+          "texture_set": "body",
+          "triangles": 928,
+          "pivot_source": [
+            -0.6425044536590576,
+            -0.0075362324714660645,
+            -0.02669215202331543
+          ],
+          "bounds_source": [
+            [
+              -1.0,
+              -0.4389873743057251,
+              -1.1966270208358765
+            ],
+            [
+              -0.28500884771347046,
+              0.42391490936279297,
+              1.1432427167892456
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Frammento_06",
+          "texture_set": "body",
+          "triangles": 1940,
+          "pivot_source": [
+            -0.4433113932609558,
+            -0.5541196465492249,
+            0.0018344521522521973
+          ],
+          "bounds_source": [
+            [
+              -0.8936388492584229,
+              -1.1133184432983398,
+              -1.2962260246276855
+            ],
+            [
+              0.007016092538833618,
+              0.005079150199890137,
+              1.2998948097229004
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Frammento_07",
+          "texture_set": "body",
+          "triangles": 1700,
+          "pivot_source": [
+            -0.0027306973934173584,
+            -0.5798041224479675,
+            0.001261591911315918
+          ],
+          "bounds_source": [
+            [
+              -0.46184319257736206,
+              -1.145402431488037,
+              -1.2974767684936523
+            ],
+            [
+              0.45638179779052734,
+              -0.01420581340789795,
+              1.2999999523162842
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Frammento_08",
+          "texture_set": "body",
+          "triangles": 1752,
+          "pivot_source": [
+            0.5039761066436768,
+            -0.5561063289642334,
+            0.03413069248199463
+          ],
+          "bounds_source": [
+            [
+              0.11839279532432556,
+              -1.1133184432983398,
+              -1.2029876708984375
+            ],
+            [
+              0.8895593881607056,
+              0.0011057257652282715,
+              1.2712490558624268
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Frammento_09",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            -1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              -2.178006172180176,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              -0.5349729061126709,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        },
+        {
+          "name": "Uovo_Ossa_Frammento_10",
+          "texture_set": "wings",
+          "triangles": 4448,
+          "pivot_source": [
+            1.3564895391464233,
+            0.09915844351053238,
+            0.4444517493247986
+          ],
+          "bounds_source": [
+            [
+              0.5349729061126709,
+              -0.18899273872375488,
+              -0.7361775040626526
+            ],
+            [
+              2.178006172180176,
+              0.38730961084365845,
+              1.6250810623168945
+            ]
+          ]
+        }
+      ],
+      "light_color": "#8baf9e"
+    }
+  }
+}

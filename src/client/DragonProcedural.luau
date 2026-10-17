@@ -593,9 +593,11 @@ local function post(r: Rig, dt: number)
 	local nNeck = #sk.neck
 	for k, bi in sk.neck do
 		local w = k / math.max(nNeck, 1)
-		local yaw = DragonGait.spring(spring(r, "neckY" .. k), -yawRate * 0.05 * w, dt, 6, 0.65)
+		-- (molle quasi critiche: con 0.65 il collo oscillava a ogni piccola variazione della
+		-- virata e dell'accelerazione, Mirko 17/10 "un po' di tremolii")
+		local yaw = DragonGait.spring(spring(r, "neckY" .. k), -yawRate * 0.05 * w, dt, 5, 0.95)
 		-- accelerando in su la testa resta indietro (giu')
-		local pitch = DragonGait.spring(spring(r, "neckP" .. k), -accUp * 0.02 * w, dt, 6, 0.65)
+		local pitch = DragonGait.spring(spring(r, "neckP" .. k), -math.clamp(accUp, -1.5, 1.5) * 0.015 * w, dt, 5, 0.95)
 		preRotate(r, bi, r.axes[bi].up, yaw)
 		preRotate(r, bi, r.axes[bi].right, pitch)
 	end

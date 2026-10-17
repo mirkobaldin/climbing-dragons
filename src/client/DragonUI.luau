@@ -708,6 +708,10 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 	render = function()
 		table.clear(timers)
 		Ui.clear(grid)
+		local oldEmpty = gridBox:FindFirstChild("Vuoto")
+		if oldEmpty then
+			oldEmpty:Destroy()
+		end
 		local raw = player:GetAttribute("DragonData")
 		if type(raw) ~= "string" then
 			return
@@ -737,8 +741,15 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 				eggTile(egg, index)
 			end
 			if #data.nest == 0 then
-				local t = label(grid, if (data.nestSlots or 0) > 0 then "Find eggs and bring them to your nest" else "Buy the Tent to unlock the nest", 18, Theme.MUTED, true, Enum.TextXAlignment.Center)
-				t.Size = UDim2.new(1, 0, 0, 60)
+				-- fuori dalla griglia: dentro prendeva la misura di una tessera e si troncava
+				local t = label(gridBox, if (data.nestSlots or 0) > 0 then "Find eggs and bring them to your nest" else "Buy the Tent to unlock the nest", 18, Theme.MUTED, true, Enum.TextXAlignment.Center)
+				t.Name = "Vuoto"
+				t.AnchorPoint = Vector2.new(0.5, 0.5)
+				t.Position = UDim2.fromScale(0.5, 0.45)
+				t.Size = UDim2.new(1, -40, 0, 60)
+				t.TextWrapped = true
+				t.TextTruncate = Enum.TextTruncate.None
+				t.ZIndex = 4
 			end
 		else
 			sizeGrid(1.15)

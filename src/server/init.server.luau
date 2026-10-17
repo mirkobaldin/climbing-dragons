@@ -34,6 +34,7 @@ local Flyers = require(script.Flyers)
 local WorldEvents = require(script.WorldEvents)
 local VFXMeshes = require(script.VFXMeshes)
 local Riding = require(script.Riding)
+local Regali = require(script.Regali)
 
 local remotes = Remotes.setup()
 Unstuck.setup() -- per primo: non deve dipendere da quello che viene dopo
@@ -244,4 +245,5 @@ task.spawn(Flyers.setup) -- drago selvatico e guardiano della vetta (aspettano E
 task.spawn(WorldEvents.setup) -- meteore, drago selvatico, grande valanga
 task.spawn(VFXMeshes.setup) -- mesh VFX mancanti nel place: si ricreano dagli ID
 Riding.setup() -- monta del drago adulto (Sella)
+Regali.setup() -- regali del tempo di gioco (anche da fermi): pacco col conto alla rovescia nell'HUD
 Preflight.setup()

@@ -56,6 +56,9 @@ type Pet = {
 	seat: Vector3?, -- dove si siede chi monta (spazio del corpo: -Z muso, +Y su)
 	yaw: number?, -- direzione dell'ultimo fotogramma (per le virate in monta)
 	velS: Vector3?, -- velocita' del padrone filtrata
+	rideYaw: number?, -- in groppa: direzione dell'ultimo frame (per la virata vera)
+	rideTurn: number?, -- in groppa: virata filtrata (rad/s)
+	rollS: number?, -- in groppa: rollio ammorbidito
 	followYaw: number?, -- direzione in cui il padrone cammina (il posto accanto a lui)
 	sideSign: number?, -- da che lato del padrone sta il drago a terra (1 destra, -1 sinistra)
 	groundY: number?, -- altezza del terreno sotto il posto accanto, filtrata
@@ -819,7 +822,23 @@ function PetAnimator.start()
 					airWant = if hit and (bcf.Position.Y - bsize.Y / 2 - hit.Position.Y) < 4 then 0 else 1
 				end
 				pet.airBlend += (airWant - pet.airBlend) * math.min(1, dt * 5)
-				local roll = math.clamp(pet.turn * 0.35, -0.6, 0.6) * pet.airBlend
+				-- virata VERA in groppa (Mirko 17/10, animazioni in monta): il drago guarda dove
+				-- guarda chi lo monta (face), non dove l'avrebbe girato la logica del seguire. Prima
+				-- inclinazione e animazioni di virata usavano quella e andavano a scatti. Filtrata,
+				-- con zona morta: piccoli aggiustamenti della camera non sono una virata
+				do
+					local fy = math.atan2(-face.X, -face.Z)
+					local d = (fy - (pet.rideYaw or fy) + math.pi) % (2 * math.pi) - math.pi
+					pet.rideYaw = fy
+					local rawT = math.clamp(d / math.max(dt, 1 / 240), -4, 4)
+					rawT = if math.abs(rawT) < 0.12 then 0 else rawT
+					pet.rideTurn = (pet.rideTurn or 0) + (rawT - (pet.rideTurn or 0)) * math.min(1, dt * 4)
+					pet.turn = pet.rideTurn
+				end
+				-- rollio ammorbidito (prima seguiva la virata frame per frame: tremava)
+				local rollT = math.clamp(pet.turn * 0.35, -0.6, 0.6) * pet.airBlend
+				pet.rollS = (pet.rollS or 0) + (rollT - (pet.rollS or 0)) * math.min(1, dt * 4)
+				local roll = pet.rollS :: number
 				local nose = math.clamp(vel.Y * 0.008, -0.4, 0.35) * pet.airBlend
 				-- la sella si sposta col petto (DragonProcedural): il drago si muove sotto chi monta
 				local shift = (pet.fix :: CFrame):VectorToWorldSpace(DragonProcedural.seatShift(model))
@@ -845,6 +864,9 @@ function PetAnimator.start()
 				end
 			elseif pet.wasRidden then
 				pet.wasRidden = false
+				pet.rideYaw = nil
+				pet.rideTurn = 0
+				pet.rollS = 0
 			end
 			pet.cf = cf
 
@@ -868,7 +890,7 @@ function PetAnimator.start()
 				model:PivotTo(pivot * breathe + Vector3.new(0, pet.lift, 0))
 				if pet.tracks then
 					-- collo, busto e coda che seguono il volo vero (sopra le animazioni)
-					DragonMotion.update(model, dt, { turn = pet.turn, vy = vel.Y, speed = flat.Magnitude, air = pet.airBlend, walk = pet.walkPhase * math.pi, t = t })
+					DragonMotion.update(model, dt, { turn = pet.turn, vy = vel.Y, speed = flat.Magnitude, air = pet.airBlend, walk = pet.walkPhase * math.pi, t = t, ridden = riding })
 					DragonProcedural.setAir(model, pet.airBlend)
 				end
 				if pet.tracks then
@@ -894,7 +916,14 @@ function PetAnimator.start()
 					-- seduto o addormentato: niente piedi a terra; fermo e sveglio guarda il padrone
 					DragonProcedural.setLegs(model, 1 - math.max(sitK, sleepK))
 					local ownerHead = owner and owner.Character and owner.Character:FindFirstChild("Head")
-					DragonProcedural.setLook(model, if still and sleepK == 0 and ownerHead and ownerHead:IsA("BasePart") then ownerHead.Position else nil)
+					local lookAt: Vector3? = if still and sleepK == 0 and ownerHead and ownerHead:IsA("BasePart") then ownerHead.Position else nil
+					-- in groppa (il tuo drago): la testa guarda dove miri, li' dove va il colpo (click/F)
+					if riding and owner == Players.LocalPlayer and camera then
+						local aim = ClientState.aimPoint()
+						local ray = camera:ViewportPointToRay(aim.X, aim.Y)
+						lookAt = ray.Origin + ray.Direction * 220
+					end
+					DragonProcedural.setLook(model, lookAt)
 					-- corsa quando il padrone corre (al posto della camminata)
 					local runK = if tx.run then math.clamp((flat.Magnitude - 16) / 8, 0, 1) else 0
 					local idleW = (1 - air) * (1 - moving)
@@ -922,7 +951,9 @@ function PetAnimator.start()
 						local upK = math.clamp(vel.Y / 28, 0, 1)
 						local downK = math.clamp(-vel.Y / 26, 0, 1)
 						local diveK = if tx.dive then math.clamp((-vel.Y - 40) / 30, 0, 1) else 0
-						local turnK = math.clamp(math.abs(pet.turn) / 1.1, 0, 1) * fwdK
+						-- (zona morta: vicino a zero la virata cambiava segno e le animazioni di
+						-- virata a sinistra e a destra si alternavano)
+						local turnK = math.clamp((math.abs(pet.turn) - 0.15) / 0.95, 0, 1) * fwdK
 						w.hover = if tx.hover then (1 - fwdK) * (1 - downK) * (1 - upK * 0.5) else 0
 						w.climb = if tx.climb then upK * (1 - w.hover) else 0
 						w.descend = if tx.descend then downK * (1 - diveK) else 0

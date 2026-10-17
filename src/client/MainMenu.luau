@@ -464,7 +464,14 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		end
 		for _, recipe in Gear.RECIPES do
 			local asTool = Hotbar.RECIPE_TOOL[recipe.id]
-			local isEquip = table.find(EQUIP, recipe.id) ~= nil
+			local isGlider = false
+			for _, g in Gear.GLIDERS do
+				if g.id == recipe.id then
+					isGlider = true
+				end
+			end
+			-- (le vele stanno tutte nella casella del parapendio: si vede quella che usi)
+			local isEquip = table.find(EQUIP, recipe.id) ~= nil or isGlider
 			local owned = Gear.has(player, recipe.id)
 			if (owned or isEquip) and not (asTool and ownedTools[asTool]) then
 				-- l'equipaggiamento sta nelle caselle attorno al personaggio (anche quello che manca,
@@ -1114,13 +1121,16 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 			end)
 		end
 		-- EQUIPAGGIAMENTO attorno al personaggio: quello che hai acceso, quello che manca spento
-		for _, id in EQUIP do
-			local b = equipSlots[id]
+		for _, slotId in EQUIP do
+			local b = equipSlots[slotId]
 			for _, c in b:GetChildren() do
 				if c:IsA("GuiObject") and c.Name ~= "Cornice" and c.Name ~= "Fondo" then
 					c:Destroy()
 				end
 			end
+			-- casella del parapendio: la vela che usi (Gear.glider: la migliore che hai)
+			local sail = if slotId == "Parapendio" then Gear.glider(player) else nil
+			local id = if sail then sail.id else slotId
 			local key = "gear:" .. id
 			local entry: Item? = nil
 			for _, x in allItems do
@@ -1174,9 +1184,10 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		avatar.rebuild()
 		showInfo()
 	end
-	for _, id in EQUIP do
-		equipSlots[id].Activated:Connect(function()
-			local key = "gear:" .. id
+	for _, slotId in EQUIP do
+		equipSlots[slotId].Activated:Connect(function()
+			local sail = if slotId == "Parapendio" then Gear.glider(player) else nil
+			local key = "gear:" .. (if sail then sail.id else slotId)
 			confirmAll = false
 			pickedSlot = nil
 			selectedKey = if selectedKey == key then nil else key

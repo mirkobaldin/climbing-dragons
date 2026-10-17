@@ -162,3 +162,59 @@ Cause e correzioni (DragonProcedural salvo dove detto):
   automatico attorno per i draghi che camminano; in parete stanno piu' lontani (~35 studs).
 Da guardare a occhio: la camminata in discesa (le zampe dietro all'indietro), il drago seduto sul
 pendio (giro 3) e se la lunghezza in parete va bene.
+
+## Giro 5 (2026-10-17, sessione cloud, NON provato in Studio)
+Mirko: "noto un po' di tremolii in piu', la testa e il collo restano praticamente sempre piegati
+a S, non si distendono mai".
+- **Collo che si distende** (`client/DragonMotion`): prima si allungava solo in picchiata (e
+  la rotazione girava tutto il collo insieme, non toglieva la S). Ora ogni vertebra ha la sua
+  piega a riposo misurata sulle ossa (`j.straight`: angolo attorno all'asse destro dell'osso che
+  mette il pezzo dopo in linea col pezzo prima; la prima vertebra solo a meta') e se ne toglie
+  una frazione `extend`: in volo 0,35-0,8 secondo la velocita', in picchiata 1, camminando 0,3,
+  da fermo ogni ~14 s si stiracchia (fino a 0,65). Molla lenta (2/s), niente scatti.
+  Interruttore per confrontare: attributo `ColloDisteso = false` sul modello del drago, o
+  `DragonMotion.STRETCH = false`.
+  **Da controllare per primo**: se in volo il collo si piega DI PIU' invece di distendersi, il
+  verso dell'asse destro e' al contrario per quel modello: cambiare il segno di `j.straight`.
+- **Tremolii**: la virata che arriva da PetAnimator ora ha una zona morta (0,15 rad/s), conta
+  solo quando il drago si muove davvero (sotto 2-12 studs/s scende a zero) e passa da una molla
+  (3/s); le molle del collo in `DragonProcedural` sono quasi critiche (smorzamento 0,95 invece
+  di 0,65, che oscillava) e l'accelerazione verticale che abbassa la testa e' limitata. Ondeggio
+  del collo in volo piu' piccolo (0,03).
+Da misurare come nel giro 4: rotazione del collo e della testa rispetto al corpo, frame oltre
+360 gradi/s, in volo con virate strette e da fermo librato, prima/dopo.
+
+## Giro 6 (2026-10-17, sessione cloud, in groppa, NON provato in Studio)
+Mirko: "le animazioni quando sei sul drago".
+- **Virata vera** (`client/PetAnimator`, ramo `riding`): la virata (`pet.turn`) ora viene dalla
+  direzione di chi monta (`rideYaw` -> `rideTurn`, zona morta 0,12 rad/s, filtro 4/s, massimo
+  4 rad/s), non dalla logica del seguire che in groppa dava scatti. Rollio filtrato (`rollS`,
+  4/s; prima frame per frame). Le animazioni di virata (bankL/bankR) partono solo sopra
+  0,15 rad/s: prima sfarfallavano attorno a zero.
+- **Testa dove miri**: per il cavaliere locale `DragonProcedural.setLook` guarda il punto del
+  mirino (`ClientState.aimPoint()`, a 220 studs lungo il raggio della camera).
+- **Collo sotto il cavaliere**: le prime 2 vertebre non si distendono in groppa (`ridden` in
+  `DragonMotion.update`), se no il posto del cavaliere si spostava.
+- **Cavaliere che segue il drago** (`client/DragonRide`, `bend` in `RunService.Stepped` dopo le
+  animazioni, come GymAnim): giuntura `Root` inclinata come il drago (stessi conti di
+  PetAnimator, 90%: rollio nelle virate, muso su/giu' dalla velocita' verticale), `Waist` in
+  avanti con la velocita' (di piu' col turbo, indietro salendo) e un po' verso l'interno della
+  virata, `Neck` verso la camera (al massimo ~35 gradi di lato). Solo R15 (se manca la giuntura
+  non fa niente). Base salvata: se l'animazione seduta non riscrive la giuntura l'inclinazione
+  non si somma; scendendo (`cleanup` -> `unbend`) torna la posa di prima.
+  Limite: Transform non si replica, gli altri giocatori vedono il cavaliere dritto.
+Da guardare: il cavaliere resta seduto sul collo nelle virate strette (non si stacca ne' entra
+nel drago), il busto non va troppo avanti col turbo, la testa non gira al contrario (se si'
+cambiare segno a `headYaw`), e niente tremolii del muso quando si muove solo la camera.
+
+## Prove dei giri 5 e 6 in Studio (Claude, 17/10 sera)
+- Collo: con la distensione la testa sta a 7,3 studs dalla prima vertebra del collo, senza
+  (`ColloDisteso = false`) a 6,6, misurato due volte in volo librato: il collo si allunga, il segno
+  di `j.straight` e' giusto. Nessun frame della testa oltre 360 gradi/s.
+- Tremolii: fermo a terra muovendo solo la camera i due draghi girano al massimo di 2,5 gradi/s; in
+  groppa, librato, muovendo solo la camera il corpo 2 gradi/s e la testa segue il mirino senza
+  scatti (max 45 gradi/s).
+- In groppa con virate strette a sinistra e a destra e turbo: il cavaliere resta fra 0,6 e 3,6
+  studs dalle ossa del collo (non si stacca e non sparisce dentro il drago). Testa del cavaliere:
+  i conti di `headYaw` girano dalla parte giusta; in volo il busto segue la camera, quindi si
+  vede soprattutto il su/giu'. Busto avanti col turbo non misurato a parte.

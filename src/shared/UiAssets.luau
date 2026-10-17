@@ -216,6 +216,10 @@ UiAssets.ids = {
 	frame_toast = "rbxassetid://87118922049882",
 	-- rifinitura 17/10 (artifacts/ui-rifinitura-20261017): barre a parallelogramma. ID vuoti finche'
 	-- non si caricano: il codice usa le barre dritte di prima
+	-- tasto delle notizie nell'HUD (al posto del ritratto): finche' e' vuoto si usa icon_quest
+	icon_news = "",
+	-- pacco dei regali del tempo di gioco (client/RegaliUI): finche' e' vuoto si usa l'emoji
+	icon_gift = "",
 	frame_bar_health_slant = "rbxassetid://79089502009586",
 	frame_bar_stamina_slant = "rbxassetid://109120234044387",
 	frame_bar_shield_slant = "rbxassetid://83638628696463",
