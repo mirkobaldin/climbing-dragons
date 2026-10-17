@@ -206,3 +206,15 @@ Mirko: "le animazioni quando sei sul drago".
 Da guardare: il cavaliere resta seduto sul collo nelle virate strette (non si stacca ne' entra
 nel drago), il busto non va troppo avanti col turbo, la testa non gira al contrario (se si'
 cambiare segno a `headYaw`), e niente tremolii del muso quando si muove solo la camera.
+
+## Prove dei giri 5 e 6 in Studio (Claude, 17/10 sera)
+- Collo: con la distensione la testa sta a 7,3 studs dalla prima vertebra del collo, senza
+  (`ColloDisteso = false`) a 6,6, misurato due volte in volo librato: il collo si allunga, il segno
+  di `j.straight` e' giusto. Nessun frame della testa oltre 360 gradi/s.
+- Tremolii: fermo a terra muovendo solo la camera i due draghi girano al massimo di 2,5 gradi/s; in
+  groppa, librato, muovendo solo la camera il corpo 2 gradi/s e la testa segue il mirino senza
+  scatti (max 45 gradi/s).
+- In groppa con virate strette a sinistra e a destra e turbo: il cavaliere resta fra 0,6 e 3,6
+  studs dalle ossa del collo (non si stacca e non sparisce dentro il drago). Testa del cavaliere:
+  i conti di `headYaw` girano dalla parte giusta; in volo il busto segue la camera, quindi si
+  vede soprattutto il su/giu'. Busto avanti col turbo non misurato a parte.

@@ -106,6 +106,116 @@ local function bolt(parent: Instance, from: Vector3, to: Vector3, color: Color3)
 	end)
 end
 
+-- fulmine che cade dal cielo (Mirko 17/10: "migliora i Vfx magari aggiungendo fulmini"): piu'
+-- spesso, a zig-zag ampio, con due rami e un lampo di luce dove colpisce
+local function strike(parent: Instance, from: Vector3, to: Vector3, color: Color3)
+	local parts = {}
+	local function line(a: Vector3, b: Vector3, n: number, jitter: number, width: number)
+		local prev = a
+		for i = 1, n do
+			local p = if i == n then b else a:Lerp(b, i / n) + Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5) * jitter
+			local len = (p - prev).Magnitude
+			table.insert(parts, part(parent, Enum.PartType.Block, Vector3.new(width, width, len), CFrame.lookAt((prev + p) / 2, p), color, Enum.Material.Neon, 0))
+			prev = p
+		end
+	end
+	line(from, to, 9, 3.2, 0.22)
+	for _ = 1, 2 do
+		local s = from:Lerp(to, 0.3 + math.random() * 0.4)
+		local e = s + Vector3.new(math.random() - 0.5, -0.6, math.random() - 0.5) * 9
+		line(s, e, 4, 1.6, 0.1)
+	end
+	local flashAt = part(parent, Enum.PartType.Ball, Vector3.one * 0.2, CFrame.new(to), color, Enum.Material.Neon, 1)
+	local l = Instance.new("PointLight")
+	l.Color = color
+	l.Brightness = 8
+	l.Range = 26
+	l.Parent = flashAt
+	table.insert(parts, flashAt)
+	task.delay(0.14, function()
+		for _, p in parts do
+			p:Destroy()
+		end
+	end)
+end
+
+-- FONDALE (Mirko 17/10: "uno sfondo figo"): la valle col ghiacciaio della schermata di
+-- caricamento su un grande pannello dietro l'uovo, una nebbia del colore dell'elemento che sale
+-- dal basso, raggi di luce dall'alto e scintille che fluttuano davanti al fondo
+local function backdrop(parent: Instance, stage: CFrame, glow: Color3)
+	local panel = part(parent, Enum.PartType.Block, Vector3.new(150, 84, 1), stage * CFrame.new(0, 14, 34), Color3.fromRGB(8, 10, 16), Enum.Material.SmoothPlastic)
+	local sg = Instance.new("SurfaceGui")
+	sg.Face = Enum.NormalId.Front -- verso la telecamera (davanti alla scena = -Z del palco)
+	sg.LightInfluence = 0
+	sg.Brightness = 1.2
+	sg.PixelsPerStud = 12
+	sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	sg.Parent = panel
+	local img = Instance.new("ImageLabel")
+	img.BackgroundTransparency = 1
+	img.Size = UDim2.fromScale(1.08, 1.08)
+	img.AnchorPoint = Vector2.new(0.5, 0.5)
+	img.Position = UDim2.fromScale(0.5, 0.5)
+	img.ScaleType = Enum.ScaleType.Crop
+	img.ImageColor3 = Color3.fromRGB(150, 160, 185)
+	img.Parent = sg
+	if not Ui.asset(img, "bg_loading") then
+		img.Visible = false
+	end
+	-- lenta deriva della valle (sembra che la camera si muova)
+	TweenService:Create(img, TweenInfo.new(14, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Position = UDim2.fromScale(0.47, 0.52) }):Play()
+	-- nebbia dell'elemento dal basso e bordi scuri (vignetta)
+	local fog = Instance.new("Frame")
+	fog.BorderSizePixel = 0
+	fog.Size = UDim2.fromScale(1, 1)
+	fog.BackgroundColor3 = glow
+	fog.Parent = sg
+	local fg = Instance.new("UIGradient")
+	fg.Rotation = -90
+	fg.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(0.45, 0.85), NumberSequenceKeypoint.new(1, 1) })
+	fg.Parent = fog
+	local dark = Instance.new("Frame")
+	dark.BorderSizePixel = 0
+	dark.Size = UDim2.fromScale(1, 1)
+	dark.BackgroundColor3 = Color3.fromRGB(4, 5, 10)
+	dark.Parent = sg
+	local dg = Instance.new("UIGradient")
+	dg.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.3, 0.6), NumberSequenceKeypoint.new(0.7, 0.6), NumberSequenceKeypoint.new(1, 0.05) })
+	dg.Parent = dark
+	-- raggi di luce dall'alto verso il piedistallo
+	for i = -1, 1 do
+		local top = Instance.new("Attachment")
+		top.Parent = panel
+		top.WorldPosition = (stage * CFrame.new(i * 5, 30, 12)).Position
+		local bottom = Instance.new("Attachment")
+		bottom.Parent = panel
+		bottom.WorldPosition = (stage * CFrame.new(i * 1.5, -2, 0)).Position
+		local beam = Instance.new("Beam")
+		beam.Attachment0, beam.Attachment1 = top, bottom
+		beam.Width0, beam.Width1 = 7, 2.5
+		beam.Color = ColorSequence.new(glow:Lerp(Color3.new(1, 1, 1), 0.5))
+		beam.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.4, 0.86), NumberSequenceKeypoint.new(1, 0.93) })
+		beam.LightEmission = 1
+		beam.FaceCamera = true
+		beam.Segments = 1
+		beam.Parent = panel
+	end
+	-- scintille e braci che salgono piano davanti al fondo
+	local field = part(parent, Enum.PartType.Block, Vector3.new(40, 1, 14), stage * CFrame.new(0, -3, 14), Color3.new(), Enum.Material.SmoothPlastic, 1)
+	local motes = Instance.new("ParticleEmitter")
+	motes.Texture = SPARK
+	motes.Color = ColorSequence.new(glow, Color3.new(1, 1, 1))
+	motes.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.2, 0.22), NumberSequenceKeypoint.new(1, 0) })
+	motes.Lifetime = NumberRange.new(4, 7)
+	motes.Speed = NumberRange.new(1, 3)
+	motes.EmissionDirection = Enum.NormalId.Top
+	motes.SpreadAngle = Vector2.new(25, 25)
+	motes.Rate = 26
+	motes.LightEmission = 1
+	motes.Acceleration = Vector3.new(0, 0.6, 0)
+	motes.Parent = field
+end
+
 -- schermate del gioco da spegnere durante la sequenza (si riaccendono alla fine)
 local HIDE = { "MainMenu", "CombatHUD", "MobileControls", "Montepremi", "AnnuncioEvento", "SuggerimentiTutorial", "MirinoPiccozza", "MirinoMonta", "BussolaCasa", "AdminButtons", "Teletrasporto", "NomeZona" }
 
@@ -156,7 +266,8 @@ function EggHatch.play(d: any, onDone: () -> ())
 	local front = stage.LookVector -- la telecamera sta davanti, l'uovo guarda verso di lei
 	local center = stage.Position
 	-- fondale scuro e piedistallo con l'anello dell'elemento
-	part(folder, Enum.PartType.Block, Vector3.new(320, 200, 1), stage * CFrame.new(0, 10, 30), Color3.fromRGB(10, 12, 20), Enum.Material.SmoothPlastic)
+	part(folder, Enum.PartType.Block, Vector3.new(320, 200, 1), stage * CFrame.new(0, 10, 40), Color3.fromRGB(10, 12, 20), Enum.Material.SmoothPlastic)
+	backdrop(folder, stage, glowColor)
 	part(folder, Enum.PartType.Cylinder, Vector3.new(0.6, 7, 7), stage * CFrame.new(0, -1.9, 0) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(40, 38, 48), Enum.Material.Slate)
 	local rune = part(folder, Enum.PartType.Cylinder, Vector3.new(0.65, 6, 6), stage * CFrame.new(0, -1.86, 0) * CFrame.Angles(0, 0, math.pi / 2), glowColor, Enum.Material.Neon, 0.6)
 	part(folder, Enum.PartType.Cylinder, Vector3.new(0.7, 5.4, 5.4), stage * CFrame.new(0, -1.84, 0) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(34, 32, 42), Enum.Material.Slate)
@@ -421,11 +532,17 @@ function EggHatch.play(d: any, onDone: () -> ())
 				local s = 0.5 + build * 3.6
 				c.Size = Vector3.new(0.1, s, s)
 			end
-			if look.bolts and build > 0.25 and t > nextBolt then
-				nextBolt = t + 0.12 + math.random() * 0.2
+			-- scariche attorno all'uovo: per tutti gli elementi (del loro colore), piu' fitte per
+			-- Tempesta e Fulmine; nell'ultimo tratto cadono anche dal cielo
+			if build > 0.25 and t > nextBolt then
+				nextBolt = t + (if look.bolts then 0.12 else 0.3) + math.random() * (0.25 - build * 0.15)
 				local a = math.random() * math.pi * 2
 				local from = center + Vector3.new(math.cos(a) * 2.4, math.random() * 2 - 0.4, math.sin(a) * 2.4)
-				bolt(folder, from, center + Vector3.new(0, (math.random() - 0.5) * 1.2, 0), look.bolts :: Color3)
+				bolt(folder, from, center + Vector3.new(0, (math.random() - 0.5) * 1.2, 0), look.bolts or glowColor)
+				if build > 0.75 and math.random() < 0.35 then
+					local far = center + stage.RightVector * (math.random() - 0.5) * 24 + Vector3.new(0, 26, 0) + stage.LookVector * -(6 + math.random() * 10)
+					strike(folder, far, center + stage.RightVector * (math.random() - 0.5) * 8 + Vector3.new(0, -2, 0) + stage.LookVector * -(3 + math.random() * 6), look.bolts or glowColor)
+				end
 			end
 			if t > 2 and t - dt <= 2 then
 				MeshFX.charge(element, center, front, 0.6)
@@ -466,6 +583,28 @@ function EggHatch.play(d: any, onDone: () -> ())
 				flash.BackgroundTransparency = 0.35
 				TweenService:Create(flash, TweenInfo.new(0.35), { BackgroundTransparency = 1 }):Play()
 				sparks:Emit(60)
+				-- fulmini dal cielo sull'uovo, onda d'urto sul piedistallo e colonna di scintille
+				for k = 1, 3 do
+					task.delay((k - 1) * 0.07, function()
+						local top = center + stage.RightVector * (math.random() - 0.5) * 10 + Vector3.new(0, 30, 0) + stage.LookVector * -4
+						strike(folder, top, center, look.bolts or glowColor)
+					end)
+				end
+				local ring = part(folder, Enum.PartType.Cylinder, Vector3.new(0.15, 2, 2), CFrame.new(center - Vector3.new(0, 1.7, 0)) * CFrame.Angles(0, 0, math.pi / 2), glowColor, Enum.Material.Neon, 0.1)
+				TweenService:Create(ring, TweenInfo.new(0.7, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = Vector3.new(0.05, 30, 30), Transparency = 1 }):Play()
+				local column = Instance.new("ParticleEmitter")
+				column.Texture = SPARK
+				column.Color = ColorSequence.new(Color3.new(1, 1, 1), glowColor)
+				column.Size = NumberSequence.new(0.5, 0)
+				column.Lifetime = NumberRange.new(0.8, 1.4)
+				column.Speed = NumberRange.new(12, 24)
+				column.SpreadAngle = Vector2.new(14, 14)
+				column.EmissionDirection = Enum.NormalId.Top
+				column.LightEmission = 1
+				column.Rate = 0
+				column.Acceleration = Vector3.new(0, -10, 0)
+				column.Parent = aura
+				column:Emit(90)
 				if look.dust then
 					dust:Emit(30)
 				end

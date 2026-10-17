@@ -12,3 +12,8 @@
 
 ## Da riempire
 Aggiungi qui sotto (o in note separate) gli effetti che ti piacciono in altri giochi, con video.
+
+## Schiusa (17/10)
+- Mirko chiede piu' fulmini e particelle e uno sfondo figo nella schiusa: ora fulmini per ogni
+  elemento che crescono, fulmini dal cielo alla rottura, onda d'urto, colonna di scintille,
+  fondale con la valle del ghiacciaio, nebbia dell'elemento e raggi di luce. Da giudicare.

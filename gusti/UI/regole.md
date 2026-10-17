@@ -89,3 +89,5 @@
 - APPROVATA la rifinitura della sessione cloud del 17/10 (una sola UI scalata per telefono e
   computer, Bounties/Rebirth nuovi, Inventory come Diablo IV, barre a parallelogramma nelle
   cornici, HUD modificabile col ⚙ anche dal computer, draghi con la valle dietro) - 17/10.
+- Sbagliato: tasto NOTIZIE al posto del ritratto del giocatore. Buono: il ritratto resta, le
+  notizie sono un medaglione accanto al ⚙ - 17/10.

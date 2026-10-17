@@ -255,3 +255,25 @@ Ogni aggiornamento: voce in `shared/Novita.luau`, evento di Roblox, post su Disc
 
 ## Roadmap
 Vedi "Roadmap degli aggiornamenti" sopra (U1).
+
+## Prove in Studio di Claude (17/10 sera) sul branch `cloud/ui-rifinitura-20261017`
+Computer e telefono simulato (891x353, SimTouch), sempre con `nosave`. Zero errori degli script.
+- Cornici delle barre: gli ID di `frame_bar_*_slant` sono davvero le cornici oblique (viste una
+  accanto all'altra con la dritta). Se sul telefono sembrano dritte e' per la misura: da guardare
+  su uno screenshot del telefono vero.
+- Notizie: Mirko vuole il RITRATTO al suo posto e le notizie da un'altra parte. Ora sono un
+  medaglione col pallino rosso nel gruppo ⚙ ? HIDE HUD (primo a sinistra). Il pallino si spegne
+  dopo averlo aperto e resta spento al rientro (versione vista in `ControlsLayout.Novita`).
+- Regali: il server rifiuta "Not ready yet" prima dei 5 minuti e "Already claimed" la seconda
+  volta; dopo 5 minuti CLAIM da' le 60 monete. Il pacco ora sta dal lato libero del gruppo dei
+  tasti (se il gruppo e' spostato sul bordo sinistro va a destra).
+- Vele: senza Paraglider "First craft the Paraglider", senza Dragon Wings "First craft the Dragon
+  Wings"; con tutte e tre si usa la Storm Wyvern (modello AncientStormWyvern, 106 studs/s avanti
+  e -13 in discesa col drago al seguito).
+- Profilo nuovo (interruttore solo per Studio: `ServerStorage.ProvaProfiloNuovo`, profilo vuoto e
+  nosave): nessun drago, tutorial dal passo 1, il passo "BUY THE TENT" c'e', tutte le pagine del
+  menu si aprono senza errori. Corretto: "Buy the Tent to unlock..." tagliato nel nido vuoto.
+- Tasti del telefono: piatti, opacita' − / + nella barra EDIT HUD (salvata, `Opacita` 0,4 dopo due
+  "−"), Ride resta nello stesso posto quando diventa Land e Fire prende il posto di Run.
+  Corretto: il tasto che cambia sotto il dito (Ride -> Land) restava "premuto" pieno di colore.
+  Corretto: elementi dell'HUD spostati in parte fuori dallo schermo (ora restano dentro).
