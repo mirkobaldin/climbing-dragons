@@ -25,6 +25,7 @@ export type Motion = {
 	air: number, -- 0 a terra, 1 in volo
 	walk: number, -- fase del passo (radianti)
 	t: number, -- tempo
+	ridden: boolean?, -- qualcuno e' in groppa (seduto sulla base del collo)
 }
 
 type Joint = { bone: Bone, w: number, up: Vector3, right: Vector3, fwd: Vector3, i: number, n: number, straight: number }
@@ -288,8 +289,11 @@ function DragonMotion.update(model: Model, dt: number, m: Motion)
 		extendT = 0
 	end
 	local extend = spring(rig, "ext", math.clamp(extendT, 0, 1), dt, 2)
-	for _, j in rig.neck do
-		rig.map[j.bone] = rot(j, neckYaw * j.w, (neckPitch + neckWave) * j.w + j.straight * extend, 0)
+	for k, j in rig.neck do
+		-- in groppa le prime due vertebre (dove e' seduto il giocatore) non si raddrizzano: si
+		-- distende la parte alta del collo, chi monta non si stacca dalla sella
+		local ext = if m.ridden and k <= 2 then 0 else extend
+		rig.map[j.bone] = rot(j, neckYaw * j.w, (neckPitch + neckWave) * j.w + j.straight * ext, 0)
 	end
 
 	-- busto: piega verso l'interno della curva e si inclina (rollio), il petto piu' dell'anca;
