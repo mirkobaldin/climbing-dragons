@@ -34,6 +34,9 @@
 - Ingranaggio azzurro (⚙) sopra gli altri tasti; meteo e ora come due pezzi staccati con la casella blu - 16/10 sera.
 - Striscia monete | montepremi | pietre di tre stili diversi; sul telefono vero sotto i tasti di Roblox - 16/10 sera.
 - Pagine del menu che sul telefono si schiacciano o non si vedono, finestra piu' alta dello schermo - 16/10 sera.
+- Tasti del telefono troppo colorati e in rilievo (prima li voleva in rilievo: ora piatti) - 17/10.
+- Ritratto del giocatore nell'HUD: inutile, meglio un tasto delle notizie - 17/10.
+- Cornice delle barre dritta col riempimento obliquo - 17/10.
 
 ## Buono
 - Pulsanti pieni e saturi (barra in alto Shop/Backpack/Dragons...).
@@ -79,6 +82,10 @@
 - Barre del giocatore e del drago a parallelogramma, una sotto l'altra, attaccate, con la cornice - 16/10 sera.
 - HUD che si sposta anche dal computer (barra DONE / RESET, contorno degli elementi spostabili) - 16/10 sera.
 - Sfondo del palco del drago come una valle con i ghiacciai dietro - 16/10 sera.
+- Tasti del telefono piatti e trasparenti, con l'opacita' regolabile dal giocatore - 17/10.
+- Icone e cornici sempre spigolose, anche nelle versioni nuove; due temi di colore - 17/10.
+- Riferimento per l'HUD laterale dei simulatori (Settings/Daily/Shop a sinistra, pacco col
+  timer, Spin e Hide UI a destra): screenshot di un simulatore mandato il 17/10 - 17/10.
 - APPROVATA la rifinitura della sessione cloud del 17/10 (una sola UI scalata per telefono e
   computer, Bounties/Rebirth nuovi, Inventory come Diablo IV, barre a parallelogramma nelle
   cornici, HUD modificabile col ⚙ anche dal computer, draghi con la valle dietro) - 17/10.
