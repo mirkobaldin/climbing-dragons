@@ -1,5 +1,7 @@
 # Compito per Codex: icone e cornici v2 (due temi, piu' versioni)
 
+> **Sostituito da `docs/CODEX_UI_V4.md` (17/10 sera): usa quello.**
+
 Scritto il 17/10 (sessione cloud) su richiesta di Mirko: "rifare le icone e le cornici ancora
 piu' fighe, piu' versioni, un set in un modo e uno a tema diverso (colori), un po' le forme ma
 sempre spigolose".
