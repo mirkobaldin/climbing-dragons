@@ -41,6 +41,50 @@ local TURN_RATE = 4 -- quanto in fretta segue la direzione voluta (1/s)
 -- forma di drago (server/Riding, arena dell'Isola dei Draghi): sei il drago. A terra cammina
 -- (Shift corre), Spazio decolla, vicino al suolo senza Spazio atterra
 local WALK, RUN = 30, 58
+-- il cavaliere segue il drago (Mirko 17/10, animazioni in monta): il personaggio resta dritto
+-- (AlignOrientation solo sulla direzione) mentre il drago si inclina nelle virate e punta il muso
+-- su e giu' (PetAnimator); prima sembrava un manichino incollato. Qui si piega tutto il corpo
+-- (giuntura Root) come il drago, il busto (Waist) in avanti quando corre e la testa (Neck) verso
+-- dove guarda la camera. Stessi conti di PetAnimator per la virata, cosi' vanno insieme
+type Bend = { motor: Motor6D, base: CFrame, last: CFrame? }
+local bends: { [string]: Bend } = {}
+local lean = { roll = 0, nose = 0, waist = 0, headYaw = 0, headPitch = 0 }
+local leanYaw: number? = nil
+local leanTurn = 0
+
+-- le animazioni di Roblox riscrivono Transform ogni frame solo per le giunture che muovono: se
+-- nessuno l'ha cambiata dall'ultima volta si riparte dalla base salvata (non si somma)
+local function bend(character: Model, part: string, joint: string, cf: CFrame)
+	local p = character:FindFirstChild(part)
+	local found = p and p:FindFirstChild(joint)
+	if not found or not found:IsA("Motor6D") then
+		return
+	end
+	local motor = found :: Motor6D
+	local b = bends[joint]
+	if not b or b.motor ~= motor then
+		b = { motor = motor, base = motor.Transform, last = nil }
+		bends[joint] = b
+	end
+	local now = motor.Transform
+	if not (b.last and now:FuzzyEq(b.last :: CFrame, 1e-4)) then
+		b.base = now
+	end
+	local out = b.base * cf
+	motor.Transform = out
+	b.last = out
+end
+
+local function unbend()
+	for _, b in bends do
+		if b.last and b.motor.Parent and b.motor.Transform:FuzzyEq(b.last :: CFrame, 1e-4) then
+			b.motor.Transform = b.base
+		end
+	end
+	table.clear(bends)
+	lean.roll, lean.nose, lean.waist, lean.headYaw, lean.headPitch = 0, 0, 0, 0, 0
+	leanYaw, leanTurn = nil, 0
+end
 local formAir = false
 local savedZoom: number? = nil
 
@@ -72,6 +116,7 @@ local function cleanup()
 	end
 	mover, turner, att = nil, nil, nil
 	faceYaw = nil
+	unbend()
 	if sitTrack then
 		sitTrack:Stop(0.2)
 		sitTrack = nil
@@ -358,6 +403,22 @@ function DragonRide.start()
 	mark.Color = Color3.fromRGB(255, 110, 50)
 	mark.Transparency = 0.35
 	mark.Anchored, mark.CanCollide, mark.CanQuery, mark.CanTouch, mark.CastShadow = true, false, false, false, false
+	-- dopo le animazioni normali (Stepped, come GymAnim): la posa seduta resta sotto
+	RunService.Stepped:Connect(function()
+		if not riding or form() then
+			return
+		end
+		local character = player.Character
+		if not character then
+			return
+		end
+		bend(character, "LowerTorso", "Root", CFrame.Angles(lean.nose, 0, lean.roll))
+		-- il busto si piega anche nella virata, un po' piu' del corpo (verso l'interno)
+		bend(character, "UpperTorso", "Waist", CFrame.Angles(lean.waist, 0, lean.roll * 0.3))
+		-- la testa segue la camera solo in parte: non si gira come un gufo
+		bend(character, "Head", "Neck", CFrame.Angles(lean.headPitch * 0.7, lean.headYaw * 0.6, 0))
+	end)
+
 	RunService.RenderStepped:Connect(function()
 		reticle.Visible = riding
 		if not riding then
@@ -498,6 +559,31 @@ function DragonRide.start()
 			faceYaw = cur
 			local ao = turner :: AlignOrientation
 			ao.CFrame = CFrame.Angles(0, cur, 0)
+		end
+		if not form() then
+			-- inclinazione del cavaliere: virata con zona morta e filtro come il drago
+			-- (PetAnimator, rideTurn/rollS), muso dalla velocita' verticale
+			local fy = math.atan2(-root.CFrame.LookVector.X, -root.CFrame.LookVector.Z)
+			local d = (fy - (leanYaw or fy) + math.pi) % (2 * math.pi) - math.pi
+			leanYaw = fy
+			local rawT = math.clamp(d / math.max(dt, 1 / 240), -4, 4)
+			rawT = if math.abs(rawT) < 0.12 then 0 else rawT
+			leanTurn += (rawT - leanTurn) * math.min(1, dt * 4)
+			local k = math.min(1, dt * 4)
+			local v = lv.VectorVelocity
+			local flatSpeed = Vector3.new(v.X, 0, v.Z).Magnitude
+			lean.roll += (math.clamp(leanTurn * 0.35, -0.6, 0.6) * 0.9 - lean.roll) * k
+			lean.nose += (math.clamp(v.Y * 0.008, -0.4, 0.35) * 0.9 - lean.nose) * k
+			-- busto: in avanti con la velocita' (di piu' col turbo e in picchiata), indietro
+			-- salendo fermo
+			local waistT = -math.clamp(flatSpeed / BOOST, 0, 1) * 0.28 - (if fast and move.Magnitude > 0.05 then 0.12 else 0) + math.clamp(v.Y / CLIMB, -1, 1) * 0.1
+			lean.waist += (waistT - lean.waist) * k
+			-- testa verso la camera, rispetto al corpo (tutto il corpo gira gia' col drago)
+			local l = root.CFrame:VectorToObjectSpace(look)
+			local hy = math.clamp(math.atan2(-l.X, -l.Z), -1, 1)
+			local hp = math.clamp(math.asin(math.clamp(l.Y, -1, 1)), -0.5, 0.45)
+			lean.headYaw += (hy - lean.headYaw) * math.min(1, dt * 8)
+			lean.headPitch += (hp - lean.headPitch) * math.min(1, dt * 8)
 		end
 		ClientState.noFallUntil = os.clock() + 1
 	end)

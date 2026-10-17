@@ -183,3 +183,26 @@ a S, non si distendono mai".
   del collo in volo piu' piccolo (0,03).
 Da misurare come nel giro 4: rotazione del collo e della testa rispetto al corpo, frame oltre
 360 gradi/s, in volo con virate strette e da fermo librato, prima/dopo.
+
+## Giro 6 (2026-10-17, sessione cloud, in groppa, NON provato in Studio)
+Mirko: "le animazioni quando sei sul drago".
+- **Virata vera** (`client/PetAnimator`, ramo `riding`): la virata (`pet.turn`) ora viene dalla
+  direzione di chi monta (`rideYaw` -> `rideTurn`, zona morta 0,12 rad/s, filtro 4/s, massimo
+  4 rad/s), non dalla logica del seguire che in groppa dava scatti. Rollio filtrato (`rollS`,
+  4/s; prima frame per frame). Le animazioni di virata (bankL/bankR) partono solo sopra
+  0,15 rad/s: prima sfarfallavano attorno a zero.
+- **Testa dove miri**: per il cavaliere locale `DragonProcedural.setLook` guarda il punto del
+  mirino (`ClientState.aimPoint()`, a 220 studs lungo il raggio della camera).
+- **Collo sotto il cavaliere**: le prime 2 vertebre non si distendono in groppa (`ridden` in
+  `DragonMotion.update`), se no il posto del cavaliere si spostava.
+- **Cavaliere che segue il drago** (`client/DragonRide`, `bend` in `RunService.Stepped` dopo le
+  animazioni, come GymAnim): giuntura `Root` inclinata come il drago (stessi conti di
+  PetAnimator, 90%: rollio nelle virate, muso su/giu' dalla velocita' verticale), `Waist` in
+  avanti con la velocita' (di piu' col turbo, indietro salendo) e un po' verso l'interno della
+  virata, `Neck` verso la camera (al massimo ~35 gradi di lato). Solo R15 (se manca la giuntura
+  non fa niente). Base salvata: se l'animazione seduta non riscrive la giuntura l'inclinazione
+  non si somma; scendendo (`cleanup` -> `unbend`) torna la posa di prima.
+  Limite: Transform non si replica, gli altri giocatori vedono il cavaliere dritto.
+Da guardare: il cavaliere resta seduto sul collo nelle virate strette (non si stacca ne' entra
+nel drago), il busto non va troppo avanti col turbo, la testa non gira al contrario (se si'
+cambiare segno a `headYaw`), e niente tremolii del muso quando si muove solo la camera.
