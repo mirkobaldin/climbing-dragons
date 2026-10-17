@@ -215,10 +215,21 @@ function MobileControls.start()
 		-- essere piatti"): fondo scuro traslucido, anello sottile e icona del colore dell'azione,
 		-- scritta bianca. Quanto si vedono lo sceglie il giocatore (barra EDIT HUD, voce Opacita di
 		-- ControlsLayout, HudLayout.opacity). Premuto: il fondo prende il colore dell'azione
+		-- niente piu' immagini dei vecchi pulsanti: UIPolish, al tocco e al passaggio del mouse,
+		-- le rimetteva leggendo l'attributo UiAsset (Mirko 17/10: "quando cambi la posizione
+		-- tornano le vecchie icone colorate")
+		b:SetAttribute("UiAsset", nil)
 		local surface = b:FindFirstChild("AssetSurface")
-		if surface and surface:IsA("GuiObject") then
-			surface.Visible = false
+		if surface then
+			surface:Destroy()
 		end
+		b.ChildAdded:Connect(function(c)
+			if c.Name == "AssetSurface" then
+				task.defer(function()
+					c:Destroy()
+				end)
+			end
+		end)
 		local face = Instance.new("Frame")
 		face.Name = "Faccia"
 		face.BorderSizePixel = 0

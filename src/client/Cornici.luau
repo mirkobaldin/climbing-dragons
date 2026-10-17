@@ -204,8 +204,8 @@ function Cornici.apply(o: GuiObject, id: string, opts: Opts?): ImageLabel?
 		else
 			img.Position = UDim2.fromOffset(0, 0)
 			img.Size = UDim2.fromScale(1, 1)
-			if back and fi.free then
-				local f = fi.free :: Rect
+			if back and (fi.fill or fi.free) then
+				local f = (fi.fill or fi.free) :: Rect
 				local l, t = f.Min.X * s, f.Min.Y * s
 				local r, b = (png.X - f.Max.X) * s, (png.Y - f.Max.Y) * s
 				back.Position = UDim2.fromOffset(l, t)

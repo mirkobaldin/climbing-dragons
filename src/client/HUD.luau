@@ -836,12 +836,15 @@ function HUD.start()
 		-- drago sotto
 		local py = y0 + av + 22 -- (il cerchietto del livello non tocca l'anello del ritratto)
 		local ec = 60
-		P(pet, 0, x0 + 8, 0, py, ec / 2 + 262, ec + 8)
+		P(pet, 0, x0 + 24, 0, py, ec / 2 + 262, ec + 8)
 		HudLayout.place("Drago", pet)
 		P(elemCircle, 0, 0, 0, 4, ec, ec)
-		local lv = 30
-		P(lvCircle, 0, -8, 0, -2, lv, lv)
-		Ui.text(lvText, 14, true)
+		-- livello in alto a sinistra, FUORI dal ritratto (Mirko 17/10: copriva quasi tutta l'icona
+		-- dell'elemento). La cornice del distintivo e' il doppio del suo foro: foro piccolo e
+		-- centro a ~45 pixel logici dal centro del ritratto, tocca solo l'anello
+		local lv = 22
+		P(lvCircle, 0, -4 - lv / 2, 0, 4 - lv / 2, lv, lv)
+		Ui.text(lvText, 13, true)
 		P(petBars, 0, math.floor(ec * 0.5), 0, 4, 262, ec)
 		nameBar.Visible = true
 		local nb, xb = 20, 13

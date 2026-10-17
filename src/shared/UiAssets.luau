@@ -326,6 +326,8 @@ UiAssets.slices = {
 }
 -- cornici di Codex: grandezza del PNG (2x), spazio libero dentro (free) e foro tondo dei ritratti
 -- (circle = centro X, centro Y, diametro). Per gli stati (normal/hover...) vale il nome senza stato.
+-- fill = fin dove arriva il fondo scuro (bordo interno vero del disegno, misurato sul PNG): senza,
+-- il fondo si fermava allo spazio libero e tra fondo e cornice restava una fessura trasparente
 UiAssets.frames = {
 	frame_portrait_player = { size = Vector2.new(256, 256), free = Rect.new(30, 36, 222, 228), circle = Vector3.new(126, 132, 192) },
 	frame_portrait_dragon = { size = Vector2.new(224, 224), free = Rect.new(25, 26, 193, 194), circle = Vector3.new(109, 110, 168) },
@@ -336,17 +338,17 @@ UiAssets.frames = {
 	frame_bar_xp = { size = Vector2.new(560, 48), free = Rect.new(21, 11, 539, 37) }, -- interno vero (17/10)
 	frame_bar_fill = { size = Vector2.new(128, 32), free = Rect.new(8, 8, 120, 24) },
 	frame_currency_medallion = { size = Vector2.new(112, 112), free = Rect.new(16, 15, 96, 95), circle = Vector3.new(56, 55, 80) },
-	frame_currency_counter = { size = Vector2.new(360, 80), free = Rect.new(40, 18, 320, 62) },
+	frame_currency_counter = { size = Vector2.new(360, 80), free = Rect.new(40, 18, 320, 62), fill = Rect.new(26, 16, 334, 64) },
 	frame_panel = { size = Vector2.new(800, 600), free = Rect.new(87, 107, 713, 495) },
 	frame_panel_header = { size = Vector2.new(800, 96), free = Rect.new(91, 32, 709, 64) },
-	frame_record_tile = { size = Vector2.new(520, 168), free = Rect.new(175, 22, 498, 145) },
-	frame_slot = { size = Vector2.new(152, 152), free = Rect.new(37, 36, 115, 116) },
+	frame_record_tile = { size = Vector2.new(520, 168), free = Rect.new(175, 22, 498, 145), fill = Rect.new(166, 15, 498, 150) },
+	frame_slot = { size = Vector2.new(152, 152), free = Rect.new(37, 36, 115, 116), fill = Rect.new(34, 33, 118, 119) },
 	frame_button_primary = { size = Vector2.new(480, 112), free = Rect.new(104, 38, 376, 74) },
 	frame_button_secondary = { size = Vector2.new(400, 96), free = Rect.new(88, 32, 312, 64) },
 	frame_tab = { size = Vector2.new(552, 128), free = Rect.new(109, 38, 443, 90) },
 	frame_separator = { size = Vector2.new(800, 24) },
 	death_ornament = { size = Vector2.new(192, 480) },
-	frame_toast = { size = Vector2.new(840, 88), free = Rect.new(86, 15, 754, 73) },
+	frame_toast = { size = Vector2.new(840, 88), free = Rect.new(86, 15, 754, 73), fill = Rect.new(34, 13, 806, 75) },
 	frame_bar_health_slant = { size = Vector2.new(680, 72), free = Rect.new(30, 17, 647, 56), shear = 21 },
 	frame_bar_stamina_slant = { size = Vector2.new(631, 56), free = Rect.new(35, 14, 594, 42), shear = 15 },
 	frame_bar_shield_slant = { size = Vector2.new(591, 56), free = Rect.new(33, 14, 556, 42), shear = 15 },

@@ -20,6 +20,7 @@ local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local UIS = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
+local GuiService = game:GetService("GuiService")
 local Ui = require(RS:WaitForChild("Shared"):WaitForChild("UiView"))
 local ClientState = require(script.Parent.ClientState)
 local UiKit = require(script.Parent.UiKit)
@@ -82,7 +83,7 @@ function HudLayout.get(name: string): { number }?
 	local s = section(false)
 	local v = s and s[name]
 	if type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" then
-		return { math.clamp(v[1], 0.02, 0.98), math.clamp(v[2], 0.03, 0.97) }
+		return { math.clamp(v[1], 0.02, 0.98), math.clamp(v[2], -0.2, 0.97) }
 	end
 	-- il tasto MENU del telefono era gia' spostabile (voce MenuFrac)
 	if name == "Menu" and HudLayout.device() == "touch" then
@@ -133,8 +134,13 @@ function HudLayout.place(name: string, obj: GuiObject?): boolean
 		local os = o.AbsoluteSize
 		if ps.X > 0 and ps.Y > 0 and os.X > 0 then
 			local hx, hy = math.min(0.5, os.X / ps.X / 2), math.min(0.5, os.Y / ps.Y / 2)
+			-- in alto si puo' salire fino al bordo vero dello schermo, anche nella fila della barra
+			-- di Roblox (Mirko 17/10: "come se ci fosse un blocco" all'altezza del prize pool): le
+			-- schermate che non ignorano la barra cominciano sotto di lei
+			local gui = o:FindFirstAncestorWhichIsA("ScreenGui")
+			local top = if gui and not gui.IgnoreGuiInset then GuiService:GetGuiInset().Y / ps.Y else 0
 			x = math.clamp(x, hx, 1 - hx)
-			y = math.clamp(y, hy, 1 - hy)
+			y = math.clamp(y, hy - top, 1 - hy)
 		end
 	end
 	o.Position = UDim2.fromScale(x, y)
@@ -419,9 +425,10 @@ UIS.InputChanged:Connect(function(input)
 	end
 	local p = Vector2.new(input.Position.X, input.Position.Y) - gui.AbsolutePosition
 	local s = section(true) :: { [string]: { number } }
+	-- (la posizione del tocco e' gia' sotto la barra di Roblox: y puo' essere negativa)
 	s[d.name] = {
 		math.floor(math.clamp(p.X / gui.AbsoluteSize.X, 0.02, 0.98) * 1000) / 1000,
-		math.floor(math.clamp(p.Y / gui.AbsoluteSize.Y, 0.03, 0.97) * 1000) / 1000,
+		math.floor(math.clamp(p.Y / gui.AbsoluteSize.Y, -0.2, 0.97) * 1000) / 1000,
 	}
 	HudLayout.place(d.name)
 	outlineOf(d.name)

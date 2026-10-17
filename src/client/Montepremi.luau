@@ -14,6 +14,7 @@ local Theme = require(script.Parent.Theme)
 local Slant = require(script.Parent.Slant)
 local Cornici = require(script.Parent.Cornici)
 local UiKit = require(script.Parent.UiKit)
+local HudLayout = require(script.Parent.HudLayout)
 local Ui = require(game:GetService("ReplicatedStorage").Shared.UiView)
 local Montepremi = {}
 
@@ -198,11 +199,19 @@ function Montepremi.start()
 			cx = logical.X / 2
 			y = tbH + 4
 		end
+		strip.AnchorPoint = Vector2.new(0.5, 0)
 		strip.Position = UDim2.fromOffset(cx, y)
+		-- spostabile come gli altri elementi dell'HUD (Mirko 17/10)
+		if HudLayout.place("Contatori", strip) then
+			local f = HudLayout.get("Contatori") :: { number }
+			y = math.max(2, f[2] * logical.Y - 20 * k) -- messaggi e annunci sotto la striscia spostata
+		end
 		popY = y + 40 * k + 60
 		pop.Size = UDim2.fromOffset(math.min(420, logical.X - 24), 48)
 		gui:SetAttribute("StrisciaBasso", y + 40 * k)
 	end
+	HudLayout.register("Contatori", strip, "COINS · PRIZE POOL · STONES")
+	HudLayout.onChange(place)
 	Ui.viewportChanged(function(vp)
 		lastVp = vp
 		place()
