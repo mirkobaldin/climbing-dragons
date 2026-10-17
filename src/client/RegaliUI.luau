@@ -16,6 +16,14 @@ local HudLayout = require(script.Parent.HudLayout)
 local player = Players.LocalPlayer
 local RegaliUI = {}
 
+-- icona per tipo di regalo (shared/RegaliConfig kind)
+local ICONS: { [string]: string } = {
+	Coins = "icon_coin",
+	Pitons = "icon_piton",
+	Stones = "ore_Cristallo", -- (come nella scheda del drago: pietre dell'evoluzione)
+	DragonXp = "icon_dragons",
+}
+
 local function fmt(sec: number): string
 	local s = math.max(0, math.ceil(sec))
 	return string.format("%d:%02d", s // 60, s % 60)
@@ -219,14 +227,26 @@ function RegaliUI.start()
 		local when = UiKit.label(row, "", "status", 13)
 		when.TextXAlignment = Enum.TextXAlignment.Center
 		when.ZIndex = 4
-		local what = UiKit.label(slot, g.text, "name", 14)
+		-- icona del regalo in alto, scritta sotto (Mirko 17/10: "metti delle icone")
+		local pic = Instance.new("ImageLabel")
+		pic.Name = "Icona"
+		pic.BackgroundTransparency = 1
+		pic.AnchorPoint = Vector2.new(0.5, 0.5)
+		pic.Position = UDim2.fromScale(0.5, 0.4)
+		pic.Size = UDim2.fromScale(0.44, 0.44)
+		pic.ZIndex = 6
+		pic.Parent = slot
+		if not Ui.asset(pic, ICONS[g.kind] or "icon_gift") then
+			pic.Visible = false
+		end
+		local what = UiKit.label(slot, g.text, "name", 13)
 		what.TextXAlignment = Enum.TextXAlignment.Center
 		what.TextYAlignment = Enum.TextYAlignment.Center
 		what.TextWrapped = true
 		what.TextTruncate = Enum.TextTruncate.None
 		what.AnchorPoint = Vector2.new(0.5, 0.5)
-		what.Position = UDim2.fromScale(0.5, 0.5)
-		what.Size = UDim2.fromScale(0.74, 0.7)
+		what.Position = UDim2.fromScale(0.5, if pic.Visible then 0.78 else 0.5)
+		what.Size = UDim2.fromScale(0.84, if pic.Visible then 0.3 else 0.7)
 		what.ZIndex = 6
 		local action = Instance.new("TextButton")
 		action.ZIndex = 5
@@ -261,6 +281,10 @@ function RegaliUI.start()
 			c.slot:SetAttribute("CorniceScala", 0.3)
 			UiKit.slot(c.slot, if claimed[i] then "disabled" elseif isReady then "valid" else "normal")
 			c.what.TextColor3 = if claimed[i] then UiKit.DIM else UiKit.TEXT
+			local pic = c.slot:FindFirstChild("Icona") :: ImageLabel?
+			if pic then
+				pic.ImageTransparency = if claimed[i] then 0.6 else 0
+			end
 			c.when.Text = if claimed[i] then "✓ CLAIMED" elseif isReady then "READY!" else fmt(readyAt - t)
 			c.when.TextColor3 = if isReady then UiKit.GOOD elseif claimed[i] then UiKit.DIM else UiKit.MUTED
 			c.action.Visible = isReady

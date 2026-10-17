@@ -642,17 +642,13 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		gg.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 1) })
 		gg.Parent = glow
 		UiGlow.rays(glow, colors[1], 6, 12).Position = UDim2.fromScale(0.5, 0.6)
-		local vf = Theme.viewport(tile, preview("Eggs", egg.element), UDim2.fromScale(0.8, 0.28), true)
-		vf.Position = UDim2.fromScale(0.1, 0.04)
-		local name = label(tile, Names.t(egg.element) .. " egg", 15, Color3.new(1, 1, 1), true, Enum.TextXAlignment.Center)
-		name.Position = UDim2.fromScale(0.04, 0.58)
+		-- solo l'uovo, il suo nome e Hatch (Mirko 17/10: la descrizione di cosa fa il drago qui
+		-- non serve, si vede nella scheda del drago appena nato)
+		local vf = Theme.viewport(tile, preview("Eggs", egg.element), UDim2.fromScale(0.8, 0.5), true)
+		vf.Position = UDim2.fromScale(0.1, 0.05)
+		local name = label(tile, Names.t(egg.element) .. " Egg", 16, Color3.new(1, 1, 1), true, Enum.TextXAlignment.Center)
+		name.Position = UDim2.fromScale(0.04, 0.57)
 		name.Size = UDim2.fromScale(0.92, 0.13)
-  local element = DragonConfig.element(egg.element)
-  local ability = label(tile, if element then element.ability else "", 12, Theme.TEXT, true)
-  ability.Name = "HatchAbility"
-  ability.Position = UDim2.fromScale(0.04, 0.33)
-  ability.Size = UDim2.fromScale(0.92, 0.24)
-  Theme.fitText(ability, 12, true)
 		local left = math.max(0, egg.readyAt - os.time())
 		local time = label(tile, "", 14, Theme.ACCENT, true, Enum.TextXAlignment.Center)
 		time.Position = UDim2.fromScale(0.04, 0.69)
