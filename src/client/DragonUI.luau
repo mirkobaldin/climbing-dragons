@@ -16,6 +16,7 @@ local EconomyConfig = require(Shared:WaitForChild("EconomyConfig"))
 local UpgradeConfig = require(Shared:WaitForChild("UpgradeConfig"))
 local Names = require(Shared:WaitForChild("Names"))
 local Ui = require(Shared:WaitForChild("UiView"))
+local Fondali = require(Shared:WaitForChild("Fondali"))
 local Theme = require(script.Parent.Theme)
 local UiGlow = require(script.Parent.UiGlow)
 local UiKit = require(script.Parent.UiKit)
@@ -58,7 +59,7 @@ local function part(parent: Instance, shape: Enum.PartType, size: Vector3, cf: C
 	return p
 end
 
-local function dragonView(parent: Instance, d: any, spin: boolean): ViewportFrame
+local function dragonView(parent: Instance, d: any, spin: boolean, scene: boolean?): ViewportFrame
 	local stage = math.clamp(d.stage or 1, 1, 3)
 	local object = preview(PREVIEW_KIND[stage], d.element) or preview("Dragons", d.element)
 	local vf = Instance.new("ViewportFrame")
@@ -120,6 +121,14 @@ local function dragonView(parent: Instance, d: any, spin: boolean): ViewportFram
 	camera.Parent = vf
 	vf.CurrentCamera = camera
 	local dist = radius / math.tan(math.rad(15)) * 0.74
+	if scene then
+		-- il posto dell'elemento attorno all'altare (shared/Fondali, lo stesso della schiusa):
+		-- l'anello di rocce sta oltre la camera, cosi' gira insieme al drago invece di restare
+		-- un'immagine piatta dietro (Mirko 17/10: "stona col modello che ruota")
+		local unit = dist * 1.3 / 22
+		Fondali.get(d.element, world, CFrame.lookAt(Vector3.new(base.X, bottom - h * 1.1, base.Z), Vector3.new(base.X, bottom - h * 1.1, base.Z) - front), unit)
+		vf.Ambient = Color3.fromRGB(120, 118, 135)
+	end
 	local function aim(a: number)
 		local dir = (CFrame.fromAxisAngle(Vector3.yAxis, a) * front) + Vector3.new(0, 0.38, 0)
 		camera.CFrame = CFrame.lookAt(center + dir.Unit * dist, center)
@@ -136,26 +145,6 @@ local function dragonView(parent: Instance, d: any, spin: boolean): ViewportFram
 		end)
 	end
 	return vf
-end
-
--- alone dietro il drago (cerchio sfumato del colore della rarita')
-local function halo(parent: Instance, color: Color3)
-	local g = Instance.new("Frame")
-	g.Name = "Alone"
-	g.AnchorPoint = Vector2.new(0.5, 0.5)
-	g.Position = UDim2.fromScale(0.5, 0.45)
-	g.Size = UDim2.fromScale(0.8, 0.8)
-	g.BackgroundColor3 = color
-	g.BackgroundTransparency = 0.7
-	g.BorderSizePixel = 0
-	g.Parent = parent
-	-- Ellisse contenuta nel palco, senza vincoli che ne allarghino i bordi.
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0.5, 0)
-	c.Parent = g
-	local grad = Instance.new("UIGradient")
-	grad.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0.2), NumberSequenceKeypoint.new(1, 1) })
-	grad.Parent = g
 end
 
 local function label(parent: Instance, str: string, size: number, color: Color3?, bold: boolean?, align: Enum.TextXAlignment?): TextLabel
@@ -383,48 +372,30 @@ function DragonUI.mount(container: Frame, status: (string, boolean) -> ()): () -
 		if short() then
 			S = math.min(math.floor(W * 0.42), 156) -- telefono: palco a sinistra, statistiche accanto
 		end
-		-- il drago scelto e' il centro della scena: niente riquadro, solo l'alone fermo, e il
-		-- modello un po' piu' grande del palco (esce dai bordi, non e' chiuso in una carta)
 		local stageBox = Theme.frame(detail, Theme.DARK, 1)
-		stageBox.ClipsDescendants = false
 		stageBox.Name = "Palco"
 		stageBox.Position = if wide then UDim2.fromOffset(10, 66) else UDim2.new(0.5, -S / 2, 0, 66)
 		stageBox.Size = UDim2.fromOffset(S, S)
-		-- sfondo: la valle col ghiacciaio dell'illustrazione del caricamento (bg_loading, gia'
-		-- caricata), al posto del fondo nero con la "bolla grigia" (Mirko 16/10: "fa schifo").
-		-- Il drago esce un po' dal quadro, che sfuma in basso nel pannello
-		local valley = Instance.new("ImageLabel")
-		valley.Name = "Valle"
-		valley.BackgroundTransparency = 1
-		valley.Size = UDim2.fromScale(1, 1)
-		valley.ZIndex = 1
-		valley.Parent = stageBox
-		if Ui.asset(valley, "bg_drago_valle") then
-			valley.ScaleType = Enum.ScaleType.Crop
-		elseif Ui.asset(valley, "bg_loading") then
-			-- solo la parte destra (cima e ghiacciaio, senza lo scalatore), quadrata
-			valley.ScaleType = Enum.ScaleType.Stretch
-			valley.ImageRectOffset = Vector2.new(440, 0)
-			valley.ImageRectSize = Vector2.new(576, 576)
-		else
-			valley:Destroy()
-			halo(stageBox, tone)
-		end
-		if valley.Parent then
-			local fade = Instance.new("UIGradient")
-			fade.Rotation = 90
-			fade.Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.05),
-				NumberSequenceKeypoint.new(0.7, 0.15),
-				NumberSequenceKeypoint.new(1, 1),
-			})
-			fade.Parent = valley
-			UiKit.edge(valley, UiKit.LINE, 1, 0.75)
-		end
-		local view = dragonView(stageBox, d, true)
+		-- sfondo: il posto 3D dell'elemento (dentro il riquadro) col cielo del suo bioma dietro;
+		-- prima la valle del caricamento, piatta, che stonava col modello che gira
+		stageBox.ClipsDescendants = true
+		local sky = Fondali.theme(d.element)
+		local skyBox = Instance.new("Frame")
+		skyBox.Name = "Cielo"
+		skyBox.BorderSizePixel = 0
+		skyBox.BackgroundColor3 = Color3.new(1, 1, 1)
+		skyBox.Size = UDim2.fromScale(1, 1)
+		skyBox.ZIndex = 1
+		skyBox.Parent = stageBox
+		local skyGrad = Instance.new("UIGradient")
+		skyGrad.Rotation = 90
+		skyGrad.Color = ColorSequence.new(sky.skyTop, sky.skyLow)
+		skyGrad.Parent = skyBox
+		UiKit.edge(stageBox, UiKit.LINE, 1, 0.6)
+		local view = dragonView(stageBox, d, true, true)
 		view.AnchorPoint = Vector2.new(0.5, 0.5)
-		view.Position = UDim2.fromScale(0.5, 0.48)
-		view.Size = UDim2.fromScale(1.18, 1.18)
+		view.Position = UDim2.fromScale(0.5, 0.5)
+		view.Size = UDim2.fromScale(1, 1)
 		view.ZIndex = 3
 		local rows = {
 			{"Grade", grade, "elem_" .. d.element},

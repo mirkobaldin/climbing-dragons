@@ -25,6 +25,7 @@ local UiKit = require(script.Parent.UiKit)
 local Theme = require(script.Parent.Theme)
 local Sfx = require(script.Parent.Sfx)
 local MeshFX = require(script.Parent.MeshFX)
+local Fondali = require(Shared:WaitForChild("Fondali"))
 local player = Players.LocalPlayer
 
 local EggHatch = {}
@@ -139,68 +140,18 @@ local function strike(parent: Instance, from: Vector3, to: Vector3, color: Color
 	end)
 end
 
--- FONDALE (Mirko 17/10: "uno sfondo figo"): la valle col ghiacciaio della schermata di
--- caricamento su un grande pannello dietro l'uovo, una nebbia del colore dell'elemento che sale
--- dal basso, raggi di luce dall'alto e scintille che fluttuano davanti al fondo
-local function backdrop(parent: Instance, stage: CFrame, glow: Color3)
-	local panel = part(parent, Enum.PartType.Block, Vector3.new(150, 84, 1), stage * CFrame.new(0, 14, 34), Color3.fromRGB(8, 10, 16), Enum.Material.SmoothPlastic)
-	local sg = Instance.new("SurfaceGui")
-	sg.Face = Enum.NormalId.Front -- verso la telecamera (davanti alla scena = -Z del palco)
-	sg.LightInfluence = 0
-	sg.Brightness = 1.2
-	sg.PixelsPerStud = 12
-	sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-	sg.Parent = panel
-	local img = Instance.new("ImageLabel")
-	img.BackgroundTransparency = 1
-	img.Size = UDim2.fromScale(1.08, 1.08)
-	img.AnchorPoint = Vector2.new(0.5, 0.5)
-	img.Position = UDim2.fromScale(0.5, 0.5)
-	img.ScaleType = Enum.ScaleType.Crop
-	img.ImageColor3 = Color3.fromRGB(150, 160, 185)
-	img.Parent = sg
-	if not Ui.asset(img, "bg_loading") then
-		img.Visible = false
-	end
-	-- lenta deriva della valle (sembra che la camera si muova)
-	TweenService:Create(img, TweenInfo.new(14, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Position = UDim2.fromScale(0.47, 0.52) }):Play()
-	-- nebbia dell'elemento dal basso e bordi scuri (vignetta)
-	local fog = Instance.new("Frame")
-	fog.BorderSizePixel = 0
-	fog.Size = UDim2.fromScale(1, 1)
-	fog.BackgroundColor3 = glow
-	fog.Parent = sg
-	local fg = Instance.new("UIGradient")
-	fg.Rotation = -90
-	fg.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(0.45, 0.85), NumberSequenceKeypoint.new(1, 1) })
-	fg.Parent = fog
-	local dark = Instance.new("Frame")
-	dark.BorderSizePixel = 0
-	dark.Size = UDim2.fromScale(1, 1)
-	dark.BackgroundColor3 = Color3.fromRGB(4, 5, 10)
-	dark.Parent = sg
-	local dg = Instance.new("UIGradient")
-	dg.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.3, 0.6), NumberSequenceKeypoint.new(0.7, 0.6), NumberSequenceKeypoint.new(1, 0.05) })
-	dg.Parent = dark
-	-- raggi di luce dall'alto verso il piedistallo
-	for i = -1, 1 do
-		local top = Instance.new("Attachment")
-		top.Parent = panel
-		top.WorldPosition = (stage * CFrame.new(i * 5, 30, 12)).Position
-		local bottom = Instance.new("Attachment")
-		bottom.Parent = panel
-		bottom.WorldPosition = (stage * CFrame.new(i * 1.5, -2, 0)).Position
-		local beam = Instance.new("Beam")
-		beam.Attachment0, beam.Attachment1 = top, bottom
-		beam.Width0, beam.Width1 = 7, 2.5
-		beam.Color = ColorSequence.new(glow:Lerp(Color3.new(1, 1, 1), 0.5))
-		beam.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.4, 0.86), NumberSequenceKeypoint.new(1, 0.93) })
-		beam.LightEmission = 1
-		beam.FaceCamera = true
-		beam.Segments = 1
-		beam.Parent = panel
-	end
-	-- scintille e braci che salgono piano davanti al fondo
+-- FONDALE 3D (Mirko 17/10): prima un'immagine della valle su un pannello, storta rispetto alla
+-- camera, con tre raggi di luce verticali ("strisce bruttissime"). Ora un posto fatto apposta per
+-- l'elemento (shared/Fondali: cava, ghiacciaio, valle dei gas, costole del drago gigante...) con
+-- luce di riempimento del colore dell'elemento e scintille che salgono piano davanti
+local function backdrop(parent: Instance, stage: CFrame, element: string, glow: Color3)
+	Fondali.get(element, parent, stage * CFrame.new(0, -2.2, 0), 1)
+	local fill = part(parent, Enum.PartType.Ball, Vector3.one * 0.2, stage * CFrame.new(0, 12, 6), Color3.new(), Enum.Material.SmoothPlastic, 1)
+	local l = Instance.new("PointLight")
+	l.Color = glow:Lerp(Color3.new(1, 1, 1), 0.6)
+	l.Brightness = 1.2
+	l.Range = 60
+	l.Parent = fill
 	local field = part(parent, Enum.PartType.Block, Vector3.new(40, 1, 14), stage * CFrame.new(0, -3, 14), Color3.new(), Enum.Material.SmoothPlastic, 1)
 	local motes = Instance.new("ParticleEmitter")
 	motes.Texture = SPARK
@@ -217,7 +168,7 @@ local function backdrop(parent: Instance, stage: CFrame, glow: Color3)
 end
 
 -- schermate del gioco da spegnere durante la sequenza (si riaccendono alla fine)
-local HIDE = { "MainMenu", "CombatHUD", "MobileControls", "Montepremi", "AnnuncioEvento", "SuggerimentiTutorial", "MirinoPiccozza", "MirinoMonta", "BussolaCasa", "AdminButtons", "Teletrasporto", "NomeZona" }
+local HIDE = { "MainMenu", "CombatHUD", "MobileControls", "MontaDrago", "Montepremi", "AnnuncioEvento", "SuggerimentiTutorial", "MirinoPiccozza", "MirinoMonta", "BussolaCasa", "AdminButtons", "Teletrasporto", "NomeZona" }
 
 -- d = il drago appena nato (dati di DragonData); onDone a sequenza chiusa
 function EggHatch.play(d: any, onDone: () -> ())
@@ -265,9 +216,8 @@ function EggHatch.play(d: any, onDone: () -> ())
 	local stage = CFrame.new(base) * CFrame.Angles(0, yaw, 0)
 	local front = stage.LookVector -- la telecamera sta davanti, l'uovo guarda verso di lei
 	local center = stage.Position
-	-- fondale scuro e piedistallo con l'anello dell'elemento
-	part(folder, Enum.PartType.Block, Vector3.new(320, 200, 1), stage * CFrame.new(0, 10, 40), Color3.fromRGB(10, 12, 20), Enum.Material.SmoothPlastic)
-	backdrop(folder, stage, glowColor)
+	-- fondale dell'elemento e piedistallo con l'anello
+	backdrop(folder, stage, element, glowColor)
 	part(folder, Enum.PartType.Cylinder, Vector3.new(0.6, 7, 7), stage * CFrame.new(0, -1.9, 0) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(40, 38, 48), Enum.Material.Slate)
 	local rune = part(folder, Enum.PartType.Cylinder, Vector3.new(0.65, 6, 6), stage * CFrame.new(0, -1.86, 0) * CFrame.Angles(0, 0, math.pi / 2), glowColor, Enum.Material.Neon, 0.6)
 	part(folder, Enum.PartType.Cylinder, Vector3.new(0.7, 5.4, 5.4), stage * CFrame.new(0, -1.84, 0) * CFrame.Angles(0, 0, math.pi / 2), Color3.fromRGB(34, 32, 42), Enum.Material.Slate)

@@ -22,6 +22,8 @@ local Ui = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("UiView
 local ClientState = require(script.Parent.ClientState)
 local Climbing = require(script.Parent.Climbing)
 local Sfx = require(script.Parent.Sfx)
+local UiKit = require(script.Parent.UiKit)
+local HudLayout = require(script.Parent.HudLayout)
 
 local DragonRide = {}
 -- per i pulsanti del telefono (client/MobileControls): puoi salire, monta/scendi, spara
@@ -303,46 +305,36 @@ function DragonRide.start()
 		end
 	end)
 
-	-- pulsante (telefono e computer): compare con un drago adulto al seguito e la sella
+	-- pulsante sul computer (sul telefono Ride e Fire stanno nell'arco di MobileControls): stile
+	-- unico dell'interfaccia (UiKit, cornice di Codex) al posto della vecchia pillola arancio,
+	-- sopra il tasto Roar e spostabile col ⚙ dell'HUD (Mirko 17/10)
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "MontaDrago"
 	gui.ResetOnSpawn = false
 	gui.Parent = player:WaitForChild("PlayerGui")
 	local btn = Instance.new("TextButton")
 	btn.Name = "Ride"
-	btn.AnchorPoint = Vector2.new(1, 1)
-	btn.Size = UDim2.fromOffset(84, 40)
-	btn.Position = if UserInputService.TouchEnabled then UDim2.new(1, -24, 0.5, 0) else UDim2.new(1, -24, 1, -120)
-	-- pillola arancio piena, senza la cornice dorata attorno (Mirko: "cornici inutili")
-	btn.BackgroundColor3 = Color3.fromRGB(255, 138, 42)
-	btn.BackgroundTransparency = 0
-	btn.Font = Enum.Font.GothamBlack
-	btn.TextSize = 16
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.TextStrokeColor3 = Color3.fromRGB(11, 22, 51)
-	btn.TextStrokeTransparency = 0.2
-	btn.Text = "Ride"
+	btn.Text = "RIDE (H)"
 	btn.Visible = false
 	btn.Parent = gui
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0.5, 0)
-	corner.Parent = btn
-	local shine = Instance.new("UIGradient")
-	shine.Rotation = 90
-	shine.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(200, 170, 150))
-	shine.Parent = btn
+	UiKit.button(btn, "primary")
 	btn.Activated:Connect(toggle)
-	-- sul telefono: pulsante del colpo (sopra quello per scendere)
-	local fire = btn:Clone()
-	fire.Name = "Fire"
-	fire.Text = "Fire"
-	fire.BackgroundColor3 = Color3.fromRGB(255, 77, 94)
-	fire.Position = btn.Position - UDim2.fromOffset(0, 52)
-	fire.Visible = false
-	fire.Parent = gui
-	fire.Activated:Connect(function()
-		shoot(nil)
-	end)
+	HudLayout.register("Ride", btn, "RIDE (H)")
+	local lastVp: Vector2? = nil
+	local function layoutRide()
+		local vp = lastVp
+		if not vp then
+			return
+		end
+		Ui.fitScale(gui, vp)
+		Ui.px(btn, 1, -24, 1, -112, 150, 44, 1, 1)
+		HudLayout.place("Ride", btn)
+	end
+	HudLayout.onChange(layoutRide)
+	Ui.viewportChanged(function(vp)
+		lastVp = vp
+		layoutRide()
+	end, gui)
 
 	local r = remote()
 	if r then
@@ -448,9 +440,12 @@ function DragonRide.start()
 			-- sul telefono Ride e Fire stanno nell'arco dei comandi (MobileControls): qui prima
 			-- finivano a meta' schermo a destra, sotto il riquadro del meteo
 			local touch = Ui.touch()
-			btn.Visible = (can or form()) and not touch
-			btn.Text = if form() then "Leave (H)" elseif player:GetAttribute("Riding") then "Land (H)" else "Ride (H)"
-			fire.Visible = false
+			-- spento anche durante la schiusa, col menu aperto e con l'HUD nascosto
+			local menu = player.PlayerGui:FindFirstChild("MainMenu")
+			local busy = player:GetAttribute("SchiusaInCorso") == true or player:GetAttribute("HudNascosto") == true
+				or (menu ~= nil and menu:GetAttribute("MenuOpen") == true)
+			btn.Visible = (can or form()) and not touch and not busy
+			btn.Text = if form() then "LEAVE (H)" elseif player:GetAttribute("Riding") then "LAND (H)" else "RIDE (H)"
 		end
 		if not riding or not mover then
 			return
