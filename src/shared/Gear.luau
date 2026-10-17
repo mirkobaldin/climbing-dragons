@@ -26,6 +26,8 @@ export type Recipe = {
 	category: string,
 	-- materiali che ricevi (ricette "Materials": servono ai potenziamenti, cartella Materiali)
 	gives: { [string]: number }?,
+	-- attrezzo che serve prima (le vele del parapendio: Alpine -> Dragon Wings -> Storm Wyvern)
+	requires: string?,
 }
 
 local Gear = {}
@@ -71,6 +73,27 @@ local RECIPES: { Recipe } = {
 		description = "Jump while falling to open it and glide down the mountain.",
 		cost = { Ferro = 10, Cristallo = 4, Carbone = 8 },
 		station = "Banco",
+	},
+	-- Le altre due vele (modelli di Codex in ReplicatedStorage.Vele): piu' veloci e piu' lente a
+	-- scendere, ognuna chiede la precedente (Gear.GLIDERS). Materiali provvisori: quando ci saranno
+	-- i mostri a tema drago dei biomi (docs/CODEX_MOSTRI_BIOMI.md) i costi useranno i loro drop
+	{
+		id = "VelaDrago",
+		category = "Equipment",
+		name = "Dragon Wings",
+		description = "A glider with real dragon wings: faster, and you fall slower.",
+		cost = { Pelliccia_Yeti = 4, Cristallo_Ghiaccio = 4, Oro = 8, Rubino = 2 },
+		station = "Banco",
+		requires = "Parapendio",
+	},
+	{
+		id = "VelaTempesta",
+		category = "Equipment",
+		name = "Storm Wyvern Wings",
+		description = "Ancient storm wyvern wings: the fastest glider on the mountain.",
+		cost = { Nucleo_Glaciale = 3, Cristallo_Ghiaccio = 6, Rubino = 4, Cosmico = 4 },
+		station = "Banco",
+		requires = "VelaDrago",
 	},
 	{
 		id = "Sella",
@@ -173,6 +196,35 @@ end
 
 function Gear.has(player: Player, id: string): boolean
 	return player:GetAttribute("Gear_" .. id) == true
+end
+
+-- Le tre vele del parapendio, dalla piu' semplice: skin = modello in ReplicatedStorage.Vele,
+-- speed = velocita' avanti, fall = discesa (UpgradeConfig.GLIDE ha MIN_FALL_SPEED e il bonus
+-- del drago). Si usa la migliore che hai (o quella scelta: attributo GliderScelta)
+export type Glider = { id: string, skin: string, speed: number, fall: number }
+Gear.GLIDERS = {
+	{ id = "Parapendio", skin = "AlpineParaglider", speed = 52, fall = 9 },
+	{ id = "VelaDrago", skin = "DragonWings", speed = 62, fall = 7 },
+	{ id = "VelaTempesta", skin = "AncientStormWyvern", speed = 74, fall = 5.5 },
+} :: { Glider }
+
+-- la vela che usa il giocatore (nil = nessuna)
+function Gear.glider(player: Player): Glider?
+	local chosen = player:GetAttribute("GliderScelta")
+	local best: Glider? = nil
+	for _, g in Gear.GLIDERS do
+		if Gear.has(player, g.id) then
+			if g.id == chosen then
+				return g
+			end
+			best = g
+		end
+	end
+	return best
+end
+
+function Gear.hasGlider(player: Player): boolean
+	return Gear.glider(player) ~= nil
 end
 
 return Gear

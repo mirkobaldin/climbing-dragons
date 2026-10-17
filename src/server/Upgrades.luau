@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
 local Names = require(ReplicatedStorage.Shared.Names)
+local Gear = require(ReplicatedStorage.Shared.Gear)
 local Economy = require(script.Parent.Economy)
 local Survival = require(script.Parent.Survival)
 
@@ -588,7 +589,7 @@ function Upgrades.setup()
 	glide.Name = "Glide"
 	glide.Parent = ReplicatedStorage.Remotes
 	glide.OnServerEvent:Connect(function(player, on)
-		player:SetAttribute("Gliding", on == true and player:GetAttribute("Gear_Parapendio") == true)
+		player:SetAttribute("Gliding", on == true and Gear.hasGlider(player))
 	end)
 
 	-- gli altri contatori che crescono altrove (minerali, uova) avanzano le taglie

@@ -394,12 +394,17 @@ Theme.ITEM_ICONS = {
 	Bende = "item_Bende", Thermos = "item_Thermos", Tuta = "item_Tuta",
 	Torcia = "item_Torcia", Parapendio = "item_Parapendio", Ramponi = "item_Ramponi",
 	Rampino = "item_Rampino", PiccoRinforzato = "item_PiccoRinforzato", Sella = "item_Sella",
+	-- vele nuove: finche' Codex non disegna le loro icone, quella del parapendio
+	VelaDrago = "item_VelaDrago", VelaTempesta = "item_VelaTempesta",
 	MysteryEgg = "item_MysteryEgg", RareEgg = "item_RareEgg",
 	Piccozza = "item_Piccozza", Piccone = "item_Piccone",
 } :: { [string]: string }
 
 function Theme.itemIcon(image: ImageLabel, id: string, fallback: Instance?)
 	local asset = Theme.ITEM_ICONS[id] or ""
+	if (id == "VelaDrago" or id == "VelaTempesta") and not UiAssets.get(asset) then
+		asset = "item_Parapendio"
+	end
 	if id == "Sella" or id == "Parapendio" or id == "Chiodi" then fallback = nil end
 	Theme.assetPreview(image, asset, fallback)
 	image.ImageColor3 = if string.sub(asset, 1, 4) == "act_" then Color3.fromRGB(255, 205, 110) else Color3.new(1, 1, 1)

@@ -237,6 +237,10 @@ local function craft(player: Player, id: any): (boolean, string)
 	if not recipe.consumable and Gear.has(player, id) then
 		return false, "You already have it"
 	end
+	if recipe.requires and not Gear.has(player, recipe.requires) then
+		local need = Gear.find(recipe.requires)
+		return false, "First craft the " .. (if need then need.name else recipe.requires)
+	end
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
