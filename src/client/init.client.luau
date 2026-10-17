@@ -42,6 +42,7 @@ local FarmCoins = require(script.FarmCoins)
 local DragonReveal = require(script.DragonReveal)
 
 HUD.start()
+require(script.NewsPanel).start() -- WHAT'S NEW: si apre da solo una volta dopo un aggiornamento
 ClimbFeel.start()
 WeatherFX.start()
 Sprint.start()

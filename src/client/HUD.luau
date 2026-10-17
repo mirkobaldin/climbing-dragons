@@ -350,15 +350,21 @@ function HUD.start()
 		l.Position = UDim2.fromOffset(0, 0)
 		l.TextXAlignment = Enum.TextXAlignment.Left
 	end
-	-- ritratto: la foto riempie tutto il foro della cornice (un filo piu' grande: il bordo sta sotto
-	-- l'anello) e il suo fondo e' quello della foto stessa, tondo: niente cerchio che sporge
-	local avatar = Instance.new("Frame")
-	avatar.Name = "Avatar"
+	-- NOTIZIE al posto del ritratto (Mirko 17/10: "togliere l'icona del personaggio e mettere
+	-- l'icona delle notizie"): stessa cornice tonda, dentro l'icona delle novita' (icon_news; finche'
+	-- non c'e', la pergamena icon_quest) e un pallino rosso quando c'e' un aggiornamento non visto.
+	-- Tocco/clic = pannello WHAT'S NEW (client/NewsPanel)
+	local NewsPanel = require(script.Parent.NewsPanel)
+	local avatar = Instance.new("TextButton")
+	avatar.Name = "Notizie"
+	avatar.Text = ""
+	avatar.AutoButtonColor = false
 	avatar.BackgroundTransparency = 1
 	avatar.ZIndex = 8
+	avatar:SetAttribute("UiNative", true)
 	avatar.Parent = me
-	local photo = Instance.new("ImageLabel")
-	photo.Name = "Foto"
+	local photo = Instance.new("Frame")
+	photo.Name = "FondoNotizie" -- (non "Fondo": e' il nome che usa client/Cornici)
 	photo.BackgroundColor3 = Color3.fromRGB(28, 32, 44)
 	photo.BackgroundTransparency = 0
 	photo.BorderSizePixel = 0
@@ -370,6 +376,10 @@ function HUD.start()
 	local pc = Instance.new("UICorner")
 	pc.CornerRadius = UDim.new(0.5, 0)
 	pc.Parent = photo
+	local newsGrad = Instance.new("UIGradient")
+	newsGrad.Rotation = 90
+	newsGrad.Color = ColorSequence.new(Color3.fromRGB(60, 52, 40), Color3.fromRGB(20, 22, 30))
+	newsGrad.Parent = photo
 	if not Cornici.apply(avatar, "frame_portrait_player", { mode = "circle", z = 12 }) then
 		photo.Size = UDim2.fromScale(1, 1)
 		local st = Instance.new("UIStroke")
@@ -378,17 +388,55 @@ function HUD.start()
 		st:SetAttribute("KeepStroke", true)
 		st.Parent = photo
 	end
-	task.spawn(function()
-		local ok, img = pcall(function()
-			return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
-		end)
-		if ok and type(img) == "string" then
-			photo.Image = img
+	local newsIcon = Instance.new("ImageLabel")
+	newsIcon.Name = "Icona"
+	newsIcon.BackgroundTransparency = 1
+	newsIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+	newsIcon.Position = UDim2.fromScale(0.5, 0.46)
+	newsIcon.Size = UDim2.fromScale(0.62, 0.62)
+	newsIcon.ZIndex = 10
+	newsIcon.Parent = avatar
+	if not Ui.asset(newsIcon, "icon_news") then
+		Ui.asset(newsIcon, "icon_quest")
+	end
+	local newsLabel = text(avatar, "NEWS", 12, Theme.ACCENT)
+	newsLabel.AnchorPoint = Vector2.new(0.5, 1)
+	newsLabel.Position = UDim2.new(0.5, 0, 1, -6)
+	newsLabel.Size = UDim2.new(0.8, 0, 0, 14)
+	newsLabel.TextXAlignment = Enum.TextXAlignment.Center
+	newsLabel.ZIndex = 11
+	-- pallino rosso: c'e' qualcosa di nuovo (sopra la cornice, in alto a destra)
+	local dot = circle(avatar, Color3.fromRGB(235, 60, 60))
+	dot.Name = "Nuovo"
+	dot.AnchorPoint = Vector2.new(0.5, 0.5)
+	dot.Position = UDim2.fromScale(0.86, 0.14)
+	dot.Size = UDim2.fromScale(0.22, 0.22)
+	dot.ZIndex = 14
+	local ds = Instance.new("UIStroke")
+	ds.Color = Color3.fromRGB(20, 10, 10)
+	ds.Thickness = 2
+	ds:SetAttribute("KeepStroke", true)
+	ds.Parent = dot
+	local function paintNews()
+		dot.Visible = NewsPanel.unread()
+	end
+	NewsPanel.onSeen(paintNews)
+	HudLayout.onChange(paintNews) -- ControlsLayout arriva dal server dopo l'avvio
+	paintNews()
+	avatar.MouseEnter:Connect(function()
+		newsIcon.ImageColor3 = Color3.fromRGB(255, 225, 150)
+	end)
+	avatar.MouseLeave:Connect(function()
+		newsIcon.ImageColor3 = Color3.new(1, 1, 1)
+	end)
+	avatar.Activated:Connect(function()
+		if not HudLayout.editing() then
+			NewsPanel.open()
 		end
 	end)
 	local nameLabel = text(me, player.DisplayName, 15)
 	nameLabel.ZIndex = 8
-	HudLayout.register("Giocatore", me, "YOU")
+	HudLayout.register("Giocatore", me, "NEWS + BARS")
 
 	-- DRAGO: cerchio dell'elemento col livello nel cerchietto, barra del nome e barra dell'XP a
 	-- parallelogramma con la cornice (come quelle del giocatore)
