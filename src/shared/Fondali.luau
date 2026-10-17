@@ -322,7 +322,7 @@ local function make(element: string): Model
 	m.Name = element
 	local R = RADIUS
 	-- suolo e macchie
-	local ground = part(m, Vector3.new(1, R * 3, R * 3), CFrame.new(0, -0.5, 0) * CFrame.Angles(0, 0, math.pi / 2), t.ground, t.groundMat, Enum.PartType.Cylinder)
+	part(m, Vector3.new(1, R * 3, R * 3), CFrame.new(0, -0.5, 0) * CFrame.Angles(0, 0, math.pi / 2), t.ground, t.groundMat, Enum.PartType.Cylinder)
 	for _ = 1, 9 do
 		local a, r = rng:NextNumber(0, math.pi * 2), rng:NextNumber(0.3, 1.3) * R
 		local s = rng:NextNumber(4, 10)
@@ -355,7 +355,8 @@ local function make(element: string): Model
 		end
 	end
 	props(m, rng, t, R)
-	m.PrimaryPart = ground
+	-- niente PrimaryPart: il pivot del modello sarebbe quello del disco del suolo (girato di 90
+	-- gradi per fare il cilindro in piedi) e PivotTo girerebbe tutto il fondale
 	m.WorldPivot = CFrame.new()
 	return m
 end

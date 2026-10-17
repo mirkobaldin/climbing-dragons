@@ -126,7 +126,9 @@ local function dragonView(parent: Instance, d: any, spin: boolean, scene: boolea
 		-- l'anello di rocce sta oltre la camera, cosi' gira insieme al drago invece di restare
 		-- un'immagine piatta dietro (Mirko 17/10: "stona col modello che ruota")
 		local unit = dist * 1.3 / 22
-		Fondali.get(d.element, world, CFrame.lookAt(Vector3.new(base.X, bottom - h * 1.1, base.Z), Vector3.new(base.X, bottom - h * 1.1, base.Z) - front), unit)
+		-- davanti al palco (-Z) = verso la camera: le rocce alte stanno dietro il drago
+		local floor = Vector3.new(base.X, bottom - h * 1.1, base.Z)
+		Fondali.get(d.element, world, CFrame.lookAt(floor, floor + front), unit)
 		vf.Ambient = Color3.fromRGB(120, 118, 135)
 	end
 	local function aim(a: number)
