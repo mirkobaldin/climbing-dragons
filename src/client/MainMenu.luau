@@ -8,6 +8,7 @@ local DragonConfig = require(Shared:WaitForChild("DragonConfig"))
 local EconomyConfig = require(Shared:WaitForChild("EconomyConfig"))
 local Names = require(Shared:WaitForChild("Names"))
 local Gear = require(Shared:WaitForChild("Gear"))
+local Items = require(Shared:WaitForChild("Items"))
 local ShopConfig = require(Shared:WaitForChild("ShopConfig"))
 local Ui = require(Shared:WaitForChild("UiView"))
 local Theme = require(script.Parent.Theme)
@@ -385,6 +386,10 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 	removeBtn.Name = "Togli"
 	removeBtn.ZIndex = 5
 	removeBtn.Parent = actions
+	local useBtn = Instance.new("TextButton")
+	useBtn.Name = "Usa"
+	useBtn.ZIndex = 5
+	useBtn.Parent = actions
 	-- barra 1-5 dello zaino (stesse caselle della barra del gioco)
 	local barBox = Theme.frame(side, UiKit.INK, 0.3)
 	barBox.Name = "BarraAttrezzi"
@@ -407,7 +412,7 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		barSlots[i] = b
 	end
 
-	type Item = { key: string, title: string, count: number, asset: string, model: Instance?, id: string?, text: string, drop: string?, kind: string, tool: string?, equip: boolean?, missing: boolean? }
+	type Item = { key: string, title: string, count: number, asset: string, model: Instance?, id: string?, text: string, drop: string?, kind: string, tool: string?, equip: boolean?, missing: boolean?, use: string?, fallback: string? }
 	local selectedKey: string? = nil
 	local pickedSlot: number? = nil -- casella della barra scelta (per spostarla o toglierla)
 	local confirmAll = false
@@ -439,10 +444,21 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		-- attrezzi da tenere in mano (i Tool veri): sono quelli che vanno nella barra 1-5
 		local ownedTools: { [string]: boolean } = {}
 		for _, t in Hotbar.owned(player) do
-			if not ownedTools[t.Name] then
+			if not ownedTools[t.Name] and not t:GetAttribute("Oggetto") then
 				ownedTools[t.Name] = true
 				table.insert(out, { key = "tool:" .. t.Name, title = t.Name, count = 1, asset = "", tool = t.Name, kind = "Tools",
 					text = (if t.ToolTip ~= "" then t.ToolTip .. "\n" else "") .. "A tool you hold: put it in a hotbar slot to use it." })
+			end
+		end
+		-- oggetti che si usano e finiscono (shared/Items): quantita', USE, DROP e barra 1-5
+		local stock = player:FindFirstChild("Oggetti")
+		for _, def in Items.LIST do
+			local v = stock and stock:FindFirstChild(def.id)
+			local n = if v and v:IsA("IntValue") then v.Value else 0
+			if n > 0 then
+				table.insert(out, { key = "item:" .. def.id, title = def.name, count = n, asset = def.icon, fallback = def.fallback,
+					tool = def.name, use = def.id, drop = def.id, kind = "Items",
+					text = def.text .. "\nPut it in a hotbar slot and click to use it, or press USE." })
 			end
 		end
 		for _, ore in ORES do
@@ -638,13 +654,17 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 			infoKind.Text = ""
 			infoText.Text = if Ui.touch() then "Tap an item to see it. Hold and drag it onto another slot to move it."
 				else "Click an item to see it. Drag it onto another slot to move it."
-			dropOne.Visible, dropAll.Visible = false, false
+			dropOne.Visible, dropAll.Visible, useBtn.Visible = false, false, false
 			paintBar()
 			return
 		end
 		local item = it :: Item
 		infoIcon.Visible = true
-		if item.tool then
+		if item.use then
+			if not Ui.asset(infoIcon, item.asset) then
+				Ui.asset(infoIcon, item.fallback or "icon_quest")
+			end
+		elseif item.tool then
 			toolIcon(infoIcon, item.tool, nil)
 		elseif item.id and Theme.ITEM_ICONS[item.id] then
 			Theme.itemIcon(infoIcon, item.id, item.model)
@@ -652,7 +672,8 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 			Theme.assetPreview(infoIcon, item.asset, item.model)
 		end
 		infoTitle.Text = if item.drop then string.format("%s  x%d", item.title, item.count) else item.title
-		infoKind.Text = if item.tool then (if inBar then string.format("TOOL · IN SLOT %d", inBar) else "TOOL · NOT IN HOTBAR")
+		local what = if item.use then "ITEM" else "TOOL"
+		infoKind.Text = if item.tool then (if inBar then string.format("%s · IN SLOT %d", what, inBar) else what .. " · NOT IN HOTBAR")
 			else string.upper(item.kind)
 		infoKind.TextColor3 = if item.tool then UiKit.ACCENT else UiKit.MUTED
 		local extra = if item.tool then ""
@@ -662,7 +683,14 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		dropOne.Visible = item.drop ~= nil
 		dropAll.Visible = item.drop ~= nil
 		dropAll.Text = if confirmAll then "SURE?" else "DROP ALL"
-		removeBtn.Visible = inBar ~= nil
+		removeBtn.Visible = inBar ~= nil and item.use == nil
+		useBtn.Visible = item.use ~= nil
+		-- oggetti: USE | DROP 1 | DROP ALL; il resto: DROP 1 | DROP ALL
+		local third = item.use ~= nil
+		dropOne.Position = if third then UDim2.new(1 / 3, 2, 0, 0) else UDim2.fromScale(0, 0)
+		dropOne.Size = if third then UDim2.new(1 / 3, -4, 1, 0) else UDim2.new(0.5, -3, 1, 0)
+		dropAll.Position = if third then UDim2.new(2 / 3, 4, 0, 0) else UDim2.new(0.5, 3, 0, 0)
+		dropAll.Size = if third then UDim2.new(1 / 3, -4, 1, 0) else UDim2.new(0.5, -3, 1, 0)
 		paintBar()
 	end
 	local function drop(amount: any)
@@ -679,6 +707,16 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 	dropAll.Text = "DROP ALL"
 	UiKit.button(removeBtn, "secondary")
 	removeBtn.Text = "REMOVE FROM HOTBAR"
+	UiKit.button(useBtn, "primary")
+	useBtn.Text = "USE"
+	useBtn.Activated:Connect(function()
+		local it = chosen()
+		if not it or not it.use then
+			return
+		end
+		local ok, message = (remotes:WaitForChild("Shop") :: RemoteFunction):InvokeServer("use", it.use)
+		status(message or "", ok)
+	end)
 	dropOne.Activated:Connect(function()
 		confirmAll = false
 		drop(1)
@@ -973,7 +1011,10 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		dropAll.Size = UDim2.new(0.5, -3, 1, 0)
 		removeBtn.Position = UDim2.fromScale(0, 0)
 		removeBtn.Size = UDim2.fromScale(1, 1)
-		for _, b in { dropOne, dropAll, removeBtn } do
+		-- oggetti: USE | DROP 1 | DROP ALL
+		useBtn.Position = UDim2.fromScale(0, 0)
+		useBtn.Size = UDim2.new(1 / 3, -4, 1, 0)
+		for _, b in { dropOne, dropAll, removeBtn, useBtn } do
 			b.TextSize = 15
 		end
 		infoScroll.Position = UDim2.fromOffset(0, ic + 8)
@@ -1983,7 +2024,7 @@ function MainMenu.start()
 	for id in DragonConfig.GAMEPASSES do
 		player:GetAttributeChangedSignal("Pass_" .. id):Connect(refreshOpen)
 	end
-	for _, folderName in { "Ores", "Materiali" } do
+	for _, folderName in { "Ores", "Materiali", "Oggetti" } do
 		task.spawn(function()
 			local folder = player:WaitForChild(folderName, 120)
 			if not folder then

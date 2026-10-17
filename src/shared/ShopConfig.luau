@@ -23,14 +23,14 @@ ShopConfig.ITEMS = {
 	{
 		id = "Medkit",
 		name = "Medkit",
-		description = "Full health, right now.",
+		description = "Full health when you use it. Goes into your backpack and hotbar.",
 		price = 40,
 		color = Color3.fromRGB(220, 70, 70),
 	},
 	{
 		id = "Thermos",
 		name = "Hot Flask",
-		description = "Warmth back to 100% (handy up high).",
+		description = "Warmth back to 100% when you drink it. Goes into your backpack and hotbar.",
 		price = 30,
 		color = Color3.fromRGB(255, 150, 70),
 	},

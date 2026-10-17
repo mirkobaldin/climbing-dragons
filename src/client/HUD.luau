@@ -101,6 +101,8 @@ local function toolBar(gui: ScreenGui)
 			humanoid:EquipTool(tool)
 		end
 	end
+	local watchedQty: { [Tool]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+	local queue: () -> ()
 	local function refresh()
 		for _, c in bar:GetChildren() do
 			if c:IsA("GuiObject") then
@@ -174,11 +176,25 @@ local function toolBar(gui: ScreenGui)
 				b.Activated:Connect(function()
 					equip(i)
 				end)
+				-- oggetti che finiscono (shared/Items): quanti ne restano, in basso a destra
+				local qty = tool:GetAttribute("Quantita")
+				if type(qty) == "number" then
+					local q = text(b, "x" .. qty, 13, Theme.TEXT)
+					q.AnchorPoint = Vector2.new(1, 1)
+					q.Position = UDim2.new(1, -4, 1, -2)
+					q.Size = UDim2.fromOffset(36, 16)
+					q.TextXAlignment = Enum.TextXAlignment.Right
+					q.ZIndex = 5
+					if not watchedQty[tool] then
+						watchedQty[tool] = true
+						tool:GetAttributeChangedSignal("Quantita"):Connect(queue)
+					end
+				end
 			end
 		end
 	end
 	local pending = false
-	local function queue()
+	function queue()
 		if pending then
 			return
 		end

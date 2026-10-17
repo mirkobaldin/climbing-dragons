@@ -127,7 +127,7 @@ local RECIPES: { Recipe } = {
 		id = "Bende",
 		category = "Consumables",
 		name = "Bandages",
-		description = "Patch yourself up after a fall: +40 health.",
+		description = "Patch yourself up after a fall: +40 health. They go into your backpack and hotbar.",
 		cost = { Cristallo = 1, Carbone = 1 },
 		station = "Ovunque",
 		consumable = true,

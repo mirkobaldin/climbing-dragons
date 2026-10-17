@@ -23,6 +23,7 @@ local Survival = require(script.Parent.Survival)
 local Upgrades = require(script.Parent.Upgrades)
 local Guardia = require(script.Parent.Guardia)
 local Drops = require(script.Parent.Drops)
+local Items = require(script.Parent.Items)
 
 local Progression = {}
 
@@ -100,6 +101,7 @@ local function save(player: Player)
 		hotbar = player:GetAttribute("HotbarOrder"), -- attrezzi nelle caselle 1-5 (client/MainMenu, client/HUD)
 		missions = player:GetAttribute("MissionStep"),
 		upgrades = Upgrades.serialize(player), -- potenziamenti, statistiche, taglie, rinascite
+		items = Items.serialize(player), -- oggetti consumabili e minuti delle pozioni (server/Items)
 		materials = (function() -- materiali raccolti (drop dei nemici)
 			local t = {}
 			local f = player:FindFirstChild("Materiali")
@@ -154,6 +156,7 @@ local function load(player: Player)
 	local tutorial: any = nil
 	local missions: any = nil
 	local upgradeData: any = nil
+	local itemData: any = nil
 	-- prova del primo accesso (solo in Studio): con ServerStorage.ProvaProfiloNuovo si parte da un
 	-- profilo vuoto e non si salva niente (il salvataggio vero resta com'era)
 	local fresh = game:GetService("RunService"):IsStudio() and game:GetService("ServerStorage"):FindFirstChild("ProvaProfiloNuovo") ~= nil
@@ -191,6 +194,7 @@ local function load(player: Player)
 			end
 			missions = data.missions
 			upgradeData = data.upgrades
+			itemData = data.items
 			if type(data.materials) == "table" then
 				local f = Instance.new("Folder")
 				f.Name = "Materiali"
@@ -229,6 +233,7 @@ local function load(player: Player)
 	Dragons.refresh(player)
 	updateTotal(player)
 	giveTools(player)
+	Items.load(player, itemData)
 end
 
 -- Costruzione: controlla e scala i minerali, poi assegna l'attrezzo
@@ -249,7 +254,6 @@ local function craft(player: Player, id: any): (boolean, string)
 	end
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	-- si crafta solo a un banco: a casa (arriva con la Tenda) o in un campo base
 	local nearBench = false
 	if root then
@@ -281,8 +285,6 @@ local function craft(player: Player, id: any): (boolean, string)
 		return false, "You already carry as many pitons as you can"
 	elseif id == "Torcia" and ((character and character:FindFirstChild(ClimbConfig.TORCH_NAME)) or player.Backpack:FindFirstChild(ClimbConfig.TORCH_NAME)) then
 		return false, "You already have a torch"
-	elseif id == "Bende" and (not humanoid or humanoid.Health >= humanoid.MaxHealth) then
-		return false, "You're not hurt"
 	end
 	-- i costi possono essere minerali (Ores) o materiali dei nemici (Materiali)
 	local function costValue(name: string): IntValue
@@ -317,14 +319,14 @@ local function craft(player: Player, id: any): (boolean, string)
 		if torch then
 			torch.Parent = player.Backpack
 		end
-	elseif id == "Bende" and humanoid then
-		humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + 40)
+	elseif id == "Bende" then
+		Items.add(player, "Bende", 1) -- nello zaino e nella barra 1-5 (server/Items)
 	else
 		player:SetAttribute("Gear_" .. id, true)
 		giveTools(player)
 	end
 	task.spawn(save, player)
-	return true, recipe.name .. " crafted!"
+	return true, recipe.name .. (if id == "Bende" then " crafted: they're in your backpack" else " crafted!")
 end
 
 -- Freddo in quota

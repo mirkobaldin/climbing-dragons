@@ -17,6 +17,7 @@ local Economy = require(script.Parent.Economy)
 local Eggs = require(script.Parent.Eggs)
 local Ropes = require(script.Parent.Ropes)
 local Guardia = require(script.Parent.Guardia)
+local Items = require(script.Parent.Items)
 
 local Shop = {}
 
@@ -55,17 +56,13 @@ local function buy(player: Player, id: string): (boolean, string)
 	if Economy.coins(player) < item.price then
 		return false, string.format("You need %d coins", item.price)
 	end
-	local character = player.Character
-	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if id == "Pitons" then
 		Ropes.refill(player)
-	elseif id == "Medkit" then
-		if not humanoid then
-			return false, "No character"
-		end
-		humanoid.Health = humanoid.MaxHealth
-	elseif id == "Thermos" then
-		player:SetAttribute("Warmth", 100)
+	elseif id == "Medkit" or id == "Thermos" then
+		-- nello zaino e nella barra 1-5: si usa quando serve (prima si usava subito al banco)
+		Items.add(player, id, 1)
+		Economy.addCoins(player, -item.price)
+		return true, item.name .. " bought: it's in your backpack"
 	elseif id == "MysteryEgg" or id == "RareEgg" then
 		local rarity = roll(ShopConfig.EGG_ODDS[id])
 		local element = randomElement()
@@ -121,9 +118,20 @@ local function handle(player: Player, action: any, id: any, amount: any): (boole
 		return buy(player, id)
 	elseif action == "sellOre" and type(id) == "string" then
 		return sellOre(player, id, amount)
+	elseif action == "use" and type(id) == "string" then
+		return Items.use(player, id) -- USE nello zaino
 	elseif action == "discard" and type(id) == "string" then
-		-- butta via minerali o materiali dallo zaino (client/MainMenu, pulsanti Drop 1 / Drop all)
+		-- butta via minerali, materiali o oggetti dallo zaino (client/MainMenu, Drop 1 / Drop all)
 		local kind, name = string.match(id, "^(%a+):(.+)$")
+		if kind == "item" and name then
+			local have = Items.count(player, name)
+			if have <= 0 then
+				return false, "You don't have any"
+			end
+			local n = if amount == "all" then have else math.clamp(math.floor(tonumber(amount) or 1), 1, have)
+			Items.add(player, name, -n)
+			return true, string.format("Dropped %d", n)
+		end
 		local folder = player:FindFirstChild(if kind == "ore" then "Ores" elseif kind == "mat" then "Materiali" else "")
 		local v = folder and name and folder:FindFirstChild(name)
 		if not v or not v:IsA("IntValue") or v.Value <= 0 then
