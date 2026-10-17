@@ -47,7 +47,8 @@ function HudLayout.data(): { [string]: any }
 			end)
 			if ok and type(decoded) == "table" then
 				for k, v in decoded do
-					if type(k) == "string" and type(v) == "table" then
+					-- tabelle (posizioni) e valori semplici (Opacita, Novita...)
+					if type(k) == "string" and (type(v) == "table" or type(v) == "number" or type(v) == "string" or type(v) == "boolean") then
 						t[k] = v
 					end
 				end
@@ -215,13 +216,21 @@ local function save()
 	;(remote :: RemoteEvent):FireServer(raw)
 end
 
+-- voci di ControlsLayout che non sono disposizione: RESET non le tocca
+local KEEP_ON_RESET: { [string]: boolean } = { Novita = true, Regali = true }
+
+-- salva subito ControlsLayout (lo usa anche chi ci tiene altre voci, es. le notizie viste)
+function HudLayout.save()
+	save()
+end
+
 function HudLayout.reset()
 	local d = HudLayout.data()
 	d["HUD_" .. HudLayout.device()] = nil
 	if HudLayout.device() == "touch" then
 		-- anche i tasti del telefono e il vecchio MenuFrac tornano a posto
 		for k in d do
-			if string.sub(k, 1, 4) ~= "HUD_" then
+			if string.sub(k, 1, 4) ~= "HUD_" and not KEEP_ON_RESET[k] then
 				d[k] = nil
 			end
 		end
@@ -284,10 +293,56 @@ local function makeBar(): ScreenGui
 	done.Activated:Connect(function()
 		HudLayout.setEditing(false)
 	end)
+	-- trasparenza dei tasti del telefono (Mirko 17/10: "troppo colorati: piu' trasparenti o
+	-- un'opzione per regolare l'opacita'"): − / + a passi del 10%
+	local row = Instance.new("Frame")
+	row.Name = "Opacita"
+	row.BackgroundTransparency = 1
+	row.Position = UDim2.fromOffset(22, 84)
+	row.Size = UDim2.new(1, -44, 0, 36)
+	row.ZIndex = 3
+	row.Parent = panel
+	local rowTitle = UiKit.label(row, "BUTTON OPACITY", "status", 14)
+	rowTitle.Position = UDim2.fromOffset(0, 0)
+	rowTitle.Size = UDim2.new(0, 170, 1, 0)
+	rowTitle.ZIndex = 4
+	local value = UiKit.label(row, "", "stat", 18)
+	value.TextXAlignment = Enum.TextXAlignment.Center
+	value.Position = UDim2.fromOffset(222, 0)
+	value.Size = UDim2.new(0, 70, 1, 0)
+	value.ZIndex = 4
+	local function step(text: string, x: number, delta: number)
+		local b = Instance.new("TextButton")
+		b.Name = if delta < 0 then "Meno" else "Piu"
+		b.Position = UDim2.fromOffset(x, 0)
+		b.Size = UDim2.fromOffset(46, 36)
+		b.ZIndex = 4
+		b.Parent = row
+		UiKit.button(b, "secondary")
+		b.Text = text
+		b.Activated:Connect(function()
+			HudLayout.setOpacity(HudLayout.opacity() + delta)
+			value.Text = string.format("%d%%", math.floor(HudLayout.opacity() * 100 + 0.5))
+		end)
+	end
+	step("-", 172, -0.1)
+	step("+", 296, 0.1)
+	value.Text = string.format("%d%%", math.floor(HudLayout.opacity() * 100 + 0.5))
 	Ui.viewportChanged(function(vp)
 		Ui.fitScale(g, vp)
 	end, g)
 	return g
+end
+
+-- opacita' dei tasti del telefono (0,2 .. 1), salvata in ControlsLayout (voce Opacita)
+HudLayout.DEFAULT_OPACITY = 0.6
+function HudLayout.opacity(): number
+	local v = HudLayout.data().Opacita
+	return if type(v) == "number" then math.clamp(v, 0.2, 1) else HudLayout.DEFAULT_OPACITY
+end
+function HudLayout.setOpacity(v: number)
+	HudLayout.data().Opacita = math.floor(math.clamp(v, 0.2, 1) * 10 + 0.5) / 10
+	fire()
 end
 
 function HudLayout.setEditing(on: boolean)
@@ -301,6 +356,22 @@ function HudLayout.setEditing(on: boolean)
 	end
 	local b = bar :: ScreenGui
 	b.Enabled = on
+	-- la riga dell'opacita' solo dove ci sono i tasti da toccare
+	local panel = b:FindFirstChild("Barra") :: Frame?
+	local row = panel and panel:FindFirstChild("Opacita") :: Frame?
+	if panel and row then
+		row.Visible = Ui.touch()
+		panel.Size = UDim2.fromOffset(560, if Ui.touch() then 128 else 84)
+		local value = row:FindFirstChildWhichIsA("TextLabel")
+		for _, l in row:GetChildren() do
+			if l:IsA("TextLabel") and l.TextXAlignment == Enum.TextXAlignment.Center then
+				value = l
+			end
+		end
+		if value then
+			value.Text = string.format("%d%%", math.floor(HudLayout.opacity() * 100 + 0.5))
+		end
+	end
 	local hint = b:FindFirstChild("Aiuto", true) :: TextLabel?
 	if hint then
 		hint.Text = if Ui.touch() then "Drag the highlighted parts and the buttons where you like."

@@ -22,6 +22,19 @@ local MobileControls = {}
 
 -- ordine nell'arco: il primo sta subito a sinistra del salto (il piu' comodo), poi si sale
 local ORDER = { "Fire", "Glide", "Throw", "Mine", "Grapple", "Climb", "JumpOff", "Piton", "Release", "Shoot", "Ride", "Run" }
+-- posto fisso di ogni azione nell'arco attorno al salto (1 = il piu' comodo, accanto al salto):
+--   1 azione principale: Climb (a piedi vicino alla parete) / Piton (in parete) / Fire (in groppa)
+--     / Shoot (forma di drago): non capitano mai insieme
+--   2 attrezzo in mano: JumpOff (in parete) / Mine (piccone) / Throw (piccozze) / Grapple (rampino)
+--   3 Release (corda attaccata) / Glide (in caduta)
+--   4 Ride / Land      5 Run / Walk
+local SLOT_OF: { [string]: number } = {
+	Climb = 1, Piton = 1, Fire = 1, Shoot = 1,
+	JumpOff = 2, Mine = 2, Throw = 2, Grapple = 2,
+	Release = 3, Glide = 3,
+	Ride = 4,
+	Run = 5,
+}
 -- un colore per comando: prima erano tutti uguali (blu scuro) e non si distinguevano
 local COLORS: { [string]: Color3 } = {
 	Fire = Theme.BAD,
@@ -198,23 +211,14 @@ function MobileControls.start()
 		copy()
 		b.TextTransparency = 1
 		b.TextStrokeTransparency = 1
-		-- TASTO IN RILIEVO (Mirko 16/10: "effetto 3d"): faccia colorata con la luce in alto, base
-		-- piu' scura sotto che fa da spessore, bordo scuro. Premuto: faccia, icona e scritta
-		-- scendono sulla base (il tasto si abbassa davvero). Il colore resta quello di Ui.tint
-		-- (BackgroundColor3 del pulsante), il fondo vero del pulsante resta trasparente
+		-- TASTO PIATTO (Mirko 17/10: "troppo colorati", "non farli sembrare in rilievo, devono
+		-- essere piatti"): fondo scuro traslucido, anello sottile e icona del colore dell'azione,
+		-- scritta bianca. Quanto si vedono lo sceglie il giocatore (barra EDIT HUD, voce Opacita di
+		-- ControlsLayout, HudLayout.opacity). Premuto: il fondo prende il colore dell'azione
 		local surface = b:FindFirstChild("AssetSurface")
 		if surface and surface:IsA("GuiObject") then
 			surface.Visible = false
 		end
-		local DEPTH = 5
-		local base = Instance.new("Frame")
-		base.Name = "Base"
-		base.BorderSizePixel = 0
-		base.Size = UDim2.fromScale(1, 1)
-		base.Position = UDim2.fromOffset(0, DEPTH)
-		base.ZIndex = 0
-		base.Active = false
-		base.Parent = b
 		local face = Instance.new("Frame")
 		face.Name = "Faccia"
 		face.BorderSizePixel = 0
@@ -222,60 +226,56 @@ function MobileControls.start()
 		face.ZIndex = 1
 		face.Active = false
 		face.Parent = b
-		for _, f in { base, face } do
-			local c = Instance.new("UICorner")
-			c.CornerRadius = UDim.new(0.5, 0)
-			c.Parent = f
-		end
-		local light = Instance.new("UIGradient")
-		light.Rotation = 90
-		light.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(150, 150, 150))
-		light.Parent = face
+		local fc = Instance.new("UICorner")
+		fc.CornerRadius = UDim.new(0.5, 0)
+		fc.Parent = face
 		local rim = Instance.new("UIStroke")
-		rim.Color = Color3.fromRGB(8, 10, 16)
 		rim.Thickness = 2
-		rim.Transparency = 0.15
+		rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 		rim:SetAttribute("KeepStroke", true)
 		rim.Parent = face
+		for _, st in b:GetChildren() do
+			if st:IsA("UIStroke") and not st:GetAttribute("KeepStroke") then
+				st.Enabled = false
+			end
+		end
+		local pressed = false
 		local function paint()
 			local col = b.BackgroundColor3
-			face.BackgroundColor3 = col
-			base.BackgroundColor3 = col:Lerp(Color3.new(0, 0, 0), 0.6)
+			local o = HudLayout.opacity()
 			if b.BackgroundTransparency < 1 then
 				b.BackgroundTransparency = 1
 			end
+			face.BackgroundColor3 = if pressed then col:Lerp(Color3.new(0, 0, 0), 0.35) else Color3.fromRGB(10, 13, 20)
+			face.BackgroundTransparency = if pressed then 0.25 else 1 - 0.7 * o
+			rim.Color = col
+			rim.Transparency = 1 - o
+			if icon then
+				icon.ImageColor3 = col:Lerp(Color3.new(1, 1, 1), 0.45)
+				icon.ImageTransparency = (1 - o) * 0.7
+			end
+			tag.TextTransparency = (1 - o) * 0.7
+			tag.TextStrokeTransparency = 0.35 + (1 - o) * 0.5
 		end
 		b:GetPropertyChangedSignal("BackgroundColor3"):Connect(paint)
 		b:GetPropertyChangedSignal("BackgroundTransparency"):Connect(paint)
-		for _, s in b:GetChildren() do
-			if s:IsA("UIStroke") and not s:GetAttribute("KeepStroke") then
-				s.Enabled = false -- il bordo ora e' quello della faccia
-			end
-		end
+		HudLayout.onChange(paint)
 		paint()
-		local iconBase = if icon then icon.Position else nil
-		local tagBase = tag.Position
-		local function press(down: boolean)
-			local dy = if down then DEPTH - 1 else 0
-			face.Position = UDim2.fromOffset(0, dy)
-			light.Rotation = if down then 270 else 90
-			if icon and iconBase then
-				icon.Position = iconBase + UDim2.fromOffset(0, dy)
-			end
-			tag.Position = tagBase + UDim2.fromOffset(0, dy)
-		end
 		b.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-				press(true)
+				pressed = true
+				paint()
 			end
 		end)
 		b.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-				press(false)
+				pressed = false
+				paint()
 			end
 		end)
 		b.MouseLeave:Connect(function()
-			press(false)
+			pressed = false
+			paint()
 		end)
 		if icon then
 			icon.ZIndex = math.max(icon.ZIndex, 2)
@@ -362,8 +362,28 @@ function MobileControls.start()
 			-- terzo giro (si vede quasi solo quando sposti i tasti: li' compaiono tutti)
 			{ r2 + size + 8, 180 }, { r2 + size + 8, 160 }, { r2 + size + 8, 140 }, { r2 + size + 8, 120 },
 		}
+		-- POSTI FISSI (Mirko 17/10: "un layout adeguato, tenendo conto che non tutti appaiono
+		-- sempre"): ogni azione ha il suo posto e quelle che non compaiono mai insieme dividono lo
+		-- stesso (vedi SLOT_OF). Prima i tasti visibili si mettevano in fila e, quando ne compariva
+		-- uno, tutti gli altri cambiavano posto sotto il pollice. Se due capitano insieme sullo
+		-- stesso posto, il secondo va nel primo posto libero del secondo giro. In modifica ognuno
+		-- ha un posto suo (si vedono tutti)
+		local used: { [number]: boolean } = {}
+		local placeOf: { [string]: number } = {}
 		for i, name in visible do
+			local want = if editing then i else (SLOT_OF[name] or 6)
+			if used[want] then
+				want = 6
+				while used[want] and want < #slots do
+					want += 1
+				end
+			end
+			used[want] = true
+			placeOf[name] = want
+		end
+		for _, name in visible do
 			local b = actions[name] :: TextButton
+			local i = placeOf[name]
 			local s = slots[math.min(i, #slots)]
 			local a = math.rad(s[2])
 			b.Size = UDim2.fromOffset(if i == 1 then size + 8 else size, if i == 1 then size + 8 else size)
