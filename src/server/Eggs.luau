@@ -165,6 +165,11 @@ local function placeEgg(pos: Vector3, element: string, rarity: string, extra: { 
 	local model = DragonModels.egg(element, rarity)
 	local _, size = model:GetBoundingBox()
 	model:PivotTo(CFrame.new(pos + Vector3.new(0, size.Y / 2 - 0.2, 0)) * CFrame.Angles(0, rng:NextNumber(0, 6.28), rng:NextNumber(-0.2, 0.2)))
+	-- appoggiato davvero: le uova 3D nuove non hanno il pivot al centro e finivano mezze sotto
+	-- terra (Mirko 17/10, uovo del tutorial). Il fondo del riquadro va 0,2 studs sotto il suolo
+	local bcf, bsize = model:GetBoundingBox()
+	local bottom = bcf.Position.Y - bsize.Y / 2
+	model:PivotTo(model:GetPivot() + Vector3.new(0, (pos.Y - 0.2) - bottom, 0))
 	local id = "Egg" .. nextEggId
 	nextEggId += 1
 	model.Name = id
@@ -412,7 +417,14 @@ local function tutorialEgg()
 	local t = workspace:FindFirstChild("Tutorial")
 	local spot = t and t:FindFirstChild("EggSpot") :: BasePart?
 	if spot then
-		placeEgg(spot.Position, "Roccia", "Comune", { Quick = true, TutorialSpot = spot.Position })
+		-- sul suolo vero sotto (o sopra) il segnaposto: il terreno attorno alla parete e' in
+		-- pendenza e il segnaposto poteva restare sotto terra
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Include
+		params.FilterDescendantsInstances = { workspace.Terrain }
+		local hit = workspace:Raycast(spot.Position + Vector3.new(0, 60, 0), Vector3.new(0, -120, 0), params)
+		local at = if hit then hit.Position else spot.Position
+		placeEgg(at, "Roccia", "Comune", { Quick = true, TutorialSpot = at })
 	end
 end
 

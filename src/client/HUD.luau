@@ -1141,6 +1141,9 @@ function HUD.start()
 		if os.clock() - armedAt > 4 then
 			skip.Text = "SKIP"
 		end
+		-- tutorial obbligatorio per chi e' nuovo (Mirko 17/10): niente SKIP finche' non e' finito
+		-- (server/Tutorial mette TutorialSaltabile a chi ha gia' draghi o e' admin)
+		skip.Visible = not inTutorial or player:GetAttribute("TutorialSaltabile") == true
 	end
 	local lastHint, hintTime = "", 0
 	local lastNotice: any = nil

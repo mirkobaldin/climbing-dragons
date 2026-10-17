@@ -93,6 +93,12 @@ function Teleports.setup()
 		if type(name) ~= "string" then
 			return
 		end
+		-- niente viaggi durante il tutorial obbligatorio (server/Tutorial)
+		if player:GetAttribute("TutorialText") ~= nil and player:GetAttribute("TutorialSaltabile") ~= true then
+			player:SetAttribute("Notice", "Finish the tutorial first: follow the arrows!")
+			player:SetAttribute("NoticeTime", os.clock())
+			return
+		end
 		local need = Teleports.NEEDS[name]
 		local blocked = if need == "dragon" then ((player:GetAttribute("DragonCount") or 0) :: number) < 1
 			elseif need == "chalet" then ((player:GetAttribute("HouseLevel") or 0) :: number) < 3

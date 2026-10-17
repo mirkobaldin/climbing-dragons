@@ -178,6 +178,69 @@ local function publish(player: Player, step: number)
 	end
 end
 
+-- TUTORIAL OBBLIGATORIO (Mirko 17/10: "ora puoi fare tutto, vai ovunque"): finche' non e'
+-- finito si resta nella zona del tutorial = cerchi attorno ai suoi punti (campo base, parete,
+-- negozio, uovo, accampamento, nido e obiettivo di adesso). Chi esce torna al punto piu' vicino
+local LEASH = 170
+local lastPull: { [Player]: number } = {}
+local function leash(player: Player, memo: { [string]: any }, target: Vector3?)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not root or not humanoid or humanoid.Health <= 0 then
+		return
+	end
+	local markers = workspace:FindFirstChild("MapMarkers")
+	local hub = markers and markers:FindFirstChild("HubSpawn")
+	local anchors: { Vector3 } = {}
+	for _, v in { memo.wallBase, memo.wallTop, memo.shop, memo.ore, memo.eggSpot, target,
+		if hub and hub:IsA("BasePart") then hub.Position else nil,
+		player:GetAttribute("PlotPosition"), player:GetAttribute("NestPosition") } :: { any } do
+		if typeof(v) == "Vector3" then
+			table.insert(anchors, v)
+		end
+	end
+	if #anchors == 0 then
+		return
+	end
+	local pos = root.Position
+	local flat = Vector3.new(pos.X, 0, pos.Z)
+	local best, bestD = anchors[1], math.huge
+	for _, a in anchors do
+		local d = Vector3.new(pos.X - a.X, 0, pos.Z - a.Z).Magnitude
+		if d < bestD then
+			best, bestD = a, d
+		end
+	end
+	-- anche lungo la strada fra un punto e l'altro (corridoi): l'obiettivo puo' essere lontano
+	local corridor = math.huge
+	for i = 1, #anchors do
+		for j = i + 1, #anchors do
+			local a = Vector3.new(anchors[i].X, 0, anchors[i].Z)
+			local b = Vector3.new(anchors[j].X, 0, anchors[j].Z)
+			local ab = b - a
+			local t = if ab.Magnitude > 1 then math.clamp((flat - a):Dot(ab) / ab:Dot(ab), 0, 1) else 0
+			corridor = math.min(corridor, (flat - (a + ab * t)).Magnitude)
+		end
+	end
+	bestD = math.min(bestD, corridor)
+	-- anche in altezza: la parete e' bassa, sulla montagna vera non si sale
+	local tooHigh = pos.Y > best.Y + 120
+	if bestD <= LEASH and not tooHigh then
+		return
+	end
+	if os.clock() - (lastPull[player] or 0) < 2 then
+		return
+	end
+	lastPull[player] = os.clock()
+	character:PivotTo(CFrame.new(best + Vector3.new(0, 4, 0)))
+	player:SetAttribute("Notice", "Finish the tutorial first: follow the arrows!")
+	player:SetAttribute("NoticeTime", os.clock())
+end
+Players.PlayerRemoving:Connect(function(player)
+	lastPull[player] = nil
+end)
+
 local runFn: ((Player) -> ())? = nil
 
 -- Ricomincia il tutorial (comando admin)
@@ -212,6 +275,9 @@ function Tutorial.setup()
 	skip.Name = "SkipTutorial"
 	skip.Parent = ReplicatedStorage:WaitForChild("Remotes")
 	skip.OnServerEvent:Connect(function(player)
+		if player:GetAttribute("TutorialSaltabile") ~= true then
+			return -- chi e' nuovo il tutorial lo deve fare (Mirko 17/10)
+		end
 		publish(player, #STEPS + 1)
 		player:SetAttribute("TutorialText", nil)
 	end)
@@ -235,6 +301,8 @@ function Tutorial.setup()
 		end
 		local memo = points()
 		local step = player:GetAttribute("TutorialStep") :: number
+		-- si puo' saltare solo se hai gia' un drago (vecchi salvataggi a meta' tutorial) o sei admin
+		player:SetAttribute("TutorialSaltabile", ((player:GetAttribute("DragonCount") or 0) :: number) > 0 or player:GetAttribute("IsAdmin") == true)
 		publish(player, step)
 		while player.Parent and step <= #STEPS do
 			task.wait(0.5)
@@ -242,6 +310,9 @@ function Tutorial.setup()
 			local s = STEPS[step]
 			if s then
 				player:SetAttribute("GuideTarget", s.target(player, memo))
+				if player:GetAttribute("TutorialSaltabile") ~= true then
+					leash(player, memo, s.target(player, memo))
+				end
 			end
 			if s and s.check(player, memo) then
 				step += 1
