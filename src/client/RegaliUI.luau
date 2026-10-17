@@ -123,9 +123,16 @@ function RegaliUI.start()
 		local k = if su and su.Scale > 0 then su.Scale else 1
 		if opts and opts.AbsoluteSize.X > 0 then
 			local left = (opts.AbsolutePosition.X - gui.AbsolutePosition.X) / k
+			local right = left + opts.AbsoluteSize.X / k
 			local midY = (opts.AbsolutePosition.Y - gui.AbsolutePosition.Y + opts.AbsoluteSize.Y / 2) / k
-			box.AnchorPoint = Vector2.new(1, 0)
-			box.Position = UDim2.fromOffset(left - 10, midY - 26)
+			-- a sinistra del gruppo; se il gruppo e' stato spostato sul bordo sinistro, a destra
+			if left - 10 - box.AbsoluteSize.X / k < 0 then
+				box.AnchorPoint = Vector2.new(0, 0)
+				box.Position = UDim2.fromOffset(right + 10, midY - 26)
+			else
+				box.AnchorPoint = Vector2.new(1, 0)
+				box.Position = UDim2.fromOffset(left - 10, midY - 26)
+			end
 		else
 			box.AnchorPoint = Vector2.new(1, 0)
 			box.Position = UDim2.new(1, -460, 0, 8)

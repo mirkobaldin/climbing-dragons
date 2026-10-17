@@ -275,6 +275,14 @@ function MobileControls.start()
 				paint()
 			end
 		end)
+		-- rilascio ovunque: se il tasto cambia sotto il dito (Ride -> Land) il suo InputEnded non
+		-- arriva e restava "premuto" (pieno di colore)
+		game:GetService("UserInputService").InputEnded:Connect(function(input)
+			if pressed and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
+				pressed = false
+				paint()
+			end
+		end)
 		b.MouseLeave:Connect(function()
 			pressed = false
 			paint()

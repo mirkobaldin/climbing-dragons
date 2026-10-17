@@ -154,7 +154,13 @@ local function load(player: Player)
 	local tutorial: any = nil
 	local missions: any = nil
 	local upgradeData: any = nil
-	if store then
+	-- prova del primo accesso (solo in Studio): con ServerStorage.ProvaProfiloNuovo si parte da un
+	-- profilo vuoto e non si salva niente (il salvataggio vero resta com'era)
+	local fresh = game:GetService("RunService"):IsStudio() and game:GetService("ServerStorage"):FindFirstChild("ProvaProfiloNuovo") ~= nil
+	if fresh then
+		player:SetAttribute("NoSave", true)
+	end
+	if store and not fresh then
 		local ok, data = pcall(function()
 			return (store :: DataStore):GetAsync("player_" .. player.UserId)
 		end)

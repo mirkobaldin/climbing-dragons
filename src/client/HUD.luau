@@ -350,21 +350,15 @@ function HUD.start()
 		l.Position = UDim2.fromOffset(0, 0)
 		l.TextXAlignment = Enum.TextXAlignment.Left
 	end
-	-- NOTIZIE al posto del ritratto (Mirko 17/10: "togliere l'icona del personaggio e mettere
-	-- l'icona delle notizie"): stessa cornice tonda, dentro l'icona delle novita' (icon_news; finche'
-	-- non c'e', la pergamena icon_quest) e un pallino rosso quando c'e' un aggiornamento non visto.
-	-- Tocco/clic = pannello WHAT'S NEW (client/NewsPanel)
-	local NewsPanel = require(script.Parent.NewsPanel)
-	local avatar = Instance.new("TextButton")
-	avatar.Name = "Notizie"
-	avatar.Text = ""
-	avatar.AutoButtonColor = false
+	-- ritratto: la foto riempie tutto il foro della cornice (un filo piu' grande: il bordo sta sotto
+	-- l'anello) e il suo fondo e' quello della foto stessa, tondo: niente cerchio che sporge
+	local avatar = Instance.new("Frame")
+	avatar.Name = "Avatar"
 	avatar.BackgroundTransparency = 1
 	avatar.ZIndex = 8
-	avatar:SetAttribute("UiNative", true)
 	avatar.Parent = me
-	local photo = Instance.new("Frame")
-	photo.Name = "FondoNotizie" -- (non "Fondo": e' il nome che usa client/Cornici)
+	local photo = Instance.new("ImageLabel")
+	photo.Name = "Foto"
 	photo.BackgroundColor3 = Color3.fromRGB(28, 32, 44)
 	photo.BackgroundTransparency = 0
 	photo.BorderSizePixel = 0
@@ -376,10 +370,6 @@ function HUD.start()
 	local pc = Instance.new("UICorner")
 	pc.CornerRadius = UDim.new(0.5, 0)
 	pc.Parent = photo
-	local newsGrad = Instance.new("UIGradient")
-	newsGrad.Rotation = 90
-	newsGrad.Color = ColorSequence.new(Color3.fromRGB(60, 52, 40), Color3.fromRGB(20, 22, 30))
-	newsGrad.Parent = photo
 	if not Cornici.apply(avatar, "frame_portrait_player", { mode = "circle", z = 12 }) then
 		photo.Size = UDim2.fromScale(1, 1)
 		local st = Instance.new("UIStroke")
@@ -388,55 +378,17 @@ function HUD.start()
 		st:SetAttribute("KeepStroke", true)
 		st.Parent = photo
 	end
-	local newsIcon = Instance.new("ImageLabel")
-	newsIcon.Name = "Icona"
-	newsIcon.BackgroundTransparency = 1
-	newsIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-	newsIcon.Position = UDim2.fromScale(0.5, 0.46)
-	newsIcon.Size = UDim2.fromScale(0.62, 0.62)
-	newsIcon.ZIndex = 10
-	newsIcon.Parent = avatar
-	if not Ui.asset(newsIcon, "icon_news") then
-		Ui.asset(newsIcon, "icon_quest")
-	end
-	local newsLabel = text(avatar, "NEWS", 12, Theme.ACCENT)
-	newsLabel.AnchorPoint = Vector2.new(0.5, 1)
-	newsLabel.Position = UDim2.new(0.5, 0, 1, -6)
-	newsLabel.Size = UDim2.new(0.8, 0, 0, 14)
-	newsLabel.TextXAlignment = Enum.TextXAlignment.Center
-	newsLabel.ZIndex = 11
-	-- pallino rosso: c'e' qualcosa di nuovo (sopra la cornice, in alto a destra)
-	local dot = circle(avatar, Color3.fromRGB(235, 60, 60))
-	dot.Name = "Nuovo"
-	dot.AnchorPoint = Vector2.new(0.5, 0.5)
-	dot.Position = UDim2.fromScale(0.86, 0.14)
-	dot.Size = UDim2.fromScale(0.22, 0.22)
-	dot.ZIndex = 14
-	local ds = Instance.new("UIStroke")
-	ds.Color = Color3.fromRGB(20, 10, 10)
-	ds.Thickness = 2
-	ds:SetAttribute("KeepStroke", true)
-	ds.Parent = dot
-	local function paintNews()
-		dot.Visible = NewsPanel.unread()
-	end
-	NewsPanel.onSeen(paintNews)
-	HudLayout.onChange(paintNews) -- ControlsLayout arriva dal server dopo l'avvio
-	paintNews()
-	avatar.MouseEnter:Connect(function()
-		newsIcon.ImageColor3 = Color3.fromRGB(255, 225, 150)
-	end)
-	avatar.MouseLeave:Connect(function()
-		newsIcon.ImageColor3 = Color3.new(1, 1, 1)
-	end)
-	avatar.Activated:Connect(function()
-		if not HudLayout.editing() then
-			NewsPanel.open()
+	task.spawn(function()
+		local ok, img = pcall(function()
+			return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+		end)
+		if ok and type(img) == "string" then
+			photo.Image = img
 		end
 	end)
 	local nameLabel = text(me, player.DisplayName, 15)
 	nameLabel.ZIndex = 8
-	HudLayout.register("Giocatore", me, "NEWS + BARS")
+	HudLayout.register("Giocatore", me, "YOU")
 
 	-- DRAGO: cerchio dell'elemento col livello nel cerchietto, barra del nome e barra dell'XP a
 	-- parallelogramma con la cornice (come quelle del giocatore)
@@ -769,6 +721,61 @@ function HUD.start()
 	hideBtn.ZIndex = 5
 	hideBtn.Parent = opts
 	UiKit.button(hideBtn, "secondary")
+	-- NOTIZIE: medaglione come il ⚙, primo del gruppo, col pallino rosso quando c'e' un
+	-- aggiornamento non visto (Mirko 17/10: il ritratto resta, le notizie stanno da un'altra parte)
+	local NewsPanel = require(script.Parent.NewsPanel)
+	local news = Instance.new("TextButton")
+	news.Name = "Notizie"
+	news.Text = ""
+	news.BackgroundTransparency = 1
+	news.AutoButtonColor = false
+	news.ZIndex = 5
+	news:SetAttribute("UiNative", true)
+	news.Parent = opts
+	local newsBack = circle(news, Color3.fromRGB(28, 32, 44))
+	newsBack.AnchorPoint = Vector2.new(0.5, 0.5)
+	newsBack.Position = UDim2.fromScale(0.5, 0.5)
+	newsBack.Size = UDim2.fromScale(1, 1)
+	newsBack.ZIndex = 4
+	Cornici.apply(news, "frame_currency_medallion", { mode = "circle", z = 7 })
+	local newsIcon = Instance.new("ImageLabel")
+	newsIcon.BackgroundTransparency = 1
+	newsIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+	newsIcon.Position = UDim2.fromScale(0.5, 0.5)
+	newsIcon.Size = UDim2.fromScale(0.62, 0.62)
+	newsIcon.ZIndex = 6
+	newsIcon.Parent = news
+	if not Ui.asset(newsIcon, "icon_news") then
+		Ui.asset(newsIcon, "icon_quest")
+	end
+	local dot = circle(news, Color3.fromRGB(235, 60, 60))
+	dot.Name = "Nuovo"
+	dot.AnchorPoint = Vector2.new(0.5, 0.5)
+	dot.Position = UDim2.fromScale(0.84, 0.16)
+	dot.Size = UDim2.fromScale(0.32, 0.32)
+	dot.ZIndex = 9
+	local ds = Instance.new("UIStroke")
+	ds.Color = Color3.fromRGB(20, 10, 10)
+	ds.Thickness = 2
+	ds:SetAttribute("KeepStroke", true)
+	ds.Parent = dot
+	local function paintNews()
+		dot.Visible = NewsPanel.unread()
+	end
+	NewsPanel.onSeen(paintNews)
+	HudLayout.onChange(paintNews) -- ControlsLayout arriva dal server dopo l'avvio
+	paintNews()
+	news.MouseEnter:Connect(function()
+		newsIcon.ImageColor3 = Color3.fromRGB(255, 225, 150)
+	end)
+	news.MouseLeave:Connect(function()
+		newsIcon.ImageColor3 = Color3.new(1, 1, 1)
+	end)
+	news.Activated:Connect(function()
+		if not HudLayout.editing() then
+			NewsPanel.open()
+		end
+	end)
 	HudLayout.register("Opzioni", opts, "HUD BUTTONS")
 	local hidden = false
 	local function applyHidden()
@@ -922,12 +929,13 @@ function HUD.start()
 		finder.TextXAlignment = Enum.TextXAlignment.Center
 		-- tasti dell'HUD: a sinistra del meteo, alla sua altezza (non si sovrappongono)
 		local bH = 36
-		P(opts, 1, -(12 + w + 12), 0, 8 + math.floor((c - bH) / 2), bH * 2 + 104 + 12, bH, 1, 0)
+		P(opts, 1, -(12 + w + 12), 0, 8 + math.floor((c - bH) / 2), bH * 3 + 104 + 18, bH, 1, 0)
 		HudLayout.place("Opzioni", opts)
-		P(gear, 0, 0, 0, 0, bH, bH)
-		P(helpBtn, 0, bH + 6, 0, 0, bH, bH)
+		P(news, 0, 0, 0, 0, bH, bH)
+		P(gear, 0, bH + 6, 0, 0, bH, bH)
+		P(helpBtn, 0, 2 * bH + 12, 0, 0, bH, bH)
 		helpBtn.TextSize = 17
-		P(hideBtn, 0, 2 * bH + 12, 0, 0, 104, bH)
+		P(hideBtn, 0, 3 * bH + 18, 0, 0, 104, bH)
 		hideBtn.TextSize = 15
 	end
 	local function layoutAll()

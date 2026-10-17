@@ -124,7 +124,20 @@ function HudLayout.place(name: string, obj: GuiObject?): boolean
 		return false
 	end
 	o.AnchorPoint = Vector2.new(0.5, 0.5)
-	o.Position = UDim2.fromScale(f[1], f[2])
+	-- sempre tutto dentro lo schermo (Mirko 17/10: le barre del giocatore spostate in alto a
+	-- destra uscivano dal bordo). Il posto salvato e' il centro; si stringe con la misura vera
+	local x, y = f[1], f[2]
+	local parent = o.Parent
+	if parent and parent:IsA("GuiBase2d") then
+		local ps = (parent :: GuiBase2d).AbsoluteSize
+		local os = o.AbsoluteSize
+		if ps.X > 0 and ps.Y > 0 and os.X > 0 then
+			local hx, hy = math.min(0.5, os.X / ps.X / 2), math.min(0.5, os.Y / ps.Y / 2)
+			x = math.clamp(x, hx, 1 - hx)
+			y = math.clamp(y, hy, 1 - hy)
+		end
+	end
+	o.Position = UDim2.fromScale(x, y)
 	return true
 end
 
