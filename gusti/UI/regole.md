@@ -91,3 +91,11 @@
   cornici, HUD modificabile col ⚙ anche dal computer, draghi con la valle dietro) - 17/10.
 - Sbagliato: tasto NOTIZIE al posto del ritratto del giocatore. Buono: il ritratto resta, le
   notizie sono un medaglione accanto al ⚙ - 17/10.
+- Sbagliato (17/10 sera): la valle piatta dietro il drago che ruota nel menu draghi (stona col
+  modello 3D): ora il posto 3D dell'elemento attorno all'altare, che gira col drago.
+- Sbagliato: il tasto Ride/Land del computer a pillola arancio (vecchio stile) e visibile durante
+  la schiusa; fessura trasparente tra fondo e cornice nei contatori; livello del drago sopra
+  l'icona dell'elemento; nel nido la descrizione del drago sotto l'uovo (basta "Cosmic Egg" e
+  Hatch) - 17/10.
+- Tutto l'HUD deve potersi spostare, anche monete/prize pool/pietre e fino in cima allo schermo
+  - 17/10.

@@ -17,3 +17,6 @@ Aggiungi qui sotto (o in note separate) gli effetti che ti piacciono in altri gi
 - Mirko chiede piu' fulmini e particelle e uno sfondo figo nella schiusa: ora fulmini per ogni
   elemento che crescono, fulmini dal cielo alla rottura, onda d'urto, colonna di scintille,
   fondale con la valle del ghiacciaio, nebbia dell'elemento e raggi di luce. Da giudicare.
+- Schiusa giudicata il 17/10 sera: uova nuove, animazioni e VFX vanno bene. SBAGLIATO: il fondale
+  con l'immagine della valle (storto rispetto alla camera) e i raggi di luce verticali ("strisce
+  bruttissime"). Ora un posto 3D fatto apposta per l'elemento (`shared/Fondali`). Da giudicare.

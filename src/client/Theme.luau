@@ -397,6 +397,8 @@ Theme.ITEM_ICONS = {
 	-- vele nuove: finche' Codex non disegna le loro icone, quella del parapendio
 	VelaDrago = "item_VelaDrago", VelaTempesta = "item_VelaTempesta",
 	MysteryEgg = "item_MysteryEgg", RareEgg = "item_RareEgg",
+	-- (icone provvisorie finche' Codex non fa quelle vere: docs/CODEX_ICONE_V2.md)
+	DragonFeast = "icon_dragons", NestWarmer = "icon_egg", EvoStone = "ore_Cristallo",
 	Piccozza = "item_Piccozza", Piccone = "item_Piccone",
 } :: { [string]: string }
 

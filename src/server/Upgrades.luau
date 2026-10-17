@@ -322,8 +322,9 @@ local function rebirth(player: Player): (boolean, string)
 	if ((player:GetAttribute("SummitsSinceRebirth") or 0) :: number) < 1 then
 		return false, "Reach the summit first"
 	end
-	if Economy.coins(player) < UpgradeConfig.REBIRTH.MIN_COINS then
-		return false, string.format("You need %d coins", UpgradeConfig.REBIRTH.MIN_COINS)
+	local cost = UpgradeConfig.rebirthCost(player)
+	if Economy.coins(player) < cost then
+		return false, string.format("You need %d coins", cost)
 	end
 	Economy.addCoins(player, -Economy.coins(player))
 	local ores = player:FindFirstChild("Ores")

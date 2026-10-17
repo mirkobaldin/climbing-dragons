@@ -227,3 +227,19 @@ Compiti di Claude: tutto cio' che va provato in Studio (mappa, arrampicata, anim
 - Schiusa (`client/EggHatch`): fondale con la valle, fulmini per ogni elemento, fulmini dal cielo e
   onda d'urto alla rottura. Notizie: medaglione nel gruppo ⚙ ? HIDE HUD (il ritratto resta).
 - Prova del primo accesso in Studio: `ServerStorage.ProvaProfiloNuovo` (profilo vuoto, nosave).
+
+## Aggiunte del 2026-10-17 (sera, sessione cloud)
+- **Fondali 3D per elemento: `shared/Fondali`** (cava, ghiacciaio, aste dei fulmini, schegge viola,
+  stelle, brace, costole, pozze di gas): usati dalla schiusa (`client/EggHatch`, nel cielo) e
+  dal menu draghi (`DragonUI.dragonView(..., scene)`, attorno all'altare). Si ritoccano in Studio:
+  `require(game.ReplicatedStorage.Shared.Fondali).salva()` crea `ReplicatedStorage.Fondali.<Elemento>`
+  (pivot = centro del palco), che poi vince sul fondale procedurale.
+- **Tutorial obbligatorio** (server/Tutorial): finche' non e' finito niente SKIP, niente viaggi
+  (Teleports) e chi esce dalla zona del tutorial torna indietro; si salta solo con l'attributo
+  `TutorialSaltabile` (chi ha gia' un drago o e' admin).
+- Due draghi (pass Extra Dragon): seconda scheda nell'HUD (`Drago2`), Roar di tutti e due
+  (`UpgradeConfig.SPECIAL.SECOND`), in groppa il secondo spara insieme (`RIDE_SHOT.WING`).
+- HUD: anche la striscia monete/prize pool/pietre si sposta (`Contatori`), gli elementi salgono
+  fino in cima; cornici con `fill` in `UiAssets.frames` (fin dove arriva il fondo scuro).
+- Economia: `docs/ECONOMIA.md` (Dragon Feast, Nest Warmer, Evolution Stone nel negozio,
+  rinascita che costa sempre di piu', idee per spendere monete e prodotti a Robux).

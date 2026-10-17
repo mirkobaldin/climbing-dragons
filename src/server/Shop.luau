@@ -74,6 +74,24 @@ local function buy(player: Player, id: string): (boolean, string)
 		end
 		Economy.addCoins(player, -item.price)
 		return true, string.format("%s %s Egg in your nest!", Names.t(rarity), Names.t(element))
+	elseif id == "DragonFeast" then
+		-- un terzo del livello di adesso a ogni drago al seguito (non ai draghi gia' al massimo)
+		local fed = 0
+		for _, d in Dragons.equippedDragons(player) do
+			if (d.level or 1) < DragonConfig.MAX_LEVEL then
+				Dragons.addXp(player, d.id, DragonConfig.xpForLevel(d.level or 1) / 3)
+				fed += 1
+			end
+		end
+		if fed == 0 then
+			return false, "You need a dragon following you (below max level)"
+		end
+	elseif id == "NestWarmer" then
+		if not Dragons.speedNest(player, 0.5) then
+			return false, "No eggs warming in your nest"
+		end
+	elseif id == "EvoStone" then
+		Dragons.addStones(player, 1)
 	end
 	Economy.addCoins(player, -item.price)
 	return true, item.name .. " bought"

@@ -307,6 +307,23 @@ function Dragons.finishIncubation(player: Player)
 	changed(player, false)
 end
 
+-- tempo che manca alle uova del nido moltiplicato per factor (Nest Warmer del negozio);
+-- false se non c'e' niente da scaldare
+function Dragons.speedNest(player: Player, factor: number): boolean
+	local now = os.time()
+	local any = false
+	for _, egg in Dragons.state(player).nest do
+		if egg.readyAt > now then
+			egg.readyAt = now + math.floor((egg.readyAt - now) * factor)
+			any = true
+		end
+	end
+	if any then
+		changed(player, false)
+	end
+	return any
+end
+
 function Dragons.addStones(player: Player, amount: number)
 	local s = Dragons.state(player)
 	s.stones = math.max(0, s.stones + amount)

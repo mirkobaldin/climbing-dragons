@@ -511,7 +511,8 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> (), ctx:
 		local n = (player:GetAttribute("Rebirths") or 0) :: number
 		local since = (player:GetAttribute("SummitsSinceRebirth") or 0) :: number
 		local coins = (player:GetAttribute("Coins") or 0) :: number
-		local summitOk, coinsOk = since >= 1, coins >= R.MIN_COINS
+		local cost = Config.rebirthCost(player)
+		local summitOk, coinsOk = since >= 1, coins >= cost
 		local ready = summitOk and coinsOk
 		local hero = panel(392, 1)
 		hero.Name = "Rinascita"
@@ -554,7 +555,7 @@ function UpgradeUI.mount(container: Frame, status: (string, boolean) -> (), ctx:
 			l.TextColor3 = if ok then UiKit.GOOD else UiKit.ACCENT
 		end
 		need(summitOk, "Reach the summit", 236)
-		need(coinsOk, string.format("Have %d coins  (you have %d)", R.MIN_COINS, math.floor(coins)), 260)
+		need(coinsOk, string.format("Have %d coins  (you have %d)", cost, math.floor(coins)), 260)
 		local btn = Instance.new("TextButton")
 		btn.Name = "Rinasci"
 		btn.AnchorPoint = Vector2.new(0.5, 1)

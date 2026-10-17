@@ -48,6 +48,29 @@ ShopConfig.ITEMS = {
 		price = 1200,
 		color = Color3.fromRGB(90, 170, 255),
 	},
+	-- MONETE CHE SERVONO (Mirko 17/10: "si guadagna molto di piu' di quello che c'e' da
+	-- spendere"): cose che si ricomprano sempre, utili a ogni livello (docs/ECONOMIA.md)
+	{
+		id = "DragonFeast",
+		name = "Dragon Feast",
+		description = "Your following dragons gain a third of a level.",
+		price = 600,
+		color = Color3.fromRGB(230, 120, 80),
+	},
+	{
+		id = "NestWarmer",
+		name = "Nest Warmer",
+		description = "Eggs in your nest hatch twice as fast (time left halved).",
+		price = 900,
+		color = Color3.fromRGB(255, 180, 90),
+	},
+	{
+		id = "EvoStone",
+		name = "Evolution Stone",
+		description = "One stone to evolve a dragon (Young needs 1, Adult 2).",
+		price = 7500,
+		color = Color3.fromRGB(170, 120, 255),
+	},
 } :: { Item }
 
 -- Probabilita' delle uova del negozio (mostrate nella descrizione, come chiede Roblox)

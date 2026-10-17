@@ -310,10 +310,18 @@ UpgradeConfig.GLIDE = {
 -- Rinascita: dopo essere arrivato in vetta puoi ricominciare (monete, minerali e potenziamenti
 -- tornano a zero; draghi, attrezzi e casa restano) con un bonus permanente
 UpgradeConfig.REBIRTH = {
-	MIN_COINS = 2500, -- monete che servono (e che si perdono)
+	MIN_COINS = 2500, -- monete che servono per la prima (e che si perdono)
+	COIN_GROWTH = 1.6, -- ogni rinascita costa 1,6 volte la precedente (UpgradeConfig.rebirthCost)
 	COIN_BONUS = 0.15, -- +15% monete per ogni rinascita
 	XP_BONUS = 0.15, -- +15% esperienza ai draghi
 }
+
+-- monete che servono per la prossima rinascita (crescono: con +15% monete a ogni rinascita il
+-- prezzo fisso diventava niente)
+function UpgradeConfig.rebirthCost(player: Player): number
+	local n = (player:GetAttribute("Rebirths") or 0) :: number
+	return math.floor(UpgradeConfig.REBIRTH.MIN_COINS * UpgradeConfig.REBIRTH.COIN_GROWTH ^ n / 100 + 0.5) * 100
+end
 
 function UpgradeConfig.coinMult(player: Player): number
 	return 1 + ((player:GetAttribute("Rebirths") or 0) :: number) * UpgradeConfig.REBIRTH.COIN_BONUS
