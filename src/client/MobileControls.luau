@@ -251,7 +251,9 @@ function MobileControls.start()
 			rim.Color = col
 			rim.Transparency = 1 - o
 			if icon then
-				icon.ImageColor3 = col:Lerp(Color3.new(1, 1, 1), 0.45)
+				-- icona non tinta: le icone di adesso sono gia' colorate (quelle nuove, bianche e
+				-- monocrome, docs/CODEX_ICONE_V2.md, si potranno tingere col colore dell'azione)
+				icon.ImageColor3 = Color3.new(1, 1, 1)
 				icon.ImageTransparency = (1 - o) * 0.7
 			end
 			tag.TextTransparency = (1 - o) * 0.7

@@ -28,6 +28,24 @@ nuove**. Il gioco ha gia' tantissimo; quello che manca e' sapere cosa funziona.
 
 ---
 
+## Fatto il 17/10 (branch `cloud/ui-rifinitura-20261017`, da provare in Studio)
+- **Tasti del telefono piatti** e meno colorati (fondo scuro traslucido, anello del colore
+  dell'azione), **opacita' regolabile** nella barra EDIT HUD (− / +, voce `Opacita`), **posti
+  fissi** nell'arco: le azioni che compaiono a turno (Climb/Piton/Fire, Mine/Throw/Hook/Jump,
+  Unclip/Glide) dividono lo stesso posto, cosi' i tasti non saltano sotto il pollice.
+- **Notizie al posto del ritratto** del giocatore: tasto con pallino rosso e pannello WHAT'S NEW
+  (`shared/Novita.luau`: ogni aggiornamento = una voce in cima con versione piu' alta).
+- **Tre vele del parapendio** da costruire in ordine (Paraglider -> Dragon Wings -> Storm Wyvern
+  Wings), piu' veloci e piu' lente a scendere (`Gear.GLIDERS`); costi provvisori finche' non ci
+  sono i drop dei mostri (`docs/CODEX_MOSTRI_BIOMI.md`).
+- **Regali del tempo di gioco** (AFK): 8 regali in 90 minuti, pacco col conto alla rovescia
+  nell'HUD (`shared/RegaliConfig`).
+- Prompt per Codex: `docs/CODEX_ICONE_V2.md` (89 icone e tutte le cornici in due temi, 3
+  versioni ciascuna), `docs/CODEX_MOSTRI_BIOMI.md` (mostri a tema drago per bioma e drop).
+- Da verificare: la cornice delle barre dell'HUD sembra dritta mentre il riempimento e'
+  obliquo (Mirko 17/10). In Studio Claude le aveva viste oblique: serve uno screenshot (se sono
+  dritte, l'ID caricato per `frame_bar_*_slant` e' quello della barra dritta).
+
 ## 1. KPI e dati (PRIORITA' 1)
 Oggi nel codice non c'e' nessun `AnalyticsService`: non sappiamo dove i giocatori smettono.
 
@@ -132,9 +150,11 @@ Oggi si vendono solo pass (una volta sola); i Developer Product sono tutti a 0.
   aspettare sessioni di 13-18 minuti).
 
 ## 7. Comunita' e feedback
-- **C1 (Mirko)**: server Discord collegato al gioco (Social Links nel Creator Hub), con
-  moderazione e i canali consigliati: #rules/#faq, #announcements, #general, #bugs,
-  #suggestions, #creative.
+- **C1 (Mirko)**: il server Discord c'e' gia' (welcome, rules, announcements, updates, game-guide,
+  official-links, general, introductions, screenshots-and-clips). Mancano: **#bug-reports** e
+  **#suggestions** (la pagina li consiglia), un ruolo "Beta tester" per i playtest, e il
+  collegamento al gioco nei Social Links del Creator Hub. Togli i canali doppi "generale" e
+  "Generale" (vocale) in cima, o rinominali, per non confondere.
 - **C2 (Codex)**: pulsante "COMMUNITY" nel menu che mostra il link (Roblox lo permette solo
   tramite i Social Links della pagina del gioco: testo che dice dove trovarlo).
 - **C3 (Mirko)**: entrare nel gioco durante i test e guardare cosa fanno e cosa scrivono in chat.
@@ -156,6 +176,70 @@ Oggi si vendono solo pass (una volta sola); i Developer Product sono tutti a 0.
 - **G3 (Mirko, dopo)**: annunci sponsorizzati di Roblox con Robux GUADAGNATI (quelli comprati
   rendono meno), solo quando il D1 e' buono: portano giocatori, ma il gioco deve tenerli.
 
+## 10. Restare nel gioco anche AFK
+La pagina non ne parla, ma nei giochi Roblox piu' giocati molti restano dentro senza fare niente
+(Blox Fruits: farm con script e attesa dei frutti; giochi di uova: tapis roulant che aumenta la
+velocita'). Il tempo di gioco conta per le raccomandazioni e per i guadagni da Premium.
+Attenzione: Roblox scollega chi non tocca niente per 20 minuti (molti usano l'autoclicker).
+- **K1 FATTO** — regali del tempo di gioco (sopra).
+- **K2 c'e' gia'**: il cerchio di addestramento dei draghi da' XP al secondo finche' ci stai
+  dentro (`DragonConfig.CIRCLE_XP`), i draghi a casa fanno monete (`EconomyConfig.ROOST_RATE`).
+  Da far sapere: un cartello/aiuto "AFK here: your dragon trains by itself".
+- **K3 (Codex + Claude)**: **parete infinita** in palestra o al campo base: una parete che
+  scorre (tapis roulant verticale); piu' a lungo ci resti attaccato, piu' cresce un moltiplicatore
+  ("Climb streak x1.0 ... x3.0") che da' punti Resistenza della palestra e qualche moneta.
+  Classifica "Endless Wall" del server. E' l'equivalente del tapis roulant di "Steal an Egg".
+- **K4 (Codex)**: **pioggia di uova**: ogni 30 minuti un evento annunciato a tutto il server
+  (EventBanner) fa comparire uova rare per 3 minuti in un punto della mappa: si aspetta nel
+  gioco come i frutti di Blox Fruits (riusa `server/WorldEvents` e `server/Eggs`).
+- **K5 (Codex)**: draghi a casa che si allenano da soli (XP lenta ai draghi posati in casa, come
+  le monete), mostrato nel menu draghi ("Resting: +X XP/min").
+
+---
+
+## Lancio: stima e come farlo
+**Stima** (dal 17/10, con Codex e Claude che lavorano in parallelo):
+| Fase | Cosa | Quando |
+|---|---|---|
+| 1 | A1 dati, T1/T2 tutorial, prove in Studio dei lavori del 17/10, M1 prodotti, R3 badge | entro **26 ottobre** |
+| 2 | P1 playtest piccolo (5-10 ragazzi, meta' telefono) + correzioni | **27 ott - 2 nov** |
+| 3 | P2 test pubblico di un fine settimana (numeri D1, sessione, fine tutorial) | **7-9 novembre** |
+| 4 | correzioni dai numeri, almeno un mostro per bioma (se pronti), icone v2 | **10-20 novembre** |
+| 5 | **lancio pubblico con "[BETA]" nel titolo** | **venerdi' 21 novembre** |
+| 6 | primo evento a tempo: **Natale** (mappa innevata a tema, vela o aura limitata) | **12 dicembre - 6 gennaio** |
+Le vacanze di Natale sono il periodo con piu' bambini online: meglio arrivarci con un gioco gia'
+pubblico da qualche settimana (numeri, correzioni, prime raccomandazioni). Se il playtest va
+male (i ragazzi non capiscono o si annoiano), si sposta il lancio: non si lancia un gioco con D1
+basso, Roblox poi lo raccomanda meno.
+
+**Come lanciarlo (lista per Mirko)**:
+1. Creator Hub: questionario sulla maturita' dei contenuti, genere, dispositivi (telefono,
+   tablet, computer, console se il gamepad funziona), lingue con traduzione automatica.
+2. Pagina del gioco: icona, 3-5 miniature (draghi, vetta, schiusa), descrizione corta in inglese
+   con i 3 motivi per giocare, video se c'e'. Social Links: Discord.
+3. Monetizzazione attiva: pass (ci sono), Developer Product (M1), pacchetto iniziale (M2).
+4. Server: numero di giocatori per server (8-12 per un gioco grande come questo), server
+   privati a pochi Robux (attirano chi resta AFK).
+5. Prima del via: comando admin `uscita` (controlli di pubblicazione), una partita intera sul
+   telefono vero, badge e prodotti provati con un account di prova.
+6. Il giorno del lancio: evento di Roblox "Launch" sulla pagina del gioco, annuncio su Discord
+   (#announcements e #updates), 3 clip TikTok preparate prima (clip21-clip25), una al giorno.
+7. Dopo: numeri ogni lunedi' (A3), un piccolo aggiornamento ogni 1-2 settimane con la voce in
+   `shared/Novita.luau`, annunci sponsorizzati solo coi Robux guadagnati e solo se il D1 e' buono.
+
+## Roadmap degli aggiornamenti (prossimi 6 mesi, da rivedere coi numeri)
+| Quando | Aggiornamento | Contenuto |
+|---|---|---|
+| lancio + 1 settimana | Mostri dei biomi | i mostri di `docs/CODEX_MOSTRI_BIOMI.md` che mancano, drop, costi veri delle vele |
+| + 2 settimane | Cordata | S2 cordata, S3 taglie di gruppo, S1 inviti, S5 classifiche |
+| dicembre | **Festival della neve** (evento) | mappa a tema, vela e aura del drago a tempo limitato, pioggia di uova di Natale |
+| gennaio | Parete infinita e AFK | K3, K4, K5 |
+| febbraio | **Allevamento** | due draghi adulti -> un uovo con elemento/rarita' dei genitori (molto amato nei giochi di pet) |
+| marzo | Pass stagionale | se le sessioni superano 15 minuti (M5) |
+| aprile | Scambi tra giocatori | scambio di draghi e uova con conferma doppia e blocchi anti-truffa |
+| poi | nuova zona | una seconda montagna o le isole volanti come bioma con mostri e uova propri |
+Ogni aggiornamento: voce in `shared/Novita.luau`, evento di Roblox, post su Discord, una clip.
+
 ---
 
 ## Ordine consigliato
@@ -170,4 +254,4 @@ Oggi si vendono solo pass (una volta sola); i Developer Product sono tutti a 0.
 (una riga a settimana, A3)
 
 ## Roadmap
-(da scrivere, U1)
+Vedi "Roadmap degli aggiornamenti" sopra (U1).
