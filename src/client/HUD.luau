@@ -392,76 +392,83 @@ function HUD.start()
 
 	-- DRAGO: cerchio dell'elemento col livello nel cerchietto, barra del nome e barra dell'XP a
 	-- parallelogramma con la cornice (come quelle del giocatore)
-	local pet = Instance.new("Frame")
-	pet.Name = "Drago"
-	pet.BackgroundTransparency = 1
-	pet.Visible = false
-	pet.Parent = gui
-	local petBars = Instance.new("Frame")
-	petBars.BackgroundTransparency = 1
-	petBars.Parent = pet
-	local nameBar = UiKit.bar(petBars, "stamina", Theme.DARK2, Theme.DARK2, 6)
-	Slant.setFill(nameBar, 1)
-	local nameStripe = Theme.frame(nameBar, Theme.ACCENT, 0)
-	nameStripe.ZIndex = 7
-	local petName = text(nameBar, "", 15)
-	petName.ZIndex = 8
-	local xpBar = UiKit.bar(petBars, "xp", Theme.PURPLE, Theme.DARK, 6)
-	local xpText = text(xpBar, "", 12)
-	xpText.ZIndex = 8
-	xpText.TextXAlignment = Enum.TextXAlignment.Left
-	local elemCircle = Instance.new("Frame")
-	elemCircle.Name = "Elemento"
-	elemCircle.BackgroundTransparency = 1
-	elemCircle.ZIndex = 8
-	elemCircle.Parent = pet
-	-- fondo tondo dell'elemento: riempie il foro (sotto l'anello), non sporge
-	local elemBack = circle(elemCircle, Theme.DARK2)
-	elemBack.AnchorPoint = Vector2.new(0.5, 0.5)
-	elemBack.Position = UDim2.fromScale(0.5, 0.5)
-	elemBack.Size = UDim2.fromScale(1.06, 1.06)
-	elemBack.ZIndex = 8
-	local elemRing: UIStroke? = nil
-	-- ritratto del drago di Codex: cornice, filo della rarita' e gemme dell'elemento (livelli
-	-- grigi colorati in refreshPet)
-	if Cornici.apply(elemCircle, "frame_portrait_dragon", { mode = "circle", z = 12 }) then
-		Cornici.apply(elemCircle, "frame_portrait_dragon_rarity", { mode = "circle", z = 13, name = "CorniceRarita" })
-		Cornici.apply(elemCircle, "frame_portrait_dragon_gem", { mode = "circle", z = 13, name = "CorniceGemme" })
-	else
-		elemBack.Size = UDim2.fromScale(1, 1)
-		local st = Instance.new("UIStroke")
-		st.Color = Theme.PURPLE
-		st.Thickness = 3
-		st:SetAttribute("KeepStroke", true)
-		st.Parent = elemBack
-		elemRing = st
+	-- Con il pass Extra Dragon c'e' una seconda scheda uguale per il secondo drago (Mirko 17/10)
+	local function makePet(name: string, title: string): { [string]: any }
+		local pet = Instance.new("Frame")
+		pet.Name = name
+		pet.BackgroundTransparency = 1
+		pet.Visible = false
+		pet.Parent = gui
+		local petBars = Instance.new("Frame")
+		petBars.BackgroundTransparency = 1
+		petBars.Parent = pet
+		local nameBar = UiKit.bar(petBars, "stamina", Theme.DARK2, Theme.DARK2, 6)
+		Slant.setFill(nameBar, 1)
+		local nameStripe = Theme.frame(nameBar, Theme.ACCENT, 0)
+		nameStripe.ZIndex = 7
+		local petName = text(nameBar, "", 15)
+		petName.ZIndex = 8
+		local xpBar = UiKit.bar(petBars, "xp", Theme.PURPLE, Theme.DARK, 6)
+		local xpText = text(xpBar, "", 12)
+		xpText.ZIndex = 8
+		xpText.TextXAlignment = Enum.TextXAlignment.Left
+		local elemCircle = Instance.new("Frame")
+		elemCircle.Name = "Elemento"
+		elemCircle.BackgroundTransparency = 1
+		elemCircle.ZIndex = 8
+		elemCircle.Parent = pet
+		-- fondo tondo dell'elemento: riempie il foro (sotto l'anello), non sporge
+		local elemBack = circle(elemCircle, Theme.DARK2)
+		elemBack.AnchorPoint = Vector2.new(0.5, 0.5)
+		elemBack.Position = UDim2.fromScale(0.5, 0.5)
+		elemBack.Size = UDim2.fromScale(1.06, 1.06)
+		elemBack.ZIndex = 8
+		local elemRing: UIStroke? = nil
+		-- ritratto del drago di Codex: cornice, filo della rarita' e gemme dell'elemento (livelli
+		-- grigi colorati in refreshPet)
+		if Cornici.apply(elemCircle, "frame_portrait_dragon", { mode = "circle", z = 12 }) then
+			Cornici.apply(elemCircle, "frame_portrait_dragon_rarity", { mode = "circle", z = 13, name = "CorniceRarita" })
+			Cornici.apply(elemCircle, "frame_portrait_dragon_gem", { mode = "circle", z = 13, name = "CorniceGemme" })
+		else
+			elemBack.Size = UDim2.fromScale(1, 1)
+			local st = Instance.new("UIStroke")
+			st.Color = Theme.PURPLE
+			st.Thickness = 3
+			st:SetAttribute("KeepStroke", true)
+			st.Parent = elemBack
+			elemRing = st
+		end
+		local elemIcon = Instance.new("ImageLabel")
+		elemIcon.BackgroundTransparency = 1
+		elemIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+		elemIcon.Position = UDim2.fromScale(0.5, 0.5)
+		elemIcon.Size = UDim2.fromScale(0.86, 0.86)
+		elemIcon.ZIndex = 9
+		elemIcon.Parent = elemCircle
+		local lvCircle = Instance.new("Frame")
+		lvCircle.Name = "Livello"
+		lvCircle.BackgroundTransparency = 1
+		lvCircle.ZIndex = 10
+		lvCircle.Parent = pet
+		local lvDisc = circle(lvCircle, Theme.ACCENT)
+		lvDisc.AnchorPoint = Vector2.new(0.5, 0.5)
+		lvDisc.Position = UDim2.fromScale(0.5, 0.5)
+		lvDisc.Size = UDim2.fromScale(1.08, 1.08)
+		lvDisc.ZIndex = 10
+		if not Cornici.apply(lvCircle, "frame_level_badge", { mode = "circle", z = 12 }) then
+			lvDisc.Size = UDim2.fromScale(1, 1)
+		end
+		local lvText = text(lvCircle, "", 15, Color3.fromRGB(40, 24, 0))
+		lvText.Size = UDim2.fromScale(1, 1)
+		lvText.TextXAlignment = Enum.TextXAlignment.Center
+		lvText.TextStrokeTransparency = 1
+		lvText.ZIndex = 11
+		HudLayout.register(name, pet, title)
+		return { pet = pet, petBars = petBars, nameBar = nameBar, nameStripe = nameStripe, petName = petName,
+			xpBar = xpBar, xpText = xpText, elemCircle = elemCircle, elemRing = elemRing, elemIcon = elemIcon,
+			lvCircle = lvCircle, lvText = lvText }
 	end
-	local elemIcon = Instance.new("ImageLabel")
-	elemIcon.BackgroundTransparency = 1
-	elemIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-	elemIcon.Position = UDim2.fromScale(0.5, 0.5)
-	elemIcon.Size = UDim2.fromScale(0.86, 0.86)
-	elemIcon.ZIndex = 9
-	elemIcon.Parent = elemCircle
-	local lvCircle = Instance.new("Frame")
-	lvCircle.Name = "Livello"
-	lvCircle.BackgroundTransparency = 1
-	lvCircle.ZIndex = 10
-	lvCircle.Parent = pet
-	local lvDisc = circle(lvCircle, Theme.ACCENT)
-	lvDisc.AnchorPoint = Vector2.new(0.5, 0.5)
-	lvDisc.Position = UDim2.fromScale(0.5, 0.5)
-	lvDisc.Size = UDim2.fromScale(1.08, 1.08)
-	lvDisc.ZIndex = 10
-	if not Cornici.apply(lvCircle, "frame_level_badge", { mode = "circle", z = 12 }) then
-		lvDisc.Size = UDim2.fromScale(1, 1)
-	end
-	local lvText = text(lvCircle, "", 15, Color3.fromRGB(40, 24, 0))
-	lvText.Size = UDim2.fromScale(1, 1)
-	lvText.TextXAlignment = Enum.TextXAlignment.Center
-	lvText.TextStrokeTransparency = 1
-	lvText.ZIndex = 11
-	HudLayout.register("Drago", pet, "YOUR DRAGON")
+	local cards = { makePet("Drago", "YOUR DRAGON"), makePet("Drago2", "SECOND DRAGON") }
 
 	-- METEO in alto a destra (Mirko 16/10: "il cerchio col sole e la casella blu dell'ora sono due
 	-- pezzi staccati"): UN solo elemento nello stile delle cornici. Il medaglione col meteo si
@@ -836,31 +843,38 @@ function HUD.start()
 		-- drago sotto
 		local py = y0 + av + 22 -- (il cerchietto del livello non tocca l'anello del ritratto)
 		local ec = 60
-		P(pet, 0, x0 + 24, 0, py, ec / 2 + 262, ec + 8)
-		HudLayout.place("Drago", pet)
-		P(elemCircle, 0, 0, 0, 4, ec, ec)
-		-- livello in alto a sinistra, FUORI dal ritratto (Mirko 17/10: copriva quasi tutta l'icona
-		-- dell'elemento). La cornice del distintivo e' il doppio del suo foro: foro piccolo e
-		-- centro a ~45 pixel logici dal centro del ritratto, tocca solo l'anello
-		local lv = 22
-		P(lvCircle, 0, -4 - lv / 2, 0, 4 - lv / 2, lv, lv)
-		Ui.text(lvText, 13, true)
-		P(petBars, 0, math.floor(ec * 0.5), 0, 4, 262, ec)
-		nameBar.Visible = true
-		local nb, xb = 20, 13
-		local nbY = 6
-		local xbY = nbY + nb + (if framedBars then 12 else 3)
-		P(nameBar, 0, 0, 0, nbY, 250, nb)
-		local inset = math.floor(ec * 0.5) + 6
-		P(nameStripe, 0, inset - 4, 0, 3, 3, nb - 6)
-		P(petName, 0, inset + 2, 0, 0, 200, nb)
-		Ui.text(petName, 14, true)
-		P(xpBar, 0, 0, 0, xbY, 226, xb)
-		xpText.Position = UDim2.fromOffset(inset + 2, 0)
-		xpText.Size = UDim2.new(1, -(inset + 16), 1, 0)
-		Ui.text(xpText, 11, true)
-		-- missione sotto il drago (o sotto il giocatore se non hai un drago al seguito)
-		local my = if pet.Visible then py + ec + 18 else py
+		-- una scheda per drago al seguito (la seconda sotto la prima, col pass Extra Dragon)
+		local cy = py
+		for i, c in cards do
+			P(c.pet, 0, x0 + 24, 0, cy, ec / 2 + 262, ec + 8)
+			HudLayout.place(if i == 1 then "Drago" else "Drago2", c.pet)
+			P(c.elemCircle, 0, 0, 0, 4, ec, ec)
+			-- livello in alto a sinistra, FUORI dal ritratto (Mirko 17/10: copriva quasi tutta
+			-- l'icona dell'elemento). La cornice del distintivo e' il doppio del suo foro: foro
+			-- piccolo e centro a ~45 pixel logici dal centro del ritratto, tocca solo l'anello
+			local lv = 22
+			P(c.lvCircle, 0, -4 - lv / 2, 0, 4 - lv / 2, lv, lv)
+			Ui.text(c.lvText, 13, true)
+			P(c.petBars, 0, math.floor(ec * 0.5), 0, 4, 262, ec)
+			c.nameBar.Visible = true
+			local nb, xb = 20, 13
+			local nbY = 6
+			local xbY = nbY + nb + (if framedBars then 12 else 3)
+			P(c.nameBar, 0, 0, 0, nbY, 250, nb)
+			local inset = math.floor(ec * 0.5) + 6
+			P(c.nameStripe, 0, inset - 4, 0, 3, 3, nb - 6)
+			P(c.petName, 0, inset + 2, 0, 0, 200, nb)
+			Ui.text(c.petName, 14, true)
+			P(c.xpBar, 0, 0, 0, xbY, 226, xb)
+			c.xpText.Position = UDim2.fromOffset(inset + 2, 0)
+			c.xpText.Size = UDim2.new(1, -(inset + 16), 1, 0)
+			Ui.text(c.xpText, 11, true)
+			if c.pet.Visible then
+				cy += ec + 18
+			end
+		end
+		-- missione sotto i draghi (o sotto il giocatore se non hai un drago al seguito)
+		local my = cy
 		local mw = 340
 		local mh = if helpShown then 98 else 62
 		P(mission, 0, x0, 0, my, mw, mh)
@@ -984,50 +998,65 @@ function HUD.start()
 		end)
 	end
 
-	local function refreshPet()
-		local ok, data = pcall(function()
-			return HttpService:JSONDecode(player:GetAttribute("DragonData") :: string)
-		end)
-		local d: any = nil
-		if ok and type(data) == "table" and data.equipped then
-			for _, x in data.dragons or {} do
-				if x.id == data.equipped[1] then
-					d = x
-				end
-			end
-		end
-		pet.Visible = d ~= nil and player:GetAttribute("HudNascosto") ~= true
+	local function refreshCard(c: { [string]: any }, d: any)
+		c.pet.Visible = d ~= nil and player:GetAttribute("HudNascosto") ~= true
 		if not d then
 			return
 		end
-		Ui.asset(elemIcon, "elem_" .. d.element)
+		Ui.asset(c.elemIcon, "elem_" .. d.element)
 		local tone = Theme.ELEMENT[d.element] or Theme.PURPLE
-		if elemRing then
-			elemRing.Color = tone
+		if c.elemRing then
+			c.elemRing.Color = tone
 		end
 		local lv = d.level or 1
 		local need = DragonConfig.xpForLevel(lv)
-		lvText.Text = tostring(lv)
+		c.lvText.Text = tostring(lv)
 		local rarity = Theme.RARITY[d.rarity]
 		local rc = if rarity then rarity[1] else Theme.ACCENT
-		nameStripe.BackgroundColor3 = rc
-		local rLayer = elemCircle:FindFirstChild("CorniceRarita") :: ImageLabel?
+		c.nameStripe.BackgroundColor3 = rc
+		local rLayer = c.elemCircle:FindFirstChild("CorniceRarita") :: ImageLabel?
 		if rLayer then
 			rLayer.ImageColor3 = rc
 		end
-		local gLayer = elemCircle:FindFirstChild("CorniceGemme") :: ImageLabel?
+		local gLayer = c.elemCircle:FindFirstChild("CorniceGemme") :: ImageLabel?
 		if gLayer then
 			gLayer.ImageColor3 = tone
 		end
 		local hex = string.format("#%02X%02X%02X", math.floor(rc.R * 255), math.floor(rc.G * 255), math.floor(rc.B * 255))
 		local title = if type(d.name) == "string" and d.name ~= "" then d.name else Names.dragon(d.element)
-		petName.Text = string.format('%s <font color="%s">· %s</font>', title, hex, Names.t(d.rarity))
-		Slant.setFill(xpBar, (d.xp or 0) / need)
-		local fill = xpBar:FindFirstChild("Pieno")
+		c.petName.Text = string.format('%s <font color="%s">· %s</font>', title, hex, Names.t(d.rarity))
+		Slant.setFill(c.xpBar, (d.xp or 0) / need)
+		local fill = c.xpBar:FindFirstChild("Pieno")
 		if fill then
 			Slant.paint(fill, tone, 0)
 		end
-		xpText.Text = string.format("%d / %d XP", math.floor(d.xp or 0), need)
+		c.xpText.Text = string.format("%d / %d XP", math.floor(d.xp or 0), need)
+	end
+	local lastCount = -1
+	local function refreshPet()
+		local ok, data = pcall(function()
+			return HttpService:JSONDecode(player:GetAttribute("DragonData") :: string)
+		end)
+		local count = 0
+		for i, c in cards do
+			local d: any = nil
+			if ok and type(data) == "table" and data.equipped then
+				for _, x in data.dragons or {} do
+					if x.id == data.equipped[i] then
+						d = x
+					end
+				end
+			end
+			refreshCard(c, d)
+			if c.pet.Visible then
+				count += 1
+			end
+		end
+		-- comprato il pass o messo/tolto il secondo drago: la missione scende o sale
+		if count ~= lastCount then
+			lastCount = count
+			task.defer(layoutLeft)
+		end
 	end
 	player:GetAttributeChangedSignal("DragonData"):Connect(refreshPet)
 	player:GetAttributeChangedSignal("HudNascosto"):Connect(function()

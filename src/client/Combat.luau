@@ -526,7 +526,7 @@ function Combat.start()
 		if not fx then
 			return
 		end
-		(fx :: RemoteEvent).OnClientEvent:Connect(function(kind: string, a: any, b: any, c: any, d: any, e: any)
+		(fx :: RemoteEvent).OnClientEvent:Connect(function(kind: string, a: any, b: any, c: any, d: any, e: any, f: any)
 			if kind == "special" then
 				-- onda dell'elemento del drago: forme dell'elemento grandi quanto l'area del colpo,
 				-- colonna di luce, tre onde d'urto e una raggiera di colpi dell'elemento verso
@@ -575,8 +575,10 @@ function Combat.start()
 				local folder = workspace:FindFirstChild("Pets")
 				local mine = folder and folder:FindFirstChild(tostring(e))
 				local scale = 3
+				-- f = quale drago sputa (2 = il secondo del pass Extra Dragon, che vola accanto)
+				local slot = if type(f) == "number" then f else 1
 				for _, m in (if mine then mine:GetChildren() else {}) :: { Instance } do
-					if m:IsA("Model") and m:GetAttribute("Slot") == 1 then
+					if m:IsA("Model") and m:GetAttribute("Slot") == slot then
 						local mouth = DragonVFX.mouth(m, b)
 						local fwd = b - mouth
 						scale = DragonVFX.scaleFor(m)

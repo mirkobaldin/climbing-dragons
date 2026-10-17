@@ -287,6 +287,7 @@ UpgradeConfig.SPECIAL = {
 	COOLDOWN = 14, -- secondi (meno 0.1 per livello del drago, minimo 6)
 	RADIUS = 26,
 	DAMAGE = 30, -- + 2 per livello del drago
+	SECOND = 0.6, -- col pass Extra Dragon ruggisce anche il secondo drago (parte del danno)
 }
 -- planata col drago: dal livello DRAGON_GLIDE_LEVEL il parapendio e' piu' veloce
 UpgradeConfig.DRAGON_GLIDE_LEVEL = 15
@@ -363,7 +364,9 @@ UpgradeConfig.EVENTS = {
 
 -- Colpo del drago in monta (click o F, server/Enemies "RideAttack"): danno = attacco del drago x
 -- DAMAGE_MULT, palla dell'elemento lunga al massimo RANGE, area RADIUS
-UpgradeConfig.RIDE_SHOT = { COOLDOWN = 0.7, RANGE = 220, SPEED = 260, RADIUS = 13, DAMAGE_MULT = 1.4 }
+UpgradeConfig.RIDE_SHOT = { COOLDOWN = 0.7, RANGE = 220, SPEED = 260, RADIUS = 13, DAMAGE_MULT = 1.4,
+	WING = 0.5, -- in monta il secondo drago (Extra Dragon) vola accanto e spara insieme (parte del danno)
+	WING_DELAY = 0.22 }
 -- ogni drago colpisce in modo diverso (in monta): area (radius) e danno (damage) rispetto a
 -- RIDE_SHOT, stordimento e rallentamento (secondi), rimbalzi del fulmine (chain, a meta' danno),
 -- danno nel tempo (dot: frazione del colpo divisa in 4 tocchi in 2 s, nella stessa area)

@@ -920,22 +920,9 @@ function Enemies.setup()
 	specialEvent.Name = "DragonSpecial"
 	specialEvent.Parent = ReplicatedStorage.Remotes
 	local SP = UpgradeConfig.SPECIAL
-	specialEvent.OnServerEvent:Connect(function(player)
-		local list = Dragons.equippedDragons(player)
-		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-		if #list == 0 or not root then
-			return
-		end
-		local d = list[1]
+	-- onda dell'elemento di un drago attorno a at (mult = parte del danno)
+	local function roar(player: Player, d: any, at: Vector3, mult: number)
 		local level = d.level or 1
-		local cooldown = math.max(6, SP.COOLDOWN - level * 0.1) * (1 - UpgradeConfig.value(player, "Maestria", "cut"))
-		local readyAt = (player:GetAttribute("SpecialReady") or 0) :: number
-		if workspace:GetServerTimeNow() < readyAt then
-			return
-		end
-		player:SetAttribute("SpecialReady", workspace:GetServerTimeNow() + cooldown)
-		Upgrades.addStat(player, "Specials")
-		local at = (root :: BasePart).Position
 		local e = d.element
 		-- piu' grande per i draghi giovani e adulti (un adulto e' lungo 30 studs: con 26 l'onda
 		-- restava sotto le sue ali)
@@ -943,7 +930,7 @@ function Enemies.setup()
 		local radius = SP.RADIUS * stageK * (if e == "Tempesta" or e == "Fulmine" then 1.4 else 1)
 		-- anche lo speciale cresce con lo stadio e le statistiche del drago
 		local damage = (SP.DAMAGE + 2 * level) * (if e == "Ombra" or e == "Eclissi" or e == "Cosmico" then 1.3 else 1)
-			* DragonConfig.STAGE_POWER[math.clamp(d.stage or 1, 1, 3)] * (d.atk or 1) * UpgradeConfig.dragonDamage(player)
+			* DragonConfig.STAGE_POWER[math.clamp(d.stage or 1, 1, 3)] * (d.atk or 1) * UpgradeConfig.dragonDamage(player) * mult
 		fxEvent:FireAllClients("special", at, radius, e, player.UserId)
 		local trainingFxRef = ReplicatedStorage.Remotes:FindFirstChild("TrainingFX") :: RemoteEvent?
 		hitAround(player, at, radius, damage, function(enemy)
@@ -967,6 +954,34 @@ function Enemies.setup()
 				end)
 			end
 		end)
+	end
+	specialEvent.OnServerEvent:Connect(function(player)
+		local list = Dragons.equippedDragons(player)
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if #list == 0 or not root then
+			return
+		end
+		local d = list[1]
+		local level = d.level or 1
+		local cooldown = math.max(6, SP.COOLDOWN - level * 0.1) * (1 - UpgradeConfig.value(player, "Maestria", "cut"))
+		local readyAt = (player:GetAttribute("SpecialReady") or 0) :: number
+		if workspace:GetServerTimeNow() < readyAt then
+			return
+		end
+		player:SetAttribute("SpecialReady", workspace:GetServerTimeNow() + cooldown)
+		Upgrades.addStat(player, "Specials")
+		-- con due draghi (pass Extra Dragon) ruggiscono tutti e due: prima quello scelto, poi
+		-- l'altro col suo elemento, piu' debole (Mirko 17/10: "il roar lo fa solo il primo")
+		roar(player, d, (root :: BasePart).Position, 1)
+		local second = list[2]
+		if second then
+			task.delay(0.6, function()
+				local r2 = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+				if r2 then
+					roar(player, second, r2.Position, SP.SECOND or 0.6)
+				end
+			end)
+		end
 	end)
 	-- in groppa al drago adulto (server/Riding): click (o F) = palla dell'elemento dove miri.
 	-- Il client manda il punto mirato (anche un drago volante, che si muove solo sui client: il
@@ -975,21 +990,9 @@ function Enemies.setup()
 	rideEvent.Name = "RideAttack"
 	rideEvent.Parent = ReplicatedStorage.Remotes
 	local lastRide: { [Player]: number } = {}
-	rideEvent.OnServerEvent:Connect(function(player, aim)
-		if typeof(aim) ~= "Vector3" or aim ~= aim or player:GetAttribute("Riding") ~= true then
-			return
-		end
-		local now = os.clock()
-		if now - (lastRide[player] or 0) < UpgradeConfig.RIDE_SHOT.COOLDOWN then
-			return
-		end
-		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-		local d = Dragons.equippedDragons(player)[1]
-		if not root or not d then
-			return
-		end
-		lastRide[player] = now
-		local from = (root :: BasePart).Position + Vector3.new(0, 3, 0)
+	-- palla dell'elemento del drago d da from verso aim (mult = parte del danno, slot = quale
+	-- drago la sputa sul client)
+	local function rideShot(player: Player, d: any, from: Vector3, aim: Vector3, mult: number, slot: number)
 		local dir = aim - from
 		if dir.Magnitude < 1 then
 			return
@@ -999,9 +1002,9 @@ function Enemies.setup()
 		-- ogni elemento colpisce a modo suo (UpgradeConfig.RIDE_ELEMENT)
 		local el = UpgradeConfig.RIDE_ELEMENT[d.element] or { radius = 1, damage = 1, text = "" }
 		local crit = math.random() < (d.crit or 0.05) * (el.crit or 1)
-		local damage = DragonConfig.attack(d) * UpgradeConfig.RIDE_SHOT.DAMAGE_MULT * el.damage * (if crit then 2 else 1) * UpgradeConfig.dragonDamage(player)
+		local damage = DragonConfig.attack(d) * UpgradeConfig.RIDE_SHOT.DAMAGE_MULT * el.damage * (if crit then 2 else 1) * UpgradeConfig.dragonDamage(player) * mult
 		local radius = UpgradeConfig.RIDE_SHOT.RADIUS * el.radius
-		fxEvent:FireAllClients("rideShot", from, to, d.element, travel, player.UserId)
+		fxEvent:FireAllClients("rideShot", from, to, d.element, travel, player.UserId, slot)
 		task.delay(travel, function()
 			local hit: { [any]: boolean } = {}
 			local n = hitAround(player, to, radius, damage, function(enemy)
@@ -1048,6 +1051,35 @@ function Enemies.setup()
 				Upgrades.addStat(player, "AirHits", n)
 			end
 		end)
+	end
+	rideEvent.OnServerEvent:Connect(function(player, aim)
+		if typeof(aim) ~= "Vector3" or aim ~= aim or player:GetAttribute("Riding") ~= true then
+			return
+		end
+		local now = os.clock()
+		if now - (lastRide[player] or 0) < UpgradeConfig.RIDE_SHOT.COOLDOWN then
+			return
+		end
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local d = Dragons.equippedDragons(player)[1]
+		if not root or not d then
+			return
+		end
+		lastRide[player] = now
+		local from = (root :: BasePart).Position + Vector3.new(0, 3, 0)
+		rideShot(player, d, from, aim, 1, 1)
+		-- il secondo drago (pass Extra Dragon) vola accanto e spara allo stesso punto, un attimo
+		-- dopo e piu' debole: in groppa si cavalca quello scelto, l'altro fa da gregario
+		local second = Dragons.equippedDragons(player)[2]
+		if second then
+			local side = (root :: BasePart).CFrame.RightVector * 14
+			task.delay(UpgradeConfig.RIDE_SHOT.WING_DELAY, function()
+				local r2 = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+				if r2 and player:GetAttribute("Riding") == true then
+					rideShot(player, second, r2.Position + side + Vector3.new(0, 3, 0), aim, UpgradeConfig.RIDE_SHOT.WING, 2)
+				end
+			end)
+		end
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		lastRide[player] = nil
