@@ -178,62 +178,44 @@ local function publish(player: Player, step: number)
 	end
 end
 
--- TUTORIAL OBBLIGATORIO (Mirko 17/10: "ora puoi fare tutto, vai ovunque"): finche' non e'
--- finito si resta nella zona del tutorial = cerchi attorno ai suoi punti (campo base, parete,
--- negozio, uovo, accampamento, nido e obiettivo di adesso). Chi esce torna al punto piu' vicino
-local LEASH = 170
+-- TUTORIAL OBBLIGATORIO (Mirko 17/10: "ora puoi fare tutto, vai ovunque"; poi "non e' ancora
+-- forzato"): finche' non e' finito si sta sulla strada del passo di adesso = cerchio attorno al
+-- punto di partenza (obiettivo del passo prima), cerchio attorno all'obiettivo e il corridoio
+-- tra i due. Chi esce torna al punto piu' vicino dei due. Vale per tutti (anche admin e chi ha
+-- gia' draghi): saltarlo si puo' solo col pulsante SKIP, che vedono solo gli admin
+local AREA, CORRIDOR, HIGH = 130, 70, 90
 local lastPull: { [Player]: number } = {}
-local function leash(player: Player, memo: { [string]: any }, target: Vector3?)
+local function leash(player: Player, from: Vector3?, target: Vector3?)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if not root or not humanoid or humanoid.Health <= 0 then
+	if not root or not humanoid or humanoid.Health <= 0 or not target then
 		return
 	end
-	local markers = workspace:FindFirstChild("MapMarkers")
-	local hub = markers and markers:FindFirstChild("HubSpawn")
-	local anchors: { Vector3 } = {}
-	for _, v in { memo.wallBase, memo.wallTop, memo.shop, memo.ore, memo.eggSpot, target,
-		if hub and hub:IsA("BasePart") then hub.Position else nil,
-		player:GetAttribute("PlotPosition"), player:GetAttribute("NestPosition") } :: { any } do
-		if typeof(v) == "Vector3" then
-			table.insert(anchors, v)
-		end
-	end
-	if #anchors == 0 then
-		return
-	end
+	local a = from or target
+	local b = target :: Vector3
 	local pos = root.Position
-	local flat = Vector3.new(pos.X, 0, pos.Z)
-	local best, bestD = anchors[1], math.huge
-	for _, a in anchors do
-		local d = Vector3.new(pos.X - a.X, 0, pos.Z - a.Z).Magnitude
-		if d < bestD then
-			best, bestD = a, d
-		end
+	local function flatDist(p: Vector3, q: Vector3): number
+		return Vector3.new(p.X - q.X, 0, p.Z - q.Z).Magnitude
 	end
-	-- anche lungo la strada fra un punto e l'altro (corridoi): l'obiettivo puo' essere lontano
-	local corridor = math.huge
-	for i = 1, #anchors do
-		for j = i + 1, #anchors do
-			local a = Vector3.new(anchors[i].X, 0, anchors[i].Z)
-			local b = Vector3.new(anchors[j].X, 0, anchors[j].Z)
-			local ab = b - a
-			local t = if ab.Magnitude > 1 then math.clamp((flat - a):Dot(ab) / ab:Dot(ab), 0, 1) else 0
-			corridor = math.min(corridor, (flat - (a + ab * t)).Magnitude)
-		end
-	end
-	bestD = math.min(bestD, corridor)
-	-- anche in altezza: la parete e' bassa, sulla montagna vera non si sale
-	local tooHigh = pos.Y > best.Y + 120
-	if bestD <= LEASH and not tooHigh then
+	local da, db = flatDist(pos, a), flatDist(pos, b)
+	-- distanza dal corridoio a -> b (in pianta)
+	local fa = Vector3.new(a.X, 0, a.Z)
+	local ab = Vector3.new(b.X, 0, b.Z) - fa
+	local fp = Vector3.new(pos.X, 0, pos.Z)
+	local t = if ab.Magnitude > 1 then math.clamp((fp - fa):Dot(ab) / ab:Dot(ab), 0, 1) else 0
+	local dc = (fp - (fa + ab * t)).Magnitude
+	-- la parete del tutorial e' bassa: sulla montagna vera non si sale
+	local tooHigh = pos.Y > math.max(a.Y, b.Y) + HIGH
+	if (da <= AREA or db <= AREA or dc <= CORRIDOR) and not tooHigh then
 		return
 	end
 	if os.clock() - (lastPull[player] or 0) < 2 then
 		return
 	end
 	lastPull[player] = os.clock()
-	character:PivotTo(CFrame.new(best + Vector3.new(0, 4, 0)))
+	local back = if da < db then a else b
+	character:PivotTo(CFrame.new(back + Vector3.new(0, 4, 0)))
 	player:SetAttribute("Notice", "Finish the tutorial first: follow the arrows!")
 	player:SetAttribute("NoticeTime", os.clock())
 end
@@ -288,7 +270,18 @@ function Tutorial.setup()
 			task.wait(0.5)
 		end
 		local function points(): { [string]: any }
-			local shop = CollectionService:GetTagged("ShopCounter")[1]
+			-- il negozio del tutorial e' quello piu' vicino alla parete (prima il primo della
+			-- lista: a volte quello di un campo base in montagna, e le frecce andavano "a caso")
+			local shop: Instance? = nil
+			local bestShop = math.huge
+			for _, c in CollectionService:GetTagged("ShopCounter") do
+				if c:IsA("BasePart") and wallBase then
+					local d = (c.Position - wallBase.Position).Magnitude
+					if d < bestShop then
+						shop, bestShop = c, d
+					end
+				end
+			end
 			local ore = tutorial and tutorial:FindFirstChild("Ore_Ferro")
 			local eggSpot = tutorial and tutorial:FindFirstChild("EggSpot") :: BasePart?
 			return {
@@ -301,20 +294,27 @@ function Tutorial.setup()
 		end
 		local memo = points()
 		local step = player:GetAttribute("TutorialStep") :: number
-		-- si puo' saltare solo se hai gia' un drago (vecchi salvataggi a meta' tutorial) o sei admin
-		player:SetAttribute("TutorialSaltabile", ((player:GetAttribute("DragonCount") or 0) :: number) > 0 or player:GetAttribute("IsAdmin") == true)
+		-- SKIP solo per gli admin (per le prove)
+		player:SetAttribute("TutorialSaltabile", player:GetAttribute("IsAdmin") == true)
+		-- partenza del passo di adesso: l'obiettivo del passo prima (al primo, il campo base)
+		local markers = workspace:FindFirstChild("MapMarkers")
+		local hub = markers and markers:FindFirstChild("HubSpawn")
+		local from: Vector3? = if hub and hub:IsA("BasePart") then hub.Position else nil
+		if STEPS[step - 1] then
+			from = STEPS[step - 1].target(player, memo) or from
+		end
 		publish(player, step)
 		while player.Parent and step <= #STEPS do
 			task.wait(0.5)
 			step = player:GetAttribute("TutorialStep") :: number -- puo' cambiare (salta/admin)
 			local s = STEPS[step]
+			local target = if s then s.target(player, memo) else nil
 			if s then
-				player:SetAttribute("GuideTarget", s.target(player, memo))
-				if player:GetAttribute("TutorialSaltabile") ~= true then
-					leash(player, memo, s.target(player, memo))
-				end
+				player:SetAttribute("GuideTarget", target)
+				leash(player, from, target)
 			end
 			if s and s.check(player, memo) then
+				from = target or from
 				step += 1
 				memo = points()
 				publish(player, step)

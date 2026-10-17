@@ -398,9 +398,14 @@ local function coldLoop()
 	end
 end
 
+-- archivio dei salvataggi. Cambiare il nome = tutti ripartono da zero (Mirko 17/10: "fai un
+-- reset di tutto a tutti quelli che hanno giocato, compreso me"). I vecchi restano nel vecchio
+-- archivio: per tornare indietro basta rimettere il nome di prima ("HardcoreClimbing_v1")
+Progression.STORE = "HardcoreClimbing_v2"
+
 function Progression.setup(remotes: { [string]: RemoteEvent })
 	local ok, result = pcall(function()
-		return DataStoreService:GetDataStore("HardcoreClimbing_v1")
+		return DataStoreService:GetDataStore(Progression.STORE)
 	end)
 	if ok then
 		store = result

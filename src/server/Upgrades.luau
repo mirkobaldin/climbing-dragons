@@ -562,7 +562,8 @@ end
 
 function Upgrades.setup()
 	pcall(function()
-		recordStore = DataStoreService:GetOrderedDataStore("DiscesaRecord")
+		-- record della discesa: ripartono da zero col reset del 17/10 (prima "DiscesaRecord")
+		recordStore = DataStoreService:GetOrderedDataStore("DiscesaRecord_v2")
 	end)
 	Survival.absorb = absorb
 
