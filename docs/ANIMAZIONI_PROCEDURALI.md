@@ -162,3 +162,24 @@ Cause e correzioni (DragonProcedural salvo dove detto):
   automatico attorno per i draghi che camminano; in parete stanno piu' lontani (~35 studs).
 Da guardare a occhio: la camminata in discesa (le zampe dietro all'indietro), il drago seduto sul
 pendio (giro 3) e se la lunghezza in parete va bene.
+
+## Giro 5 (2026-10-17, sessione cloud, NON provato in Studio)
+Mirko: "noto un po' di tremolii in piu', la testa e il collo restano praticamente sempre piegati
+a S, non si distendono mai".
+- **Collo che si distende** (`client/DragonMotion`): prima si allungava solo in picchiata (e
+  la rotazione girava tutto il collo insieme, non toglieva la S). Ora ogni vertebra ha la sua
+  piega a riposo misurata sulle ossa (`j.straight`: angolo attorno all'asse destro dell'osso che
+  mette il pezzo dopo in linea col pezzo prima; la prima vertebra solo a meta') e se ne toglie
+  una frazione `extend`: in volo 0,35-0,8 secondo la velocita', in picchiata 1, camminando 0,3,
+  da fermo ogni ~14 s si stiracchia (fino a 0,65). Molla lenta (2/s), niente scatti.
+  Interruttore per confrontare: attributo `ColloDisteso = false` sul modello del drago, o
+  `DragonMotion.STRETCH = false`.
+  **Da controllare per primo**: se in volo il collo si piega DI PIU' invece di distendersi, il
+  verso dell'asse destro e' al contrario per quel modello: cambiare il segno di `j.straight`.
+- **Tremolii**: la virata che arriva da PetAnimator ora ha una zona morta (0,15 rad/s), conta
+  solo quando il drago si muove davvero (sotto 2-12 studs/s scende a zero) e passa da una molla
+  (3/s); le molle del collo in `DragonProcedural` sono quasi critiche (smorzamento 0,95 invece
+  di 0,65, che oscillava) e l'accelerazione verticale che abbassa la testa e' limitata. Ondeggio
+  del collo in volo piu' piccolo (0,03).
+Da misurare come nel giro 4: rotazione del collo e della testa rispetto al corpo, frame oltre
+360 gradi/s, in volo con virate strette e da fermo librato, prima/dopo.
