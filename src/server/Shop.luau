@@ -12,6 +12,7 @@ local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 local Names = require(ReplicatedStorage.Shared.Names)
 local EconomyConfig = require(ReplicatedStorage.Shared.EconomyConfig)
 local ShopConfig = require(ReplicatedStorage.Shared.ShopConfig)
+local ItemConfig = require(ReplicatedStorage.Shared.Items)
 local Dragons = require(script.Parent.Dragons)
 local Economy = require(script.Parent.Economy)
 local Eggs = require(script.Parent.Eggs)
@@ -63,14 +64,6 @@ local function buy(player: Player, id: string): (boolean, string)
 		Items.add(player, id, 1)
 		Economy.addCoins(player, -item.price)
 		return true, item.name .. " bought: it's in your backpack"
-	elseif id == "MysteryEgg" or id == "RareEgg" then
-		local rarity = roll(ShopConfig.EGG_ODDS[id])
-		local element = randomElement()
-		if not Dragons.incubate(player, element, rarity) then
-			return false, if Dragons.nestSlots(player) == 0 then "You need a nest: buy the Tent on your plot" else "The nest is full"
-		end
-		Economy.addCoins(player, -item.price)
-		return true, string.format("%s %s Egg in your nest!", Names.t(rarity), Names.t(element))
 	elseif id == "DragonFeast" then
 		-- un terzo del livello di adesso a ogni drago al seguito (non ai draghi gia' al massimo)
 		local fed = 0
@@ -82,10 +75,6 @@ local function buy(player: Player, id: string): (boolean, string)
 		end
 		if fed == 0 then
 			return false, "You need a dragon following you (below max level)"
-		end
-	elseif id == "NestWarmer" then
-		if not Dragons.speedNest(player, 0.5) then
-			return false, "No eggs warming in your nest"
 		end
 	elseif id == "EvoStone" then
 		Dragons.addStones(player, 1)
@@ -158,6 +147,22 @@ local function handle(player: Player, action: any, id: any, amount: any): (boole
 	elseif action == "robux" and type(id) == "string" then
 		local passId = DragonConfig.GAMEPASSES[id]
 		local productId = ShopConfig.DEV_PRODUCTS[id]
+		-- prima di far pagare: le cose che non servirebbero a niente non si vendono
+		local pack = ShopConfig.pack(id)
+		if pack and pack.oneTime and Items.hasFlag(player, id) then
+			return false, "You already bought it"
+		elseif id == "NestWarmer" or id == "InstantHatch" then
+			local now = os.time()
+			local waiting = false
+			for _, egg in Dragons.state(player).nest do
+				if egg.readyAt > now then
+					waiting = true
+				end
+			end
+			if not waiting then
+				return false, "No eggs warming in your nest"
+			end
+		end
 		if passId and passId > 0 then
 			MarketplaceService:PromptGamePassPurchase(player, passId)
 			return true, ""
@@ -170,28 +175,122 @@ local function handle(player: Player, action: any, id: any, amount: any): (boole
 	return false, "Invalid request"
 end
 
--- Acquisti a Robux completati
-local function processReceipt(info: any): Enum.ProductPurchaseDecision
-	local player = Players:GetPlayerByUserId(info.PlayerId)
-	if not player then
-		return Enum.ProductPurchaseDecision.NotProcessedYet
-	end
-	local id = info.ProductId
-	if id == ShopConfig.DEV_PRODUCTS.Revive then
+-- consegna di un prodotto a Robux (id = nome in ShopConfig.DEV_PRODUCTS)
+local function grantEgg(player: Player, rarity: string)
+	local element = randomElement()
+	Dragons.incubate(player, element, rarity, nil, true)
+	return string.format("%s %s Egg in your nest!", Names.t(rarity), Names.t(element))
+end
+
+local function grant(player: Player, name: string): string
+	if name == "Revive" then
 		local pos = player:GetAttribute("DeathPosition")
 		if typeof(pos) == "Vector3" then
 			player:SetAttribute("ReviveAt", pos)
 		end
 		player:LoadCharacter()
-	elseif id == ShopConfig.DEV_PRODUCTS.InstantHatch then
+		return "Mountain rescue!"
+	elseif name == "InstantHatch" then
 		Dragons.finishIncubation(player)
-	elseif id == ShopConfig.DEV_PRODUCTS.Coins1000 then
-		Economy.addCoins(player, 1000)
-	elseif id == ShopConfig.DEV_PRODUCTS.TrainingBoost then
+		return "Every egg in your nest is ready!"
+	elseif name == "NestWarmer" then
+		Dragons.speedNest(player, 0.5)
+		return "Nest warmed: eggs hatch twice as fast"
+	elseif name == "Coins1000" then
+		Economy.addCoins(player, 1000, true)
+		return "+1,000 coins"
+	elseif name == "TrainingBoost" then
 		-- si somma a un boost gia' attivo
 		local now = os.time()
 		local untilT = math.max(now, (player:GetAttribute("TrainingBoostUntil") or 0) :: number)
 		player:SetAttribute("TrainingBoostUntil", untilT + DragonConfig.TRAINING.BOOST_MINUTES * 60)
+		return "Training boost active"
+	elseif ShopConfig.EGG_ODDS[name] then
+		return grantEgg(player, roll(ShopConfig.EGG_ODDS[name]))
+	elseif ItemConfig.get(name) then
+		Items.add(player, name, 1)
+		return name .. " in your backpack"
+	end
+	for _, c in ShopConfig.COIN_PACKS do
+		if c.id == name then
+			Economy.addCoins(player, c.coins, true)
+			return string.format("+%d coins", c.coins)
+		end
+	end
+	local pack = ShopConfig.pack(name)
+	if pack then
+		for _, it in pack.items do
+			if it.kind == "egg" then
+				for _ = 1, it.n do
+					grantEgg(player, it.rarity or "Comune")
+				end
+			elseif it.kind == "coins" then
+				Economy.addCoins(player, it.n, true)
+			elseif it.kind == "item" and it.id then
+				Items.add(player, it.id, it.n)
+			elseif it.kind == "stones" then
+				Dragons.addStones(player, it.n)
+			elseif it.kind == "hatch" then
+				Dragons.finishIncubation(player)
+			end
+		end
+		if pack.oneTime then
+			Items.setFlag(player, pack.id)
+		end
+		return pack.name .. " unlocked!"
+	end
+	return ""
+end
+
+-- acquisti gia' consegnati (PurchaseId): Roblox puo' richiamare ProcessReceipt piu' volte per lo
+-- stesso acquisto, e non deve dare la roba due volte
+local receiptStore: DataStore? = nil
+pcall(function()
+	receiptStore = game:GetService("DataStoreService"):GetDataStore("AcquistiRobux")
+end)
+local doneHere: { [string]: boolean } = {}
+
+local function processReceipt(info: any): Enum.ProductPurchaseDecision
+	local player = Players:GetPlayerByUserId(info.PlayerId)
+	if not player then
+		return Enum.ProductPurchaseDecision.NotProcessedYet
+	end
+	local key = tostring(info.PurchaseId)
+	if doneHere[key] then
+		return Enum.ProductPurchaseDecision.PurchaseGranted
+	end
+	if receiptStore then
+		local okRead, seen = pcall(function()
+			return (receiptStore :: DataStore):GetAsync(key)
+		end)
+		if not okRead then
+			return Enum.ProductPurchaseDecision.NotProcessedYet -- si riprova piu' tardi
+		end
+		if seen then
+			doneHere[key] = true
+			return Enum.ProductPurchaseDecision.PurchaseGranted
+		end
+	end
+	local name: string? = nil
+	for n, id in ShopConfig.DEV_PRODUCTS do
+		if id > 0 and id == info.ProductId then
+			name = n
+		end
+	end
+	if not name then
+		warn("[Shop] prodotto sconosciuto: " .. tostring(info.ProductId))
+		return Enum.ProductPurchaseDecision.NotProcessedYet
+	end
+	local message = grant(player, name :: string)
+	doneHere[key] = true
+	if receiptStore then
+		pcall(function()
+			(receiptStore :: DataStore):SetAsync(key, { user = info.PlayerId, product = name, t = os.time() })
+		end)
+	end
+	if message ~= "" then
+		player:SetAttribute("Notice", message)
+		player:SetAttribute("NoticeTime", os.clock())
 	end
 	return Enum.ProductPurchaseDecision.PurchaseGranted
 end

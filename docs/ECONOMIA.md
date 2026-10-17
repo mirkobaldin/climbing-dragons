@@ -20,7 +20,6 @@ prezzo o che si mostrano agli altri.
 | Cosa | Prezzo | Perché funziona |
 |---|---|---|
 | **Dragon Feast** (negozio) | 600 | un terzo di livello a ogni drago al seguito: serve a ogni livello, si ricompra sempre |
-| **Nest Warmer** (negozio) | 900 | dimezza il tempo che manca alle uova del nido. Non toglie spazio a Instant Hatch (Robux), che le schiude subito tutte |
 | **Evolution Stone** (negozio) | 7.500 | le pietre adesso arrivano solo dal Duello: chi ha monete può evolvere prima |
 | **Rinascita che costa sempre di più** | 2.500 x 1,6^n | prima era fissa a 2.500: con +15% di monete per rinascita costava sempre meno |
 
@@ -83,3 +82,21 @@ Regole di Roblox da rispettare:
 Monete guadagnate all'ora (al primo giorno e dopo una settimana), quando si compra la Baita e lo
 Chalet, quante monete ha chi esce dal gioco. Se le monete crescono senza uso, alzare i prezzi
 delle cose che si ricomprano o aggiungere le idee 1-3.
+
+## Aggiornamento del 17/10 sera: negozio a Robux fatto
+Mirko: "Mystery Egg, Rare Egg e la velocità di schiusa non si comprano con le monete: sono
+prodotti a Robux che si ricomprano, non pass". E come riferimento la pagina dei pacchetti di un
+simulatore (Starter Pack una volta sola, poi Value Packs con monete e pozioni).
+- Pagina **Robux** del negozio (`client/RobuxShop`), dall'alto: Starter Pack, Value Packs
+  (Hatcher, Hunter, Dragon Rider), uova Mystery/Rare/Epic con le probabilità, quattro pozioni,
+  quattro pacchetti di monete, aiuti (Nest Warmer, Instant Hatch, Mountain Rescue, Training
+  Boost) e pass.
+- Pozioni da 15 minuti (`shared/Items`), che si sommano se ne bevi più di una: x2 monete,
+  fortuna della schiusa (30% che l'uovo salga di rarità), shiny x3, x2 drop. Vanno nello zaino e
+  nella barra 1-5, e quelle attive si vedono sotto il meteo (`client/BoostBar`).
+- Lo Starter Pack si compra una volta sola (attributo `Comprato_StarterPack`, salvato).
+- Le uova comprate entrano nel nido anche se è pieno.
+- Ogni acquisto si consegna una volta sola: `PurchaseId` salvato nel DataStore `AcquistiRobux`.
+- **Da fare in Creator Hub**: creare i developer product con i nomi e i prezzi di
+  `ShopConfig.DEV_PRODUCTS` / `ROBUX_PRICES` e mettere gli ID. Finché un ID è 0, la carta mostra
+  COMING SOON.

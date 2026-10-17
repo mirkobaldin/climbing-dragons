@@ -123,7 +123,7 @@ local function spawnOne(name: string, at: Vector3)
 end
 
 -- il nemico "kind" e' morto in "at"
-function Drops.drop(kind: string, at: Vector3, boss: boolean)
+function Drops.drop(kind: string, at: Vector3, boss: boolean, luck: number?)
 	if boss and Drops.BOSS[kind] then
 		for _, name in Drops.BOSS[kind] do
 			spawnOne(name, at)
@@ -131,7 +131,7 @@ function Drops.drop(kind: string, at: Vector3, boss: boolean)
 		return
 	end
 	for _, entry in Drops.TABLE[kind] or {} do
-		if math.random() < entry[2] then
+		if math.random() < math.min(1, entry[2] * (luck or 1)) then
 			spawnOne(entry[1], at)
 		end
 	end

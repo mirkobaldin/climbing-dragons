@@ -67,9 +67,10 @@ local function publish(player: Player)
 	player:SetAttribute("RoostSlots", if house then house.roost else 0)
 end
 
-function Economy.addCoins(player: Player, amount: number)
+-- raw: senza bonus (monete comprate a Robux: il pacchetto da' quello che dice)
+function Economy.addCoins(player: Player, amount: number, raw: boolean?)
 	local s = state(player)
-	if amount > 0 then
+	if amount > 0 and not raw then
 		amount = math.floor(amount * UpgradeConfig.coinMult(player) + 0.5) -- bonus delle rinascite
 	end
 	s.coins = math.max(0, s.coins + amount)

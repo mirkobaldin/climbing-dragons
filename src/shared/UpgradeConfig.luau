@@ -324,7 +324,10 @@ function UpgradeConfig.rebirthCost(player: Player): number
 end
 
 function UpgradeConfig.coinMult(player: Player): number
-	return 1 + ((player:GetAttribute("Rebirths") or 0) :: number) * UpgradeConfig.REBIRTH.COIN_BONUS
+	-- pozione delle monete (shared/Items: attributo Boost_Coins = fine)
+	local potion = player:GetAttribute("Boost_Coins")
+	local x2 = if type(potion) == "number" and potion > workspace:GetServerTimeNow() then 2 else 1
+	return (1 + ((player:GetAttribute("Rebirths") or 0) :: number) * UpgradeConfig.REBIRTH.COIN_BONUS) * x2
 end
 
 function UpgradeConfig.xpMult(player: Player): number

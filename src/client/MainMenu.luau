@@ -9,6 +9,7 @@ local EconomyConfig = require(Shared:WaitForChild("EconomyConfig"))
 local Names = require(Shared:WaitForChild("Names"))
 local Gear = require(Shared:WaitForChild("Gear"))
 local Items = require(Shared:WaitForChild("Items"))
+local RobuxShop = require(script.Parent.RobuxShop)
 local ShopConfig = require(Shared:WaitForChild("ShopConfig"))
 local Ui = require(Shared:WaitForChild("UiView"))
 local Theme = require(script.Parent.Theme)
@@ -105,6 +106,9 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 		status(message or "", ok)
 		render()
 	end
+	local robux = RobuxShop.mount(container, list, function(action: string, id: string)
+		call(action, id)
+	end)
 	local function card(order: number): any
 		local c = Ui.template("ItemCard", list)
 		c.LayoutOrder = order
@@ -147,6 +151,8 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 		for _, name in { "Buy", "Sell", "Robux" } do
 			UiKit.tab(Ui.node(container, "Tabs/" .. name), name == sub)
 		end
+		-- la scheda Robux e' una pagina a sezioni (client/RobuxShop), non la griglia di carte
+		robux.show(sub == "Robux")
 		if sub == "Buy" then
 			for k, item in ShopConfig.ITEMS do
 				local c = card(k)
@@ -191,33 +197,6 @@ local function mountShop(container: Frame, status: (string, boolean) -> ()): () 
 			c.Buy.Activated:Connect(function()
 				call("sellEgg")
 			end)
-		else
-			local entries = {
-				{ "EggFinder", "Egg Finder", "Compass to the nearest egg", "pass_" },
-				{ "FastIncubation", "Fast Incubation x2", "Eggs hatch in half the time", "pass_" },
-				{ "ExtraDragon", "+1 Dragon Follower", "Bring two dragons with you", "pass_" },
-				{ "ExtraIncubator", "Big Nest", "+2 nest slots", "pass_" },
-				{ "Revive", "Mountain Rescue", "Respawn where you fell", "prod_" },
-				{ "InstantHatch", "Instant Hatch", "Every egg in your nest ready now", "prod_" },
-				{ "Coins1000", "1000 Coins", "A boost for your house", "prod_" },
-				{ "TrainingX2", "Training XP x2", "Double training XP, forever", "pass_" },
-				{ "TrainingBoost", "Training Boost x3", "Triple training XP for 15 minutes", "prod_" },
-			}
-			for k, e in entries do
-				local c = card(k)
-				Ui.asset(c.Icon, e[4] .. e[1])
-				c.Title.Text, c.Description.Text = e[2], e[3]
-				local owned = player:GetAttribute("Pass_" .. e[1]) == true
-				local available = (DragonConfig.GAMEPASSES[e[1]] or ShopConfig.DEV_PRODUCTS[e[1]] or 0) > 0
-				c.Buy.Visible = true
-				UiKit.button(c.Buy, if owned or not available then "disabled" else "primary")
-				c.Buy.Text = if owned then "OWNED" elseif available then "BUY (ROBUX)" else "COMING SOON"
-				c.Buy.Activated:Connect(function()
-					if not owned and available then
-						call("robux", e[1])
-					end
-				end)
-			end
 		end
 	end
 	for _, name in { "Buy", "Sell", "Robux" } do
@@ -235,7 +214,7 @@ end
 -- del gioco, shared/Hotbar): si sceglie un attrezzo e si tocca una casella (o lo si trascina
 -- sulla casella col mouse) per metterlo li'; una casella piena si sposta su un'altra o si toglie
 -- con "Remove". Nella barra vanno solo gli attrezzi che si tengono in mano.
-local INV_FILTERS = { "All", "Ores", "Materials", "Tools", "Eggs" }
+local INV_FILTERS = { "All", "Items", "Ores", "Materials", "Tools", "Eggs" }
 local TOOL_ICONS = { "item_Piccozza", "item_Piccone", "item_Rampino", "item_Torcia" }
 local function mountInventory(container: Frame, status: (string, boolean) -> (), ctx: any?): () -> ()
 	local UIS = game:GetService("UserInputService")
@@ -939,7 +918,7 @@ local function mountInventory(container: Frame, status: (string, boolean) -> (),
 		local fy = dollH + 10
 		filterBar.Position = UDim2.fromOffset(0, fy)
 		filterBar.Size = UDim2.new(0, mainW, 0, barH)
-		local chipW = math.min(116, math.floor((mainW - 4 * 6) / 5))
+		local chipW = math.min(116, math.floor((mainW - (#INV_FILTERS - 1) * 6) / #INV_FILTERS))
 		for i, f in INV_FILTERS do
 			local b = chips[f]
 			b.Position = UDim2.fromOffset((i - 1) * (chipW + 6), 0)

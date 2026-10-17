@@ -25,6 +25,7 @@ local Survival = require(script.Parent.Survival)
 local Upgrades = require(script.Parent.Upgrades)
 local Flyers = require(script.Parent.Flyers)
 local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
+local ItemConfig = require(ReplicatedStorage.Shared.Items)
 
 local Enemies = {}
 
@@ -304,7 +305,18 @@ end
 -- Combattimento
 
 local function giveRewards(enemy: Enemy)
-	Drops.drop(enemy.kind, enemy.root.Position, enemy.boss ~= nil) -- materiali a terra
+	-- pozione della fortuna dei drop (shared/Items) di chi ha colpito di piu'
+	local luck = 1
+	local top, topDmg = nil :: Player?, 0
+	for who, dmg in enemy.damagedBy do
+		if typeof(who) == "Instance" and dmg > topDmg then
+			top, topDmg = who :: Player, dmg
+		end
+	end
+	if top and ItemConfig.boosted(top, "DropLuck") then
+		luck = ItemConfig.DROP_MULT
+	end
+	Drops.drop(enemy.kind, enemy.root.Position, enemy.boss ~= nil, luck) -- materiali a terra
 	local total = 0
 	for _, dmg in enemy.damagedBy do
 		total += dmg

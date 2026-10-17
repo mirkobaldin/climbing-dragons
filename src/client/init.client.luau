@@ -32,6 +32,7 @@ local Prestazioni = require(script.Prestazioni)
 local Combat = require(script.Combat)
 local Glider = require(script.Glider)
 local Montepremi = require(script.Montepremi)
+local BoostBar = require(script.BoostBar)
 local EventBanner = require(script.EventBanner)
 local ControlsPanel = require(script.ControlsPanel)
 local TutorialHints = require(script.TutorialHints)
@@ -74,6 +75,7 @@ task.delay(3, Prestazioni.start) -- telefono/PC deboli: niente ombre di alberi e
 Combat.start() -- attacco del drago (Z), draghi volanti, scudo, discesa, eventi
 Glider.start() -- parapendio (Spazio mentre cadi)
 Montepremi.start() -- montepremi stile Squid Game in alto al centro
+BoostBar.start() -- pozioni attive col tempo che resta (shared/Items)
 EventBanner.start() -- annunci degli eventi della mappa sotto il montepremi (3 s, poi etichetta)
 ControlsPanel.start() -- comandi del dispositivo in uso (inizio del tutorial, "?" e F1)
 TutorialHints.start() -- il pulsante da premere lampeggia (tutorial per bambini)

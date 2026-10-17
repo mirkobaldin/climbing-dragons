@@ -164,6 +164,15 @@ function Items.use(player: Player, id: string): (boolean, string)
 	return true, message
 end
 
+-- acquisti fatti una volta sola (Starter Pack): attributo "Comprato_<nome>" per il client
+function Items.setFlag(player: Player, name: string)
+	player:SetAttribute("Comprato_" .. name, true)
+end
+
+function Items.hasFlag(player: Player, name: string): boolean
+	return player:GetAttribute("Comprato_" .. name) == true
+end
+
 -- salvataggio: quantita' e secondi che restano a ogni pozione
 function Items.serialize(player: Player): { [string]: any }
 	local counts = {}
@@ -179,7 +188,14 @@ function Items.serialize(player: Player): { [string]: any }
 			boosts[kind] = math.floor(left)
 		end
 	end
-	return { counts = counts, boosts = boosts }
+	local flags = {}
+	for name, v in player:GetAttributes() do
+		local f = string.match(name, "^Comprato_(.+)$")
+		if f and v == true then
+			table.insert(flags, f)
+		end
+	end
+	return { counts = counts, boosts = boosts, flags = flags }
 end
 
 function Items.load(player: Player, data: any)
@@ -188,6 +204,13 @@ function Items.load(player: Player, data: any)
 			for id, n in data.counts do
 				if type(id) == "string" and type(n) == "number" and ItemConfig.get(id) then
 					Items.add(player, id, math.floor(n))
+				end
+			end
+		end
+		if type(data.flags) == "table" then
+			for _, f in data.flags do
+				if type(f) == "string" and #f < 40 then
+					Items.setFlag(player, f)
 				end
 			end
 		end

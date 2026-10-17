@@ -18,6 +18,7 @@ local TextService = game:GetService("TextService")
 
 local DragonConfig = require(ReplicatedStorage.Shared.DragonConfig)
 local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
+local ItemConfig = require(ReplicatedStorage.Shared.Items)
 local Names = require(ReplicatedStorage.Shared.Names)
 local DragonModels = require(script.Parent.DragonModels)
 local Guardia = require(script.Parent.Guardia)
@@ -284,10 +285,12 @@ function Dragons.give(player: Player, element: string, rarity: string, stage: nu
 end
 
 -- Mette un uovo nel nido; false se il nido e' pieno. seconds = tempo di cova forzato
-function Dragons.incubate(player: Player, element: string, rarity: string, seconds: number?): boolean
+-- force: uova comprate a Robux, entrano anche col nido pieno (non si possono rifiutare dopo
+-- l'acquisto)
+function Dragons.incubate(player: Player, element: string, rarity: string, seconds: number?, force: boolean?): boolean
 	element = DragonConfig.RETIRED[element] or element
 	local s = Dragons.state(player)
-	if #s.nest >= Dragons.nestSlots(player) then
+	if #s.nest >= Dragons.nestSlots(player) and not force then
 		return false
 	end
 	-- (0 posti = non hai ancora una casa: il nido si sblocca con la Tenda)
@@ -408,10 +411,23 @@ local function action(player: Player, kind: any, arg: any, extra: any): (boolean
 			(Dragons.onHatch :: any)(player, egg)
 		end
 		-- ogni tanto nasce un drago Shiny (dorato): piu' esperienza e vale di piu'
-		local shiny = math.random() < UpgradeConfig.SHINY_CHANCE or player:GetAttribute("ForceShiny") == true
+		-- pozioni (shared/Items): fortuna della schiusa (l'uovo sale di una rarita') e shiny x3
+		local shinyChance = UpgradeConfig.SHINY_CHANCE * (if ItemConfig.boosted(player, "ShinyLuck") then ItemConfig.SHINY_MULT else 1)
+		local shiny = math.random() < shinyChance or player:GetAttribute("ForceShiny") == true
 		player:SetAttribute("ForceShiny", nil) -- (comando admin "shiny")
-		Dragons.give(player, egg.element, egg.rarity, 1, shiny)
-		return true, string.format("A %s%s %s hatched!", if shiny then "SHINY " else "", Names.t(egg.rarity), Names.dragon(egg.element))
+		local rarity = egg.rarity
+		local lucky = false
+		if ItemConfig.boosted(player, "HatchLuck") and math.random() < ItemConfig.HATCH_LUCK then
+			for i, r in DragonConfig.RARITIES do
+				local up = DragonConfig.RARITIES[i + 1]
+				if r.id == egg.rarity and up then
+					rarity, lucky = up.id, true
+					break
+				end
+			end
+		end
+		Dragons.give(player, egg.element, rarity, 1, shiny)
+		return true, string.format("%sA %s%s %s hatched!", if lucky then "LUCKY! " else "", if shiny then "SHINY " else "", Names.t(rarity), Names.dragon(egg.element))
 	elseif kind == "release" or kind == "sell" then
 		local d, k = findDragon(s, tonumber(arg) or -1)
 		if not d or not k then
